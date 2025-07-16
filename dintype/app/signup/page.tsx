@@ -2,15 +2,14 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useLanguage } from "@/components/language-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { createClient } from '@/utils/supabase/client'
 import { AlertCircle } from "lucide-react"
 import Link from "next/link"
-import { useLanguage } from "@/components/language-context"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
-import { createClient } from '@/utils/supabase/client'
+import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 export default function SignupPage() {
   const [username, setUsername] = useState("")
@@ -89,7 +88,7 @@ export default function SignupPage() {
         return
       }
 
-      setSuccess(t("signup.accountCreatedSuccessfully"))
+      router.push("/confirm-email")
     } catch (err) {
       console.error("Unexpected error during signup:", err)
       setError(t("signup.errorOccurred"))

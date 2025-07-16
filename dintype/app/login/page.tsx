@@ -2,14 +2,14 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useAuth } from "@/components/auth-context"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useAuth } from "@/components/auth-context"
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Sparkles } from "lucide-react"
-import Link from "next/link"
 import { useTranslations } from "@/lib/use-translations"
+import { ArrowRight, Eye, EyeOff, Lock, Mail, Sparkles } from "lucide-react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 
 export default function LoginPage() {
   const { t } = useTranslations()
@@ -18,13 +18,14 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoginSuccess, setIsLoginSuccess] = useState(false)
   const router = useRouter()
   const { login, user } = useAuth()
 
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      router.push("/user/dashboard")
+      router.push("/")
     }
   }, [user, router])
 
@@ -37,7 +38,11 @@ export default function LoginPage() {
       const success = await login(email, password)
 
       if (success) {
-        router.push("/user/dashboard")
+        setIsLoginSuccess(true)
+        setTimeout(() => {
+          router.push("/")
+        }, 1000)
+        // router.push("/")
       } else {
         setError("Invalid email or password. Please try again.")
       }
@@ -53,6 +58,11 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4">
       <div className="w-full max-w-md">
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 shadow-2xl border border-gray-700">
+          {isLoginSuccess && (
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6 font-semibold text-lg text-center">
+              Login Successful
+            </div>
+          )}
           {/* Header */}
           <div className="text-center mb-8">
             <div className="flex items-center justify-center mb-4">
