@@ -1,0 +1,35 @@
+/* Reset all margins and paddings */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Force dark background on all elements */
+html,
+body,
+div,
+main,
+aside,
+section,
+article {
+  background-color: #141414;
+}
+
+/* Fix any potential white spaces */
+body {
+  overflow-x: hidden;
+  background-color: #141414;
+}
+
+/* Target the specific white space area */
+.min-h-screen + .min-h-screen,
+.min-h-screen > div,
+.min-h-screen > div > div {
+  background-color: #141414;
+}
+
+/* Fix borders */
+.border-r {
+  border-right-color: #252525 !important;
+}

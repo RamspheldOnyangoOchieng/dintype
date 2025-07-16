@@ -1,0 +1,31 @@
+{
+  "global": {
+    "siteName": "AI Character Explorer",
+    "siteUrl": "https://ai-character-explorer.vercel.app",
+    "titleTemplate": "%s | AI Character Explorer",
+    "description": "Explore and chat with AI characters in a fun and interactive way.",
+    "keywords": "AI, characters, chat, virtual companions, artificial intelligence",
+    "ogImage": "/og-image.jpg",
+    "twitterHandle": "@aicharacterexplorer"
+  },
+  "pages": {
+    "/": {
+      "title": "AI Character Explorer",
+      "description": "Explore and chat with AI characters in a fun and interactive way.",
+      "keywords": "AI, characters, chat, virtual companions, artificial intelligence",
+      "ogImage": "/og-image.jpg"
+    },
+    "/characters": {
+      "title": "Browse Characters",
+      "description": "Browse our collection of AI characters and find your perfect virtual companion.",
+      "keywords": "AI characters, virtual companions, character gallery, browse characters",
+      "ogImage": "/characters-og.jpg"
+    },
+    "/chat": {
+      "title": "Chat with Characters",
+      "description": "Chat with your favorite AI characters in real-time.",
+      "keywords": "AI chat, character chat, virtual companions, conversation",
+      "ogImage": "/chat-og.jpg"
+    }
+  }
+}

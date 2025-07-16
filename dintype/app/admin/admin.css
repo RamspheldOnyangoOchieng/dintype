@@ -1,0 +1,33 @@
+/* Ensure no white space in admin layout */
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #141414;
+  color: white;
+}
+
+.admin-layout > * {
+  background-color: #141414;
+}
+
+.admin-sidebar {
+  width: 16rem; /* 64px */
+  background-color: #1a1a1a;
+  border-right: 1px solid #252525;
+}
+
+.admin-content {
+  flex: 1;
+  background-color: #141414;
+}
+
+/* Ensure no gaps between elements */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #141414;
+}

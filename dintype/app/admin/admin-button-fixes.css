@@ -1,0 +1,81 @@
+/* Global button fixes for admin panel */
+
+/* Ensure all buttons have proper minimum dimensions for touch targets */
+.admin-layout button,
+.admin-layout [role="button"] {
+  min-height: 2.5rem;
+  min-width: 2.5rem;
+}
+
+/* Fix for buttons that might be cut off in containers */
+.admin-layout .overflow-hidden,
+.admin-layout .overflow-x-auto,
+.admin-layout .overflow-y-auto {
+  overflow: visible !important;
+}
+
+/* Ensure proper button spacing */
+.admin-layout .button-container {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Apply the new #00ccff color to all primary buttons in the admin panel */
+.admin-layout button.bg-blue-600,
+.admin-layout button.bg-primary,
+.admin-layout [role="button"].bg-blue-600,
+.admin-layout [role="button"].bg-primary {
+  background-color: #00ccff !important;
+  color: black !important;
+}
+
+/* Hover state for the new color */
+.admin-layout button.bg-blue-600:hover,
+.admin-layout button.bg-primary:hover,
+.admin-layout [role="button"].bg-blue-600:hover,
+.admin-layout [role="button"].bg-primary:hover {
+  background-color: #00b8e6 !important;
+}
+
+/* Ensure buttons are visible against white backgrounds */
+.admin-layout button.bg-white,
+.admin-layout button.bg-gray-50 {
+  border: 1px solid #e5e7eb;
+}
+
+/* Improve focus visibility with the new color */
+.admin-layout button:focus-visible,
+.admin-layout [role="button"]:focus-visible {
+  outline: 2px solid #00ccff;
+  outline-offset: 2px;
+}
+
+/* Ensure icon buttons have proper spacing */
+.admin-layout button > svg {
+  margin-right: 0.5rem;
+}
+
+.admin-layout button.icon-only > svg {
+  margin-right: 0;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 640px) {
+  .admin-layout button,
+  .admin-layout [role="button"] {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  /* Stack buttons on small screens when in a button container */
+  .admin-layout .button-container.stack-mobile {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .admin-layout .button-container.stack-mobile button,
+  .admin-layout .button-container.stack-mobile [role="button"] {
+    width: 100%;
+  }
+}

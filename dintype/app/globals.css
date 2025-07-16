@@ -1,0 +1,254 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Body classes for sidebar state management */
+  body.sidebar-open {
+    --sidebar-width: 251px;
+  }
+
+  body.sidebar-closed {
+    --sidebar-width: 59px;
+  }
+}
+
+@layer components {
+  /* Apply consistent border radius to common elements */
+  .btn,
+  .card,
+  .input,
+  .select,
+  .textarea,
+  .dropdown,
+  .modal,
+  .alert {
+    @apply rounded-[var(--radius)];
+  }
+
+  /* Ensure images in cards have matching border radius */
+  .card img {
+    @apply rounded-t-[var(--radius)];
+  }
+
+  /* Add smooth transitions for hover effects */
+  .btn,
+  .card,
+  .input,
+  .select,
+  .textarea {
+    @apply transition-all duration-200;
+  }
+
+  /* Primary button with gradient */
+  .btn-primary-gradient {
+    background-image: linear-gradient(90deg, #1c79ab 0%, #00ccff 51%, #1c79ab 100%);
+    background-size: 200% auto;
+    transition: background-position 0.5s ease-in-out;
+  }
+
+  .btn-primary-gradient:hover {
+    background-position: right center;
+  }
+
+  /* Apply gradient to shadcn button components */
+  [class*="bg-primary"] {
+    background-image: linear-gradient(90deg, #1c79ab 0%, #00ccff 51%, #1c79ab 100%) !important;
+    background-size: 200% auto !important;
+    transition: background-position 0.5s ease-in-out !important;
+  }
+
+  [class*="bg-primary"]:hover {
+    background-position: right center !important;
+  }
+
+  /* Sidebar and content transitions */
+  .sidebar-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .content-transition {
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Main content area that responds to sidebar */
+  .main-content {
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Ensure proper spacing on different screen sizes */
+  @media (min-width: 768px) {
+    .sidebar-collapsed-spacing {
+      margin-left: 59px;
+    }
+
+    .sidebar-expanded-spacing {
+      margin-left: 251px;
+    }
+  }
+
+  /* Mobile responsive utilities */
+  @media (max-width: 767px) {
+    .mobile-full-width {
+      margin-left: 0 !important;
+    }
+
+    /* On mobile, content should not have margin when sidebar is closed */
+    .main-content {
+      margin-left: 0 !important;
+    }
+  }
+}
+
+@keyframes progress {
+  0% {
+    width: 0%;
+  }
+  50% {
+    width: 70%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@layer utilities {
+  .animate-progress {
+    animation: progress 2s ease-in-out infinite;
+  }
+
+  .animate-spin-slow {
+    animation: spin-slow 3s linear infinite;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+
+  .animate-slide-in {
+    animation: slide-in 0.3s ease-out forwards;
+  }
+
+  .animate-slide-out {
+    animation: slide-out 0.3s ease-out forwards;
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animate-scan {
+  animation: scan 2s linear infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 3s linear infinite;
+  background-size: 200% 100%;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.5s ease-out forwards;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
