@@ -1,0 +1,56 @@
+                           Table "public.profiles"
+    Column     |           Type           | Collation | Nullable |  Default   
+---------------+--------------------------+-----------+----------+------------
+ id            | uuid                     |           | not null | 
+ username      | text                     |           |          | 
+ full_name     | text                     |           |          | 
+ email         | text                     |           |          | 
+ avatar_url    | text                     |           |          | 
+ is_admin      | boolean                  |           |          | false
+ created_at    | timestamp with time zone |           |          | now()
+ updated_at    | timestamp with time zone |           |          | now()
+ gender        | text                     |           |          | 
+ phone         | text                     |           |          | 
+ language      | text                     |           |          | 'en'::text
+ notifications | boolean                  |           |          | true
+ is_premium    | boolean                  |           |          | false
+Indexes:
+    "profiles_pkey" PRIMARY KEY, btree (id)
+    "profiles_email_idx" btree (email)
+    "profiles_is_admin_idx" btree (is_admin)
+    "profiles_username_idx" btree (username)
+Foreign-key constraints:
+    "profiles_id_fkey" FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
+Referenced by:
+    TABLE "premium_subscriptions" CONSTRAINT "premium_subscriptions_user_id_profiles_fkey" FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE
+Policies:
+    POLICY "Admins can view all profiles"
+      TO authenticated
+      USING ((EXISTS ( SELECT 1
+   FROM admin_users
+  WHERE (admin_users.user_id = auth.uid()))))
+    POLICY "Users can insert own profile" FOR INSERT
+      TO authenticated
+      WITH CHECK ((auth.uid() = id))
+    POLICY "Users can insert their own profile" FOR INSERT
+      TO authenticated
+      WITH CHECK ((auth.uid() = id))
+    POLICY "Users can update own profile" FOR UPDATE
+      TO authenticated
+      USING ((auth.uid() = id))
+    POLICY "Users can update their own profile" FOR UPDATE
+      TO authenticated
+      USING ((auth.uid() = id))
+      WITH CHECK ((auth.uid() = id))
+    POLICY "Users can view own profile" FOR SELECT
+      TO authenticated
+      USING ((auth.uid() = id))
+    POLICY "Users can view their own profile" FOR SELECT
+      TO authenticated
+      USING ((auth.uid() = id))
+    POLICY "auth_read_profiles" FOR SELECT
+      TO authenticated
+      USING ((auth.uid() = id))
+Publications:
+    "supabase_realtime"
+
