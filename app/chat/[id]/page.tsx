@@ -1360,7 +1360,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       )}>
         <div className="h-full overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800">
           {/* Profile Images Carousel */}
-          <div className="relative aspect-square">
+          <div className="relative w-full h-[280px]">
             {showVideo ? (
               <div className="w-full h-full">
                 {character?.videoUrl ? (
@@ -1461,12 +1461,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           </div>
 
           {/* Profile Info */}
-          {/* Profile Info */}
           <div className="p-4 flex flex-col gap-4">
             <div>
               <h4 className="text-2xl font-bold mb-1">{character?.name}</h4>
               <div className="text-muted-foreground text-sm leading-relaxed space-y-4">
-                <p>{character?.description}</p>
+                <div className="max-h-[150px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10 select-text">
+                  <p>{character?.description}</p>
+                </div>
 
                 {/* Integrated Details */}
                 <div className="pt-2 border-t border-border/40 text-xs space-y-1">
@@ -1611,15 +1612,33 @@ function translateValue(value: string | undefined): string {
     "Mellanöstern": "Middle Eastern"
   };
 
-  // Check strict match first
-  if (map[value]) return map[value];
-  
-  // Check case-insensitive match
-  const lowerValue = value.toLowerCase();
-  for (const [k, v] of Object.entries(map)) {
-    if (k.toLowerCase() === lowerValue) return v;
+  // Helper to translate a single part
+  const translateSingle = (part: string) => {
+    const trimmed = part.trim();
+    if (!trimmed) return part; // Keep whitespace/punctuation
+    
+    // Check strict match first
+    if (map[trimmed]) return map[trimmed];
+    
+    // Check case-insensitive match
+    const lowerValue = trimmed.toLowerCase();
+    for (const [k, v] of Object.entries(map)) {
+      if (k.toLowerCase() === lowerValue) return v;
+    }
+    
+    return trimmed;
+  };
+
+  // If value contains separators, split and map
+  if (value.includes('.') || value.includes(',')) {
+    // Split by comma or dot, keeping delimiters
+    const parts = value.split(/([.,])/);
+    return parts.map(part => {
+      if (part === '.' || part === ',' || !part.trim()) return part;
+      return translateSingle(part);
+    }).join('');
   }
-  
-  // If no match, return original (capitalize first letter just in case)
-  return value.charAt(0).toUpperCase() + value.slice(1);
+
+  // Fallback for single values
+  return translateSingle(value).charAt(0).toUpperCase() + translateSingle(value).slice(1);
 }
