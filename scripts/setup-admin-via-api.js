@@ -18,9 +18,9 @@ if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
   process.exit(1);
 }
 
-const adminEmail = 'info@dintyp.se';
+const adminEmail = 'info@pocketlove.ai';
 const adminPassword = 'jdAlx!02!A';
-const adminName = 'Dintype MasterAdmin';
+const adminName = 'Pocketlove MasterAdmin';
 
 // Make HTTPS request helper
 function makeRequest(options, postData = null) {

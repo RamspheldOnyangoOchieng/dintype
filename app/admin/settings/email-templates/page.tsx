@@ -31,114 +31,114 @@ export default function EmailTemplatesPage() {
   const [templates, setTemplates] = useState<Record<string, EmailTemplate>>({
     account_welcome: {
       template_key: "account_welcome",
-      subject: "Välkommen till {{app_name}}! Ditt konto är skapat",
+      subject: "Welcome to {{app_name}}! Your account has been created",
       html_body: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #333;">Välkommen {{username}}!</h1>
-          <p>Tack för att du skapade ett konto hos oss. Vi är glada att ha dig här!</p>
+          <h1 style="color: #333;">Welcome {{username}}!</h1>
+          <p>Thank you for creating an account with us. We're excited to have you here!</p>
           
           <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="margin-top: 0;">Kom igång direkt</h2>
+            <h2 style="margin-top: 0;">Get started right away</h2>
             <ul style="line-height: 1.8;">
-              <li>Utforska våra AI-karaktärer</li>
-              <li>Starta din första konversation</li>
-              <li>Anpassa din profil</li>
-              <li>Upptäck nya funktioner</li>
+              <li>Explore our AI characters</li>
+              <li>Start your first conversation</li>
+              <li>Customize your profile</li>
+              <li>Discover new features</li>
             </ul>
           </div>
 
           <p style="margin-top: 30px;">
             <a href="{{app_url}}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-              Utforska Nu
+              Explore Now
             </a>
           </p>
 
           <div style="background-color: #eff6ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6; margin-top: 30px;">
             <p style="margin: 0; font-size: 14px;">
-              <strong>Tips:</strong> Uppgradera till Premium för obegränsade konversationer, 
-              3 aktiva karaktärer och månatliga token-krediter för bara 119 kr/månad!
+              <strong>Tip:</strong> Upgrade to Premium for unlimited conversations, 
+              3 active characters, and monthly token credits for just $11.99/month!
             </p>
           </div>
 
           <p style="color: #666; font-size: 12px; margin-top: 30px;">
-            Om du har några frågor, kontakta oss på support@example.com
+            If you have any questions, contact us at support@pocketlove.ai
           </p>
         </div>
       `,
-      text_body: `Välkommen {{username}}!\n\nTack för att du skapade ett konto hos oss. Vi är glada att ha dig här!\n\nKom igång direkt:\n- Utforska våra AI-karaktärer\n- Starta din första konversation\n- Anpassa din profil\n- Upptäck nya funktioner\n\nUtforska nu: {{app_url}}\n\nTips: Uppgradera till Premium för 119 kr/månad!`,
-      description: "Skickas när en ny användare skapar ett konto",
+      text_body: `Welcome {{username}}!\n\nThank you for creating an account with us. We're excited to have you here!\n\nGet started right away:\n- Explore our AI characters\n- Start your first conversation\n- Customize your profile\n- Discover new features\n\nExplore now: {{app_url}}\n\nTip: Upgrade to Premium for $11.99/month!`,
+      description: "Sent when a new user creates an account",
       variables: ["username", "app_url", "app_name"]
     },
     premium_welcome: {
       template_key: "premium_welcome",
-      subject: "Välkommen till Premium! Dina fördelar aktiverade",
+      subject: "Welcome to Premium! Your benefits are activated",
       html_body: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #333;">Välkommen till Premium, {{username}}! 🎉</h1>
-          <p>Tack för att du blev Premium-medlem. Vi är glada att ha dig här!</p>
+          <h1 style="color: #333;">Welcome to Premium, {{username}}! 🎉</h1>
+          <p>Thank you for becoming a Premium member. We're excited to have you here!</p>
           
           <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
-            <h2 style="margin-top: 0; color: #10b981;">Dina Premium-fördelar</h2>
+            <h2 style="margin-top: 0; color: #10b981;">Your Premium Benefits</h2>
             <ul style="line-height: 2;">
-              <li>✅ <strong>Obegränsade meddelanden</strong> med alla AI-karaktärer</li>
-              <li>✅ <strong>3 aktiva karaktärer</strong> samtidigt</li>
-              <li>✅ <strong>50 arkiverade karaktärer</strong></li>
-              <li>✅ <strong>Månatliga token-krediter</strong> för bildgenerering</li>
-              <li>✅ <strong>Prioriterad support</strong></li>
-              <li>✅ <strong>Tidiga tillgång</strong> till nya funktioner</li>
+              <li>✅ <strong>Unlimited messages</strong> with all AI characters</li>
+              <li>✅ <strong>3 active characters</strong> simultaneously</li>
+              <li>✅ <strong>50 archived characters</strong></li>
+              <li>✅ <strong>Monthly token credits</strong> for image generation</li>
+              <li>✅ <strong>Priority support</strong></li>
+              <li>✅ <strong>Early access</strong> to new features</li>
             </ul>
           </div>
 
           <p style="margin-top: 30px;">
             <a href="{{app_url}}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-              Kom igång nu
+              Get started now
             </a>
           </p>
 
           <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; margin-top: 30px;">
             <p style="margin: 0; font-size: 14px; color: #92400e;">
-              <strong>Prenumerationsdetaljer:</strong><br>
-              Plan: Premium Månadsprenumeration<br>
-              Pris: 119 kr/månad<br>
-              Nästa förnyelse: {{renewal_date}}
+              <strong>Subscription Details:</strong><br>
+              Plan: Premium Monthly Subscription<br>
+              Price: $11.99/month<br>
+              Next renewal: {{renewal_date}}
             </p>
           </div>
 
           <p style="color: #666; font-size: 12px; margin-top: 30px;">
-            Om du har några frågor om ditt Premium-konto, kontakta oss på support@example.com
+            If you have any questions about your Premium account, contact us at support@pocketlove.ai
           </p>
         </div>
       `,
-      text_body: `Välkommen till Premium, {{username}}!\n\nTack för att du blev Premium-medlem!\n\nDina Premium-fördelar:\n✅ Obegränsade meddelanden\n✅ 3 aktiva karaktärer\n✅ 50 arkiverade karaktärer\n✅ Månatliga token-krediter\n✅ Prioriterad support\n✅ Tidig tillgång till nya funktioner\n\nKom igång: {{app_url}}\n\nPrenumeration: 119 kr/månad\nNästa förnyelse: {{renewal_date}}`,
-      description: "Skickas när en användare blir Premium-medlem",
+      text_body: `Welcome to Premium, {{username}}!\n\nThank you for becoming a Premium member!\n\nYour Premium benefits:\n✅ Unlimited messages\n✅ 3 active characters\n✅ 50 archived characters\n✅ Monthly token credits\n✅ Priority support\n✅ Early access to new features\n\nGet started: {{app_url}}\n\nSubscription: $11.99/month\nNext renewal: {{renewal_date}}`,
+      description: "Sent when a user becomes a Premium member",
       variables: ["username", "app_url", "renewal_date"]
     },
     payment_confirmation: {
       template_key: "payment_confirmation",
-      subject: "Betalningsbekräftelse - Order {{order_id}}",
+      subject: "Payment Confirmation - Order {{order_id}}",
       html_body: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #333;">Betalning mottagen! ✅</h1>
-          <p>Hej {{username}},</p>
-          <p>Tack för ditt köp! Vi har mottagit din betalning.</p>
+          <h1 style="color: #333;">Payment Received! ✅</h1>
+          <p>Hi {{username}},</p>
+          <p>Thank you for your purchase! We have received your payment.</p>
           
           <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h2 style="margin-top: 0;">Orderdetaljer</h2>
+            <h2 style="margin-top: 0;">Order Details</h2>
             <table style="width: 100%; border-collapse: collapse;">
               <tr style="border-bottom: 1px solid #e5e7eb;">
-                <td style="padding: 12px 0;"><strong>Order-ID:</strong></td>
+                <td style="padding: 12px 0;"><strong>Order ID:</strong></td>
                 <td style="text-align: right; padding: 12px 0;">{{order_id}}</td>
               </tr>
               <tr style="border-bottom: 1px solid #e5e7eb;">
-                <td style="padding: 12px 0;"><strong>Datum:</strong></td>
+                <td style="padding: 12px 0;"><strong>Date:</strong></td>
                 <td style="text-align: right; padding: 12px 0;">{{order_date}}</td>
               </tr>
               <tr style="border-bottom: 1px solid #e5e7eb;">
-                <td style="padding: 12px 0;"><strong>Artikel:</strong></td>
+                <td style="padding: 12px 0;"><strong>Item:</strong></td>
                 <td style="text-align: right; padding: 12px 0;">{{item_name}}</td>
               </tr>
               <tr>
-                <td style="padding: 12px 0;"><strong>Belopp:</strong></td>
+                <td style="padding: 12px 0;"><strong>Amount:</strong></td>
                 <td style="text-align: right; padding: 12px 0; font-size: 20px; color: #10b981; font-weight: bold;">{{amount}}</td>
               </tr>
             </table>
@@ -150,49 +150,49 @@ export default function EmailTemplatesPage() {
 
           <div style="margin-top: 30px; text-align: center;">
             <a href="{{app_url}}/invoices" style="color: #4F46E5; text-decoration: none; font-size: 14px;">
-              Se alla dina fakturor →
+              See all your invoices →
             </a>
           </div>
 
           <p style="color: #666; font-size: 12px; margin-top: 30px;">
-            Vid frågor om din order, kontakta support@example.com med ditt order-ID.
+            If you have any questions about your order, contact support@pocketlove.ai with your order ID.
           </p>
         </div>
       `,
-      text_body: `Betalning mottagen!\n\nHej {{username}},\n\nTack för ditt köp!\n\nOrderdetaljer:\n━━━━━━━━━━━━━━━━\nOrder-ID: {{order_id}}\nDatum: {{order_date}}\nArtikel: {{item_name}}\nBelopp: {{amount}}\n━━━━━━━━━━━━━━━━\n\n{{purchase_details}}\n\nSe dina fakturor: {{app_url}}/invoices\n\nVid frågor, kontakta support@example.com`,
-      description: "Skickas efter lyckad betalning",
+      text_body: `Payment Received!\n\nHi {{username}},\n\nThank you for your purchase!\n\nOrder Details:\n━━━━━━━━━━━━━━━━\nOrder ID: {{order_id}}\nDate: {{order_date}}\nItem: {{item_name}}\nAmount: {{amount}}\n━━━━━━━━━━━━━━━━\n\n{{purchase_details}}\n\nSee your invoices: {{app_url}}/invoices\n\nFor questions, contact support@pocketlove.ai`,
+      description: "Sent after a successful payment",
       variables: ["username", "order_id", "order_date", "item_name", "amount", "purchase_details", "app_url"]
     },
     subscription_renewal_success: {
       template_key: "subscription_renewal_success",
-      subject: "Din Premium-prenumeration har förnyats",
+      subject: "Your Premium subscription has been renewed",
       html_body: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #333;">Prenumeration förnyad! ✅</h1>
-          <p>Hej {{username}},</p>
-          <p>Din Premium-prenumeration har förnyats framgångsrikt.</p>
+          <h1 style="color: #333;">Subscription Renewed! ✅</h1>
+          <p>Hi {{username}},</p>
+          <p>Your Premium subscription has been successfully renewed.</p>
           
           <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
-            <h2 style="margin-top: 0; color: #10b981;">Förnyelseinformation</h2>
+            <h2 style="margin-top: 0; color: #10b981;">Renewal Information</h2>
             <table style="width: 100%;">
               <tr>
                 <td style="padding: 8px 0;"><strong>Plan:</strong></td>
-                <td style="text-align: right;">Premium Månadsprenumeration</td>
+                <td style="text-align: right;">Premium Monthly Subscription</td>
               </tr>
               <tr>
-                <td style="padding: 8px 0;"><strong>Belopp:</strong></td>
+                <td style="padding: 8px 0;"><strong>Amount:</strong></td>
                 <td style="text-align: right; font-size: 18px; color: #10b981;">{{amount}}</td>
               </tr>
               <tr>
-                <td style="padding: 8px 0;"><strong>Förnyad den:</strong></td>
+                <td style="padding: 8px 0;"><strong>Renewed on:</strong></td>
                 <td style="text-align: right;">{{renewal_date}}</td>
               </tr>
               <tr>
-                <td style="padding: 8px 0;"><strong>Nästa förnyelse:</strong></td>
+                <td style="padding: 8px 0;"><strong>Next renewal:</strong></td>
                 <td style="text-align: right;">{{next_renewal_date}}</td>
               </tr>
               <tr>
-                <td style="padding: 8px 0;"><strong>Betalningsmetod:</strong></td>
+                <td style="padding: 8px 0;"><strong>Payment method:</strong></td>
                 <td style="text-align: right;">{{payment_method}}</td>
               </tr>
             </table>
@@ -200,61 +200,61 @@ export default function EmailTemplatesPage() {
 
           <div style="background-color: #eff6ff; padding: 15px; border-radius: 8px; margin-top: 20px;">
             <p style="margin: 0; font-size: 14px;">
-              <strong>Du har fortfarande tillgång till:</strong><br>
-              • Obegränsade meddelanden<br>
-              • 3 aktiva karaktärer<br>
-              • Månatliga token-krediter<br>
-              • Prioriterad support
+              <strong>You still have access to:</strong><br>
+              • Unlimited messages<br>
+              • 3 active characters<br>
+              • Monthly token credits<br>
+              • Priority support
             </p>
           </div>
 
           <p style="margin-top: 30px;">
             <a href="{{app_url}}/settings" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-              Hantera Prenumeration
+              Manage Subscription
             </a>
           </p>
 
           <p style="color: #666; font-size: 12px; margin-top: 30px;">
-            För att avsluta din prenumeration, besök inställningssidan eller kontakta support@example.com
+            To cancel your subscription, visit the settings page or contact support@pocketlove.ai
           </p>
         </div>
       `,
-      text_body: `Prenumeration förnyad!\n\nHej {{username}},\n\nDin Premium-prenumeration har förnyats framgångsrikt.\n\nFörnyelseinformation:\n━━━━━━━━━━━━━━━━\nPlan: Premium Månadsprenumeration\nBelopp: {{amount}}\nFörnyad den: {{renewal_date}}\nNästa förnyelse: {{next_renewal_date}}\nBetalningsmetod: {{payment_method}}\n━━━━━━━━━━━━━━━━\n\nDu har fortfarande tillgång till alla Premium-fördelar!\n\nHantera prenumeration: {{app_url}}/settings`,
-      description: "Skickas när prenumeration förnyas framgångsrikt",
+      text_body: `Subscription Renewed!\n\nHi {{username}},\n\nYour Premium subscription has been successfully renewed.\n\nRenewal Information:\n━━━━━━━━━━━━━━━━\nPlan: Premium Monthly Subscription\nAmount: {{amount}}\nRenewed on: {{renewal_date}}\nNext renewal: {{next_renewal_date}}\nPayment method: {{payment_method}}\n━━━━━━━━━━━━━━━━\n\nYou still have access to all Premium benefits!\n\nManage subscription: {{app_url}}/settings`,
+      description: "Sent when a subscription is successfully renewed",
       variables: ["username", "amount", "renewal_date", "next_renewal_date", "payment_method", "app_url"]
     },
     subscription_payment_failed: {
       template_key: "subscription_payment_failed",
-      subject: "⚠️ Problem med din Premium-betalning",
+      subject: "⚠️ Problem with your Premium payment",
       html_body: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #dc2626;">Betalning misslyckades</h1>
-          <p>Hej {{username}},</p>
-          <p>Vi kunde tyvärr inte behandla din Premium-prenumerationsbetalning.</p>
+          <h1 style="color: #dc2626;">Payment Failed</h1>
+          <p>Hi {{username}},</p>
+          <p>Unfortunately, we couldn't process your Premium subscription payment.</p>
           
           <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
-            <h2 style="margin-top: 0; color: #dc2626;">Betalningsdetaljer</h2>
+            <h2 style="margin-top: 0; color: #dc2626;">Payment Details</h2>
             <table style="width: 100%;">
               <tr>
                 <td style="padding: 8px 0;"><strong>Plan:</strong></td>
-                <td style="text-align: right;">Premium Månadsprenumeration</td>
+                <td style="text-align: right;">Premium Monthly Subscription</td>
               </tr>
               <tr>
-                <td style="padding: 8px 0;"><strong>Belopp:</strong></td>
+                <td style="padding: 8px 0;"><strong>Amount:</strong></td>
                 <td style="text-align: right;">{{amount}}</td>
               </tr>
               <tr>
-                <td style="padding: 8px 0;"><strong>Försöksdatum:</strong></td>
+                <td style="padding: 8px 0;"><strong>Attempt Date:</strong></td>
                 <td style="text-align: right;">{{attempt_date}}</td>
               </tr>
               <tr>
-                <td style="padding: 8px 0;"><strong>Betalningsmetod:</strong></td>
+                <td style="padding: 8px 0;"><strong>Payment Method:</strong></td>
                 <td style="text-align: right;">{{payment_method}}</td>
               </tr>
               <tr>
                 <td style="padding: 8px 0;" colspan="2">
                   <div style="background-color: #fee; padding: 10px; border-radius: 4px; margin-top: 10px;">
-                    <strong style="color: #dc2626;">Anledning:</strong> {{failure_reason}}
+                    <strong style="color: #dc2626;">Reason:</strong> {{failure_reason}}
                   </div>
                 </td>
               </tr>
@@ -263,64 +263,64 @@ export default function EmailTemplatesPage() {
 
           <div style="background-color: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; margin-top: 20px;">
             <p style="margin: 0; font-size: 14px; color: #92400e;">
-              <strong>Vad händer nu?</strong><br>
-              • Vi försöker igen om {{retry_days}} dagar<br>
-              • Din Premium-tillgång fortsätter tills {{grace_period_end}}<br>
-              • Efter det pausas din Premium-prenumeration
+              <strong>What happens now?</strong><br>
+              • We will try again in {{retry_days}} days<br>
+              • Your Premium access continues until {{grace_period_end}}<br>
+              • After that, your Premium subscription will be paused
             </p>
           </div>
 
-          <h3 style="margin-top: 30px;">Åtgärda problemet</h3>
-          <p style="color: #666;">För att undvika avbrott i din Premium-tjänst, vänligen:</p>
+          <h3 style="margin-top: 30px;">Fix the issue</h3>
+          <p style="color: #666;">To avoid interruption of your Premium service, please:</p>
           <ul style="color: #666; line-height: 1.8;">
-            <li>Kontrollera att ditt kort har tillräckligt med medel</li>
-            <li>Bekräfta att kortet inte har gått ut</li>
-            <li>Uppdatera din betalningsmetod om nödvändigt</li>
+            <li>Check that your card has sufficient funds</li>
+            <li>Confirm that the card has not expired</li>
+            <li>Update your payment method if necessary</li>
           </ul>
 
           <p style="margin-top: 30px; text-align: center;">
             <a href="{{app_url}}/settings/billing" style="background-color: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-              Uppdatera Betalningsmetod
+              Update Payment Method
             </a>
           </p>
 
           <p style="color: #666; font-size: 12px; margin-top: 30px;">
-            Behöver du hjälp? Kontakta oss på support@example.com så hjälper vi dig!
+            Need help? Contact us at support@pocketlove.ai and we'll help you!
           </p>
         </div>
       `,
-      text_body: `⚠️ Betalning misslyckades\n\nHej {{username}},\n\nVi kunde tyvärr inte behandla din Premium-prenumerationsbetalning.\n\nBetalningsdetaljer:\n━━━━━━━━━━━━━━━━\nPlan: Premium Månadsprenumeration\nBelopp: {{amount}}\nFörsöksdatum: {{attempt_date}}\nBetalningsmetod: {{payment_method}}\nAnledning: {{failure_reason}}\n━━━━━━━━━━━━━━━━\n\nVad händer nu?\n• Vi försöker igen om {{retry_days}} dagar\n• Din Premium-tillgång fortsätter tills {{grace_period_end}}\n• Efter det pausas din prenumeration\n\nÅtgärda problemet:\n- Kontrollera att ditt kort har medel\n- Bekräfta att kortet inte har gått ut\n- Uppdatera din betalningsmetod\n\nUppdatera betalning: {{app_url}}/settings/billing\n\nBehöver hjälp? Kontakta support@example.com`,
-      description: "Skickas när prenumerationsbetalning misslyckas",
+      text_body: `⚠️ Payment Failed\n\nHi {{username}},\n\nUnfortunately, we couldn't process your Premium subscription payment.\n\nPayment Details:\n━━━━━━━━━━━━━━━━\nPlan: Premium Monthly Subscription\nAmount: {{amount}}\nAttempt Date: {{attempt_date}}\nPayment Method: {{payment_method}}\nReason: {{failure_reason}}\n━━━━━━━━━━━━━━━━\n\nWhat happens now?\n• We will try again in {{retry_days}} days\n• Your Premium access continues until {{grace_period_end}}\n• After that, your subscription will be paused\n\nFix the issue:\n- Check that your card has funds\n- Confirm that the card has not expired\n- Update your payment method\n\nUpdate payment: {{app_url}}/settings/billing\n\nNeed help? Contact support@pocketlove.ai`,
+      description: "Sent when a subscription payment fails",
       variables: ["username", "amount", "attempt_date", "payment_method", "failure_reason", "retry_days", "grace_period_end", "app_url"]
     },
     password_reset: {
       template_key: "password_reset",
-      subject: "Återställ ditt lösenord",
+      subject: "Reset your password",
       html_body: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h1 style="color: #333;">Återställ ditt lösenord</h1>
-          <p>Hej {{username}},</p>
-          <p>Vi har mottagit en begäran om att återställa lösenordet för ditt konto.</p>
+          <h1 style="color: #333 text-zinc-800">Reset your password</h1>
+          <p>Hi {{username}},</p>
+          <p>We have received a request to reset the password for your account.</p>
           
           <p style="margin: 30px 0;">
             <a href="{{reset_link}}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-              Återställ lösenord
+              Reset Password
             </a>
           </p>
 
           <p style="color: #666; font-size: 14px;">
-            Om du inte begärde denna återställning kan du ignorera detta e-postmeddelande.
-            Länken är giltig i 24 timmar.
+            If you did not request this reset, you can ignore this email.
+            The link is valid for 24 hours.
           </p>
 
           <p style="color: #999; font-size: 12px; margin-top: 30px;">
-            Om knappen inte fungerar, kopiera och klistra in denna länk i din webbläsare:<br>
+            If the button doesn't work, copy and paste this link into your browser:<br>
             {{reset_link}}
           </p>
         </div>
       `,
-      text_body: `Återställ ditt lösenord\n\nHej {{username}},\n\nVi har mottagit en begäran om att återställa lösenordet för ditt konto.\n\nKlicka på länken för att återställa: {{reset_link}}\n\nOm du inte begärde denna återställning kan du ignorera detta e-postmeddelande.\nLänken är giltig i 24 timmar.`,
-      description: "Skickas när användare begär lösenordsåterställning",
+      text_body: `Reset your password\n\nHi {{username}},\n\nWe have received a request to reset the password for your account.\n\nClick the link to reset: {{reset_link}}\n\nIf you did not request this reset, you can ignore this email.\nThe link is valid for 24 hours.`,
+      description: "Sent when a user requests a password reset",
       variables: ["username", "reset_link"]
     }
   })
@@ -335,7 +335,7 @@ export default function EmailTemplatesPage() {
     try {
       setIsLoading(true)
       const supabase = createClient()
-      
+
       const { data, error } = await supabase
         .from("email_templates")
         .select("*")
@@ -385,16 +385,16 @@ export default function EmailTemplatesPage() {
       }
 
       toast({
-        title: "Sparat!",
-        description: "E-postmallen har uppdaterats.",
+        title: "Saved!",
+        description: "The email template has been updated.",
       })
 
       await fetchTemplates()
     } catch (error: any) {
       console.error("Error saving template:", error)
       toast({
-        title: "Fel",
-        description: error.message || "Kunde inte spara mallen. Försök igen.",
+        title: "Error",
+        description: error.message || "Could not save the template. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -435,105 +435,106 @@ export default function EmailTemplatesPage() {
     <AdminOnlyPage>
       <div className="container mx-auto py-8 px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">E-postmallar</h1>
+          <h1 className="text-3xl font-bold mb-2 text-zinc-800 dark:text-white">Email Templates</h1>
           <p className="text-muted-foreground">
-            Hantera e-postmallar som skickas till användare. Använd variabler som {`{{username}}`} för dynamiskt innehåll.
+            Manage email templates sent to users. Use variables like {`{{username}}`} for dynamic content.
           </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
-            <TabsTrigger value="account_welcome">
+          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 h-auto p-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700">
+            <TabsTrigger value="account_welcome" className="py-2">
               <Mail className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Konto Välkommen</span>
-              <span className="sm:hidden">Konto</span>
+              <span className="hidden sm:inline">Welcome</span>
+              <span className="sm:hidden">Acc</span>
             </TabsTrigger>
-            <TabsTrigger value="premium_welcome">
+            <TabsTrigger value="premium_welcome" className="py-2">
               <Mail className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Premium Välkommen</span>
-              <span className="sm:hidden">Premium</span>
+              <span className="hidden sm:inline">Premium</span>
+              <span className="sm:hidden">Prem</span>
             </TabsTrigger>
-            <TabsTrigger value="payment_confirmation">
+            <TabsTrigger value="payment_confirmation" className="py-2">
               <Mail className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Betalning</span>
-              <span className="sm:hidden">Betalt</span>
+              <span className="hidden sm:inline">Payment</span>
+              <span className="sm:hidden">Pay</span>
             </TabsTrigger>
-            <TabsTrigger value="subscription_renewal_success">
+            <TabsTrigger value="subscription_renewal_success" className="py-2">
               <Mail className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Förnyelse</span>
-              <span className="sm:hidden">Förnya</span>
+              <span className="hidden sm:inline">Renewal</span>
+              <span className="sm:hidden">Ren</span>
             </TabsTrigger>
-            <TabsTrigger value="subscription_payment_failed">
+            <TabsTrigger value="subscription_payment_failed" className="py-2">
               <Mail className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Betalning Misslyckad</span>
-              <span className="sm:hidden">Fel</span>
+              <span className="hidden sm:inline">Failed</span>
+              <span className="sm:hidden">Err</span>
             </TabsTrigger>
-            <TabsTrigger value="password_reset">
+            <TabsTrigger value="password_reset" className="py-2">
               <Mail className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Lösenord</span>
-              <span className="sm:hidden">Lösen</span>
+              <span className="hidden sm:inline">Password</span>
+              <span className="sm:hidden">Pass</span>
             </TabsTrigger>
           </TabsList>
 
           {Object.entries(templates).map(([key, template]) => (
-            <TabsContent key={key} value={key}>
-              <Card>
+            <TabsContent key={key} value={key} className="mt-6">
+              <Card className="border border-zinc-200 dark:border-zinc-700 shadow-sm">
                 <CardHeader>
-                  <CardTitle>{template.description}</CardTitle>
+                  <CardTitle className="text-zinc-800 dark:text-white">{template.description}</CardTitle>
                   <CardDescription>
-                    Tillgängliga variabler: {template.variables?.map(v => `{{${v}}}`).join(", ")}
+                    Available variables: {template.variables?.map(v => `{{${v}}}`).join(", ")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor={`${key}-subject`}>Ämnesrad</Label>
+                    <Label htmlFor={`${key}-subject`} className="text-zinc-800 dark:text-zinc-200">Subject Line</Label>
                     <Input
                       id={`${key}-subject`}
                       value={template.subject}
                       onChange={(e) => updateTemplate(key, "subject", e.target.value)}
-                      placeholder="E-postämne..."
+                      placeholder="Email subject..."
+                      className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`${key}-html`}>HTML-innehåll</Label>
+                    <Label htmlFor={`${key}-html`} className="text-zinc-800 dark:text-zinc-200">HTML Content</Label>
                     <Textarea
                       id={`${key}-html`}
                       value={template.html_body}
                       onChange={(e) => updateTemplate(key, "html_body", e.target.value)}
-                      placeholder="HTML-mall..."
-                      className="font-mono text-sm min-h-[400px]"
+                      placeholder="HTML template..."
+                      className="font-mono text-xs min-h-[400px] bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor={`${key}-text`}>Textversion (fallback)</Label>
+                    <Label htmlFor={`${key}-text`} className="text-zinc-800 dark:text-zinc-200">Text Version (fallback)</Label>
                     <Textarea
                       id={`${key}-text`}
                       value={template.text_body}
                       onChange={(e) => updateTemplate(key, "text_body", e.target.value)}
-                      placeholder="Textversion..."
-                      className="font-mono text-sm min-h-[150px]"
+                      placeholder="Text version..."
+                      className="font-mono text-xs min-h-[150px] bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700"
                     />
                   </div>
 
                   <div className="flex gap-3">
-                    <Button onClick={() => saveTemplate(key)} disabled={isSaving}>
+                    <Button onClick={() => saveTemplate(key)} disabled={isSaving} className="bg-primary text-white">
                       {isSaving ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Sparar...
+                          Saving...
                         </>
                       ) : (
                         <>
                           <Save className="mr-2 h-4 w-4" />
-                          Spara mall
+                          Save Template
                         </>
                       )}
                     </Button>
-                    <Button variant="outline" onClick={() => previewTemplate(key)}>
+                    <Button variant="outline" onClick={() => previewTemplate(key)} className="border-zinc-200 dark:border-zinc-700">
                       <Eye className="mr-2 h-4 w-4" />
-                      Förhandsgranska
+                      Preview
                     </Button>
                   </div>
                 </CardContent>
@@ -542,23 +543,23 @@ export default function EmailTemplatesPage() {
           ))}
         </Tabs>
 
-        <Card className="mt-8">
+        <Card className="mt-8 border border-zinc-200 dark:border-zinc-700 shadow-sm bg-zinc-50 dark:bg-zinc-800/50">
           <CardHeader>
-            <CardTitle>Prissättning i e-postmallar</CardTitle>
+            <CardTitle className="text-zinc-800 dark:text-white">Pricing in Email Templates</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              All prissättning visas automatiskt i <strong>Svenska kronor (SEK)</strong>.
+              All pricing is currently displayed in <strong>Swedish Krona (SEK)</strong>.
             </p>
-            <div className="bg-muted p-4 rounded-lg">
-              <h4 className="font-semibold mb-2">Exempel på prisformatering:</h4>
-              <ul className="space-y-1 text-sm">
-                <li>• 99 kr → {formatSEK(99)}</li>
-                <li>• 249 kr → {formatSEK(249)}</li>
-                <li>• 1,499 kr → {formatSEK(1499)}</li>
+            <div className="bg-white dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700">
+              <h4 className="font-semibold mb-2 text-zinc-800 dark:text-white">Price Formatting Examples:</h4>
+              <ul className="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                <li>• 99 SEK → {formatSEK(99)}</li>
+                <li>• 249 SEK → {formatSEK(249)}</li>
+                <li>• 1,499 SEK → {formatSEK(1499)}</li>
               </ul>
-              <p className="text-xs text-muted-foreground mt-3">
-                Variabeln {`{{amount}}`} formateras automatiskt med svensk valuta i webhooks.
+              <p className="text-xs text-muted-foreground mt-3 italic">
+                The {`{{amount}}`} variable is automatically formatted based on the payment provider settings.
               </p>
             </div>
           </CardContent>

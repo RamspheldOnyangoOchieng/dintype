@@ -1,32 +1,129 @@
-import { getTermsOfService } from "@/app/actions/document-actions";
+import { Metadata } from "next";
 
-export default async function TermsPage() {
-    let content = "";
-    
-    try {
-        content = await getTermsOfService();
-    } catch (error) {
-        console.error("Error fetching terms of service:", error);
-        content = `
-            <h2>Terms of Service</h2>
-            <p>These terms of service govern your use of our platform.</p>
-            <h3>Acceptance of Terms</h3>
-            <p>By accessing and using this service, you accept and agree to be bound by the terms and provision of this agreement.</p>
-            <h3>Use License</h3>
-            <p>Permission is granted to temporarily use this service for personal, non-commercial transitory viewing only.</p>
-            <h3>Disclaimer</h3>
-            <p>The materials on this service are provided on an 'as is' basis. We make no warranties, expressed or implied.</p>
-            <h3>Limitations</h3>
-            <p>In no event shall we be liable for any damages arising out of the use or inability to use the materials on this service.</p>
-            <h3>Contact Information</h3>
-            <p>If you have any questions about these terms, please contact us.</p>
-        `;
-    }
+export const metadata: Metadata = {
+  title: "Rules and Terms of Use | Pocketlove",
+  description: "Read our rules and terms to understand how Pocketlove works, what applies to usage, and how we protect your privacy.",
+};
 
-    return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-4">Terms of Service</h1>
-            <div dangerouslySetInnerHTML={{ __html: content }} />
+export const dynamic = 'force-dynamic';
+
+export default function TermsPage() {
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <h1 className="text-4xl font-bold mb-8 text-zinc-800 dark:text-white">Rules and Terms of Use</h1>
+      
+      <div className="prose prose-slate dark:prose-invert max-w-none space-y-8">
+        <p className="text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
+          Welcome to Pocketlove. By using our services, you agree to these terms. Please read them carefully to understand your rights and responsibilities.
+        </p>
+
+        <section>
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">1. Acceptance of Terms</h2>
+          <p>
+            By accessing or using Pocketlove, you agree to be bound by these Terms of Use and our Privacy Policy. If you do not agree to these terms, you may not use our services.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">2. Eligibility and Account</h2>
+          <div className="space-y-4">
+            <p>To use Pocketlove, you must meet the following requirements:</p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>You must be at least 18 years old.</li>
+              <li>You must provide accurate and complete information when creating an account.</li>
+              <li>You are responsible for keeping your login credentials confidential.</li>
+              <li>All activities occurring under your account are your responsibility.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">3. Use of the Service</h2>
+          <div className="space-y-4 text-zinc-600 dark:text-zinc-400">
+            <p>Pocketlove is a platform for interacting with AI-generated characters. You agree to use the service in a responsible and respectful manner.</p>
+            
+            <h3 className="text-lg font-semibold text-zinc-800 dark:text-white mt-4">Prohibited Activities:</h3>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>Using the service for illegal purposes or in violation of local laws.</li>
+              <li>Attempting to bypass security measures or exploit vulnerabilities.</li>
+              <li>Uploading or generating content that is illegal, harmful, or violates others' rights.</li>
+              <li>Using automated systems (bots, scrapers) to access the service without permission.</li>
+              <li>Impersonating others or misrepresenting your identity.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">4. Content and AI Interactions</h2>
+          <div className="space-y-4 text-zinc-600 dark:text-zinc-400">
+            <p>
+              All interactions on Pocketlove are with Artificial Intelligence (AI). The characters are fictional and do not represent real people.
+            </p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li><strong>AI Nature:</strong> AI-generated content can be unpredictable. We do not guarantee the accuracy, suitability, or quality of AI responses.</li>
+              <li><strong>User Content:</strong> You retain ownership of content you upload, but you grant Pocketlove a license to use it to provide and improve the service.</li>
+              <li><strong>Moderation:</strong> We reserve the right to monitor and remove content that violates our guidelines or is deemed inappropriate.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">5. Premium Subscriptions and Payments</h2>
+          <div className="space-y-4 text-zinc-600 dark:text-zinc-400">
+            <p>Pocketlove offers premium features through paid subscriptions.</p>
+            <ul className="list-disc pl-6 space-y-2">
+              <li><strong>Fees:</strong> Subscription fees are clearly stated at the time of purchase.</li>
+              <li><strong>Billing:</strong> By subscribing, you authorize us to charge the applicable fees via our payment provider.</li>
+              <li><strong>Refunds:</strong> Since the service provides immediate access to digital content, refunds are generally not offered unless required by law.</li>
+              <li><strong>Cancellation:</strong> You can cancel your subscription at any time through your account settings.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">6. Intellectual Property</h2>
+          <p>
+            All materials on Pocketlove, including brand name, logo, design, software, and AI models, are owned by us or our licensors and are protected by intellectual property laws.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">7. Privacy and Data Protection</h2>
+          <p>
+            Your privacy is important to us. How we collect, use, and protect your data is described in our 
+            <a href="/privacy-policy" className="text-primary hover:underline mx-1">Privacy Policy</a>.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">8. Limitation of Liability</h2>
+          <p>
+            Pocketlove is provided "as is" and "as available". To the maximum extent permitted by law, we are not liable for direct, indirect, or incidental damages resulting from your use of the service.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">9. Changes to Terms</h2>
+          <p>
+            We reserve the right to modify these terms at any time. Significant changes will be communicated via the website or email. Continued use of the service after such changes constitutes acceptance of the new terms.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">10. Contact Us</h2>
+          <p>
+            If you have questions about these terms, please contact us at:
+          </p>
+          <div className="mt-4 p-4 bg-muted rounded-lg">
+            <p className="font-semibold">Pocketlove Support</p>
+            <p>Email: <a href="mailto:support@pocketlove.ai" className="text-primary hover:underline">support@pocketlove.ai</a></p>
+          </div>
+        </section>
+
+        <div className="text-sm text-zinc-500 pt-8 border-t border-zinc-200 dark:border-zinc-800">
+          Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
         </div>
-    );
+      </div>
+    </div>
+  );
 }

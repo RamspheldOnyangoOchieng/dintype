@@ -176,7 +176,7 @@ export default function SEOMetaAdminPage() {
                   <Input
                     value={selectedPage.meta_title || ''}
                     onChange={(e) => updateField('meta_title', e.target.value)}
-                    placeholder="AI Character Explorer - Skapa Din AI Flickvän"
+                    placeholder="Pocketlove - Create Your AI Companion"
                     maxLength={60}
                   />
                   <p className="text-xs text-muted-foreground">
@@ -189,7 +189,7 @@ export default function SEOMetaAdminPage() {
                   <Textarea
                     value={selectedPage.meta_description || ''}
                     onChange={(e) => updateField('meta_description', e.target.value)}
-                    placeholder="Beskrivning av sidan för sökmotorer..."
+                    placeholder="Page description for search engines..."
                     rows={3}
                     maxLength={160}
                   />
@@ -203,7 +203,7 @@ export default function SEOMetaAdminPage() {
                   <Input
                     value={selectedPage.meta_keywords || ''}
                     onChange={(e) => updateField('meta_keywords', e.target.value)}
-                    placeholder="ai flickvän, virtuell dating, ai chat"
+                    placeholder="ai partner, virtual dating, ai chat"
                   />
                   <p className="text-xs text-muted-foreground">Comma-separated keywords</p>
                 </div>
@@ -319,8 +319,8 @@ export default function SEOMetaAdminPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="sv">Swedish (sv)</SelectItem>
                         <SelectItem value="en">English (en)</SelectItem>
+                        <SelectItem value="sv">Swedish (sv)</SelectItem>
                         <SelectItem value="no">Norwegian (no)</SelectItem>
                         <SelectItem value="da">Danish (da)</SelectItem>
                       </SelectContent>

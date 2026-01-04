@@ -38,12 +38,12 @@ export async function getPageMetadata(pagePath: string): Promise<Metadata> {
     const meta: PageMeta = pageMeta as PageMeta
 
     return {
-      title: meta.meta_title || 'AI Character Explorer',
-      description: meta.meta_description || 'Skapa och chatta med AI-flickvänner',
+      title: meta.meta_title || 'Pocketlove',
+      description: meta.meta_description || 'Create and chat with AI characters',
       keywords: meta.meta_keywords?.split(',').map((k) => k.trim()),
       robots: meta.robots || 'index,follow',
       openGraph: {
-        title: meta.og_title || meta.meta_title || 'AI Character Explorer',
+        title: meta.og_title || meta.meta_title || 'Pocketlove',
         description: meta.og_description || meta.meta_description || '',
         images: meta.og_image ? [{ url: meta.og_image }] : [],
         type: (meta.og_type as any) || 'website',
@@ -51,7 +51,7 @@ export async function getPageMetadata(pagePath: string): Promise<Metadata> {
       },
       twitter: {
         card: (meta.twitter_card as any) || 'summary_large_image',
-        title: meta.og_title || meta.meta_title || 'AI Character Explorer',
+        title: meta.og_title || meta.meta_title || 'Pocketlove',
         description: meta.og_description || meta.meta_description || '',
         images: meta.og_image ? [meta.og_image] : [],
       },
@@ -70,20 +70,20 @@ export async function getPageMetadata(pagePath: string): Promise<Metadata> {
  */
 function getDefaultMetadata(): Metadata {
   return {
-    title: 'AI Character Explorer',
-    description: 'Skapa och chatta med personliga AI-flickvänner',
-    keywords: ['ai flickvän', 'ai chat', 'virtuell flickvän'],
+    title: 'Pocketlove',
+    description: 'Create and chat with personal AI companions',
+    keywords: ['ai partner', 'ai chat', 'virtual companion'],
     robots: 'index,follow',
     openGraph: {
-      title: 'AI Character Explorer',
-      description: 'Skapa och chatta med personliga AI-flickvänner',
+      title: 'Pocketlove',
+      description: 'Create and chat with personal AI companions',
       type: 'website',
-      locale: 'sv_SE',
+      locale: 'en_US',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'AI Character Explorer',
-      description: 'Skapa och chatta med personliga AI-flickvänner',
+      title: 'Pocketlove',
+      description: 'Create and chat with personal AI companions',
     },
   }
 }

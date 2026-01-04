@@ -312,10 +312,10 @@ export default function BlogAdminPage() {
                     )}
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold">{post.title_sv}</h3>
+                        <h3 className="font-semibold">{post.title_en || post.title_sv}</h3>
                         {getStatusBadge(post.status)}
                       </div>
-                      <p className="text-sm text-gray-600 line-clamp-2">{post.excerpt_sv}</p>
+                      <p className="text-sm text-gray-600 line-clamp-2">{post.excerpt_en || post.excerpt_sv}</p>
                       <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                         <span>{new Date(post.created_at).toLocaleDateString()}</span>
                         {post.blog_categories && <span>• {post.blog_categories.name_sv}</span>}
@@ -342,43 +342,12 @@ export default function BlogAdminPage() {
             <CardDescription>Write your blog post in Swedish and English</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <Tabs defaultValue="sv" className="w-full">
+            <Tabs defaultValue="en" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="sv">Swedish Content</TabsTrigger>
                 <TabsTrigger value="en">English Content</TabsTrigger>
+                <TabsTrigger value="sv">Swedish Content</TabsTrigger>
                 <TabsTrigger value="meta">Settings & SEO</TabsTrigger>
               </TabsList>
-
-              <TabsContent value="sv" className="space-y-4 mt-4">
-                <div>
-                  <Label>Title (Swedish)</Label>
-                  <Input
-                    value={formData.title_sv}
-                    onChange={(e) => handleTitleChange(e.target.value, "sv")}
-                    placeholder="Titel på svenska"
-                  />
-                </div>
-                <div>
-                  <Label>Excerpt (Swedish)</Label>
-                  <Textarea
-                    value={formData.excerpt_sv}
-                    onChange={(e) => setFormData({ ...formData, excerpt_sv: e.target.value })}
-                    placeholder="Kort sammanfattning..."
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <Label>Content (Swedish)</Label>
-                  <Textarea
-                    value={formData.content_sv}
-                    onChange={(e) => setFormData({ ...formData, content_sv: e.target.value })}
-                    placeholder="Skriv ditt inlägg här..."
-                    rows={15}
-                    className="font-mono text-sm"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Supports HTML and Markdown</p>
-                </div>
-              </TabsContent>
 
               <TabsContent value="en" className="space-y-4 mt-4">
                 <div>
@@ -394,7 +363,7 @@ export default function BlogAdminPage() {
                   <Textarea
                     value={formData.excerpt_en}
                     onChange={(e) => setFormData({ ...formData, excerpt_en: e.target.value })}
-                    placeholder="Short summary..."
+                    placeholder="Short summary in English..."
                     rows={3}
                   />
                 </div>
@@ -403,10 +372,41 @@ export default function BlogAdminPage() {
                   <Textarea
                     value={formData.content_en}
                     onChange={(e) => setFormData({ ...formData, content_en: e.target.value })}
-                    placeholder="Write your post here..."
+                    placeholder="Write your post in English here..."
                     rows={15}
                     className="font-mono text-sm"
                   />
+                </div>
+              </TabsContent>
+
+              <TabsContent value="sv" className="space-y-4 mt-4">
+                <div>
+                  <Label>Title (Swedish)</Label>
+                  <Input
+                    value={formData.title_sv}
+                    onChange={(e) => handleTitleChange(e.target.value, "sv")}
+                    placeholder="Titel på svenska"
+                  />
+                </div>
+                <div>
+                  <Label>Excerpt (Swedish)</Label>
+                  <Textarea
+                    value={formData.excerpt_sv}
+                    onChange={(e) => setFormData({ ...formData, excerpt_sv: e.target.value })}
+                    placeholder="Kort sammanfattning på svenska..."
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <Label>Content (Swedish)</Label>
+                  <Textarea
+                    value={formData.content_sv}
+                    onChange={(e) => setFormData({ ...formData, content_sv: e.target.value })}
+                    placeholder="Skriv ditt inlägg på svenska här..."
+                    rows={15}
+                    className="font-mono text-sm"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Supports HTML and Markdown</p>
                 </div>
               </TabsContent>
 
@@ -447,7 +447,7 @@ export default function BlogAdminPage() {
                     <SelectContent>
                       {categories.map((cat) => (
                         <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name_sv}
+                          {cat.name_en || cat.name_sv}
                         </SelectItem>
                       ))}
                     </SelectContent>

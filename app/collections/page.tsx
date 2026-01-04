@@ -303,7 +303,7 @@ export default function CollectionsPage() {
     <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold">Mina bilder</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">My Images</h1>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             {!isSelectionMode ? (
               <>
@@ -313,18 +313,18 @@ export default function CollectionsPage() {
                   ) : (
                     <RefreshCw className="h-4 w-4 mr-2" />
                   )}
-                  Uppdatera
+                  Update
                 </Button>
                 <Button onClick={() => router.push("/generate")} className="bg-primary hover:bg-primary/90 text-primary-foreground">
                   <Plus className="h-4 w-4 mr-2" />
-                  Skapa nya bilder
+                  Create new images
                 </Button>
               </>
             ) : (
               <>
                 <Button variant="outline" size="sm" onClick={cancelSelection}>
                   <X className="h-4 w-4 mr-2" />
-                  Avbryt
+                  Cancel
                 </Button>
                 <Button
                   variant="outline"
@@ -333,7 +333,7 @@ export default function CollectionsPage() {
                   className="bg-secondary"
                 >
                   <FolderPlus className="h-4 w-4 mr-2" />
-                  Lägg till i samling
+                  Add to collection
                 </Button>
                 <Button variant="destructive" size="sm" onClick={handleBulkDelete} disabled={isBulkDeleting}>
                   {isBulkDeleting ? (
@@ -341,7 +341,7 @@ export default function CollectionsPage() {
                   ) : (
                     <Trash2 className="h-4 w-4 mr-2" />
                   )}
-                  Radera markerade
+                  Delete selected
                 </Button>
               </>
             )}
@@ -368,7 +368,7 @@ export default function CollectionsPage() {
               className="rounded-full text-primary"
               onClick={() => setShowCreateCollectionDialog(true)}
             >
-              <Plus className="h-3 w-3 mr-1" /> Ny samling
+              <Plus className="h-3 w-3 mr-1" /> New collection
             </Button>
           </div>
         )}
@@ -379,18 +379,18 @@ export default function CollectionsPage() {
               {selectedImages.size === images.length ? (
                 <>
                   <CheckSquare className="h-4 w-4" />
-                  Avmarkera alla
+                  Deselect all
                 </>
               ) : (
                 <>
                   <Square className="h-4 w-4" />
-                  Markera alla
+                  Select all
                 </>
               )}
             </Button>
             {isSelectionMode && (
               <span className="text-sm text-muted-foreground font-medium">
-                {selectedImages.size} av {images.length} markerade
+                {selectedImages.size} of {images.length} selected
               </span>
             )}
           </div>
@@ -400,7 +400,7 @@ export default function CollectionsPage() {
       {isLoading ? (
         <div className="flex flex-col justify-center items-center h-64 gap-4">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
-          <p className="text-muted-foreground animate-pulse">Hämtar dina mästerverk...</p>
+          <p className="text-muted-foreground animate-pulse">Fetching your masterpieces...</p>
         </div>
       ) : images.length === 0 ? (
         <Card className="bg-card border-border border-dashed">
@@ -408,12 +408,12 @@ export default function CollectionsPage() {
             <div className="bg-secondary/30 p-8 rounded-full mb-6">
               <ImageIcon className="h-16 w-16 text-muted-foreground opacity-50" />
             </div>
-            <h2 className="text-2xl font-bold mb-3">Inga bilder än</h2>
+            <h2 className="text-2xl font-bold mb-3">No images yet</h2>
             <p className="text-muted-foreground mb-8 max-w-md">
-              Ditt galleri är tomt. Börja skapa fantastiska bilder med vår AI-generator!
+              Your gallery is empty. Start creating amazing images with our AI generator!
             </p>
             <Button size="lg" onClick={() => router.push("/generate")} className="bg-primary hover:bg-primary/90 text-primary-foreground px-8">
-              Skapa din första bild
+              Create your first image
             </Button>
           </CardContent>
         </Card>
@@ -454,10 +454,10 @@ export default function CollectionsPage() {
                       <Lock className="h-5 w-5 text-black" />
                     </div>
                     <p className="text-white text-[10px] uppercase font-black tracking-tight text-center leading-none italic">
-                      Låst Premium
+                      Locked Premium
                     </p>
                     <p className="text-white/70 text-[8px] font-bold text-center mt-1">
-                      Förnya för låsa upp
+                      Renew to unlock
                     </p>
                   </div>
                 )}
@@ -516,10 +516,10 @@ export default function CollectionsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-card/95 backdrop-blur-lg border-border">
                           <DropdownMenuItem onClick={() => handleOpenAddToCollection(image.id)}>
-                            <FolderPlus className="h-4 w-4 mr-2 text-primary" /> Lägg till i samling
+                            <FolderPlus className="h-4 w-4 mr-2 text-primary" /> Add to collection
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDelete(image.id)} className="text-destructive">
-                            <Trash2 className="h-4 w-4 mr-2" /> Radera bild
+                            <Trash2 className="h-4 w-4 mr-2" /> Delete image
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -556,7 +556,7 @@ export default function CollectionsPage() {
 
               <div className="w-full lg:w-[350px] flex flex-col p-6 border-l border-border bg-card/30">
                 <div className="flex-1 overflow-y-auto mb-6">
-                  <h3 className="text-lg font-bold mb-4">Bilddetaljer</h3>
+                  <h3 className="text-lg font-bold mb-4">Image Details</h3>
                   <div className="space-y-4">
                     <div>
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Prompt</p>
@@ -565,12 +565,12 @@ export default function CollectionsPage() {
                       </p>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-border/50">
-                      <span className="text-sm text-muted-foreground">Modell</span>
+                      <span className="text-sm text-muted-foreground">Model</span>
                       <span className="text-sm font-medium px-2 py-0.5 bg-primary/10 text-primary rounded-md uppercase text-[10px] tracking-widest">{selectedImage.model_used || "Stability"}</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-border/50">
-                      <span className="text-sm text-muted-foreground">Skapad</span>
-                      <span className="text-sm font-medium">{new Date(selectedImage.created_at).toLocaleDateString("sv-SE")}</span>
+                      <span className="text-sm text-muted-foreground">Created</span>
+                      <span className="text-sm font-medium">{new Date(selectedImage.created_at).toLocaleDateString("en-US")}</span>
                     </div>
                   </div>
                 </div>
@@ -582,7 +582,7 @@ export default function CollectionsPage() {
                     onClick={() => handleToggleFavorite(selectedImage.id, !!selectedImage.favorite)}
                   >
                     <Heart className={`h-4 w-4 mr-2 ${selectedImage.favorite ? "fill-red-500 text-red-500" : ""}`} />
-                    Favorit
+                    Favorite
                   </Button>
                   <Button
                     variant="outline"
@@ -590,7 +590,7 @@ export default function CollectionsPage() {
                     onClick={() => handleDownload(selectedImage.image_url, selectedImage.prompt)}
                   >
                     <Download className="h-4 w-4 mr-2" />
-                    Hämta
+                    Download
                   </Button>
                   <Button
                     variant="outline"
@@ -598,7 +598,7 @@ export default function CollectionsPage() {
                     onClick={() => handleOpenAddToCollection(selectedImage.id)}
                   >
                     <FolderPlus className="h-4 w-4 mr-2" />
-                    Samling
+                    Collection
                   </Button>
                   <Button
                     variant="destructive"
@@ -609,7 +609,7 @@ export default function CollectionsPage() {
                     }}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Radera
+                    Delete
                   </Button>
                 </div>
               </div>
@@ -627,7 +627,7 @@ export default function CollectionsPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <FolderPlus className="h-5 w-5 text-primary" />
-              Spara i samling
+              Save in collection
             </DialogTitle>
           </DialogHeader>
           <div className="py-6">
@@ -635,9 +635,9 @@ export default function CollectionsPage() {
               <div className="flex justify-center py-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
             ) : collections.length === 0 ? (
               <div className="text-center py-4 bg-secondary/20 rounded-xl p-6 border border-dashed border-border">
-                <p className="text-muted-foreground mb-6">Du har inga samlingar än.</p>
+                <p className="text-muted-foreground mb-6">You don't have any collections yet.</p>
                 <Button onClick={() => setShowCreateCollectionDialog(true)} className="w-full rounded-xl shadow-lg shadow-primary/20">
-                  Skapa din första samling
+                  Create your first collection
                 </Button>
               </div>
             ) : (
@@ -663,9 +663,9 @@ export default function CollectionsPage() {
             )}
           </div>
           <DialogFooter className="flex-col sm:flex-row gap-2 mt-2">
-            <Button variant="ghost" className="w-full" onClick={() => { setShowAddToCollectionDialog(false); setShowBulkAddToCollectionDialog(false) }}>Avbryt</Button>
+            <Button variant="ghost" className="w-full" onClick={() => { setShowAddToCollectionDialog(false); setShowBulkAddToCollectionDialog(false) }}>Cancel</Button>
             <Button className="w-full rounded-xl" onClick={() => setShowCreateCollectionDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Ny samling
+              <Plus className="h-4 w-4 mr-2" /> New collection
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -674,24 +674,24 @@ export default function CollectionsPage() {
       <Dialog open={showCreateCollectionDialog} onOpenChange={setShowCreateCollectionDialog}>
         <DialogContent className="sm:max-w-[425px] rounded-2xl border-border bg-card/95 backdrop-blur-xl">
           <DialogHeader>
-            <DialogTitle>Skapa ny samling</DialogTitle>
+            <DialogTitle>Create new collection</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreateCollection}>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <label htmlFor="name" className="text-sm font-medium">Namn</label>
-                <Input id="name" name="name" placeholder="Mina favoritflickvänner" required className="rounded-xl bg-secondary/50" />
+                <label htmlFor="name" className="text-sm font-medium">Name</label>
+                <Input id="name" name="name" placeholder="My favorite images" required className="rounded-xl bg-secondary/50" />
               </div>
               <div className="space-y-2">
-                <label htmlFor="description" className="text-sm font-medium">Beskrivning (valfritt)</label>
-                <Textarea id="description" name="description" placeholder="En samling av mina vackraste skapelser" className="rounded-xl bg-secondary/50 min-h-[100px]" />
+                <label htmlFor="description" className="text-sm font-medium">Description (optional)</label>
+                <Textarea id="description" name="description" placeholder="A collection of my most beautiful creations" className="rounded-xl bg-secondary/50 min-h-[100px]" />
               </div>
             </div>
             <DialogFooter className="gap-2">
-              <Button type="button" variant="ghost" onClick={() => setShowCreateCollectionDialog(false)}>Avbryt</Button>
+              <Button type="button" variant="ghost" onClick={() => setShowCreateCollectionDialog(false)}>Cancel</Button>
               <Button type="submit" className="rounded-xl px-8" disabled={isCreatingCollection}>
                 {isCreatingCollection ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-                Skapa samling
+                Create collection
               </Button>
             </DialogFooter>
           </form>
@@ -702,8 +702,8 @@ export default function CollectionsPage() {
         isOpen={showExpiredModal}
         onClose={() => setShowExpiredModal(false)}
         mode="expired"
-        feature="Premium-galleri"
-        description="Ditt Premium-medlemskap har utgått. Förnya för att låsa upp dina sparade bilder och fortsätta skapa utan gränser."
+        feature="Premium Gallery"
+        description="Your Premium membership has expired. Renew to unlock your saved images and continue creating without limits."
       />
     </div>
   )

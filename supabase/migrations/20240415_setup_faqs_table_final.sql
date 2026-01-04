@@ -21,11 +21,11 @@ CREATE POLICY "Allow public read access"
 
 -- Insert some default FAQs if the table is empty
 INSERT INTO faqs (question, answer)
-SELECT 'What is YourFantasy AI?', 'YourFantasy AI is a platform that powers immersive experiences with AI companions. It allows users to create, customize, and interact with AI characters that can engage in conversation, generate images, and provide companionship.'
+SELECT 'What is Pocketlove?', 'Pocketlove is a platform that powers immersive experiences with AI companions. It allows users to create, customize, and interact with AI characters that can engage in conversation, generate images, and provide companionship.'
 WHERE NOT EXISTS (SELECT 1 FROM faqs LIMIT 1);
 
 INSERT INTO faqs (question, answer)
-SELECT 'Is YourFantasy AI legit and safe?', 'Yes, YourFantasy AI is legitimate and prioritizes user safety and privacy. All conversations are protected with SSL encryption, and we offer optional two-factor authentication to keep your account secure. Your personal information and interactions remain private.'
+SELECT 'Is Pocketlove legit and safe?', 'Yes, Pocketlove is legitimate and prioritizes user safety and privacy. All conversations are protected with SSL encryption, and we offer optional two-factor authentication to keep your account secure. Your personal information and interactions remain private.'
 WHERE NOT EXISTS (SELECT 2 FROM faqs LIMIT 1 OFFSET 1);
 
 INSERT INTO faqs (question, answer)
@@ -37,5 +37,5 @@ SELECT 'Can I ask for pictures, videos, and voice?', 'Yes, your companion can se
 WHERE NOT EXISTS (SELECT 4 FROM faqs LIMIT 1 OFFSET 3);
 
 INSERT INTO faqs (question, answer)
-SELECT 'How will YourFantasy AI appear on my bank statements?', 'We value your privacy. Any transactions appear under our discreet parent company, EverAI, so nothing on your bank statement will reveal your YourFantasy AI experience.'
+SELECT 'How will Pocketlove appear on my bank statements?', 'We value your privacy. Any transactions appear under our discreet parent company, Pocketlove, so nothing on your bank statement will reveal your Pocketlove experience.'
 WHERE NOT EXISTS (SELECT 5 FROM faqs LIMIT 1 OFFSET 4);

@@ -58,7 +58,7 @@ export default function AdminDashboardPage() {
 
   // Budget state
   const [budgetLimits, setBudgetLimits] = useState({
-    apiCost: 1000,
+    apiCost: 100,
     messages: 4000000,
     images: 2500,
   })
@@ -157,8 +157,6 @@ export default function AdminDashboardPage() {
 
     return () => clearInterval(interval)
   }, [])
-
-  const { users: authUsers } = useAuth()
 
   const stats = [
     {
@@ -319,7 +317,7 @@ export default function AdminDashboardPage() {
                 >
                   {stat.change}
                 </Badge>
-                <span className="text-xs text-slate-500 dark:text-slate-400">from last month</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">overview only</span>
               </div>
             </CardContent>
           </Card>
@@ -328,12 +326,11 @@ export default function AdminDashboardPage() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 lg:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 h-auto p-1 bg-zinc-100 dark:bg-zinc-800">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="settings">Site Settings</TabsTrigger>
           <TabsTrigger value="pricing">Pricing</TabsTrigger>
           <TabsTrigger value="budget">Budget</TabsTrigger>
-          <TabsTrigger value="footer">Footer</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -409,7 +406,7 @@ export default function AdminDashboardPage() {
                       <UserPlus className="h-5 w-5 text-blue-500" />
                       <div className="text-left">
                         <div className="font-medium">Manage Users</div>
-                        <div className="text-xs text-slate-500">Add or edit users</div>
+                        <div className="text-xs text-slate-500">Edit and verify accounts</div>
                       </div>
                     </div>
                   </Button>
@@ -421,7 +418,7 @@ export default function AdminDashboardPage() {
                     <div className="flex items-center space-x-3">
                       <MessageSquare className="h-5 w-5 text-green-500" />
                       <div className="text-left">
-                        <div className="font-medium">Characters</div>
+                        <div className="font-medium">AI Life Partners</div>
                         <div className="text-xs text-slate-500">Manage AI characters</div>
                       </div>
                     </div>
@@ -429,13 +426,13 @@ export default function AdminDashboardPage() {
                   <Button
                     variant="outline"
                     className="justify-start h-auto p-4 bg-transparent"
-                    onClick={() => router.push("/admin/payment-methods")}
+                    onClick={() => router.push("/admin/dashboard/subscriptions")}
                   >
                     <div className="flex items-center space-x-3">
                       <CreditCard className="h-5 w-5 text-primary" />
                       <div className="text-left">
-                        <div className="font-medium">Payments</div>
-                        <div className="text-xs text-slate-500">Configure payments</div>
+                        <div className="font-medium">Subscriptions</div>
+                        <div className="text-xs text-slate-500">View premium users</div>
                       </div>
                     </div>
                   </Button>
@@ -448,20 +445,7 @@ export default function AdminDashboardPage() {
                       <Database className="h-5 w-5 text-blue-500" />
                       <div className="text-left">
                         <div className="font-medium">Database</div>
-                        <div className="text-xs text-slate-500">Database tools</div>
-                      </div>
-                    </div>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="justify-start h-auto p-4 bg-transparent border-orange-500/20 hover:bg-orange-500/10"
-                    onClick={() => router.push("/admin/run-images-migration")}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Database className="h-5 w-5 text-orange-500" />
-                      <div className="text-left">
-                        <div className="font-medium text-orange-500">Fix Image Schema</div>
-                        <div className="text-xs text-slate-500">Add missing DB columns</div>
+                        <div className="text-xs text-slate-500">System diagnostic tools</div>
                       </div>
                     </div>
                   </Button>
@@ -473,46 +457,41 @@ export default function AdminDashboardPage() {
           {/* Recent Activity */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Activity className="h-5 w-5" />
-                <span>Recent Activity</span>
+              <CardTitle className="flex items-center space-x-2 text-zinc-800 dark:text-white">
+                <Activity className="h-5 w-5 text-primary" />
+                <span>Recent Platform Activity</span>
               </CardTitle>
-              <CardDescription>Latest actions on your platform</CardDescription>
+              <CardDescription>Latest interactions and transactions</CardDescription>
             </CardHeader>
             <CardContent>
               {recentActivity.length > 0 ? (
                 <ul className="space-y-4">
                   {recentActivity.map((activity) => (
-                    <li key={activity.id} className="flex items-center space-x-4">
-                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground">
-                        <span className="text-white text-sm font-medium">
-                          {activity.user?.username ? activity.user.username.charAt(0).toUpperCase() : '?'}
-                        </span>
+                    <li key={activity.id} className="flex items-center space-x-4 p-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                      <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs font-bold shadow-sm">
+                        {activity.user?.username ? activity.user.username.charAt(0).toUpperCase() : '?'}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
-                          {activity.user?.username || 'Unknown User'}
+                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                          {activity.user?.username || 'System'}
                         </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                          <Badge variant="outline" className="mr-2 text-[10px] h-4 px-1 lowercase">
-                            {activity.activity_kind || 'token'}
+                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-2">
+                          <Badge variant="outline" className="text-[9px] h-4 px-1 lowercase font-black bg-zinc-100 dark:bg-zinc-800">
+                            {activity.activity_kind || 'action'}
                           </Badge>
                           {activity.description || `${activity.type}: ${activity.amount > 0 ? '+' : ''}${activity.amount}`}
                         </p>
                       </div>
-                      <div className="ml-auto text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                      <div className="ml-auto text-xs text-slate-400 whitespace-nowrap italic">
                         {new Date(activity.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <div className="text-center py-8">
-                  <Activity className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">No recent activity</h3>
-                  <p className="text-slate-500 dark:text-slate-400 text-sm">
-                    Activity will appear here as users interact with your platform.
-                  </p>
+                <div className="text-center py-12">
+                  <Activity className="h-12 w-12 text-slate-200 dark:text-slate-700 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-slate-400 mb-2">No activities recorded yet</h3>
                 </div>
               )}
             </CardContent>
@@ -522,65 +501,61 @@ export default function AdminDashboardPage() {
         <TabsContent value="settings" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>General Settings</CardTitle>
-              <CardDescription>Configure basic site information and branding</CardDescription>
+              <CardTitle>Global Identity Settings</CardTitle>
+              <CardDescription>Configure site name and visual identity</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="siteName">Site Name</Label>
+                  <Label htmlFor="siteName" className="font-bold">Portal Name</Label>
                   <Input
                     id="siteName"
                     value={siteName}
                     onChange={(e) => setSiteName(e.target.value)}
-                    placeholder="Enter site name"
+                    placeholder="Pocketlove"
                   />
-                  <p className="text-xs text-slate-500">
-                    This will be displayed in the browser tab and various places throughout the site.
+                  <p className="text-[11px] text-slate-500 italic">
+                    Affects page titles and metadata across the platform.
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="logoText">Logo Text</Label>
+                  <Label htmlFor="logoText" className="font-bold">Branding Text</Label>
                   <Input
                     id="logoText"
                     value={logoText}
                     onChange={(e) => setLogoText(e.target.value)}
-                    placeholder="Enter logo text"
+                    placeholder="Pocketlove"
                   />
-                  <p className="text-xs text-slate-500">The text part of the logo (before the .ai)</p>
+                  <p className="text-[11px] text-slate-500 italic">The wordmark displayed in the header.</p>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-4 pt-4">
+              <div className="flex items-center space-x-4 pt-4 border-t">
                 <Button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  className="bg-primary hover:bg-primary/90 text-white font-black"
                 >
                   <Save className="mr-2 h-4 w-4" />
-                  {isSaving ? "Saving..." : "Save Changes"}
+                  {isSaving ? "SAVING..." : "COMMIT CHANGES"}
                 </Button>
-                {saveMessage && <p className="text-green-600 dark:text-green-400 text-sm font-medium">{saveMessage}</p>}
+                {saveMessage && <p className="text-green-500 text-sm font-bold animate-bounce">{saveMessage}</p>}
               </div>
             </CardContent>
           </Card>
 
           {/* Preview Card */}
-          <Card>
+          <Card className="bg-zinc-50 dark:bg-zinc-900/50 border-dashed">
             <CardHeader>
-              <CardTitle>Preview</CardTitle>
-              <CardDescription>See how your changes will appear</CardDescription>
+              <CardTitle className="text-sm font-black uppercase tracking-widest text-zinc-400">Header Preview</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="p-6 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800">
-                <div className="text-2xl font-bold flex items-center text-slate-900 dark:text-white">
+              <div className="p-8 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 shadow-xl flex items-center justify-center">
+                <div className="text-4xl font-black flex items-center tracking-tighter">
                   {logoText}
-                  <span className="text-primary">
-                    .ai
-                  </span>
+                  <span className="text-primary">.ai</span>
                 </div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Browser title: {siteName}</p>
               </div>
             </CardContent>
           </Card>
@@ -589,25 +564,25 @@ export default function AdminDashboardPage() {
         <TabsContent value="pricing" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Premium Pricing Configuration</CardTitle>
-              <CardDescription>Set up your subscription pricing and currency settings</CardDescription>
+              <CardTitle>Revenue & Plan Strategy</CardTitle>
+              <CardDescription>Customize subscription tiers and currency display</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="currency">Currency Symbol</Label>
+                  <Label htmlFor="currency" className="font-bold">Active Currency</Label>
                   <Input
                     id="currency"
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value)}
-                    className="w-24"
+                    className="w-24 font-bold"
                     placeholder="$"
                   />
-                  <p className="text-xs text-slate-500">The currency symbol to display (e.g., $, €, £, ¥)</p>
+                  <p className="text-[11px] text-slate-500 italic">Visual symbol used across UI ($ for USD, £ for GBP etc.)</p>
                 </div>
 
                 <div className="space-y-3">
-                  <Label>Currency Position</Label>
+                  <Label className="font-bold text-zinc-800 dark:text-zinc-200">Symbol Positioning</Label>
                   <RadioGroup
                     value={currencyPosition}
                     onValueChange={(value) => setCurrencyPosition(value as "left" | "right")}
@@ -615,28 +590,27 @@ export default function AdminDashboardPage() {
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="left" id="left" />
-                      <Label htmlFor="left">Left ({currency}100)</Label>
+                      <Label htmlFor="left">Prefix ({currency}10.00)</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="right" id="right" />
-                      <Label htmlFor="right">Right (100{currency})</Label>
+                      <Label htmlFor="right">Suffix (10.00{currency})</Label>
                     </div>
                   </RadioGroup>
-                  <p className="text-xs text-slate-500">Position of the currency symbol relative to the price</p>
                 </div>
               </div>
 
               <Tabs defaultValue="monthly" className="w-full">
-                <TabsList className="grid grid-cols-3 mb-6">
-                  <TabsTrigger value="monthly">Monthly</TabsTrigger>
-                  <TabsTrigger value="quarterly">Quarterly</TabsTrigger>
-                  <TabsTrigger value="yearly">Yearly</TabsTrigger>
+                <TabsList className="grid grid-cols-3 mb-6 bg-zinc-100 dark:bg-zinc-800">
+                  <TabsTrigger value="monthly" className="font-bold uppercase text-[10px]">Monthly Billing</TabsTrigger>
+                  <TabsTrigger value="quarterly" className="font-bold uppercase text-[10px]">Quarterly Billing</TabsTrigger>
+                  <TabsTrigger value="yearly" className="font-bold uppercase text-[10px]">Annual Billing</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="monthly" className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="monthlyPrice">Price</Label>
+                      <Label className="text-xs font-bold uppercase">Base Price</Label>
                       <Input
                         id="monthlyPrice"
                         value={monthlyPrice}
@@ -646,7 +620,7 @@ export default function AdminDashboardPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="monthlyOriginalPrice">Original Price</Label>
+                      <Label className="text-xs font-bold uppercase">Strike-through Price</Label>
                       <Input
                         id="monthlyOriginalPrice"
                         value={monthlyOriginalPrice}
@@ -656,7 +630,7 @@ export default function AdminDashboardPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="monthlyDiscount">Discount (%)</Label>
+                      <Label className="text-xs font-bold uppercase">Discount Text (%)</Label>
                       <Input
                         id="monthlyDiscount"
                         value={monthlyDiscount}
@@ -667,10 +641,11 @@ export default function AdminDashboardPage() {
                   </div>
                 </TabsContent>
 
+                {/* Quarterly Tab Content */}
                 <TabsContent value="quarterly" className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="quarterlyPrice">Price</Label>
+                      <Label className="text-xs font-bold uppercase">Base Price</Label>
                       <Input
                         id="quarterlyPrice"
                         value={quarterlyPrice}
@@ -680,7 +655,7 @@ export default function AdminDashboardPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="quarterlyOriginalPrice">Original Price</Label>
+                      <Label className="text-xs font-bold uppercase">Strike-through Price</Label>
                       <Input
                         id="quarterlyOriginalPrice"
                         value={quarterlyOriginalPrice}
@@ -690,7 +665,7 @@ export default function AdminDashboardPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="quarterlyDiscount">Discount (%)</Label>
+                      <Label className="text-xs font-bold uppercase">Discount Text (%)</Label>
                       <Input
                         id="quarterlyDiscount"
                         value={quarterlyDiscount}
@@ -701,10 +676,11 @@ export default function AdminDashboardPage() {
                   </div>
                 </TabsContent>
 
+                {/* Yearly Tab Content */}
                 <TabsContent value="yearly" className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="yearlyPrice">Price</Label>
+                      <Label className="text-xs font-bold uppercase">Base Price</Label>
                       <Input
                         id="yearlyPrice"
                         value={yearlyPrice}
@@ -714,7 +690,7 @@ export default function AdminDashboardPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="yearlyOriginalPrice">Original Price</Label>
+                      <Label className="text-xs font-bold uppercase">Strike-through Price</Label>
                       <Input
                         id="yearlyOriginalPrice"
                         value={yearlyOriginalPrice}
@@ -724,7 +700,7 @@ export default function AdminDashboardPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="yearlyDiscount">Discount (%)</Label>
+                      <Label className="text-xs font-bold uppercase">Discount Text (%)</Label>
                       <Input
                         id="yearlyDiscount"
                         value={yearlyDiscount}
@@ -736,14 +712,14 @@ export default function AdminDashboardPage() {
                 </TabsContent>
               </Tabs>
 
-              <div className="pt-4">
+              <div className="pt-4 border-t">
                 <Button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  className="bg-primary hover:bg-primary/90 text-white font-black"
                 >
                   <Save className="mr-2 h-4 w-4" />
-                  {isSaving ? "Saving..." : "Save Pricing"}
+                  {isSaving ? "SAVING..." : "APPLY PRICING MODEL"}
                 </Button>
               </div>
             </CardContent>
@@ -753,25 +729,25 @@ export default function AdminDashboardPage() {
         <TabsContent value="budget" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Global Budget Limits</CardTitle>
+              <CardTitle>API Infrastructure Burndown & Limits</CardTitle>
               <CardDescription>
-                Set monthly limits to prevent runaway costs from API usage.
+                Set hard monthly caps to control operational expenses.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="apiCostLimit">Monthly API Cost Limit (SEK)</Label>
+                  <Label htmlFor="apiCostLimit" className="font-bold">Monthly Spend Cap (USD)</Label>
                   <Input
                     id="apiCostLimit"
                     type="number"
                     value={budgetLimits.apiCost}
                     onChange={(e) => setBudgetLimits({ ...budgetLimits, apiCost: Number(e.target.value) })}
                   />
-                  <p className="text-xs text-muted-foreground">Approx. $100 USD = 1050 SEK</p>
+                  <p className="text-[11px] text-zinc-500 italic">Target threshold: $100.00 recommended.</p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="messagesLimit">Monthly Messages Limit</Label>
+                  <Label htmlFor="messagesLimit" className="font-bold">Volume: Messages/Month</Label>
                   <Input
                     id="messagesLimit"
                     type="number"
@@ -780,7 +756,7 @@ export default function AdminDashboardPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="imagesLimit">Monthly Images Limit</Label>
+                  <Label htmlFor="imagesLimit" className="font-bold">Volume: Image Genes/Month</Label>
                   <Input
                     id="imagesLimit"
                     type="number"
@@ -790,72 +766,22 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <Alert>
-                <Activity className="h-4 w-4" />
-                <AlertDescription>
-                  When a limit is reached, AI processing will be temporarily disabled for all users until the next month or until limits are increased.
+              <Alert className="bg-amber-500/10 border-amber-500/20 text-amber-600">
+                <Shield className="h-4 w-4 text-amber-500" />
+                <AlertDescription className="text-xs font-bold">
+                  AUTOPILOT SAFETY: Once these thresholds are met, the platform will automatically pause AI generation to prevent debt accumulation.
                 </AlertDescription>
               </Alert>
 
-              <div className="pt-4">
-                <Button onClick={handleSave} disabled={isSaving}>
+              <div className="pt-4 border-t">
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="bg-primary hover:bg-primary/90 text-white font-black"
+                >
                   <Save className="mr-2 h-4 w-4" />
-                  {isSaving ? "Saving..." : "Save Budget Limits"}
+                  {isSaving ? "SAVING..." : "SAVE BUDGET CONSTRAINTS"}
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="footer" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Site Footer Editor</CardTitle>
-              <CardDescription>Customize the site footer content, links, and contact information</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="border-dashed">
-                  <CardHeader>
-                    <CardTitle className="text-base">Footer Content</CardTitle>
-                    <CardDescription>
-                      Edit the footer sections, links, and contact information directly on the site.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col space-y-3">
-                      <Button onClick={() => router.push("/#footer-edit")} variant="outline" className="justify-start">
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit Footer Content
-                      </Button>
-                      <Button
-                        onClick={() => router.push("/admin/footer-settings")}
-                        variant="outline"
-                        className="justify-start"
-                      >
-                        <Settings className="mr-2 h-4 w-4" />
-                        Advanced Footer Settings
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-dashed">
-                  <CardHeader>
-                    <CardTitle className="text-base">Footer Display Options</CardTitle>
-                    <CardDescription>Configure footer visibility and display settings</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="showFooter" defaultChecked />
-                      <Label htmlFor="showFooter">Show footer on all pages</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox id="showPaymentIcons" defaultChecked />
-                      <Label htmlFor="showPaymentIcons">Show payment method icons</Label>
-                    </div>
-                  </CardContent>
-                </Card>
               </div>
             </CardContent>
           </Card>

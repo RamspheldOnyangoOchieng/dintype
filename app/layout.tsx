@@ -28,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: {
       icon: [
         {
-          url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230ea5e9'/%3E%3Ctext x='50' y='55' fontFamily='Arial,sans-serif' fontSize='14' fontWeight='bold' textAnchor='middle' fill='white'%3EDINTYP.SE%3C/text%3E%3C/svg%3E",
+          url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230ea5e9'/%3E%3Ctext x='50' y='55' fontFamily='Arial,sans-serif' fontSize='14' fontWeight='bold' textAnchor='middle' fill='white'%3EPOCKETLOVE%3C/text%3E%3C/svg%3E",
           type: "image/svg+xml",
         },
         {
@@ -44,7 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="sv" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" type="image/svg+xml" href="/favicon.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -56,7 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <AuthProvider>
             <AuthModalProvider>
-            <ClientRootLayout>
+              <ClientRootLayout>
                 {children}
                 <MobileNav />
                 <AuthModals />

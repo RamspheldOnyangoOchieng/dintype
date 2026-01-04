@@ -482,15 +482,15 @@ export default function CreateCharacterPage() {
 
     const getNextButtonText = () => {
         if (gender === 'lady') {
-            if (currentStep === 5) return 'Granska karaktär →';
-            if (currentStep === 6) return 'Skapa min AI →';
-            if (currentStep === 7) return 'Fortsätt →';
+            if (currentStep === 5) return 'Review Character →';
+            if (currentStep === 6) return 'Create my AI →';
+            if (currentStep === 7) return 'Continue →';
         } else { // gent
-            if (currentStep === 2) return 'Granska karaktär →';
-            if (currentStep === 3) return 'Skapa min AI →';
-            if (currentStep === 4) return 'Fortsätt →';
+            if (currentStep === 2) return 'Review Character →';
+            if (currentStep === 3) return 'Create my AI →';
+            if (currentStep === 4) return 'Continue →';
         }
-        return 'Nästa →';
+        return 'Next →';
     };
 
     // Step 5 is summary/preview step for lady, step 3 for gent
@@ -527,7 +527,7 @@ export default function CreateCharacterPage() {
                 <div className="w-full md:w-[55%] p-6 md:p-12 md:pl-0 flex flex-col">
                     <div className="mb-6 md:mb-8">
                         <div className="flex items-center gap-2 mb-2">
-                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">AI Flickvän, {selectedAge}</h2>
+                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">AI Partner, {selectedAge}</h2>
                         </div>
                         <div className="flex items-center gap-3 sm:gap-4">
                             <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-white/10">
@@ -547,7 +547,7 @@ export default function CreateCharacterPage() {
                                 "px-4 sm:px-8 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all",
                                 activeTab === 'appearance' ? "bg-white/20 text-white shadow-lg" : "text-white/40 hover:text-white/60"
                             )}>
-                            Utseende
+                            Appearance
                         </button>
                         <button
                             onClick={() => setActiveTab('character')}
@@ -555,7 +555,7 @@ export default function CreateCharacterPage() {
                                 "px-4 sm:px-8 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all",
                                 activeTab === 'character' ? "bg-white/20 text-white shadow-lg" : "text-white/40 hover:text-white/60"
                             )}>
-                            Karaktär
+                            Character
                         </button>
                     </div>
 
@@ -589,13 +589,13 @@ export default function CreateCharacterPage() {
                         ) : (
                             <div className="space-y-3 sm:space-y-4 mb-2">
                                 <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-white/10">
-                                    <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1 sm:mb-2">Personlighet</h4>
+                                    <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1 sm:mb-2">Personality</h4>
                                     <p className="text-white text-xs sm:text-base font-medium">{getDisplayValue(selectedPersonality || '', 'personality')}</p>
                                 </div>
                                 <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-white/10">
-                                    <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1 sm:mb-2">Publik status</h4>
+                                    <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1 sm:mb-2">Public status</h4>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-white text-xs sm:text-base font-medium">{isPublic ? 'Offentlig' : 'Privat'}</span>
+                                        <span className="text-white text-xs sm:text-base font-medium">{isPublic ? 'Public' : 'Private'}</span>
                                         <Switch checked={isPublic} onCheckedChange={setIsPublic} />
                                     </div>
                                 </div>
@@ -603,7 +603,7 @@ export default function CreateCharacterPage() {
                                     <textarea
                                         value={characterDescription}
                                         onChange={(e) => setCharacterDescription(e.target.value)}
-                                        placeholder="Beskriv hennes karaktär..."
+                                        placeholder="Describe her character..."
                                         className="w-full h-20 sm:h-24 bg-transparent border-none text-white text-xs sm:text-sm focus:ring-0 resize-none p-0 outline-none"
                                     />
                                 </div>
@@ -611,17 +611,17 @@ export default function CreateCharacterPage() {
                                 {user?.isPremium && (
                                     <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-white/10">
                                         <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-3 flex items-center gap-1">
-                                            Minnesåterkallning <Sparkles className="w-3 h-3 text-yellow-500" />
+                                            Memory Recall <Sparkles className="w-3 h-3 text-yellow-500" />
                                         </h4>
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-white text-xs sm:text-sm font-medium">Minnesdjup</span>
+                                                <span className="text-white text-xs sm:text-sm font-medium">Memory Depth</span>
                                                 <span className="text-primary text-xs font-bold">
-                                                    {memoryLevel === 1 ? 'Standard' : memoryLevel === 2 ? 'Förbättrad' : 'Livstid'}
+                                                    {memoryLevel === 1 ? 'Standard' : memoryLevel === 2 ? 'Enhanced' : 'Lifetime'}
                                                 </span>
                                             </div>
-                                            <Slider 
-                                                value={[memoryLevel]} 
+                                            <Slider
+                                                value={[memoryLevel]}
                                                 onValueChange={(val) => setMemoryLevel(val[0])}
                                                 max={3}
                                                 min={1}
@@ -629,9 +629,9 @@ export default function CreateCharacterPage() {
                                                 className="py-4"
                                             />
                                             <p className="text-[10px] text-white/40 italic leading-relaxed">
-                                                {memoryLevel === 1 ? 'Senaste 20 meddelandena i kontext' : 
-                                                 memoryLevel === 2 ? 'Senaste 100 meddelandena i kontext' : 
-                                                 'Fullständig konversationshistorik (Obegränsad)'}
+                                                {memoryLevel === 1 ? 'Last 20 messages in context' :
+                                                    memoryLevel === 2 ? 'Last 100 messages in context' :
+                                                        'Full conversation history (Unlimited)'}
                                             </p>
                                         </div>
                                     </div>
@@ -650,7 +650,7 @@ export default function CreateCharacterPage() {
                                 setShowNameDialog(true);
                             }}
                             className="w-full py-4 sm:py-5 rounded-lg sm:rounded-[1.5rem] bg-gradient-to-r from-primary to-blue-600 text-white font-black text-base sm:text-lg tracking-wider shadow-2xl shadow-primary/20 hover:scale-[1.02] hover:shadow-primary/40 active:scale-[0.98] transition-all uppercase">
-                            Gör min AI levande
+                            Bring my AI to life
                         </button>
                     </div>
                 </div>
@@ -665,8 +665,8 @@ export default function CreateCharacterPage() {
                 <>
                     {/* Creating your AI Section - Loading */}
                     <div className="text-center mb-8">
-                        <h2 className="text-3xl font-bold mb-2 text-card-foreground">Skapar din AI</h2>
-                        <p className="text-muted-foreground">Vänligen vänta medan vi genererar din perfekta AI-karaktär...</p>
+                        <h2 className="text-3xl font-bold mb-2 text-card-foreground">Creating your AI</h2>
+                        <p className="text-muted-foreground">Please wait while we generate your perfect AI partner...</p>
                     </div>
 
                     {/* Loading Animation */}
@@ -1111,11 +1111,11 @@ export default function CreateCharacterPage() {
                     <div className="flex items-center gap-2">
                         <span className="text-xl sm:text-2xl md:text-3xl">🧬</span>
                         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black italic tracking-tighter text-foreground leading-tight">
-                            Skapa min AI
+                            Create my AI
                         </h1>
                     </div>
                     {user && (
-                        <UserTokenBalance 
+                        <UserTokenBalance
                             className="bg-card/40 backdrop-blur-md border-primary/20"
                         />
                     )}
@@ -1243,17 +1243,17 @@ export default function CreateCharacterPage() {
                                 <div className="text-center">
                                     <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
                                         <Eye className="h-6 w-6 text-primary" />
-                                        Välj Ögonfärg*
+                                        Choose Eye Color*
                                     </h2>
-                                    <p className="text-muted-foreground text-sm mt-1">Välj den färg som bäst passar din AI</p>
+                                    <p className="text-muted-foreground text-sm mt-1">Select the color that best fits your AI</p>
                                 </div>
                                 <div className="flex flex-wrap justify-center gap-4">
                                     {[
-                                        { id: 'brown', label: 'Brun', fallback: '/character creation/eye color/realistic/brown-9dbba1bb37191cf2fc0d0fd3f2c118277e3f1c257a66a870484739fa1bd33c42.webp' },
-                                        { id: 'blue', label: 'Blå', fallback: '/character creation/eye color/realistic/blue-f7e75e814204c4d8464d36f525b0f6e9191557a585cb4be01e91ca8eb45416d0.webp' },
-                                        { id: 'green', label: 'Grön', fallback: '/character creation/eye color/realistic/green-8a705cc5c2c435ac0f7addd110f4dd2b883a2e35b6403659c3e30cc7a741359c.webp' },
+                                        { id: 'brown', label: 'Brown', fallback: '/character creation/eye color/realistic/brown-9dbba1bb37191cf2fc0d0fd3f2c118277e3f1c257a66a870484739fa1bd33c42.webp' },
+                                        { id: 'blue', label: 'Blue', fallback: '/character creation/eye color/realistic/blue-f7e75e814204c4d8464d36f525b0f6e9191557a585cb4be01e91ca8eb45416d0.webp' },
+                                        { id: 'green', label: 'Green', fallback: '/character creation/eye color/realistic/green-8a705cc5c2c435ac0f7addd110f4dd2b883a2e35b6403659c3e30cc7a741359c.webp' },
                                         { id: 'hazel', label: 'Hazel', fallback: 'https://res.cloudinary.com/ddg02aqiw/image/upload/v1766906815/attribute-images/eyeColor/eyeColor_hazel_realistic_1766906813010.jpg' },
-                                        { id: 'grey', label: 'Grå', fallback: 'https://res.cloudinary.com/ddg02aqiw/image/upload/v1766906815/attribute-images/eyeColor/eyeColor_gray_realistic_1766906813010.jpg' }
+                                        { id: 'grey', label: 'Grey', fallback: 'https://res.cloudinary.com/ddg02aqiw/image/upload/v1766906815/attribute-images/eyeColor/eyeColor_gray_realistic_1766906813010.jpg' }
                                     ].map((eye) => (
                                         <div
                                             key={eye.id}
@@ -1284,9 +1284,9 @@ export default function CreateCharacterPage() {
                                 <div className="text-center">
                                     <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
                                         <Eye className="h-6 w-6 text-primary" />
-                                        Välj Ögonform*
+                                        Choose Eye Shape*
                                     </h2>
-                                    <p className="text-muted-foreground text-sm mt-1">Välj den ögonform som bäst definierar hennes blick</p>
+                                    <p className="text-muted-foreground text-sm mt-1">Select the eye shape that best defines her gaze</p>
                                 </div>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                     {[
@@ -2274,9 +2274,9 @@ export default function CreateCharacterPage() {
                             <div className="text-center">
                                 <h2 className="text-3xl font-bold flex items-center justify-center gap-2">
                                     <Sparkles className="h-8 w-8 text-primary" />
-                                    Personlighetsegenskaper
+                                    Personality Traits
                                 </h2>
-                                <p className="text-muted-foreground">Välj {gender === 'lady' ? 'hennes' : 'hans'} kärnpersonlighet</p>
+                                <p className="text-muted-foreground">Choose {gender === 'lady' ? 'her' : 'his'} core personality</p>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {(gender === 'lady'
@@ -2308,9 +2308,9 @@ export default function CreateCharacterPage() {
                             <div className="text-center">
                                 <h2 className="text-3xl font-bold flex items-center justify-center gap-2">
                                     <Heart className="h-8 w-8 text-primary" />
-                                    Relation
+                                    Relationship
                                 </h2>
-                                <p className="text-muted-foreground">Definiera din nuvarande status med {gender === 'lady' ? 'henne' : 'honom'}</p>
+                                <p className="text-muted-foreground">Define your current status with {gender === 'lady' ? 'her' : 'him'}</p>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {['stranger', 'school-mate', 'colleague', 'mentor', 'girlfriend', 'sex-friend', 'wife', 'mistress', 'friend', 'best-friend', 'step-sister', 'step-mom'].map((key) => (
@@ -2351,7 +2351,7 @@ export default function CreateCharacterPage() {
                                 onClick={() => setCurrentStep(currentStep - 1)}
                                 disabled={isGenerating}
                             >
-                                ← Föregående
+                                ← Previous
                             </button>
                         )}
                         <button
@@ -2394,14 +2394,14 @@ export default function CreateCharacterPage() {
                 showNameDialog && (
                     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                         <div className="bg-card rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-8 max-w-md w-full shadow-2xl border border-border">
-                            <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 text-center text-card-foreground">Namnge din AI-karaktär</h2>
-                            <p className="text-muted-foreground mb-4 sm:mb-6 text-center text-xs sm:text-sm md:text-base">Välj ett unikt namn för att ge din AI liv</p>
+                            <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 text-center text-card-foreground">Name your AI partner</h2>
+                            <p className="text-muted-foreground mb-4 sm:mb-6 text-center text-xs sm:text-sm md:text-base">Choose a unique name to bring your AI to life</p>
 
                             <input
                                 type="text"
                                 value={characterName}
                                 onChange={(e) => setCharacterName(e.target.value)}
-                                placeholder="Ange karaktärens namn..."
+                                placeholder="Enter character name..."
                                 className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg bg-background border border-border focus:border-primary focus:outline-none text-foreground mb-4 sm:mb-6 transition-colors text-sm sm:text-base"
                                 maxLength={50}
                                 autoFocus
@@ -2418,7 +2418,7 @@ export default function CreateCharacterPage() {
                                     disabled={isSaving}
                                     className="flex-1 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg bg-secondary hover:bg-secondary/80 text-secondary-foreground font-semibold transition-all text-xs sm:text-sm md:text-base"
                                 >
-                                    Avbryt
+                                    Cancel
                                 </button>
                                 <button
                                     onClick={handleSaveCharacter}
@@ -2428,7 +2428,7 @@ export default function CreateCharacterPage() {
                                         : 'bg-primary hover:bg-primary/90 text-primary-foreground'
                                         }`}
                                 >
-                                    {isSaving ? 'Spara...' : 'Namnge karaktär'}
+                                    {isSaving ? 'Saving...' : 'Name Character'}
                                 </button>
                             </div>
                         </div>
@@ -2474,8 +2474,8 @@ export default function CreateCharacterPage() {
                 onClose={() => {
                     setShowPremiumModal(false);
                 }}
-                feature="Skapa AI-flickvänner"
-                description="Upgrade to Premium to generate AI girlfriends."
+                feature="Create AI Partners"
+                description="Upgrade to Premium to generate AI partners."
                 imageSrc="https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963048/premium-modals/create_character_premium.jpg"
             />
 
@@ -2483,7 +2483,7 @@ export default function CreateCharacterPage() {
                 isOpen={showTokensDepletedModal}
                 onClose={() => setShowTokensDepletedModal(false)}
                 mode="tokens-depleted"
-                feature="Tokens Slut"
+                feature="Tokens Depleted"
                 description="You used your 100 free premium tokens. Buy more tokens to use premium features"
                 imageSrc="https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963046/premium-modals/tokens_depleted.jpg"
             />

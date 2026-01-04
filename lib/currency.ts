@@ -1,51 +1,54 @@
 /**
- * Swedish Krona (SEK) Currency Formatting Utilities
+ * Currency Formatting Utilities
  * 
  * Provides consistent currency formatting across the application
- * following Swedish conventions.
+ * following USD/English conventions by default.
  */
 
 /**
- * Format a price in Swedish Krona
+ * Format a price
  * 
- * Swedish conventions:
- * - Space as thousands separator: 1 499 kr
- * - No decimal places for whole numbers: 99 kr
- * - Currency symbol after amount: 99 kr (not kr 99)
+ * Default conventions (USD):
+ * - Comma as thousands separator: $1,499.00
+ * - Currency symbol before amount: $99.00
  * 
- * @param amount - The amount in SEK
+ * @param amount - The amount
  * @param options - Formatting options
  * @returns Formatted price string
- * 
- * @example
- * formatSEK(99) // "99 kr"
- * formatSEK(1499) // "1 499 kr"
- * formatSEK(249.50) // "249,50 kr"
  */
-export function formatSEK(
+export function formatCurrency(
   amount: number,
   options: {
     includeDecimals?: boolean;
     compact?: boolean;
+    currency?: string;
+    locale?: string;
   } = {}
 ): string {
-  const { includeDecimals = false, compact = false } = options;
+  const {
+    includeDecimals = true,
+    compact = false,
+    currency = 'USD',
+    locale = 'en-US'
+  } = options;
 
-  // Use Swedish locale for number formatting
-  const formatted = new Intl.NumberFormat('sv-SE', {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
     minimumFractionDigits: includeDecimals ? 2 : 0,
     maximumFractionDigits: includeDecimals ? 2 : 0,
   }).format(amount);
-
-  // Return with " kr" suffix (space before kr)
-  return compact ? `${formatted}kr` : `${formatted} kr`;
 }
 
 /**
+ * Alias for backward compatibility during transition
+ */
+export const formatSEK = (amount: number, options: any = {}) => {
+  return formatCurrency(amount, { ...options, currency: 'USD', locale: 'en-US' });
+};
+
+/**
  * Format token package price with equivalent images
- * 
- * @example
- * formatTokenPackagePrice(200, 99) // "99 kr (200 tokens, ~40 images)"
  */
 export function formatTokenPackagePrice(tokens: number, price: number): {
   price: string;
@@ -54,12 +57,13 @@ export function formatTokenPackagePrice(tokens: number, price: number): {
   full: string;
 } {
   const images = Math.floor(tokens / 5); // Assuming 5 tokens per image
-  
+  const formattedPrice = formatCurrency(price);
+
   return {
-    price: formatSEK(price),
+    price: formattedPrice,
     tokens: `${tokens} tokens`,
     images: `~${images} images`,
-    full: `${formatSEK(price)} (${tokens} tokens, ~${images} images)`
+    full: `${formattedPrice} (${tokens} tokens, ~${images} images)`
   };
 }
 
@@ -67,14 +71,14 @@ export function formatTokenPackagePrice(tokens: number, price: number): {
  * Format subscription price
  * 
  * @example
- * formatSubscriptionPrice(119) // "119 kr/månad"
+ * formatSubscriptionPrice(11.99) // "$11.99/month"
  */
 export function formatSubscriptionPrice(
   price: number,
   period: 'month' | 'year' = 'month'
 ): string {
-  const periodText = period === 'month' ? '/månad' : '/år';
-  return `${formatSEK(price)}${periodText}`;
+  const periodText = period === 'month' ? '/month' : '/year';
+  return `${formatCurrency(price)}${periodText}`;
 }
 
 /**
@@ -89,53 +93,44 @@ export function parsePrice(price: any): number {
 /**
  * Get currency symbol
  */
-export const CURRENCY_SYMBOL = 'kr';
-export const CURRENCY_CODE = 'SEK';
-export const CURRENCY_NAME = 'Svenska kronor';
+export const CURRENCY_SYMBOL = '$';
+export const CURRENCY_CODE = 'USD';
+export const CURRENCY_NAME = 'US Dollars';
 
 /**
- * Premium subscription pricing constants
+ * Premium subscription pricing constants (USD)
  */
 export const PRICING = {
-  PREMIUM_MONTHLY_SEK: 119,
-  PREMIUM_MONTHLY_FORMATTED: '119 kr/månad',
-  
+  PREMIUM_MONTHLY_USD: 11.99,
+  PREMIUM_MONTHLY_FORMATTED: '$11.99/month',
+
   TOKEN_PACKAGES: {
-    SMALL: { tokens: 200, price: 99, images: 40 },
-    MEDIUM: { tokens: 550, price: 249, images: 110 },
-    LARGE: { tokens: 1550, price: 499, images: 310 },
-    MEGA: { tokens: 5800, price: 1499, images: 1160 },
+    SMALL: { tokens: 200, price: 9.99, images: 40 },
+    MEDIUM: { tokens: 550, price: 24.99, images: 110 },
+    LARGE: { tokens: 1550, price: 49.99, images: 310 },
+    MEGA: { tokens: 5800, price: 149.99, images: 1160 },
   },
 } as const;
 
 /**
- * Format price for Stripe (convert to öre - smallest currency unit)
- * Stripe expects amounts in the smallest currency unit (öre for SEK)
- * 1 kr = 100 öre
- * 
- * @example
- * toStripeAmount(99) // 9900 (öre)
+ * Format price for Stripe (convert to cents)
+ * Stripe expects amounts in the smallest currency unit (cents for USD)
+ * 1 USD = 100 cents
  */
-export function toStripeAmount(amountInKr: number): number {
-  return Math.round(amountInKr * 100);
+export function toStripeAmount(amountInCurrency: number): number {
+  return Math.round(amountInCurrency * 100);
 }
 
 /**
- * Format price from Stripe (convert from öre to kr)
- * 
- * @example
- * fromStripeAmount(9900) // 99
+ * Format price from Stripe (convert from cents to currency)
  */
-export function fromStripeAmount(amountInOre: number): number {
-  return amountInOre / 100;
+export function fromStripeAmount(amountInCents: number): number {
+  return amountInCents / 100;
 }
 
 /**
  * Format price range
- * 
- * @example
- * formatPriceRange(99, 1499) // "99-1 499 kr"
  */
 export function formatPriceRange(min: number, max: number): string {
-  return `${formatSEK(min, { includeDecimals: false }).replace(' kr', '')}-${formatSEK(max)}`;
+  return `${formatCurrency(min, { includeDecimals: false })}-${formatCurrency(max)}`;
 }

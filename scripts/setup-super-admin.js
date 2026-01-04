@@ -25,9 +25,9 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
 });
 
 async function setupSuperAdmin() {
-  const adminEmail = 'info@dintyp.se';
+  const adminEmail = 'info@pocketlove.ai';
   const adminPassword = 'jdAlx!02!A';
-  const adminName = 'Dintype MasterAdmin';
+  const adminName = 'Pocketlove MasterAdmin';
 
   try {
     console.log('🚀 Setting up Super Admin User\n');
@@ -112,8 +112,8 @@ async function setupSuperAdmin() {
     if (!existingTokens) {
       const { error: tokenError } = await supabase
         .from('user_tokens')
-        .insert({ 
-          user_id: userId, 
+        .insert({
+          user_id: userId,
           balance: 10000 // Give admin 10,000 tokens to start
         });
 
@@ -127,7 +127,7 @@ async function setupSuperAdmin() {
     // Step 6: Verify admin access
     console.log('\n🔐 Verifying admin access...');
     const { data: verifyAdmin } = await supabase.rpc('is_admin', { user_uuid: userId });
-    
+
     if (verifyAdmin) {
       console.log('✅ Admin access verified!');
     } else {

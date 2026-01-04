@@ -19,7 +19,7 @@ export default function PricingPage() {
   const [isCreatingTable, setIsCreatingTable] = useState(false)
   const [monthlyPrice, setMonthlyPrice] = useState("")
   const [yearlyPrice, setYearlyPrice] = useState("")
-  const [currency, setCurrency] = useState("SEK") // Swedish Krona default
+  const [currency, setCurrency] = useState("USD") // US Dollar default
   const [tableExists, setTableExists] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -41,9 +41,9 @@ export default function PricingPage() {
         const { error: sqlError } = await supabase.from("pricing").insert([
           {
             id: "1",
-            monthly_price: 119,
-            yearly_price: 1190,
-            currency: "SEK",
+            monthly_price: 11.99,
+            yearly_price: 119.99,
+            currency: "USD",
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           },
@@ -199,8 +199,8 @@ export default function PricingPage() {
                 onChange={(e) => setCurrency(e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2"
               >
-                <option value="SEK">SEK (kr) - Swedish Krona</option>
                 <option value="USD">USD ($)</option>
+                <option value="SEK">SEK (kr)</option>
                 <option value="EUR">EUR (€)</option>
                 <option value="GBP">GBP (£)</option>
               </select>
@@ -217,7 +217,7 @@ export default function PricingPage() {
                   type="number"
                   value={monthlyPrice}
                   onChange={(e) => setMonthlyPrice(e.target.value)}
-                  placeholder="119"
+                  placeholder="11.99"
                   step="1"
                   min="0"
                 />
@@ -235,7 +235,7 @@ export default function PricingPage() {
                   type="number"
                   value={yearlyPrice}
                   onChange={(e) => setYearlyPrice(e.target.value)}
-                  placeholder="1190"
+                  placeholder="119.99"
                   step="1"
                   min="0"
                 />

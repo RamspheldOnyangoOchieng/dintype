@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Cookies – Hur vi använder kakor | Dintyp.se",
-  description: "Dintyp.se använder cookies för att förbättra din upplevelse. Läs mer om vilka typer av kakor vi använder och hur du kan hantera dina inställningar.",
+  title: "Cookies – How we use cookies | Pocketlove",
+  description: "Pocketlove.ai uses cookies to improve your experience. Learn more about the types of cookies we use and how you can manage your settings.",
 };
 
 export const dynamic = 'force-dynamic';
@@ -10,163 +10,163 @@ export const dynamic = 'force-dynamic';
 export default function CookiesPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-4xl font-bold mb-8">Cookiepolicy</h1>
+      <h1 className="text-4xl font-bold mb-8 text-zinc-800 dark:text-white">Cookie Policy</h1>
       
       <div className="prose prose-slate dark:prose-invert max-w-none space-y-6">
         <p className="text-sm text-muted-foreground">
-          Giltighetsdatum: [Ange datum]<br />
-          Senast uppdaterad: [Ange datum]
+          Effective Date: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}<br />
+          Last Updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
         
-        <p>
-          Denna Cookiepolicy ("Policy") förklarar hur Dintyp.se ("vi", "oss" eller "vår") använder cookies och liknande tekniker på vår webbplats https://www.dintyp.se ("Webbplatsen").
+        <p className="text-zinc-600 dark:text-zinc-400">
+          This Cookie Policy ("Policy") explains how Pocketlove ("we", "us", or "our") uses cookies and similar technologies on our website https://pocketlove.ai ("the Website").
         </p>
         
-        <p>
-          Genom att använda vår Webbplats godkänner du användningen av cookies i enlighet med denna Policy. Du kan när som helst hantera eller återkalla ditt samtycke genom att justera dina cookiepreferenser.
+        <p className="text-zinc-600 dark:text-zinc-400">
+          By using our Website, you agree to the use of cookies in accordance with this Policy. You can manage or withdraw your consent at any time by adjusting your cookie preferences.
         </p>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">1. Vilka vi är</h2>
-          <p>
-            Denna webbplats drivs av Dintyp.se, ett aktiebolag registrerat i Sverige.
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mt-8 mb-4">1. Who We Are</h2>
+          <p className="text-zinc-600 dark:text-zinc-400">
+            This website is operated by Pocketlove.
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">2. Vad är cookies?</h2>
-          <p>
-            Cookies är små textfiler som lagras på din enhet (dator, surfplatta eller mobil) när du besöker en webbplats. De hjälper webbplatsen att komma ihåg dina handlingar och preferenser över tid för att förbättra din användarupplevelse. Cookies möjliggör också analys och riktad reklam.
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mt-8 mb-4">2. What are Cookies?</h2>
+          <p className="text-zinc-600 dark:text-zinc-400">
+            Cookies are small text files that are stored on your device (computer, tablet, or mobile) when you visit a website. They help the website remember your actions and preferences over time to improve your user experience. Cookies also enable analysis and targeted advertising.
           </p>
           
-          <h3 className="text-xl font-semibold mt-6 mb-3">Cookies kan vara:</h3>
-          <ul className="list-disc pl-6 space-y-2">
-            <li><strong>Sessionscookies:</strong> Raderas när du stänger din webbläsare.</li>
-            <li><strong>Beständiga cookies:</strong> Finns kvar på din enhet under en angiven period eller tills de raderas manuellt.</li>
-            <li><strong>Förstapartscookies:</strong> Sätts av oss.</li>
-            <li><strong>Tredjepartscookies:</strong> Sätts av tredjepartstjänster vi använder (t.ex. Google Analytics, annonsplattformar).</li>
+          <h3 className="text-xl font-semibold text-zinc-800 dark:text-white mt-6 mb-3">Cookies can be:</h3>
+          <ul className="list-disc pl-6 space-y-2 text-zinc-600 dark:text-zinc-400">
+            <li><strong>Session Cookies:</strong> Deleted when you close your browser.</li>
+            <li><strong>Persistent Cookies:</strong> Remain on your device for a specified period or until manually deleted.</li>
+            <li><strong>First-party Cookies:</strong> Set by us.</li>
+            <li><strong>Third-party Cookies:</strong> Set by third-party services we use (e.g., Google Analytics, advertising platforms).</li>
           </ul>
           
-          <p className="mt-4">
-            Cookies samlar inte in personlig information direkt, men i vissa fall kan de kopplas till uppgifter som identifierar dig, särskilt när de kombineras med annan information (t.ex. inloggningsstatus).
+          <p className="mt-4 text-zinc-600 dark:text-zinc-400">
+            Cookies do not collect personal information directly, but in some cases, they can be linked to data that identifies you, especially when combined with other information (e.g., login status).
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">3. Typer av cookies vi använder</h2>
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mt-8 mb-4">3. Types of Cookies We Use</h2>
 
           <div className="space-y-6">
             <div className="bg-muted/50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold mb-3">A. Absolut nödvändiga cookies</h3>
-              <p>
-                Dessa cookies är avgörande för att Webbplatsen ska fungera korrekt. De:
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">A. Strictly Necessary Cookies</h3>
+              <p className="text-zinc-600 dark:text-zinc-400">
+                These cookies are crucial for the Website to function correctly. They:
               </p>
-              <ul className="list-disc pl-6 space-y-2 mt-2">
-                <li>Möjliggör grundläggande funktionalitet (t.ex. sidnavigering, säker inloggning)</li>
-                <li>Kan inte inaktiveras via cookiebannern</li>
-                <li>Lagrar ingen personligt identifierbar information</li>
+              <ul className="list-disc pl-6 space-y-2 mt-2 text-zinc-600 dark:text-zinc-400">
+                <li>Enable basic functionality (e.g., page navigation, secure login)</li>
+                <li>Cannot be disabled via the cookie banner</li>
+                <li>Store no personally identifiable information</li>
               </ul>
             </div>
 
             <div className="bg-muted/50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold mb-3">B. Funktionella cookies</h3>
-              <p>
-                Dessa cookies förbättrar funktionalitet och anpassning genom att komma ihåg dina preferenser och inställningar. De kan:
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">B. Functional Cookies</h3>
+              <p className="text-zinc-600 dark:text-zinc-400">
+                These cookies enhance functionality and customization by remembering your preferences and settings. They can:
               </p>
-              <ul className="list-disc pl-6 space-y-2 mt-2">
-                <li>Lagra inloggningsuppgifter eller språkinställningar</li>
-                <li>Komma ihåg dina val av cookiesamtycke</li>
-                <li>Tillhandahålla förbättrade funktioner anpassade till din användning</li>
+              <ul className="list-disc pl-6 space-y-2 mt-2 text-zinc-600 dark:text-zinc-400">
+                <li>Store login details or language settings</li>
+                <li>Remember your cookie consent choices</li>
+                <li>Provide improved features tailored to your usage</li>
               </ul>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Om de inaktiveras kanske vissa delar av webbplatsen inte fungerar korrekt.
+              <p className="mt-2 text-sm text-muted-foreground italic">
+                If disabled, some parts of the website may not function correctly.
               </p>
             </div>
 
             <div className="bg-muted/50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold mb-3">C. Analytiska / prestandacookies</h3>
-              <p>
-                Används för att samla in anonym data om hur användare interagerar med Webbplatsen, vilket hjälper oss att förbättra innehåll och användarupplevelse. Dessa inkluderar:
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">C. Analytical / Performance Cookies</h3>
+              <p className="text-zinc-600 dark:text-zinc-400">
+                Used to collect anonymous data about how users interact with the Website, helping us improve content and user experience. These include:
               </p>
-              <ul className="list-disc pl-6 space-y-2 mt-2">
-                <li>Google Analytics-cookies</li>
-                <li>Spårning av sidbesök</li>
-                <li>Insikter om enhets- och webbläsaranvändning</li>
+              <ul className="list-disc pl-6 space-y-2 mt-2 text-zinc-600 dark:text-zinc-400">
+                <li>Google Analytics cookies</li>
+                <li>Page visit tracking</li>
+                <li>Insights into device and browser usage</li>
               </ul>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Dessa cookies samlar inte in personuppgifter och används endast för att förstå användningsmönster.
+              <p className="mt-2 text-sm text-muted-foreground italic">
+                These cookies do not collect personal data and are only used to understand usage patterns.
               </p>
             </div>
 
             <div className="bg-muted/50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold mb-3">D. Riktade / reklamcookies</h3>
-              <p>
-                Dessa cookies spårar dina surfvanor för att:
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">D. Targeted / Advertising Cookies</h3>
+              <p className="text-zinc-600 dark:text-zinc-400">
+                These cookies track your browsing habits to:
               </p>
-              <ul className="list-disc pl-6 space-y-2 mt-2">
-                <li>Visa relevanta annonser</li>
-                <li>Begränsa antalet gånger du ser en annons</li>
-                <li>Mäta resultatet av annonskampanjer</li>
-                <li>Förhindra bedräglig aktivitet</li>
+              <ul className="list-disc pl-6 space-y-2 mt-2 text-zinc-600 dark:text-zinc-400">
+                <li>Show relevant advertisements</li>
+                <li>Limit the number of times you see an ad</li>
+                <li>Measure the performance of advertising campaigns</li>
+                <li>Prevent fraudulent activity</li>
               </ul>
-              <p className="mt-2 text-sm text-muted-foreground">
-                De aktiveras endast med ditt uttryckliga samtycke.
+              <p className="mt-2 text-sm text-muted-foreground italic">
+                They are only activated with your explicit consent.
               </p>
             </div>
           </div>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">4. Hur du hanterar dina cookiepreferenser</h2>
-          <p>
-            När du besöker vår Webbplats första gången ser du en cookiebanner som låter dig acceptera eller anpassa cookieinställningarna. Dina preferenser lagras i ett system för hantering av samtycken.
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mt-8 mb-4">4. How to Manage Your Cookie Preferences</h2>
+          <p className="text-zinc-600 dark:text-zinc-400">
+            When you visit our Website for the first time, you will see a cookie banner that allows you to accept or customize cookie settings. Your preferences are stored in a consent management system.
           </p>
           
           <div className="bg-primary/10 p-6 rounded-lg mt-4">
-            <h3 className="text-lg font-semibold mb-3">Du kan:</h3>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Ändra dina inställningar när som helst genom att återbesöka länken för cookiepreferenser på webbplatsen.</li>
-              <li>Radera eller blockera cookies via dina webbläsarinställningar. Notera dock att vissa funktioner på webbplatsen kanske inte fungerar som avsett.</li>
+            <h3 className="text-lg font-semibold mb-3 text-zinc-800 dark:text-white">You can:</h3>
+            <ul className="list-disc pl-6 space-y-2 text-zinc-600 dark:text-zinc-400">
+              <li>Change your settings at any time by revisiting the cookie preferences link on the website.</li>
+              <li>Delete or block cookies via your browser settings. Note, however, that some features on the website may not function as intended.</li>
             </ul>
           </div>
           
-          <p className="mt-4 text-sm text-muted-foreground">
-            <strong>Obs:</strong> Om du rensar cookies eller använder en annan enhet eller webbläsare måste du ställa in dina preferenser igen.
+          <p className="mt-4 text-sm text-muted-foreground italic">
+            <strong>Note:</strong> If you clear cookies or use a different device or browser, you will need to set your preferences again.
           </p>
           
-          <h3 className="text-xl font-semibold mt-6 mb-3">Webbläsarspecifik cookie-kontroll:</h3>
-          <ul className="list-disc pl-6 space-y-2">
+          <h3 className="text-xl font-semibold text-zinc-800 dark:text-white mt-6 mb-3">Browser-specific Cookie Control:</h3>
+          <ul className="list-disc pl-6 space-y-2 text-zinc-600 dark:text-zinc-400">
             <li><a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Chrome</a></li>
-            <li><a href="https://support.mozilla.org/sv/kb/webbplatscookies" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Firefox</a></li>
-            <li><a href="https://support.apple.com/sv-se/guide/safari/sfri11471/mac" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Safari</a></li>
-            <li><a href="https://support.microsoft.com/sv-se/microsoft-edge/ta-bort-cookies-i-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Edge</a></li>
+            <li><a href="https://support.mozilla.org/en-US/kb/cookies-information-websites-store-on-your-computer" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Firefox</a></li>
+            <li><a href="https://support.apple.com/guide/safari/manage-cookies-and-website-data-sfri11471/mac" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Safari</a></li>
+            <li><a href="https://support.microsoft.com/en-us/microsoft-edge/delete-cookies-in-microsoft-edge-63947406-40ac-c3b8-57b9-2a946a29ae09" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Edge</a></li>
           </ul>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">5. Skydd av dina uppgifter</h2>
-          <p>
-            Vi är fast beslutna att skydda din integritet. Alla uppgifter som samlas in via cookies hanteras i enlighet med vår <a href="/integritetspolicy" className="text-primary hover:underline">Sekretesspolicy</a> och tillämpliga dataskyddslagar, inklusive den allmänna dataskyddsförordningen (GDPR).
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mt-8 mb-4">5. Data Protection</h2>
+          <p className="text-zinc-600 dark:text-zinc-400">
+            We are committed to protecting your privacy. All data collected via cookies is handled in accordance with our <a href="/privacy-policy" className="text-primary hover:underline">Privacy Policy</a> and applicable data protection laws, including the General Data Protection Regulation (GDPR).
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">6. Policyuppdateringar</h2>
-          <p>
-            Vi kan uppdatera denna Policy från tid till annan för att återspegla förändringar i teknik, juridiska krav eller vår verksamhet. Alla uppdateringar kommer att publiceras på denna sida med det nya giltighetsdatumet.
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mt-8 mb-4">6. Policy Updates</h2>
+          <p className="text-zinc-600 dark:text-zinc-400">
+            We may update this Policy from time to time to reflect changes in technology, legal requirements, or our business. Any updates will be published on this page with the new effective date.
           </p>
-          <p className="mt-4">
-            Vi uppmuntrar dig att granska denna sida regelbundet för att hålla dig informerad.
+          <p className="mt-4 text-zinc-600 dark:text-zinc-400">
+            We encourage you to review this page regularly to stay informed.
           </p>
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mt-8 mb-4">7. Kontakta oss</h2>
-          <p>
-            Om du har frågor om denna Cookiepolicy eller vill utöva dina dataskyddsrättigheter, kan du kontakta oss på:
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mt-8 mb-4">7. Contact Us</h2>
+          <p className="text-zinc-600 dark:text-zinc-400">
+            If you have questions about this Cookie Policy or want to exercise your data protection rights, you can contact us at:
           </p>
           <p className="mt-4">
-            📧 E-post: <a href="mailto:info@dintyp.se" className="text-primary hover:underline">info@dintyp.se</a>
+            📧 Email: <a href="mailto:support@pocketlove.ai" className="text-primary hover:underline">support@pocketlove.ai</a>
           </p>
         </section>
       </div>

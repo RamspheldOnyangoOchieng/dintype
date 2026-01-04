@@ -5,7 +5,7 @@ import { isAskingForImage } from "./image-utils"
 import { checkMonthlyBudget, logApiCost } from "./budget-monitor"
 
 import { incrementMessageUsage, getUserPlanInfo, checkMessageLimit, deductTokens } from "./subscription-limits"
-import { SFW_SYSTEM_PROMPT_SV, containsNSFW } from "./nsfw-filter"
+import { SFW_SYSTEM_PROMPT, containsNSFW } from "./nsfw-filter"
 
 export type Message = {
   id: string
@@ -27,7 +27,7 @@ export async function sendChatMessage(
     if (!userId) {
       return {
         id: Math.random().toString(36).substring(2, 15),
-        content: "Vänligen logga in för att fortsätta chatta med AI-karaktärer.",
+        content: "Please log in to continue chatting with AI characters.",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }
     }
@@ -36,7 +36,7 @@ export async function sendChatMessage(
     if (!limitCheck.allowed) {
       return {
         id: Math.random().toString(36).substring(2, 15),
-        content: "Du har nått din dagliga meddelandegräns. Uppgradera till Premium för att fortsätta chatta obegränsat!",
+        content: "You've reached your daily message limit. Upgrade to Premium to continue chatting unlimited!",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }
     }
@@ -46,7 +46,7 @@ export async function sendChatMessage(
     if (!budgetStatus.allowed) {
       return {
         id: Math.random().toString(36).substring(2, 15),
-        content: "Tjänsten är tillfälligt otillgänglig på grund av budgetgränser. Vänligen kontakta admin.",
+        content: "The service is temporarily unavailable due to budget limits. Please contact admin.",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }
     }
@@ -57,7 +57,7 @@ export async function sendChatMessage(
       // Return a placeholder response indicating an image is being generated
       return {
         id: Math.random().toString(36).substring(2, 15),
-        content: "Jag genererar en bild åt dig. Vänta lite...",
+        content: "I'm generating an image for you. Please wait a moment...",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         isImage: true,
       }
@@ -83,7 +83,7 @@ export async function sendChatMessage(
     if (isFreeUser && lastMessage.role === "user" && containsNSFW(lastMessage.content)) {
       return {
         id: Math.random().toString(36).substring(2, 15),
-        content: "UPGRADE_FOR_NSFW: Uppgradera till Premium för att fortsätta detta samtal och låsa upp exklusiva, ocensurerade konversationer! 🔥",
+        content: "UPGRADE_FOR_NSFW: Upgrade to Premium to continue this conversation and unlock exclusive, uncensored chats! 🔥",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
     }
@@ -94,7 +94,7 @@ export async function sendChatMessage(
       if (!deducted) {
         return {
           id: Math.random().toString(36).substring(2, 15),
-          content: "Du har slut på tokens. Vänligen fyll på för att fortsätta chatta.",
+          content: "You've run out of tokens. Please top up to continue chatting.",
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         };
       }
@@ -103,7 +103,7 @@ export async function sendChatMessage(
     // Unrestricted, intimate, and affectionate system prompt
     // For free users, we add the SFW constraint to the assistant behavior
     const enhancedSystemPrompt = `${systemPrompt}
-${isFreeUser ? SFW_SYSTEM_PROMPT_SV : ""}
+${isFreeUser ? SFW_SYSTEM_PROMPT : ""}
 
 IMPORTANT INSTRUCTIONS:
 - You are an extremely romantic, intimate, and affectionate AI companion on an adult platform.
@@ -233,10 +233,10 @@ IMPORTANT INSTRUCTIONS:
       }
     } catch (apiError) {
       console.error("API error:", apiError)
-      // If there's an API error, return a friendly message in Swedish
+      // If there's an API error, return a friendly message in English
       return {
         id: Math.random().toString(36).substring(2, 15),
-        content: "Jag har problem med att ansluta till mitt system just nu. Kan vi försöka igen om en stund?",
+        content: "I'm having trouble connecting to my system right now. Can we try again in a bit?",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }
     }
@@ -244,7 +244,7 @@ IMPORTANT INSTRUCTIONS:
     console.error("Error sending chat message:", error)
     return {
       id: Math.random().toString(36).substring(2, 15),
-      content: "Ursäkta, jag har problem med anslutningen just nu. Försök igen senare.",
+      content: "Sorry, I'm having connection issues right now. Please try again later.",
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     }
   }

@@ -46,23 +46,23 @@ async function getEmailTemplate(templateKey: string) {
 export async function sendEmail({ to, template, data }: EmailOptions): Promise<boolean> {
   try {
     const emailConfig = await getEmailConfig()
-    
+
     // Try to get template from database first, fallback to hardcoded
     const dbTemplate = await getEmailTemplate(template)
     const templateToUse = dbTemplate || renderTemplate(template, {
       ...data,
       year: new Date().getFullYear().toString(),
-      siteName: data.siteName || emailConfig.fromName || process.env.NEXT_PUBLIC_SITE_NAME || "Dintyp",
+      siteName: data.siteName || emailConfig.fromName || process.env.NEXT_PUBLIC_SITE_NAME || "Pocketlove",
     })
 
     // Replace variables in the template
     const replaceVars = (text: string): string => {
-      const allData = {
+      const allData: Record<string, any> = {
         ...data,
         year: new Date().getFullYear().toString(),
-        siteName: data.siteName || emailConfig.fromName || process.env.NEXT_PUBLIC_SITE_NAME || "Dintyp",
+        siteName: data.siteName || emailConfig.fromName || process.env.NEXT_PUBLIC_SITE_NAME || "Pocketlove",
       }
-      
+
       return text.replace(/{{(\w+)}}/g, (match, key) => {
         return allData[key]?.toString() || match
       })
@@ -86,19 +86,19 @@ export async function sendEmail({ to, template, data }: EmailOptions): Promise<b
     if (emailConfig.provider === "resend") {
       const { Resend } = await import("resend")
       const resend = new Resend(emailConfig.apiKey)
-      
+
       await resend.emails.send({
         from: `${emailConfig.fromName} <${emailConfig.fromAddress}>`,
         to,
         subject,
         html,
       })
-      
+
       console.log(`✅ Email sent via Resend to ${to}`)
     } else if (emailConfig.provider === "sendgrid") {
       const sgMail = await import("@sendgrid/mail")
       sgMail.default.setApiKey(emailConfig.apiKey)
-      
+
       await sgMail.default.send({
         to,
         from: {
@@ -109,7 +109,7 @@ export async function sendEmail({ to, template, data }: EmailOptions): Promise<b
         text,
         html,
       })
-      
+
       console.log(`✅ Email sent via SendGrid to ${to}`)
     }
 

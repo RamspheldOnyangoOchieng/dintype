@@ -112,7 +112,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const [isSaving, setIsSaving] = useState(false)
   const [lastMessages, setLastMessages] = useState<Record<string, Message | null>>({})
   const [isProfileOpen, setIsProfileOpen] = useState(true)
-  const [premiumModalFeature, setPremiumModalFeature] = useState("Meddelandegräns")
+  const [premiumModalFeature, setPremiumModalFeature] = useState("Message Limit")
   const [premiumModalDescription, setPremiumModalDescription] = useState("Daily message limit reached. Upgrade to premium to continue.")
   const [premiumModalMode, setPremiumModalMode] = useState<'upgrade' | 'message-limit'>('upgrade')
   const [isInitialLoad, setIsInitialLoad] = useState(true)
@@ -296,8 +296,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         try {
           const limitCheck = await checkMessageLimit(user.id)
           if (!limitCheck.allowed) {
-            setPremiumModalFeature("Meddelandegräns")
-            setPremiumModalDescription("Dagligen meddelandegräns uppnådd. Uppgradera till premium för att fortsätta chatta obegränsat.")
+            setPremiumModalFeature("Message Limit")
+            setPremiumModalDescription("Daily message limit reached. Upgrade to premium to continue chatting unlimited.")
             setPremiumModalMode('message-limit')
             setIsPremiumModalOpen(true)
           }
@@ -480,7 +480,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         {
           id: `error-welcome-${characterId}`,
           role: "assistant",
-          content: `Hej där! Jag är ${character.name}. Så kul att träffa dig! Vad heter du?`,
+          content: `Hi there! I'm ${character.name}. Nice to meet you! What's your name?`,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
       ])
@@ -630,7 +630,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         if (response.status === 403) {
           setPremiumModalFeature("Premium-bilder")
-          setPremiumModalDescription("Du behöver Premium för att generera bilder i chatten. Uppgradera nu för att låsa upp obegränsad bildgenerering.")
+          setPremiumModalDescription("You need Premium to generate images in chat. Upgrade now to unlock unlimited image generation.")
           setIsPremiumModalOpen(true)
           setIsGeneratingImage(false)
           return
@@ -898,8 +898,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         try {
           const messageCheck = await checkMessageLimit(user.id)
           if (!messageCheck.allowed) {
-            setPremiumModalFeature("Meddelandegräns")
-            setPremiumModalDescription("Dagligen meddelandegräns uppnådd. Uppgradera till premium för att fortsätta chatta obegränsat.")
+            setPremiumModalFeature("Message Limit")
+            setPremiumModalDescription("Daily message limit reached. Upgrade to premium to continue chatting unlimited.")
             setPremiumModalMode('message-limit')
             setIsPremiumModalOpen(true)
             setDebugInfo(prev => ({ ...prev, lastAction: "messageLimitReached" }))
@@ -947,7 +947,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         setDebugInfo((prev) => ({ ...prev, lastAction: "sendingToAI" }))
 
         if (!user?.id) {
-          toast.error("Vänligen logga in för att fortsätta chatta.")
+          toast.error("Please login to continue chatting.")
           openLoginModal()
           setIsSendingMessage(false)
           return
@@ -962,8 +962,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         if (!aiResponse.success) {
           if (aiResponse.limitReached || aiResponse.upgradeRequired) {
-            setPremiumModalFeature(aiResponse.limitReached ? "Meddelandegräns" : "Token-saldo")
-            setPremiumModalDescription(aiResponse.error || "Uppgradera till premium för att fortsätta.")
+            setPremiumModalFeature(aiResponse.limitReached ? "Message Limit" : "Token Balance")
+            setPremiumModalDescription(aiResponse.error || "Upgrade to premium to continue.")
             setPremiumModalMode(aiResponse.limitReached ? 'message-limit' : 'upgrade')
             setIsPremiumModalOpen(true)
           } else {
@@ -1024,7 +1024,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         const welcomeMessage: Message = {
           id: `welcome-${characterId}-${Date.now()}`,
           role: "assistant",
-          content: `Hej där! Jag är ${character.name}. Så kul att träffa dig! Vad heter du?`,
+          content: `Hi there! I'm ${character.name}. Nice to meet you! What's your name?`,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         }
 
@@ -1243,7 +1243,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         </div>
 
         {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 scroll-smooth overscroll-behavior-contain min-h-0" data-messages-container>
+        <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 scroll-smooth overscroll-behavior-contain min-h-0 chat-background" data-messages-container>
           {messages.map((message) => (
             <div key={message.id} className={`flex w-full ${message.role === "user" ? "justify-end" : "justify-start"}`}>
               <div
@@ -1512,7 +1512,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         onClose={() => setShowTokensDepletedModal(false)}
         mode="tokens-depleted"
         feature="Tokens Slut"
-        description="Du har inga tokens kvar. Köp mer för att generera fler bilder eller använda premiumfunktioner."
+        description="You have no tokens left. Buy more to generate more images or use premium features."
         imageSrc="https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963046/premium-modals/tokens_depleted.jpg"
       />
 
@@ -1520,8 +1520,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         isOpen={showExpiredModal}
         onClose={() => setShowExpiredModal(false)}
         mode="expired"
-        feature="Premium Utgått"
-        description="Ditt Premium-medlemskap har utgått. Förnya för att fortsätta chatta och skapa obegränsat."
+        feature="Premium Expired"
+        description="Your Premium membership has expired. Renew to continue chatting and creating without limits."
       />
 
       {selectedImage && (

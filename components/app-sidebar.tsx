@@ -67,25 +67,25 @@ export default function AppSidebar() {
     },
     {
       icon: <Sparkles className="h-5 w-5" />,
-      label: "Skapa bild",
+      label: "Generate Image",
       href: "/generate",
       active: pathname?.startsWith("/generate"),
     },
     {
       icon: <Users className="h-5 w-5" />,
-      label: "Skapa flickvän",
+      label: "Create Character",
       href: "/create-character",
       active: pathname?.startsWith("/create-character"),
     },
     {
       icon: <Heart className="h-5 w-5 text-pink-500" />,
-      label: "Min AI flickvän",
+      label: "My AI Character",
       href: "/my-ai",
       active: pathname?.startsWith("/my-ai"),
     },
     {
       icon: <FolderHeart className="h-5 w-5" />,
-      label: "Mina bilder",
+      label: "My Images",
       href: "/collections",
       active: pathname?.startsWith("/collections"),
     },
@@ -139,8 +139,8 @@ export default function AppSidebar() {
               <div className="flex items-center justify-between w-full">
                 <Link href="/" className="flex items-center gap-2">
                   <span className="text-2xl font-bold">
-                    <span className="text-foreground">DINTYP</span>
-                    <span className="text-primary">.SE</span>
+                    <span className="text-foreground">POCKET</span>
+                    <span className="text-primary">LOVE</span>
                   </span>
                 </Link>
                 <button
@@ -284,8 +284,8 @@ export default function AppSidebar() {
           {isOpen && (
             <div className="px-4 py-2 border-t border-border text-xs text-muted-foreground">
               <div className="flex justify-between">
-                <Link href="/integritetspolicy" className="hover:text-foreground">{t("legal.privacyNotice")}</Link>
-                <Link href="/villkor" className="hover:text-foreground">{t("legal.termsOfService")}</Link>
+                <Link href="/privacy-policy" className="hover:text-foreground">{t("legal.privacyNotice")}</Link>
+                <Link href="/terms" className="hover:text-foreground">{t("legal.termsOfService")}</Link>
               </div>
             </div>
           )}

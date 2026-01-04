@@ -77,7 +77,7 @@ export default function MyAIPage() {
   }
 
   async function handleDelete(characterId: string) {
-    if (!confirm('Är du säker på att du vill ta bort denna AI flickvän?')) {
+    if (!confirm('Are you sure you want to delete this AI Life Partner?')) {
       return;
     }
 
@@ -91,11 +91,11 @@ export default function MyAIPage() {
       if (response.ok) {
         setCharacters(characters.filter(c => c.id !== characterId));
       } else {
-        alert('Misslyckades att ta bort AI flickvän');
+        alert('Failed to delete AI companion');
       }
     } catch (error) {
       console.error('Error deleting character:', error);
-      alert('Ett fel uppstod');
+      alert('An error occurred');
     } finally {
       setDeletingId(null);
     }
@@ -115,6 +115,7 @@ export default function MyAIPage() {
       return;
     }
 
+    // Admins and Premium users can create characters
     if (!user.isPremium && !user.isAdmin) {
       setShowPremiumModal(true);
       return;
@@ -128,7 +129,7 @@ export default function MyAIPage() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 dark:text-slate-400 font-medium">Laddar dina AI flickvänner...</p>
+          <p className="text-slate-600 dark:text-slate-400 font-medium">Loading your AI partners...</p>
         </div>
       </div>
     );
@@ -149,15 +150,15 @@ export default function MyAIPage() {
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest mb-2">
                 <Sparkles className="h-3 w-3" />
-                Ditt Galleri
+                YOUR PRIVATE GALLERY
               </div>
               <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-4 italic">
-                Min <span className="text-primary">AI</span> Flickvän
+                My <span className="text-primary">AI</span> Partners
               </h1>
               <p className="text-lg text-slate-600 dark:text-slate-400 font-medium max-w-2xl">
                 {characters.length === 0
-                  ? 'Du har inga AI flickvänner ännu. Släpp loss din fantasi och skapa din perfekta match!'
-                  : `Du har format ${characters.length} unik${characters.length !== 1 ? 'a' : ''} AI flickvän${characters.length !== 1 ? 'ner' : ''} hittills.`
+                  ? 'You don\'t have any AI companions yet. Unleash your imagination and create your perfect match!'
+                  : `You have shaped ${characters.length} unique AI companion${characters.length !== 1 ? 's' : ''} so far.`
                 }
               </p>
             </div>
@@ -167,7 +168,7 @@ export default function MyAIPage() {
               className="flex items-center justify-center gap-3 px-8 py-4 bg-primary hover:bg-primary/90 text-white rounded-2xl font-black text-lg shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-1 transition-all duration-300"
             >
               <Plus className="h-6 w-6" />
-              SKAPA NY
+              CREATE NEW
             </button>
           </div>
         </div>
@@ -178,18 +179,18 @@ export default function MyAIPage() {
             <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-8 ring-8 ring-primary/5">
               <Heart className="h-12 w-12 text-primary animate-pulse" />
             </div>
-            <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4 italic">
-              INGA AI FLICKVÄNNER ÄNNU
+            <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4 italic uppercase">
+              NO AI COMPANIONS YET
             </h2>
-            <p className="text-slate-600 dark:text-slate-400 mb-10 max-w-md mx-auto text-lg leading-relaxed">
-              Världen väntar på dig. Skapa din första unika AI-karaktär med personlighet, minnen och stil.
+            <p className="text-slate-600 dark:text-slate-400 mb-10 max-w-md mx-auto text-lg leading-relaxed font-medium">
+              The world is waiting for you. Create your first unique AI character with personality, memories, and style.
             </p>
             <button
               onClick={handleCreateNew}
               className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-primary to-blue-600 text-white rounded-2xl font-black text-xl shadow-xl shadow-primary/25 hover:shadow-primary/45 hover:scale-105 transition-all duration-300"
             >
               <Sparkles className="h-6 w-6" />
-              BÖRJA SKAPA NU
+              START CREATING NOW
             </button>
           </div>
         ) : (
@@ -221,10 +222,10 @@ export default function MyAIPage() {
                         <Sparkles className="h-8 w-8 text-black" />
                       </div>
                       <h3 className="text-white font-black text-center text-lg leading-tight italic uppercase tracking-tighter mb-2">
-                        Premium-innehåll låst
+                        Premium Content Locked
                       </h3>
                       <p className="text-white/80 text-center text-xs font-medium leading-normal italic">
-                        Förnya ditt medlemskap för att fortsätta chatta med {character.name}.
+                        Renew your membership to continue chatting with {character.name}.
                       </p>
                     </div>
                   )}
@@ -252,12 +253,12 @@ export default function MyAIPage() {
                         {character.is_locked ? (
                           <>
                             <Sparkles className="h-4 w-4" />
-                            LÅS UPP NU
+                            UNLOCK NOW
                           </>
                         ) : (
                           <>
                             <MessageCircle className="h-4 w-4" />
-                            STARTA CHATT
+                            START CHAT
                           </>
                         )}
                       </button>
@@ -267,7 +268,7 @@ export default function MyAIPage() {
                           className="flex-1 h-12 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl font-bold text-xs transition-all"
                         >
                           <Edit className="h-3.5 w-3.5 opacity-60" />
-                          REDIGERA
+                          EDIT
                         </button>
                         <button
                           onClick={() => handleDelete(character.id)}
@@ -279,7 +280,7 @@ export default function MyAIPage() {
                           ) : (
                             <>
                               <Trash2 className="h-3.5 w-3.5 opacity-60" />
-                              TA BORT
+                              DELETE
                             </>
                           )}
                         </button>
@@ -297,7 +298,7 @@ export default function MyAIPage() {
 
                     <div className="flex items-center gap-2 mt-1">
                       {character.age && (
-                        <span className="text-sm font-bold text-primary">{character.age} ÅR</span>
+                        <span className="text-sm font-bold text-primary tracking-tighter">{character.age} YEARS OLD</span>
                       )}
                       {character.relationship && (
                         <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-md">
@@ -315,7 +316,7 @@ export default function MyAIPage() {
 
                   <div className="mt-6 pt-4 border-t border-border/50 flex items-center justify-between">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      {new Date(character.created_at).toLocaleDateString('sv-SE')}
+                      {new Date(character.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </span>
                     <Heart className="h-4 w-4 text-primary/40 group-hover:text-primary transition-colors duration-300" />
                   </div>
@@ -329,8 +330,8 @@ export default function MyAIPage() {
       <PremiumUpgradeModal
         isOpen={showPremiumModal}
         onClose={() => setShowPremiumModal(false)}
-        feature="Skapa AI Flickvänner"
-        description="Uppgradera till Premium för att skapa AI flickvänner"
+        feature="Create AI Life Partners"
+        description="Upgrade to Premium to create your own unique AI companions"
         imageSrc="https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963048/premium-modals/create_character_premium.jpg"
       />
 
@@ -338,8 +339,8 @@ export default function MyAIPage() {
         isOpen={showExpiredModal}
         onClose={() => setShowExpiredModal(false)}
         mode="expired"
-        feature="Premium Utgått"
-        description="Ditt Premium-medlemskap har utgått. Förnya för att låsa upp dina sparade karaktärer och fortsätta chatta."
+        feature="Premium Expired"
+        description="Your Premium membership has expired. Renew to unlock your saved characters and continue chatting."
       />
     </div>
   );

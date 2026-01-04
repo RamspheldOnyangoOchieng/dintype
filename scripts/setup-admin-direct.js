@@ -16,9 +16,9 @@ if (!POSTGRES_URL) {
   process.exit(1);
 }
 
-const adminEmail = 'info@dintyp.se';
+const adminEmail = 'info@pocketlove.ai';
 const adminPassword = 'jdAlx!02!A';
-const adminName = 'Dintype MasterAdmin';
+const adminName = 'Pocketlove MasterAdmin';
 
 // Hash password using bcrypt-compatible method
 function hashPassword(password) {
@@ -28,7 +28,7 @@ function hashPassword(password) {
 }
 
 async function setupSuperAdmin() {
-  const client = new Client({ 
+  const client = new Client({
     connectionString: POSTGRES_URL,
     ssl: { rejectUnauthorized: false }
   });
@@ -43,7 +43,7 @@ async function setupSuperAdmin() {
 
     // Step 1: Check if user exists in auth.users
     console.log('🔍 Checking if user exists...');
-    
+
     const checkUser = await client.query(
       `SELECT id, email, raw_user_meta_data 
        FROM auth.users 
@@ -60,9 +60,9 @@ async function setupSuperAdmin() {
     } else {
       // Step 2: Insert into auth.users
       console.log('➕ Creating user in auth.users...');
-      
+
       userId = crypto.randomUUID();
-      
+
       const insertUser = await client.query(
         `INSERT INTO auth.users (
           id,
@@ -106,12 +106,12 @@ async function setupSuperAdmin() {
 
     // Step 3: Add to admin_users
     console.log('\n🔐 Adding to admin_users table...');
-    
+
     const checkAdmin = await client.query(
       'SELECT * FROM admin_users WHERE user_id = $1',
       [userId]
     );
-    
+
     if (checkAdmin.rows.length > 0) {
       console.log('✅ Already in admin_users table');
     } else {
@@ -124,12 +124,12 @@ async function setupSuperAdmin() {
 
     // Step 4: Setup user tokens
     console.log('\n💰 Initializing tokens...');
-    
+
     const checkTokens = await client.query(
       'SELECT * FROM user_tokens WHERE user_id = $1',
       [userId]
     );
-    
+
     if (checkTokens.rows.length > 0) {
       console.log(`✅ Current balance: ${checkTokens.rows[0].balance} tokens`);
     } else {

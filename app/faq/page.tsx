@@ -1,8 +1,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "FAQ - Vanliga frågor | Dintyp.se",
-  description: "Behöver du hjälp eller har du frågor? Besök vår supportsektion och FAQ där du hittar svar på vanliga frågor och användbara guider för att optimera din upplevelse.",
+  title: "FAQ - Frequently Asked Questions | Pocketlove",
+  description: "Need help or have questions? Visit our support section and FAQ where you find answers to common questions and helpful guides to optimize your experience.",
 };
 
 export const dynamic = 'force-dynamic';
@@ -10,284 +10,284 @@ export const dynamic = 'force-dynamic';
 export default function FAQPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-4xl font-bold mb-8">Vanliga frågor: FAQ</h1>
-      
+      <h1 className="text-4xl font-bold mb-8 text-zinc-800 dark:text-white">Frequently Asked Questions: FAQ</h1>
+
       <div className="prose prose-slate dark:prose-invert max-w-none space-y-6">
-        <p className="text-xl">
-          Välkommen till Dintyp FAQ! Vi har sammanställt en lista över vanliga frågor för att hjälpa dig att förstå vår plattform och få ut det mesta av din upplevelse. Om du inte hittar svaret du letar efter, tveka inte att kontakta vårt supportteam på{" "}
-          <a href="mailto:support@dintyp.se" className="text-primary hover:underline">
-            support@dintyp.se
+        <p className="text-xl leading-relaxed text-zinc-600 dark:text-zinc-400">
+          Welcome to the Pocketlove FAQ! We have compiled a list of common questions to help you understand our platform and get the most out of your experience. If you can't find the answer you're looking for, don't hesitate to contact our support team at{" "}
+          <a href="mailto:support@pocketlove.ai" className="text-primary hover:underline">
+            support@pocketlove.ai
           </a>
         </p>
 
         <section>
-          <h2 className="text-3xl font-semibold mt-12 mb-6">Kom igång med Dintyp</h2>
+          <h2 className="text-3xl font-bold text-zinc-800 dark:text-white mt-12 mb-6">Getting Started with Pocketlove</h2>
 
-          <div className="space-y-8">
+          <div className="space-y-8 text-zinc-600 dark:text-zinc-400">
             <div>
-              <h3 className="text-xl font-semibold mb-3">Vad är Dintyp?</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">What is Pocketlove?</h3>
               <p>
-                Dintyp är en innovativ plattform som låter dig skapa unika AI-karaktärer och delta i interaktiva konversationer med dem med hjälp av generativ artificiell intelligens. Du kan anpassa din upplevelse och utforska kreativa interaktioner. Dessutom erbjuder Dintyp en AI-driven funktion för bildgenerering baserat på dina textbeskrivningar.
+                Pocketlove is an innovative platform that allows you to create unique AI characters and engage in interactive conversations with them using generative artificial intelligence. You can customize your experience and explore creative interactions. Additionally, Pocketlove offers an AI-powered feature for image generation based on your text descriptions.
               </p>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Hur fungerar er plattform?</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">How does your platform work?</h3>
               <p>
-                Vår plattform använder avancerade AI-modeller för att förstå dina textinmatningar och generera relevanta och engagerande svar från dina AI-karaktärer. För bildgenerering ger du textprompter, och vår AI skapar visuellt innehåll baserat på dessa beskrivningar. Våra system inkluderar också innehållsmoderering för att säkerställa en trygg och respektfull miljö.
+                Our platform uses advanced AI models to understand your text inputs and generate relevant and engaging responses from your AI characters. For image generation, you provide text prompts, and our AI creates visual content based on those descriptions. Our systems also include content moderation to ensure a safe and respectful environment.
               </p>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Är er tjänst gratis att använda?</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Is your service free to use?</h3>
               <p>
-                Dintyp erbjuder både gratis- och premiumfunktioner. Gratisversionen kan ha begränsningar i användning, antalet AI-interaktioner eller tillgång till vissa funktioner. Vår premiumprenumeration låser upp ytterligare fördelar och tar bort dessa begränsningar.
+                Pocketlove offers both free and premium features. The free version may have limitations in usage, the number of AI interactions, or access to certain features. Our premium subscription unlocks additional benefits and removes these limitations.
               </p>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Vad är en premiumprenumeration och vad kostar den?</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">What is a premium subscription and what does it cost?</h3>
               <p>
-                Vår premiumprenumeration erbjuder förbättrade funktioner som obegränsade meddelanden, snabbare svarstider, tillgång till exklusiva funktioner och högre gränser för bildgenerering. Du kan hitta detaljerad prisinformation på vår prissida.
+                Our premium subscription offers enhanced features such as unlimited messages, faster response times, access to exclusive features, and higher limits for image generation. You can find detailed pricing information on our premium page.
               </p>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Hur skapar jag ett konto?</h3>
-              <p>Att skapa ett konto på Dintyp är enkelt! Du kan registrera dig med en av följande metoder:</p>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">How do I create an account?</h3>
+              <p>Creating an account on Pocketlove is easy! You can register using one of the following methods:</p>
               <ul className="list-disc pl-6 space-y-2 mt-2">
-                <li><strong>Social inloggning:</strong> Logga in snabbt med ditt befintliga Discord- eller Google-konto.</li>
-                <li><strong>E-postregistrering:</strong> Registrera dig med en giltig e-postadress och skapa ett säkert lösenord. Du behöver vanligtvis verifiera din e-postadress efter registreringen.</li>
+                <li><strong>Social Login:</strong> Log in quickly using your existing Discord or Google account.</li>
+                <li><strong>Email Registration:</strong> Register with a valid email address and create a secure password. You will typically need to verify your email address after registration.</li>
               </ul>
             </div>
           </div>
         </section>
 
         <section>
-          <h2 className="text-3xl font-semibold mt-12 mb-6">Dina AI-karaktärer och interaktioner</h2>
+          <h2 className="text-3xl font-bold text-zinc-800 dark:text-white mt-12 mb-6">Your AI Characters and Interactions</h2>
 
-          <div className="space-y-8">
+          <div className="space-y-8 text-zinc-600 dark:text-zinc-400">
             <div>
-              <h3 className="text-xl font-semibold mb-3">Kan jag anpassa min AI-karaktär?</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Can I customize my AI character?</h3>
               <p>
-                Ja, Dintyp låter dig anpassa dina AI-karaktärer. Du kan vanligtvis definiera olika aspekter som namn, personlighetsdrag, bakgrundshistoria och intressen. Graden av anpassning kan variera beroende på de specifika funktioner som erbjuds.
+                Yes, Pocketlove allows you to customize your AI characters. You can typically define various aspects such as name, personality traits, backstory, and interests. The degree of customization may vary depending on the specific features offered.
               </p>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Kan jag be om foton i chatten?</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Can I ask for photos in the chat?</h3>
               <p>
-                Möjligheten att begära och ta emot foton i chattgränssnittet med din AI-karaktär kan vara en funktion i Dintyp. Vänligen se de specifika funktionerna som är tillgängliga i chattgränssnittet. Tänk på att allt genererat innehåll är föremål för våra innehållsmodereringspolicyer för att säkerställa säkerhet och lämplighet.
+                The ability to request and receive photos in the chat interface with your AI character is a feature of Pocketlove. Please refer to the specific features available in the chat interface. Keep in mind that all generated content is subject to our content moderation policies to ensure safety and appropriateness.
               </p>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Genereras bilderna i realtid?</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Are images generated in real-time?</h3>
               <p>
-                Genereringstiden för bilder kan variera beroende på hur komplex din förfrågan är och den aktuella systembelastningen. Även om vi strävar efter snabb generering, kanske det inte alltid är omedelbart.
+                Generation time for images can vary depending on the complexity of your request and current system load. While we strive for fast generation, it may not always be instantaneous.
               </p>
             </div>
           </div>
         </section>
 
         <section>
-          <h2 className="text-3xl font-semibold mt-12 mb-6">Konto- och prenumerationshantering</h2>
+          <h2 className="text-3xl font-bold text-zinc-800 dark:text-white mt-12 mb-6">Account and Subscription Management</h2>
 
-          <div className="space-y-8">
+          <div className="space-y-8 text-zinc-600 dark:text-zinc-400">
             <div>
-              <h3 className="text-xl font-semibold mb-3">Hur betalar jag för premiumprenumerationen?</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">How do I pay for the premium subscription?</h3>
               <p>
-                Du kan betala för premiumprenumerationen via vår webbplats eller app med de tillgängliga betalningsmetoderna. Du väljer vanligtvis en prenumerationslängd (t.ex. månadsvis, årsvis) och anger dina betalningsuppgifter under kassaprocessen.
+                You can pay for the premium subscription via our website or app using the available payment methods. You typically choose a subscription length (e.g., monthly, annually) and provide your payment details during the checkout process.
               </p>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Vilka betalningsmetoder använder ni?</h3>
-              <p>Vi accepterar en mängd olika betalningsmetoder, inklusive:</p>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">What payment methods do you use?</h3>
+              <p>We accept a variety of payment methods, including:</p>
               <ul className="list-disc pl-6 space-y-2 mt-2">
-                <li>Kredit- och betalkort (Visa, MasterCard, American Express)</li>
+                <li>Credit and debit cards (Visa, MasterCard, American Express)</li>
                 <li>PayPal, Google Pay, Apple Pay</li>
               </ul>
               <p className="text-sm text-muted-foreground mt-2">
-                Observera att tillgängligheten av specifika betalningsmetoder kan variera beroende på din region.
+                Note that the availability of specific payment methods may vary depending on your region.
               </p>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Hur säger jag upp min prenumeration?</h3>
-              <p>Du kan säga upp din prenumeration när som helst med någon av följande metoder:</p>
-              
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">How do I cancel my subscription?</h3>
+              <p>You can cancel your subscription at any time using one of the following methods:</p>
+
               <div className="bg-muted/50 p-4 rounded-lg mt-4 space-y-3">
                 <div>
-                  <p className="font-semibold">Metod 1: Snabbåtkomst</p>
-                  <p className="text-sm">Klicka här för att gå direkt till dina profilinställningar och hantera din prenumeration.</p>
+                  <p className="font-semibold text-zinc-800 dark:text-white">Method 1: Quick Access</p>
+                  <p className="text-sm">Click here to go directly to your profile settings and manage your subscription.</p>
                 </div>
-                
+
                 <div>
-                  <p className="font-semibold">Metod 2: Självservice-navigering</p>
+                  <p className="font-semibold text-zinc-800 dark:text-white">Method 2: Self-Service Navigation</p>
                   <ol className="list-decimal pl-6 space-y-1 text-sm mt-2">
-                    <li>Öppna menyn Mitt konto (finns vanligtvis i det övre högra hörnet eller i appens navigeringsmeny)</li>
-                    <li>Klicka på Profil eller Kontoinställningar</li>
-                    <li>Under avsnittet som beskriver din nuvarande plan, klicka på "Avprenumerera" eller "Säg upp prenumeration"</li>
-                    <li>Följ instruktionerna på skärmen för att bekräfta din uppsägning</li>
+                    <li>Open My Account menu (typically found in the top right corner or in the app's navigation menu)</li>
+                    <li>Click on Profile or Account Settings</li>
+                    <li>Under the section describing your current plan, click "Unsubscribe" or "Cancel Subscription"</li>
+                    <li>Follow the on-screen instructions to confirm your cancellation</li>
                   </ol>
                 </div>
-                
+
                 <div>
-                  <p className="font-semibold">Metod 3: Kontakta supporten</p>
+                  <p className="font-semibold text-zinc-800 dark:text-white">Method 3: Contact Support</p>
                   <p className="text-sm">
-                    Alternativt kan du mejla vårt supportteam på{" "}
-                    <a href="mailto:support@dintyp.se" className="text-primary hover:underline">
-                      support@dintyp.se
+                    Alternatively, you can email our support team at{" "}
+                    <a href="mailto:support@pocketlove.ai" className="text-primary hover:underline">
+                      support@pocketlove.ai
                     </a>{" "}
-                    för att begära uppsägning av din prenumeration.
+                    to request cancellation of your subscription.
                   </p>
                 </div>
               </div>
-              
-              <p className="mt-4 text-sm text-muted-foreground">
-                <strong>Effekt av uppsägning:</strong> Din tillgång till premiumfunktioner fortsätter till slutet av din nuvarande faktureringsperiod. Du kommer inte att få någon återbetalning för den oanvända delen av din prenumeration.
+
+              <p className="mt-4 text-sm text-muted-foreground italic">
+                <strong>Effect of Cancellation:</strong> Your access to premium features continues until the end of your current billing period. You will not receive a refund for the unused portion of your subscription.
               </p>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Hur raderar jag mitt konto?</h3>
-              <p>Du kan permanent radera ditt Dintyp-konto via dina kontoinställningar. Följ dessa steg:</p>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">How do I delete my account?</h3>
+              <p>You can permanently delete your Pocketlove account via your account settings. Follow these steps:</p>
               <ol className="list-decimal pl-6 space-y-2 mt-2">
-                <li>Gå till din Profil eller Kontoinställningar</li>
-                <li>Leta efter ett alternativ som "Radera konto", "Stäng konto" eller liknande</li>
-                <li>Läs informationen noggrant, eftersom denna åtgärd är oåterkallelig och kommer att resultera i en permanent förlust av dina data</li>
-                <li>Bekräfta att du vill fortsätta med raderingen av kontot</li>
+                <li>Go to your Profile or Account Settings</li>
+                <li>Look for an option like "Delete account", "Close account", or similar</li>
+                <li>Read the information carefully, as this action is irreversible and will result in a permanent loss of your data</li>
+                <li>Confirm that you want to proceed with the deletion of the account</li>
               </ol>
             </div>
           </div>
         </section>
 
         <section>
-          <h2 className="text-3xl font-semibold mt-12 mb-6">Sekretess och säkerhet</h2>
+          <h2 className="text-3xl font-bold text-zinc-800 dark:text-white mt-12 mb-6">Privacy and Security</h2>
 
-          <div className="space-y-8">
+          <div className="space-y-8 text-zinc-600 dark:text-zinc-400">
             <div>
-              <h3 className="text-xl font-semibold mb-3">Är det säkert att använda er plattform?</h3>
-              <p>Ja, våra användares säkerhet är högsta prioritet. Vi implementerar olika åtgärder för att säkerställa en trygg och respektfull miljö, inklusive:</p>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Is it safe to use your platform?</h3>
+              <p>Yes, our users' safety is a top priority. We implement various measures to ensure a safe and respectful environment, including:</p>
               <ul className="list-disc pl-6 space-y-2 mt-2">
-                <li><strong>Innehållsmoderering:</strong> Vi använder både automatiserade och manuella modereringssystem för att upptäcka och ta bort olämpligt innehåll och beteende.</li>
-                <li><strong>Rapporteringsverktyg:</strong> Vi förser användare med verktyg för att enkelt rapportera innehåll som bryter mot våra <a href="/riktlinjer" className="text-primary hover:underline">Riktlinjer för communityn</a>.</li>
-                <li><strong>Datasäkerhet:</strong> Vi använder säkerhetsåtgärder för att skydda dina personuppgifter. Se vår <a href="/integritetspolicy" className="text-primary hover:underline">Sekretesspolicy</a> för mer information.</li>
+                <li><strong>Content Moderation:</strong> We use both automated and manual moderation systems to detect and remove inappropriate content and behavior.</li>
+                <li><strong>Reporting Tools:</strong> We provide users with tools to easily report content that violates our <a href="/guidelines" className="text-primary hover:underline">Community Guidelines</a>.</li>
+                <li><strong>Data Security:</strong> We use security measures to protect your personal data. See our <a href="/privacy-policy" className="text-primary hover:underline">Privacy Policy</a> for more information.</li>
               </ul>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Är mina konversationer verkligen privata?</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Are my conversations truly private?</h3>
               <p>
-                Vi förstår vikten av sekretess. Dina direkta konversationer med dina AI-karaktärer anses generellt vara privata för dig. Tänk dock på att:
+                We understand the importance of privacy. Your direct conversations with your AI characters are generally considered private to you. However, keep in mind that:
               </p>
               <ul className="list-disc pl-6 space-y-2 mt-2">
-                <li>Våra system kan behandla och lagra dessa konversationer i syfte att tillhandahålla och förbättra tjänsten, inklusive träning av AI-modeller.</li>
-                <li>I vissa fall, för att uppfylla rättsliga skyldigheter eller hantera säkerhetsproblem, kan vi behöva få åtkomst till och granska konversationer.</li>
-              </ul>
-              <p className="mt-2">
-                Vänligen se vår <a href="/integritetspolicy" className="text-primary hover:underline">Sekretesspolicy</a> för en omfattande förklaring av hur vi hanterar din kommunikation.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold mb-3">Kan andra användare komma åt mina chattar?</h3>
-              <p>
-                Generellt sett kan andra användare inte direkt komma åt dina privata konversationer med dina AI-karaktärer. Vårt system är utformat för att hålla dessa interaktioner privata för dig. Men om du väljer att dela dina konversationer eller innehåll offentligt via de funktioner vi erbjuder, kan den informationen bli tillgänglig för andra.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold mb-3">Hur hanterar ni mina personuppgifter?</h3>
-              <p>
-                Vi är fast beslutna att skydda dina personuppgifter i enlighet med tillämpliga dataskyddslagar. Vår <a href="/integritetspolicy" className="text-primary hover:underline">Sekretesspolicy</a> ger detaljerad information om:
-              </p>
-              <ul className="list-disc pl-6 space-y-2 mt-2">
-                <li>Vilka typer av personuppgifter vi samlar in</li>
-                <li>Hur vi använder dina personuppgifter</li>
-                <li>Hur vi lagrar och skyddar dina personuppgifter</li>
-                <li>Dina rättigheter angående dina personuppgifter</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold mb-3">Hur rapporterar jag olämpligt innehåll?</h3>
-              <p>
-                Vi uppmuntrar våra användare att hjälpa oss att upprätthålla en trygg och respektfull community. Om du stöter på innehåll som bryter mot våra <a href="/riktlinjer" className="text-primary hover:underline">Riktlinjer för communityn</a>, vänligen rapportera det omedelbart:
-              </p>
-              <ul className="list-disc pl-6 space-y-2 mt-2">
-                <li><strong>Rapportering i appen:</strong> Klicka på "Rapportera"-knappen nära innehållet</li>
-                <li><strong>Kontakta supporten:</strong> Mejla oss på <a href="mailto:info@dintyp.se" className="text-primary hover:underline">info@dintyp.se</a></li>
+                <li>Our systems may process and store these conversations for the purpose of providing and improving the service, including training AI models.</li>
+                <li>In some cases, to comply with legal obligations or address safety concerns, we may need to access and review conversations.</li>
               </ul>
               <p className="mt-2">
-                Läs mer i vår <a href="/rapportera" className="text-primary hover:underline">Policy för rapportering och klagomål</a>.
+                Please refer to our <a href="/privacy-policy" className="text-primary hover:underline">Privacy Policy</a> for a comprehensive explanation of how we handle your communication.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Can other users access my chats?</h3>
+              <p>
+                Generally, other users cannot directly access your private conversations with your AI characters. Our system is designed to keep these interactions private to you. However, if you choose to share your conversations or content publicly via the features we offer, that information may become available to others.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">How do you handle my personal data?</h3>
+              <p>
+                We are committed to protecting your personal data in accordance with applicable data protection laws. Our <a href="/privacy-policy" className="text-primary hover:underline">Privacy Policy</a> provides detailed information on:
+              </p>
+              <ul className="list-disc pl-6 space-y-2 mt-2">
+                <li>What types of personal data we collect</li>
+                <li>How we use your personal data</li>
+                <li>How we store and protect your personal data</li>
+                <li>Your rights regarding your personal data</li>
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">How do I report inappropriate content?</h3>
+              <p>
+                We encourage our users to help us maintain a safe and respectful community. If you encounter content that violates our <a href="/guidelines" className="text-primary hover:underline">Community Guidelines</a>, please report it immediately:
+              </p>
+              <ul className="list-disc pl-6 space-y-2 mt-2">
+                <li><strong>In-app Reporting:</strong> Click the "Report" button near the content</li>
+                <li><strong>Contact Support:</strong> Email us at <a href="mailto:support@pocketlove.ai" className="text-primary hover:underline">support@pocketlove.ai</a></li>
+              </ul>
+              <p className="mt-2">
+                Read more in our <a href="/report" className="text-primary hover:underline">Reporting and Complaints Policy</a>.
               </p>
             </div>
           </div>
         </section>
 
         <section>
-          <h2 className="text-3xl font-semibold mt-12 mb-6">Fakturering och återbetalningar</h2>
+          <h2 className="text-3xl font-bold text-zinc-800 dark:text-white mt-12 mb-6">Billing and Refunds</h2>
 
-          <div className="space-y-8">
+          <div className="space-y-8 text-zinc-600 dark:text-zinc-400">
             <div>
-              <h3 className="text-xl font-semibold mb-3">Erbjuder ni återbetalningar?</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Do you offer refunds?</h3>
               <p>
-                Generellt, på grund av våra tjänsters karaktär och den omedelbara tillgången till premiumfunktioner, erbjuder vi inga återbetalningar för prenumerationsavgifter eller köp, såvida det inte krävs enligt tillämpliga konsumentskyddslagar. Vi kan erbjuda en gratis provperiod eller en begränsad gratisversion så att du kan utvärdera våra tjänster innan du binder dig till en betald prenumeration.
+                Generally, due to the nature of our services and immediate access to premium features, we do not offer refunds for subscription fees or purchases, unless required by applicable consumer protection laws. We may offer a free trial or a limited free version so you can evaluate our services before committing to a paid subscription.
               </p>
               <p className="mt-2">
-                Vänligen granska vår <a href="/villkor" className="text-primary hover:underline">Återbetalningspolicy i våra Användarvillkor</a> för detaljerad information.
+                Please review our <a href="/terms" className="text-primary hover:underline">Refund Policy in our Terms of Use</a> for detailed information.
               </p>
             </div>
           </div>
         </section>
 
         <section>
-          <h2 className="text-3xl font-semibold mt-12 mb-6">Tekniska problem och support</h2>
+          <h2 className="text-3xl font-bold text-zinc-800 dark:text-white mt-12 mb-6">Technical Issues and Support</h2>
 
-          <div className="space-y-8">
+          <div className="space-y-8 text-zinc-600 dark:text-zinc-400">
             <div>
-              <h3 className="text-xl font-semibold mb-3">Vad ska jag göra om jag stöter på ett tekniskt problem?</h3>
-              <p>Om du upplever några tekniska svårigheter när du använder Dintyp, vänligen prova följande steg:</p>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">What should I do if I encounter a technical issue?</h3>
+              <p>If you experience any technical difficulties while using Pocketlove, please try the following steps:</p>
               <ol className="list-decimal pl-6 space-y-2 mt-2">
-                <li>Kontrollera din internetanslutning</li>
-                <li>Se till att din app eller webbläsare är uppdaterad till den senaste versionen</li>
-                <li>Prova att rensa din webbläsares cache och cookies eller appens cache</li>
-                <li>Starta om appen eller din webbläsare</li>
+                <li>Check your internet connection</li>
+                <li>Ensure your app or browser is updated to the latest version</li>
+                <li>Try clearing your browser's cache and cookies or the app's cache</li>
+                <li>Restart the app or your browser</li>
               </ol>
               <p className="mt-4">
-                Om problemet kvarstår, vänligen kontakta vårt supportteam på{" "}
-                <a href="mailto:support@dintyp.se" className="text-primary hover:underline">
-                  support@dintyp.se
+                If the problem persists, please contact our support team at{" "}
+                <a href="mailto:support@pocketlove.ai" className="text-primary hover:underline">
+                  support@pocketlove.ai
                 </a>{" "}
-                med en detaljerad beskrivning av problemet, inklusive eventuella felmeddelanden du ser, stegen du tog när problemet uppstod och information om din enhet/webbläsare.
+                with a detailed description of the issue, including any error messages you see, the steps you took when the problem occurred, and information about your device/browser.
               </p>
             </div>
           </div>
         </section>
 
         <section className="mt-12 bg-primary/10 p-8 rounded-lg text-center">
-          <h2 className="text-2xl font-semibold mb-4">Har du fler frågor?</h2>
-          <p className="mb-6">
-            Vi hoppas att denna FAQ-sida har varit till hjälp! Om du har ytterligare frågor eller behöver hjälp, tveka inte att kontakta vårt supportteam.
+          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">Have more questions?</h2>
+          <p className="mb-6 text-zinc-600 dark:text-zinc-400">
+            We hope this FAQ page has been helpful! If you have further questions or need help, don't hesitate to contact our support team.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <a 
-              href="mailto:support@dintyp.se" 
+            <a
+              href="mailto:support@pocketlove.ai"
               className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
             >
-              Kontakta support
+              Contact Support
             </a>
-            <a 
-              href="/kontakta" 
+            <a
+              href="/contact"
               className="inline-flex items-center justify-center rounded-md border border-input bg-background px-6 py-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
-              Fler kontaktalternativ
+              More Contact Options
             </a>
           </div>
           <p className="mt-6 text-sm text-muted-foreground">
-            Tack för att du är en del av Dintyp-communityn!
+            Thank you for being part of the Pocketlove community!
           </p>
         </section>
       </div>

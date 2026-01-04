@@ -18,7 +18,7 @@ const getTranslationClient = () => {
   })
 }
 
-export async function translateText(text: string, targetLanguage = "sv"): Promise<string> {
+export async function translateText(text: string, targetLanguage = "en"): Promise<string> {
   try {
     const client = getTranslationClient()
 

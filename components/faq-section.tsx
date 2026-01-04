@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { ChevronDown, Trash2, Plus } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
 import { useAuth } from "@/components/auth-context"
+import { useTranslations } from "@/lib/use-translations"
 
 type FAQ = {
   id: string
@@ -15,42 +16,43 @@ type FAQ = {
 const DEFAULT_FAQS: FAQ[] = [
   {
     id: "1",
-    question: "Vad är DINTYP.SE?",
+    question: "What is Pocketlove?",
     answer:
-      "DINTYP.SE är en plattform för uppslukande upplevelser med AI-kompanjoner. Den låter användare skapa, anpassa och interagera med AI-karaktärer som kan föra samtal, generera bilder och erbjuda sällskap.",
+      "Pocketlove is a platform for immersive experiences with AI companions. It allows users to create, customize, and interact with AI characters that can conduct conversations, generate images, and offer companionship.",
     created_at: new Date().toISOString(),
   },
   {
     id: "2",
-    question: "Är DINTYP.SE legitim och säker?",
+    question: "Is Pocketlove legitimate and safe?",
     answer:
-      "Ja, DINTYP.SE prioriterar användarsäkerhet och integritet. Alla konversationer skyddas med SSL-kryptering och vi erbjuder valfri tvåfaktorsautentisering för att hålla ditt konto säkert. Din personliga information och dina interaktioner förblir privata.",
+      "Yes, Pocketlove prioritizes user safety and privacy. All conversations are protected with SSL encryption and we offer optional two-factor authentication to keep your account secure. Your personal information and interactions remain private.",
     created_at: new Date().toISOString(),
   },
   {
     id: "3",
-    question: "Vad är en AI-kompanjon och kan jag skapa en egen?",
+    question: "What is an AI companion and can I create my own?",
     answer:
-      "En AI-kompanjon är en digital partner som kan prata, reagera, flirta och knyta an till dig i realtid. Du kan skapa din egen kompanjon från grunden eller välja bland många befintliga karaktärer utformade för olika sinnesstämningar och personligheter.",
+      "An AI companion is a digital partner that can talk, react, flirt, and connect with you in real time. You can create your own companion from scratch or choose from many existing characters designed for different moods and personalities.",
     created_at: new Date().toISOString(),
   },
   {
     id: "4",
-    question: "Kan jag be om bilder, videor och röst?",
+    question: "Can I ask for images, videos, and voice?",
     answer:
-      "Ja, din kompanjon kan skicka selfies, generera anpassade videor eller svara med sin röst. Du kan be om specifika kläder, unika poser eller lekfulla scenarier som matchar din fantasi.",
+      "Yes, your companion can send selfies, generate custom videos, or respond with their voice. You can ask for specific outfits, unique poses, or playful scenarios that match your imagination.",
     created_at: new Date().toISOString(),
   },
   {
     id: "5",
-    question: "Hur visas betalningar på mina kontoutdrag?",
+    question: "How do payments appear on my bank statements?",
     answer:
-      "Vi värnar om din integritet. Betalningar hanteras diskret så att inget på ditt kontoutdrag avslöjar din upplevelse.",
+      "We value your privacy. Payments are handled discretely so that nothing on your statement reveals your experience.",
     created_at: new Date().toISOString(),
   },
 ]
 
 export function FAQSection() {
+  const { t } = useTranslations()
   const [openIndex, setOpenIndex] = useState<number | null>(null)
   const [faqs, setFaqs] = useState<FAQ[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -112,16 +114,16 @@ export function FAQSection() {
 
       if (!response.ok) {
         toast({
-          title: "Fel",
-          description: result.error || "Det gick inte att lägga till FAQ",
+          title: t("faq.errorGeneric"),
+          description: result.error || "Failed to add FAQ",
           variant: "destructive",
         })
         return
       }
 
       toast({
-        title: "Klart",
-        description: "FAQ har lagts till",
+        title: t("faq.addSuccess"),
+        description: "FAQ has been added",
       })
       setNewQuestion("")
       setNewAnswer("")
@@ -130,8 +132,8 @@ export function FAQSection() {
     } catch (error) {
       console.error("Error:", error)
       toast({
-        title: "Fel",
-        description: "Ett oväntat fel inträffade",
+        title: t("faq.errorGeneric"),
+        description: "An unexpected error occurred",
         variant: "destructive",
       })
     } finally {
@@ -140,7 +142,7 @@ export function FAQSection() {
   }
 
   const handleDeleteFAQ = async (id: string) => {
-  if (!confirm("Är du säker på att du vill radera denna FAQ?")) return
+    if (!confirm(t("faq.deleteConfirm"))) return
 
     try {
       setIsDeletingFAQ(true)
@@ -153,23 +155,23 @@ export function FAQSection() {
       if (!response.ok) {
         const result = await response.json()
         toast({
-          title: "Fel",
-          description: result.error || "Det gick inte att radera FAQ",
+          title: t("faq.errorGeneric"),
+          description: result.error || "Failed to delete FAQ",
           variant: "destructive",
         })
         return
       }
 
       toast({
-        title: "Klart",
-        description: "FAQ raderades",
+        title: t("faq.deleteSuccess"),
+        description: "FAQ has been deleted",
       })
       fetchFAQs() // Refresh the list
     } catch (error) {
       console.error("Error:", error)
       toast({
-        title: "Fel",
-        description: "Ett oväntat fel inträffade",
+        title: t("faq.errorGeneric"),
+        description: "An unexpected error occurred",
         variant: "destructive",
       })
     } finally {
@@ -186,8 +188,8 @@ export function FAQSection() {
       <div className="container mx-auto max-w-4xl">
         <div className="flex justify-between items-center mb-6 md:mb-8">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-800 dark:text-white">
-            <span className="text-zinc-800 dark:text-white">DINTYP.SE</span>{" "}
-            <span className="text-orange">Vanliga frågor</span>
+            <span className="text-zinc-800 dark:text-white">Pocketlove</span>{" "}
+            <span className="text-orange">{t("faq.title")}</span>
           </h2>
 
           {isAdmin && (
@@ -196,7 +198,7 @@ export function FAQSection() {
               className="flex items-center gap-1 px-3 py-1 text-sm bg-primary hover:bg-primary/90 text-primary-foreground rounded-md"
             >
               <Plus className="w-4 h-4" />
-              {showAddForm ? "Avbryt" : "Lägg till FAQ"}
+              {showAddForm ? t("faq.cancel") : t("faq.addFaq")}
             </button>
           )}
         </div>
@@ -204,7 +206,7 @@ export function FAQSection() {
         {/* Admin Add FAQ Form */}
         {isAdmin && showAddForm && (
           <div className="mb-6 p-4 bg-white dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
-            <h3 className="text-lg font-medium mb-3 text-zinc-800 dark:text-white">Lägg till ny FAQ</h3>
+            <h3 className="text-lg font-medium mb-3 text-zinc-800 dark:text-white">{t("faq.addNewFaqTitle")}</h3>
 
             <div className="space-y-4">
               <div>
@@ -212,7 +214,7 @@ export function FAQSection() {
                   htmlFor="newQuestion"
                   className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1"
                 >
-                  Fråga
+                  {t("faq.questionLabel")}
                 </label>
                 <input
                   type="text"
@@ -220,20 +222,20 @@ export function FAQSection() {
                   value={newQuestion}
                   onChange={(e) => setNewQuestion(e.target.value)}
                   className="w-full p-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white"
-                  placeholder="Ange ny FAQ-fråga"
+                  placeholder={t("faq.questionPlaceholder")}
                 />
               </div>
 
               <div>
                 <label htmlFor="newAnswer" className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-                  Svar
+                  {t("faq.answerLabel")}
                 </label>
                 <textarea
                   id="newAnswer"
                   value={newAnswer}
                   onChange={(e) => setNewAnswer(e.target.value)}
                   className="w-full p-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white min-h-[100px]"
-                  placeholder="Ange svar för den nya FAQ:n"
+                  placeholder={t("faq.answerPlaceholder")}
                 />
               </div>
 
@@ -245,11 +247,11 @@ export function FAQSection() {
                 >
                   {isAddingFAQ ? (
                     <>
-                      <span className="mr-2">Lägger till...</span>
+                      <span className="mr-2">{t("faq.adding")}</span>
                       <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
                     </>
                   ) : (
-                    "Lägg till FAQ"
+                    t("faq.addFaq")
                   )}
                 </button>
               </div>
@@ -262,7 +264,7 @@ export function FAQSection() {
             <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
           </div>
         ) : faqs.length === 0 ? (
-          <div className="text-center py-12 text-zinc-600 dark:text-zinc-400">Inga vanliga frågor tillgängliga just nu.</div>
+          <div className="text-center py-12 text-zinc-600 dark:text-zinc-400">{t("faq.noFaqs")}</div>
         ) : (
           <div className="space-y-4">
             {faqs.map((item, index) => (
@@ -290,7 +292,7 @@ export function FAQSection() {
                     <button
                       onClick={() => handleDeleteFAQ(item.id)}
                       className="p-4 text-red-500 hover:text-red-600 focus:outline-none"
-                      aria-label="Radera FAQ"
+                      aria-label="Delete FAQ"
                       disabled={isDeletingFAQ}
                     >
                       <Trash2 className="w-5 h-5" />

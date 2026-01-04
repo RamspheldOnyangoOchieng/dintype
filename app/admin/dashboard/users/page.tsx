@@ -1140,25 +1140,25 @@ export default function AdminUsersPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2 italic italic font-black">
               <Activity className="h-5 w-5 text-primary" />
-              <span>Aktivitetshistorik - {selectedUser?.username}</span>
+              <span>Activity History - {selectedUser?.username}</span>
             </DialogTitle>
             <DialogDescription>
-              Se alla transaktioner och aktiviteter för denna användare.
+              See all transactions and activities for this user.
             </DialogDescription>
           </DialogHeader>
 
           <div className="py-4">
             {selectedUser && (
-              <UnifiedActivityList 
-                userId={selectedUser.id} 
-                showTitle={false} 
+              <UnifiedActivityList
+                userId={selectedUser.id}
+                showTitle={false}
                 limit={50}
               />
             )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowActivityDialog(false)}>Stäng</Button>
+            <Button variant="outline" onClick={() => setShowActivityDialog(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

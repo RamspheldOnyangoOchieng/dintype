@@ -24,6 +24,48 @@ export type TranslationKey =
   | "auth.createAccount"
   | "auth.greeting"
   | "home.exploreCharacters"
+  | "home.howItWorks.title"
+  | "home.howItWorks.description"
+  | "home.howItWorks.step1"
+  | "home.howItWorks.step2"
+  | "home.howItWorks.step3"
+  | "home.howItWorks.step4"
+  | "home.howItWorks.step5"
+  | "home.roadmap.title"
+  | "home.roadmap.q1"
+  | "home.roadmap.q2"
+  | "home.roadmap.q3"
+  | "home.roadmap.q4"
+  | "home.guide.title"
+  | "home.guide.description"
+  | "home.guide.chat.title"
+  | "home.guide.chat.description"
+  | "home.guide.safety.title"
+  | "home.guide.safety.description"
+  | "home.guide.generate.title"
+  | "home.guide.generate.description"
+  | "home.guide.personalize.title"
+  | "home.guide.personalize.description"
+  | "home.complaints.title"
+  | "home.complaints.description"
+  | "home.complaints.email"
+  | "home.complaints.note1"
+  | "home.complaints.note2"
+  | "home.complaints.note2"
+  | "faq.title"
+  | "faq.addFaq"
+  | "faq.cancel"
+  | "faq.addNewFaqTitle"
+  | "faq.questionLabel"
+  | "faq.answerLabel"
+  | "faq.questionPlaceholder"
+  | "faq.answerPlaceholder"
+  | "faq.adding"
+  | "faq.deleteConfirm"
+  | "faq.deleteSuccess"
+  | "faq.addSuccess"
+  | "faq.errorGeneric"
+  | "faq.noFaqs"
   | "home.companion.title"
   | "home.companion.p1"
   | "home.companion.p2"
@@ -341,7 +383,7 @@ export type Translations = {
 
 export const translations: Record<"en" | "sv", Translations> = {
   en: {
-    "general.siteName": "AI Character Explorer",
+    "general.siteName": "Pocketlove",
     "general.welcome": "Welcome",
     "general.home": "Home",
     "navigation.home": "Back to Home",
@@ -370,7 +412,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "general.chat": "Chat",
     "general.collection": "Collection",
     "general.premium": "Premium",
-    "general.aiCharacters": "AI Characters",
+    "general.aiCharacters": "AI Companions",
     "general.admin": "Admin",
     "general.user": "User",
     "auth.login": "Login",
@@ -378,16 +420,57 @@ export const translations: Record<"en" | "sv", Translations> = {
     "auth.logoutConfirmation": "Are you sure you want to logout?",
     "auth.createAccount": "Create Free Account",
     "auth.greeting": "Hi",
-    "home.exploreCharacters": "Explore AI Characters",
-    "home.companion.title": "AI Companion Experience with DINTYP.SE",
-    "home.companion.p1": "Step into a new kind of connection with DINTYP.SE – your gateway to personal, emotionally intelligent AI companions.",
-    "home.companion.p2": "Looking for an anime companion, an AI girlfriend to chat with, or maybe a caring AI boyfriend? DINTYP.SE makes it easy to create, personalize, and evolve your ideal match using modern AI.",
+    "home.exploreCharacters": "Explore AI Companions",
+    "home.howItWorks.title": "How it Works",
+    "home.howItWorks.description": "Create an account, explore characters or generate your own. Start chatting immediately – conversations evolve dynamically and your AI remembers preferences when you return.",
+    "home.howItWorks.step1": "Sign up or log in.",
+    "home.howItWorks.step2": "Choose or create an AI character.",
+    "home.howItWorks.step3": "Chat, generate images or ask for voice/video.",
+    "home.howItWorks.step4": "Save favorites and customize personality.",
+    "home.howItWorks.step5": "Upgrade for unlimited and faster interactions.",
+    "home.roadmap.title": "Roadmap",
+    "home.roadmap.q1": "Q1: Enhanced voice chat & adaptive memory.",
+    "home.roadmap.q2": "Q2: Video-avatar rendering & improved moderation.",
+    "home.roadmap.q3": "Q3: Real-time multi-party chat & mobile apps.",
+    "home.roadmap.q4": "Q4: Offline mode and private edge inference.",
+    "home.guide.title": "Guide",
+    "home.guide.description": "Quick start for new users. How to get the most out of the platform:",
+    "home.guide.chat.title": "Chat smart",
+    "home.guide.chat.description": "Be specific in your requests. Ask for style, tone or scenario for more accurate responses.",
+    "home.guide.safety.title": "Secure interactions",
+    "home.guide.safety.description": "Report inappropriate content. Our filters protect but feedback improves everything.",
+    "home.guide.generate.title": "Generate images",
+    "home.guide.generate.description": "Use short clear phrases. Combine attributes ('soft lighting', 'portrait', 'anime style').",
+    "home.guide.personalize.title": "Personalize",
+    "home.guide.personalize.description": "Adjust personality and background to improve consistency in dialogue over time.",
+    "home.complaints.title": "Complaints & Content Removal",
+    "home.complaints.description": "Want to report a problem, incorrect content or request removal? Contact us and we will handle the matter promptly.",
+    "home.complaints.email": "Email",
+    "home.complaints.note1": "Provide link/ID for the content and a short description of the problem.",
+    "home.complaints.note2": "Urgent matters (security/abuse) are prioritized within 24 hours.",
+    "faq.title": "Frequently Asked Questions",
+    "faq.addFaq": "Add FAQ",
+    "faq.cancel": "Cancel",
+    "faq.addNewFaqTitle": "Add New FAQ",
+    "faq.questionLabel": "Question",
+    "faq.answerLabel": "Answer",
+    "faq.questionPlaceholder": "Enter new FAQ question",
+    "faq.answerPlaceholder": "Enter answer for the new FAQ",
+    "faq.adding": "Adding...",
+    "faq.deleteConfirm": "Are you sure you want to delete this FAQ?",
+    "faq.deleteSuccess": "FAQ deleted successfully",
+    "faq.addSuccess": "FAQ added successfully",
+    "faq.errorGeneric": "An unexpected error occurred",
+    "faq.noFaqs": "No frequently asked questions available at the moment.",
+    "home.companion.title": "AI Companion Experience with Pocketlove",
+    "home.companion.p1": "Step into a new kind of connection with Pocketlove – your gateway to personal, emotionally intelligent AI companions.",
+    "home.companion.p2": "Looking for an anime companion, an AI girlfriend to chat with, or maybe a caring AI boyfriend? Pocketlove makes it easy to create, personalize, and evolve your ideal match using modern AI.",
     "home.companion.p3": "We don't just offer chatbots. We offer deeply customizable AI experiences shaped to your wishes: realistic voice, image generation, and playful videos.",
     "home.companion.p4": "Your AI companion remembers your preferences and adapts over time. Whether you want a deep relationship or spontaneous encounters, you’re always in control.",
     "home.companion.p5": "Yes—your companion can send selfies, generate custom videos, or respond with voice. Ask for specific outfits, unique poses, or playful scenarios.",
     "home.companion.p6": "Privacy is a top priority. Conversations are encrypted and optional two-factor authentication keeps your account secure.",
     "home.companion.p7": "Curious what an AI companion is? Think of a digital partner who can talk, react, flirt, and connect in real time.",
-    "home.companion.p8": "Whether you want casual company or something more romantic, DINTYP.SE adapts to your pace from first message to goodnight.",
+    "home.companion.p8": "Whether you want casual company or something more romantic, Pocketlove adapts to your pace from first message to goodnight.",
     "admin.settings": "Admin Settings",
     "admin.language": "Language",
     "admin.languageDescription": "Set the default language for the application",
@@ -446,7 +529,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "generate.noSuggestionCategories": "No suggestion categories available.",
     "chat.chats": "Chats",
     "chat.viewConversationHistory": "View your conversation history with characters.",
-    "chat.createCharacter": "Create Character",
+    "chat.createCharacter": "Create Companion",
     "chat.allCharacters": "All Characters",
     "chat.viewAll": "View all",
     "chat.loadingCharacters": "Loading characters...",
@@ -653,20 +736,20 @@ export const translations: Record<"en" | "sv", Translations> = {
     "imageGeneration.emptyStateMessage": "Enter a prompt and click Generate to create an image",
     "imageGeneration.generateButton": "Generate Image",
     "imageGeneration.cancelButton": "Cancel",
-    "home.exploreAIGirlfriends": "Explore AI Girlfriends",
-    "general.aiGirlfriends": "AI Girlfriends",
-    "footer.companyDescription": "AI Character Explorer delivers immersive experiences with AI companions that feel real, allowing users to generate images and chat.",
+    "home.exploreAIGirlfriends": "Explore AI Companions",
+    "general.aiGirlfriends": "AI Companions",
+    "footer.companyDescription": "Pocketlove delivers immersive experiences with AI companions that feel real, allowing users to generate images and chat.",
     "footer.contact": "Contact",
     "footer.features.createImage": "Create Image",
     "footer.features.chat": "Chat",
-    "footer.features.createCharacter": "Create Character",
+    "footer.features.createCharacter": "Create Companion",
     "footer.features.gallery": "Gallery",
     "footer.features.explore": "Explore",
     "footer.about.title": "About us",
     "footer.company.title": "Company",
     "footer.legal.termsPolicies": "Terms and Policies",
-    "footer.about.aiGirlfriendChat": "AI-flickvänschatt",
-    "footer.about.aiSexting": "AI-sexting",
+    "footer.about.aiGirlfriendChat": "AI Companion Chat",
+    "footer.about.aiSexting": "AI Chat",
     "footer.about.howItWorks": "How it works",
     "footer.about.aboutUs": "About Us",
     "footer.about.roadmap": "Roadmap",
@@ -681,11 +764,11 @@ export const translations: Record<"en" | "sv", Translations> = {
     "footer.resetDefaults": "Reset to defaults",
   },
   sv: {
-    "general.siteName": "AI Karaktärsutforskare",
+    "general.siteName": "Pocketlove",
     "general.welcome": "Välkommen",
     "profile.age": "Åldras",
     "general.legal": "Rättslig",
-    "general.features": "AI-flickvänner",
+    "general.features": "AI-kompanjoner",
     "general.popular": "Populär",
     "profile.hobbies": "Hobbyer",
     "profile.body": "Kropp",
@@ -712,7 +795,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "general.create": "Skapa",
     "general.chat": "Chatta",
     "general.premium": "Premium",
-    "general.aiCharacters": "AI-karaktärer",
+    "general.aiCharacters": "AI-kompanjoner",
     "general.admin": "Administratör",
     "general.user": "Användare",
     "auth.login": "Logga in",
@@ -720,16 +803,57 @@ export const translations: Record<"en" | "sv", Translations> = {
     "auth.logoutConfirmation": "Är du säker på att du vill logga ut?",
     "auth.createAccount": "Skapa konto",
     "auth.greeting": "Hej",
-    "home.exploreCharacters": "Utforska AI-karaktärer",
-    "home.companion.title": "AI-kompanjonsupplevelse med DINTYP.SE",
-    "home.companion.p1": "Kliv in i en ny typ av kontakt med DINTYP.SE – din port till personliga och emotionellt intelligenta AI-kompanjoner.",
-    "home.companion.p2": "Letar du efter en anime-kompanjon, en AI-flickvän att chatta med eller kanske en omtänksam AI-pojkvän? DINTYP.SE gör det enkelt att skapa, anpassa och utveckla din ideala matchning.",
+    "home.exploreCharacters": "Utforska AI-kompanjoner",
+    "home.howItWorks.title": "Hur det fungerar",
+    "home.howItWorks.description": "Skapa ett konto, utforska karaktärer eller generera din egen. Börja chatta direkt – konversationer utvecklas dynamiskt och din AI minns preferenser när du återkommer.",
+    "home.howItWorks.step1": "Registrera dig eller logga in.",
+    "home.howItWorks.step2": "Välj eller skapa en AI-karaktär.",
+    "home.howItWorks.step3": "Chatta, generera bilder eller be om röst/video.",
+    "home.howItWorks.step4": "Spara favoriter och anpassa personligheten.",
+    "home.howItWorks.step5": "Uppgradera för obegränsade och snabbare interaktioner.",
+    "home.roadmap.title": "Roadmap",
+    "home.roadmap.q1": "Q1: Förbättrad röstchatt & adaptivt minne.",
+    "home.roadmap.q2": "Q2: Video-avatar rendering & förbättrad moderation.",
+    "home.roadmap.q3": "Q3: Realtids flerpartschat & mobilappar.",
+    "home.roadmap.q4": "Q4: Offline-läge och privat edge-inferens.",
+    "home.guide.title": "Guide",
+    "home.guide.description": "Snabbstart för nya användare. Så här får du ut mest av plattformen:",
+    "home.guide.chat.title": "Chatta smart",
+    "home.guide.chat.description": "Var specifik i dina önskemål. Be om stil, ton eller scenario för mer träffsäkra svar.",
+    "home.guide.safety.title": "Säkra interaktioner",
+    "home.guide.safety.description": "Rapportera olämpligt innehåll. Våra filter skyddar men feedback förbättrar allt.",
+    "home.guide.generate.title": "Generera bilder",
+    "home.guide.generate.description": "Använd korta tydliga fraser. Kombinera attribut ('mjuk belysning', 'porträtt', 'anime-stil').",
+    "home.guide.personalize.title": "Personalisera",
+    "home.guide.personalize.description": "Justera personlighet och bakgrund för att förbättra konsekvens i dialogen över tid.",
+    "home.complaints.title": "Klagomål & Innehållsborttagning",
+    "home.complaints.description": "Vill du rapportera ett problem, felaktigt innehåll eller begära borttagning? Kontakta oss så hanterar vi ärendet skyndsamt.",
+    "home.complaints.email": "E-post",
+    "home.complaints.note1": "Ange länk/ID för innehållet och kort beskrivning av problemet.",
+    "home.complaints.note2": "Akuta ärenden (säkerhet/missbruk) prioriteras inom 24 timmar.",
+    "faq.title": "Vanliga frågor",
+    "faq.addFaq": "Lägg till FAQ",
+    "faq.cancel": "Avbryt",
+    "faq.addNewFaqTitle": "Lägg till ny FAQ",
+    "faq.questionLabel": "Fråga",
+    "faq.answerLabel": "Svar",
+    "faq.questionPlaceholder": "Ange ny FAQ-fråga",
+    "faq.answerPlaceholder": "Ange svar för den nya FAQ:n",
+    "faq.adding": "Lägger till...",
+    "faq.deleteConfirm": "Är du säker på att du vill radera denna FAQ?",
+    "faq.deleteSuccess": "FAQ raderades",
+    "faq.addSuccess": "FAQ har lagts till",
+    "faq.errorGeneric": "Ett oväntat fel inträffade",
+    "faq.noFaqs": "Inga vanliga frågor tillgängliga just nu.",
+    "home.companion.title": "AI-kompanjonsupplevelse med Pocketlove",
+    "home.companion.p1": "Kliv in i en ny typ av kontakt med Pocketlove – din port till personliga och emotionellt intelligenta AI-kompanjoner.",
+    "home.companion.p2": "Letar du efter en anime-kompanjon, en AI-flickvän att chatta med eller kanske en omtänksam AI-pojkvän? Pocketlove gör det enkelt att skapa, anpassa och utveckla din ideala matchning.",
     "home.companion.p3": "Vi erbjuder inte bara chatbots – vi erbjuder djupt anpassningsbara AI-upplevelser med röst, bildgenerering och lekfulla videor.",
     "home.companion.p4": "Din AI-kompanjon minns dina preferenser och anpassar sig med tiden. Oavsett om du vill ha något djupt eller spontant har du alltid kontrollen.",
     "home.companion.p5": "Ja – din kompanjon kan skicka selfies, generera skräddarsydda videor eller svara med röst. Be om outfits, poser eller scenarier.",
     "home.companion.p6": "Integritet är högsta prioritet. Samtal krypteras och du kan aktivera tvåfaktorsautentisering för extra säkerhet.",
     "home.companion.p7": "Nyfiken på AI-kompanjoner? Tänk dig en digital partner som kan prata, reagera, flirta och knyta an i realtid.",
-    "home.companion.p8": "Oavsett om du söker sällskap eller något romantiskt anpassar sig DINTYP.SE efter ditt tempo – från första meddelandet till godnatt.",
+    "home.companion.p8": "Oavsett om du söker sällskap eller något romantiskt anpassar sig Pocketlove efter ditt tempo – från första meddelandet till godnatt.",
     "admin.settings": "Administratörsinställningar",
     "admin.language": "Språk",
     "admin.languageDescription": "Ställ in standardspråk för applikationen",
@@ -788,7 +912,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "generate.noSuggestionCategories": "Inga förslag finns tillgängliga.",
     "chat.chats": "Chattar",
     "chat.viewConversationHistory": "Visa din konversationshistorik med karaktärer.",
-    "chat.createCharacter": "Skapa Karaktär",
+    "chat.createCharacter": "Skapa Kompanjon",
     "chat.allCharacters": "Alla Karaktärer",
     "chat.viewAll": "Visa alla",
     "chat.loadingCharacters": "Laddar karaktärer...",
@@ -840,7 +964,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "login.forgotPassword": "Glömt lösenord?",
     "login.loginToContinue": "logga in för att fortsätta",
     "signup.createAccount": "Skapa ett konto",
-    "signup.joinCommunity": "Gå med i vår gemenskap och börja chatta med AI-karaktärer",
+    "signup.joinCommunity": "Gå med i vår gemenskap och börja chatta med AI-kompanjoner",
     "signup.username": "Användarnamn",
     "signup.email": "E-post",
     "signup.password": "Lösenord",
@@ -993,20 +1117,20 @@ export const translations: Record<"en" | "sv", Translations> = {
     "imageGeneration.emptyStateMessage": "Ange en prompt och klicka på Generera för att skapa en bild",
     "imageGeneration.generateButton": "Generera Bild",
     "imageGeneration.cancelButton": "Avbryt",
-    "home.exploreAIGirlfriends": "Utforska AI-flickvänner",
-    "general.aiGirlfriends": "AI-flickvänner",
-    "footer.companyDescription": "AI Karaktärsutforskare ger uppslukande upplevelser med AI-flickvänner som känns verkliga, vilket gör att användarna kan skapa bilder och chatta.",
+    "home.exploreAIGirlfriends": "Utforska AI-kompanjoner",
+    "general.aiGirlfriends": "AI-kompanjoner",
+    "footer.companyDescription": "Pocketlove ger uppslukande upplevelser med AI-kompanjoner som känns verkliga, vilket gör att användarna kan skapa bilder och chatta.",
     "footer.contact": "Kontakt",
     "footer.features.createImage": "Skapa bild",
     "footer.features.chat": "Chatta",
-    "footer.features.createCharacter": "Skapa karaktär",
+    "footer.features.createCharacter": "Skapa kompanjon",
     "footer.features.gallery": "Galleri",
     "footer.features.explore": "Utforska",
     "footer.about.title": "Om oss",
     "footer.company.title": "Företag",
     "footer.legal.termsPolicies": "Villkor och Policyer",
-    "footer.about.aiGirlfriendChat": "AI Girlfriend Chat",
-    "footer.about.aiSexting": "AI Sexting",
+    "footer.about.aiGirlfriendChat": "AI Kompanjon Chat",
+    "footer.about.aiSexting": "AI Chat",
     "footer.about.howItWorks": "Hur det fungerar",
     "footer.about.aboutUs": "Om oss",
     "footer.about.roadmap": "Färdplan",

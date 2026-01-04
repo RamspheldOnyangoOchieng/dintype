@@ -87,12 +87,12 @@ export function MobileNav() {
   }
 
   const navItems = [
-    { name: "Hem", href: "/", icon: Home },
-    { name: "Chatta", href: "/chat", icon: MessageSquare },
-    { name: "Skapa bild", href: "/generate", icon: Sparkles },
-    { name: "Skapa flickvän", href: "/create-character", icon: Users },
-    { name: "Min AI flickvän", href: "/my-ai", icon: Heart, requiresAuth: true },
-    { name: "Mina bilder", href: "/collections", icon: FolderHeart, requiresAuth: true },
+    { name: "Home", href: "/", icon: Home },
+    { name: "Chat", href: "/chat", icon: MessageSquare },
+    { name: "Generate", href: "/generate", icon: Sparkles },
+    { name: "Create AI", href: "/create-character", icon: Users },
+    { name: "My AI", href: "/my-ai", icon: Heart, requiresAuth: true },
+    { name: "My Images", href: "/collections", icon: FolderHeart, requiresAuth: true },
     { name: "Premium", href: "/premium", icon: DollarSign },
   ]
 

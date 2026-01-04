@@ -22,7 +22,7 @@ page_meta table:
 - twitter_card (default: 'summary_large_image')
 - canonical_url (text, nullable)
 - robots (default: 'index,follow')
-- language (default: 'sv')
+- language (default: 'en')
 - is_active (boolean, default: true)
 ```
 
@@ -161,17 +161,17 @@ curl -s https://yourdomain.com/premium | grep -i "meta"
 ### Meta Title
 - **Length**: 50-60 characters (avoid truncation)
 - **Format**: `Primary Keyword | Brand Name`
-- **Example**: `Premium AI Flickvän - Obegränsad Chatt | DINTYP.SE`
+- **Example**: `Premium AI Companion - Unlimited Chat | Pocketlove`
 
 ### Meta Description
 - **Length**: 120-160 characters
 - **Include**: Main keyword, value proposition, CTA
-- **Example**: `Uppgradera till Premium och få obegränsad chatt med AI-flickvänner. Exklusiva funktioner, snabbare svar. Prova gratis i 7 dagar!`
+- **Example**: `Upgrade to Premium and get unlimited chat with AI companions. Exclusive features, faster responses. Try it for free!`
 
 ### Keywords
 - **Count**: 5-10 relevant keywords
 - **Format**: Comma-separated
-- **Example**: `ai flickvän, premium, obegränsad chatt, virtuell kompanjon`
+- **Example**: `ai companion, premium, unlimited chat, virtual partner`
 
 ### OpenGraph (Social Sharing)
 - **OG Title**: Can be longer than meta title (70 chars)
@@ -222,8 +222,8 @@ Edit these in `/admin/dashboard/seo` to optimize for your keywords.
 [
   {
     "page_path": "/premium",
-    "meta_title": "Premium AI Flickvän",
-    "meta_description": "Uppgradera idag...",
+    "meta_title": "Premium AI Companion",
+    "meta_description": "Upgrade today...",
     ...
   }
 ]
@@ -267,9 +267,9 @@ export default function PremiumLayout({ children }: { children: React.ReactNode 
 
 Then in admin UI (`/admin/dashboard/seo`):
 1. Select `/premium`
-2. Meta Title: `Premium AI Flickvän - Obegränsad Chatt | DINTYP.SE`
-3. Meta Description: `Uppgradera till Premium och få obegränsad chatt med AI-flickvänner. Exklusiva funktioner, snabbare svar. Prova gratis!`
-4. Keywords: `premium ai flickvän, obegränsad chatt, virtuell kompanjon, ai dating`
+2. Meta Title: `Premium AI Companion - Unlimited Chat | Pocketlove`
+3. Meta Description: `Upgrade to Premium and get unlimited chat with AI companions. Exclusive features, faster responses. Try it for free!`
+4. Keywords: `premium ai companion, unlimited chat, virtual partner, ai dating`
 5. OG Image: `https://yourdomain.com/og-premium.jpg`
 6. Save!
 

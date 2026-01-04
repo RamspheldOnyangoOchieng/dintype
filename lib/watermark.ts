@@ -8,7 +8,7 @@ import sharp from 'sharp'
  */
 export async function addWatermark(
   imageBuffer: Buffer,
-  watermarkText: string = 'DINTYP AI'
+  watermarkText: string = 'POCKETLOVE AI'
 ): Promise<Buffer> {
   try {
     // Get image metadata
@@ -66,7 +66,7 @@ export async function addWatermark(
  */
 export async function addWatermarkToUrl(
   imageUrl: string,
-  watermarkText: string = 'DINTYP AI'
+  watermarkText: string = 'POCKETLOVE AI'
 ): Promise<Buffer> {
   try {
     // Fetch the image
@@ -94,12 +94,12 @@ export async function shouldAddWatermark(userId: string): Promise<boolean> {
   try {
     const { getUserPlanInfo } = await import('@/lib/subscription-limits')
     const planInfo = await getUserPlanInfo(userId)
-    
+
     // Free users get watermark
     if (planInfo.planType === 'free') {
       return planInfo.restrictions.image_watermark === 'true'
     }
-    
+
     // Premium users don't get watermark
     return false
 

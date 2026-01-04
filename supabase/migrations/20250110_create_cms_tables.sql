@@ -32,11 +32,11 @@ COMMENT ON COLUMN page_meta.robots IS 'index,follow or noindex,nofollow';
 
 -- Insert default SEO for main pages
 INSERT INTO page_meta (page_path, meta_title, meta_description, meta_keywords) VALUES
-  ('/', 'AI Character Explorer - Chatta med AI Flickvänner', 'Skapa och chatta med personliga AI-flickvänner. Realistiska konversationer, anpassningsbara personligheter.', 'ai flickvän, ai chat, virtuell flickvän, ai karaktär'),
-  ('/premium', 'Premium Plan - Obegränsade AI Chattningar', 'Uppgradera till Premium för obegränsade meddelanden, fler AI-flickvänner och exklusiva funktioner.', 'premium ai, obegränsad chat, ai prenumeration'),
-  ('/blogg', 'AI Dating Blog - Tips & Guider', 'Läs om AI-dating, virtuella relationer och hur du får ut det mesta av din AI-flickvän.', 'ai dating blog, ai relationer, virtuell dating'),
-  ('/faq', 'Vanliga Frågor - AI Character Explorer', 'Svar på vanliga frågor om AI-flickvänner, tokens, prenumerationer och funktioner.', 'faq, hjälp, ai frågor'),
-  ('/create-character', 'Skapa Din AI Flickvän - Anpassad Personlighet', 'Skapa din perfekta AI-flickvän med anpassad personlighet, utseende och intressen.', 'skapa ai flickvän, anpassad ai, ai karaktär design')
+  ('/', 'Pocketlove - Your AI Companion', 'Create and chat with personal AI companions. Realistic conversations, customizable personalities.', 'ai companion, ai chat, virtual partner, ai character'),
+  ('/premium', 'Premium Plan - Unlimited AI Chat', 'Upgrade to Premium for unlimited messages, more AI companions, and exclusive features.', 'premium ai, unlimited chat, ai subscription'),
+  ('/blog', 'AI Companion Blog - Tips & Guides', 'Read about AI dating, virtual relationships, and how to get the most out of your AI companion.', 'ai dating blog, ai relationships, virtual dating'),
+  ('/faq', 'Frequently Asked Questions - Pocketlove', 'Answers to common questions about AI companions, tokens, subscriptions, and features.', 'faq, help, ai questions'),
+  ('/create-character', 'Create Your AI Companion - Custom Personality', 'Create your perfect AI companion with custom personality, appearance, and interests.', 'create ai companion, custom ai, ai character design')
 ON CONFLICT (page_path) DO NOTHING;
 
 -- =============================================
@@ -64,12 +64,12 @@ COMMENT ON COLUMN content_blocks.block_type IS 'text, html, markdown, or json';
 
 -- Insert default content blocks
 INSERT INTO content_blocks (block_key, block_type, content, description, page_path) VALUES
-  ('homepage_hero_title', 'text', 'Skapa Din Perfekta AI Flickvän', 'Homepage hero section title', '/'),
-  ('homepage_hero_subtitle', 'text', 'Chatta, flirta och bygg en djup relation med en AI som förstår dig', 'Homepage hero subtitle', '/'),
-  ('homepage_features_title', 'text', 'Varför Välja Oss?', 'Features section title', '/'),
-  ('pricing_title', 'text', 'Välj Din Plan', 'Pricing section title', '/premium'),
-  ('pricing_subtitle', 'text', 'Börja gratis eller uppgradera för obegränsad tillgång', 'Pricing subtitle', '/premium'),
-  ('faq_intro', 'html', '<p>Här hittar du svar på de vanligaste frågorna om AI Character Explorer.</p>', 'FAQ intro text', '/faq')
+  ('homepage_hero_title', 'text', 'Create Your Perfect AI Companion', 'Homepage hero section title', '/'),
+  ('homepage_hero_subtitle', 'text', 'Chat, flirt and build a deep relationship with an AI that understands you', 'Homepage hero subtitle', '/'),
+  ('homepage_features_title', 'text', 'Why Choose Us?', 'Features section title', '/'),
+  ('pricing_title', 'text', 'Choose Your Plan', 'Pricing section title', '/premium'),
+  ('pricing_subtitle', 'text', 'Start for free or upgrade for unlimited access', 'Pricing subtitle', '/premium'),
+  ('faq_intro', 'html', '<p>Here you will find answers to the most common questions about Pocketlove.</p>', 'FAQ intro text', '/faq')
 ON CONFLICT (block_key) DO NOTHING;
 
 -- =============================================
@@ -117,10 +117,10 @@ COMMENT ON TABLE blog_categories IS 'Blog post categories';
 
 -- Insert default categories
 INSERT INTO blog_categories (name, slug, description) VALUES
-  ('AI Dating', 'ai-dating', 'Tips och guider om AI-dating och virtuella relationer'),
-  ('Funktioner', 'funktioner', 'Nya funktioner och uppdateringar'),
-  ('Guider', 'guider', 'Steg-för-steg guider och tutorials'),
-  ('Nyheter', 'nyheter', 'Senaste nyheterna om AI och teknologi')
+  ('AI Dating', 'ai-dating', 'Tips and guides about AI dating and virtual relationships'),
+  ('Features', 'features', 'New features and updates'),
+  ('Guides', 'guides', 'Step-by-step guides and tutorials'),
+  ('News', 'news', 'Latest news about AI and technology')
 ON CONFLICT (slug) DO NOTHING;
 
 -- =============================================
@@ -218,9 +218,9 @@ COMMENT ON TABLE faq_items IS 'Frequently Asked Questions - editable from admin'
 
 -- Insert sample FAQ items
 INSERT INTO faq_items (question, answer, category, sort_order) VALUES
-  ('Vad kostar det att använda tjänsten?', 'Vi erbjuder både gratis och premium planer. Gratisversionen inkluderar 50 tokens och begränsade funktioner. Premium kostar 119 kr/månad och inkluderar obegränsade meddelanden och 100 bonus tokens.', 'Priser', 1),
-  ('Hur fungerar tokens?', 'Tokens används för att generera meddelanden (5 tokens), bilder (5-10 tokens) och skapa AI-karaktärer (2 tokens). Du kan köpa fler tokens i olika paket från 99 kr.', 'Tokens', 2),
-  ('Kan jag skapa flera AI-flickvänner?', 'Gratis användare kan ha 1 aktiv karaktär. Premium-användare kan ha upp till 3 aktiva karaktärer samtidigt.', 'Funktioner', 3)
+  ('How much does it cost to use the service?', 'We offer both free and premium plans. The free version includes 50 tokens and limited features. Premium costs $11.99/month and includes unlimited messages and 100 bonus tokens.', 'Pricing', 1),
+  ('How do tokens work?', 'Tokens are used to generate messages (5 tokens), images (5-10 tokens) and create AI characters (2 tokens). You can buy more tokens in different packages starting from $9.99.', 'Tokens', 2),
+  ('Can I create multiple AI companions?', 'Free users can have 1 active character. Premium users can have up to 3 active characters simultaneously.', 'Features', 3)
 ON CONFLICT DO NOTHING;
 
 -- =============================================

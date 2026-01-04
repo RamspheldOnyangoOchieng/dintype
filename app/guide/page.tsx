@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Guide - Användarguide | Dintyp.se",
-  description: "Komplett guide för att komma igång med Dintyp.se. Lär dig hur du skapar AI-karaktärer, chattar, genererar bilder och mycket mer.",
+  title: "Guide - User Guide | Pocketlove",
+  description: "Complete guide to getting started with Pocketlove. Learn how to create AI characters, chat, generate images, and much more.",
 };
 
 export const dynamic = 'force-dynamic';
@@ -27,9 +27,9 @@ export default function GuidePage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Plattformsguide</h1>
+        <h1 className="text-4xl font-bold mb-4">Platform Guide</h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Din kompletta guide till Dintyp.se - från registrering till avancerade funktioner
+          Your complete guide to Pocketlove - from registration to advanced features
         </p>
       </div>
 
@@ -41,19 +41,19 @@ export default function GuidePage() {
             <div className="bg-primary/10 p-3 rounded-lg">
               <Sparkles className="h-6 w-6 text-primary" />
             </div>
-            <h2 className="text-3xl font-bold m-0">1. Kom igång - Registrering</h2>
+            <h2 className="text-3xl font-bold m-0 text-zinc-800 dark:text-white">1. Getting Started - Registration</h2>
           </div>
           
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-semibold mb-3">Skapa ditt konto</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Create Your Account</h3>
               <div className="bg-muted/50 p-6 rounded-lg space-y-3">
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
                   <div>
-                    <p className="font-medium">Steg 1: Öppna inloggningsrutan</p>
+                    <p className="font-medium">Step 1: Open the login box</p>
                     <p className="text-sm text-muted-foreground">
-                      Klicka på "Logga in" knappen i det övre högra hörnet på sidan.
+                      Click the "Login" button in the top right corner of the page.
                     </p>
                   </div>
                 </div>
@@ -61,14 +61,14 @@ export default function GuidePage() {
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
                   <div>
-                    <p className="font-medium">Steg 2: Välj registreringsmetod</p>
+                    <p className="font-medium">Step 2: Choose registration method</p>
                     <p className="text-sm text-muted-foreground">
-                      Du har tre alternativ:
+                      You have three options:
                     </p>
                     <ul className="text-sm text-muted-foreground mt-2 space-y-1 ml-4">
-                      <li>• <strong>E-post och lösenord:</strong> Fyll i din e-postadress och välj ett säkert lösenord</li>
-                      <li>• <strong>Google:</strong> Logga in med ditt Google-konto</li>
-                      <li>• <strong>Discord:</strong> Logga in med ditt Discord-konto</li>
+                      <li>• <strong>Email and Password:</strong> Fill in your email address and choose a secure password</li>
+                      <li>• <strong>Google:</strong> Log in with your Google account</li>
+                      <li>• <strong>Discord:</strong> Log in with your Discord account</li>
                     </ul>
                   </div>
                 </div>
@@ -76,9 +76,9 @@ export default function GuidePage() {
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
                   <div>
-                    <p className="font-medium">Steg 3: Klicka på "Skapa konto"</p>
+                    <p className="font-medium">Step 3: Click "Create account"</p>
                     <p className="text-sm text-muted-foreground">
-                      Om du ser inloggningsrutan klickar du på länken "Skapa konto" längst ner för att växla till registreringsformuläret.
+                      If you see the login box, click the "Create account" link at the bottom to switch to the registration form.
                     </p>
                   </div>
                 </div>
@@ -86,9 +86,9 @@ export default function GuidePage() {
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
                   <div>
-                    <p className="font-medium">Steg 4: Klar!</p>
+                    <p className="font-medium">Step 4: Done!</p>
                     <p className="text-sm text-muted-foreground">
-                      Du är nu inloggad och kan börja utforska plattformen.
+                      You are now logged in and can start exploring the platform.
                     </p>
                   </div>
                 </div>
@@ -97,7 +97,7 @@ export default function GuidePage() {
 
             <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-5">
               <p className="text-sm">
-                <strong>💡 Tips:</strong> Om du glömt ditt lösenord kan du klicka på länken "Glömt lösenord?" i inloggningsrutan för att återställa det.
+                <strong>💡 Tip:</strong> If you've forgotten your password, you can click the "Forgot password?" link in the login box to reset it.
               </p>
             </div>
           </div>
@@ -109,97 +109,97 @@ export default function GuidePage() {
             <div className="bg-primary/10 p-3 rounded-lg">
               <ImagePlus className="h-6 w-6 text-primary" />
             </div>
-            <h2 className="text-3xl font-bold m-0">2. Bildgenerering</h2>
+            <h2 className="text-3xl font-bold m-0 text-zinc-800 dark:text-white">2. Image Generation</h2>
           </div>
 
           <div className="space-y-6">
             <p>
-              Skapa unika AI-genererade bilder med vår avancerade bildgenerator.
+              Create unique AI-generated images with our advanced image generator.
             </p>
 
             <div className="bg-muted/50 p-6 rounded-lg space-y-4">
-              <h3 className="text-lg font-semibold">Så här genererar du bilder:</h3>
+              <h3 className="text-lg font-semibold text-zinc-800 dark:text-white">How to Generate Images:</h3>
               
               <ol className="space-y-4 list-decimal list-inside">
                 <li className="font-medium">
-                  Navigera till <Link href="/generate" className="text-primary hover:underline">Skapa bild</Link>
+                  Navigate to <Link href="/generate" className="text-primary hover:underline">Create Image</Link>
                   <p className="text-sm text-muted-foreground ml-6 mt-1">
-                    Hitta "Skapa bild" i menyn eller sidofältet.
+                    Find "Create Image" in the menu or sidebar.
                   </p>
                 </li>
                 
                 <li className="font-medium">
-                  Skriv din prompt
+                  Write your prompt
                   <p className="text-sm text-muted-foreground ml-6 mt-1">
-                    Beskriv detaljerat vad du vill se i bilden. Ju mer specifik beskrivning, desto bättre resultat.
+                    Describe in detail what you want to see in the image. The more specific the description, the better the result.
                   </p>
                   <div className="bg-background border border-border rounded p-3 ml-6 mt-2">
-                    <p className="text-xs text-muted-foreground mb-1">Exempel på bra prompt:</p>
+                    <p className="text-xs text-muted-foreground mb-1">Example of a good prompt:</p>
                     <p className="text-sm font-mono">
-                      "En ung kvinna med långt brunt hår, blå ögon, vänligt leende, solnedgång i bakgrunden, fotorealistisk stil"
+                      "A young woman with long brown hair, blue eyes, friendly smile, sunset in background, photo-realistic style"
                     </p>
                   </div>
                 </li>
                 
                 <li className="font-medium">
-                  Lägg till negativ prompt (valfritt)
+                  Add negative prompt (optional)
                   <p className="text-sm text-muted-foreground ml-6 mt-1">
-                    Klicka på "Visa negativ prompt" för att specificera vad du INTE vill ha i bilden. Exempel: "suddigt, dålig kvalitet, distorderat"
+                    Click on "Show negative prompt" to specify what you DO NOT want in the image. Example: "blurry, poor quality, distorted"
                   </p>
                 </li>
                 
                 <li className="font-medium">
-                  Välj antal bilder
+                  Select number of images
                   <p className="text-sm text-muted-foreground ml-6 mt-1">
-                    Välj hur många bilder du vill generera samtidigt:
+                    Choose how many images you want to generate simultaneously:
                   </p>
                   <ul className="text-sm text-muted-foreground ml-6 mt-1 space-y-1">
-                    <li>• <strong>1 bild:</strong> 5 tokens</li>
-                    <li>• <strong>4 bilder:</strong> 20 tokens</li>
-                    <li>• <strong>6 bilder:</strong> 30 tokens</li>
-                    <li>• <strong>8 bilder:</strong> 40 tokens</li>
+                    <li>• <strong>1 image:</strong> 5 tokens</li>
+                    <li>• <strong>4 images:</strong> 20 tokens</li>
+                    <li>• <strong>6 images:</strong> 30 tokens</li>
+                    <li>• <strong>8 images:</strong> 40 tokens</li>
                   </ul>
                 </li>
                 
                 <li className="font-medium">
-                  Använd förslag (valfritt)
+                  Use suggestions (optional)
                   <p className="text-sm text-muted-foreground ml-6 mt-1">
-                    Ovanför promptfältet finns kategorier med förslag. Klicka på en kategori och sedan på ett förslag för att snabbt fylla i en prompt.
+                    Above the prompt field, there are categories with suggestions. Click a category and then a suggestion to quickly fill in a prompt.
                   </p>
                 </li>
 
                 <li className="font-medium">
-                  Klicka på "Generera"
+                  Click "Generate"
                   <p className="text-sm text-muted-foreground ml-6 mt-1">
-                    Dina bilder genereras på några sekunder. Du kan se framstegsindikatorn medan bilderna skapas.
+                    Your images are generated in seconds. You can see the progress indicator while the images are being created.
                   </p>
                 </li>
               </ol>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Hantera genererade bilder</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Manage Generated Images</h3>
               <div className="space-y-4">
                 <div className="border border-border rounded-lg p-4 space-y-2">
                   <div className="flex items-center gap-2">
                     <FolderOpen className="h-5 w-5 text-primary" />
-                    <h4 className="font-semibold">Automatisk sparning i Galleri</h4>
+                    <h4 className="font-semibold">Automatic saving in Gallery</h4>
                   </div>
                   <p className="text-sm">
-                    Alla genererade bilder sparas automatiskt i ditt <Link href="/collections" className="text-primary hover:underline">Galleri</Link> (Collection). Du behöver inte göra något - de finns där direkt efter generering.
+                    All generated images are automatically saved in your <Link href="/collections" className="text-primary hover:underline">Gallery</Link> (Collection). You don't have to do anything - they are there immediately after generation.
                   </p>
                 </div>
 
                 <div className="border border-border rounded-lg p-4 space-y-2">
-                  <h4 className="font-semibold">Bildhantering</h4>
-                  <p className="text-sm text-muted-foreground">I galleriet kan du:</p>
+                  <h4 className="font-semibold text-zinc-800 dark:text-white">Image Management</h4>
+                  <p className="text-sm text-muted-foreground">In the gallery, you can:</p>
                   <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-                    <li>• Markera bilder som favoriter med hjärtikonen</li>
-                    <li>• Ladda ner bilder till din enhet</li>
-                    <li>• Radera bilder du inte vill behålla</li>
-                    <li>• Skapa samlingar för att organisera dina bilder</li>
-                    <li>• Lägg till bilder i specifika samlingar</li>
-                    <li>• Använd selektionsläge för att hantera flera bilder samtidigt</li>
+                    <li>• Mark images as favorites with the heart icon</li>
+                    <li>• Download images to your device</li>
+                    <li>• Delete images you don't want to keep</li>
+                    <li>• Create collections to organize your images</li>
+                    <li>• Add images to specific collections</li>
+                    <li>• Use selection mode to manage multiple images at once</li>
                   </ul>
                 </div>
               </div>
@@ -213,105 +213,90 @@ export default function GuidePage() {
             <div className="bg-primary/10 p-3 rounded-lg">
               <Users className="h-6 w-6 text-primary" />
             </div>
-            <h2 className="text-3xl font-bold m-0">3. Skapa AI-karaktär</h2>
+            <h2 className="text-3xl font-bold m-0 text-zinc-800 dark:text-white">3. Create AI Character</h2>
           </div>
 
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-semibold mb-3">6-stegs guidad process</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">6-step Guided Process</h3>
               
               <div className="bg-muted/50 p-6 rounded-lg space-y-4">
                 <p className="text-sm text-muted-foreground mb-4">
-                  Vår karaktärsskapare använder en 6-stegs wizard som guidar dig genom processen:
+                  Our character creator uses a 6-step wizard that guides you through the process:
                 </p>
 
                 <div className="space-y-3">
                   <div className="border-l-4 border-primary/50 pl-4">
-                    <h4 className="font-semibold">Steg 1: Välj stil och modell</h4>
+                    <h4 className="font-semibold">Step 1: Choose style and model</h4>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Börja med att välja från befintliga karaktärsmallar. Du kan filtrera baserat på:
+                      Start by choosing from existing character templates. You can filter based on:
                     </p>
                     <ul className="text-sm text-muted-foreground ml-4 mt-2 space-y-1">
-                      <li>• <strong>Ålder (Age)</strong></li>
-                      <li>• <strong>Kroppstyp (Body)</strong></li>
-                      <li>• <strong>Etnicitet (Ethnicity)</strong></li>
-                      <li>• <strong>Språk (Language)</strong></li>
-                      <li>• <strong>Relation (Relationship)</strong></li>
-                      <li>• <strong>Yrke (Occupation)</strong></li>
-                      <li>• <strong>Hobbyer (Hobbies)</strong></li>
-                      <li>• <strong>Personlighet (Personality)</strong></li>
+                      <li>• <strong>Age</strong> 🎂</li>
+                      <li>• <strong>Body</strong> 💪</li>
+                      <li>• <strong>Ethnicity</strong> 🌎</li>
+                      <li>• <strong>Language</strong> 🗣️</li>
+                      <li>• <strong>Relationship</strong> 💑</li>
+                      <li>• <strong>Occupation</strong> 💼</li>
+                      <li>• <strong>Hobbies</strong> 🎨</li>
+                      <li>• <strong>Personality</strong> ✨</li>
                     </ul>
                     <p className="text-sm text-muted-foreground mt-2">
-                      När du använder filter highlightas matchande karaktärer. Klicka på en för att välja den som bas.
+                      When you use filters, matching characters are highlighted. Click on one to select it as your base.
                     </p>
                   </div>
 
                   <div className="border-l-4 border-primary/50 pl-4">
-                    <h4 className="font-semibold">Steg 2: Grundläggande info</h4>
+                    <h4 className="font-semibold">Step 2: Basic Info</h4>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Granska karaktärens grundegenskaper:
-                    </p>
-                    <ul className="text-sm text-muted-foreground ml-4 mt-2 space-y-1">
-                      <li>• Ålder (Age) 🎂</li>
-                      <li>• Kroppstyp (Body) 💪</li>
-                      <li>• Etnicitet (Ethnicity) 🌎</li>
-                    </ul>
-                  </div>
-
-                  <div className="border-l-4 border-primary/50 pl-4">
-                    <h4 className="font-semibold">Steg 3: Kommunikation</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Se hur karaktären kommunicerar:
-                    </p>
-                    <ul className="text-sm text-muted-foreground ml-4 mt-2 space-y-1">
-                      <li>• Språk (Language) 🗣️</li>
-                      <li>• Relationsstatus (Relationship) 💑</li>
-                    </ul>
-                  </div>
-
-                  <div className="border-l-4 border-primary/50 pl-4">
-                    <h4 className="font-semibold">Steg 4: Karriär</h4>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Granska karaktärens yrke och arbete: Occupation 💼
+                      Review the character's basic traits: Age, Body, and Ethnicity.
                     </p>
                   </div>
 
                   <div className="border-l-4 border-primary/50 pl-4">
-                    <h4 className="font-semibold">Steg 5: Personlighet</h4>
+                    <h4 className="font-semibold text-zinc-800 dark:text-white">Step 3: Communication</h4>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Se karaktärens hobbyer och personlighetsdrag visas som badges/taggar.
+                      Set how the character communicates: Language and Relationship Status.
                     </p>
                   </div>
 
                   <div className="border-l-4 border-primary/50 pl-4">
-                    <h4 className="font-semibold">Steg 6: Slutlig förhandsgranskning</h4>
+                    <h4 className="font-semibold text-zinc-800 dark:text-white">Step 4: Career</h4>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Granska all information om din karaktär:
+                      Review the character's Occupation.
                     </p>
-                    <ul className="text-sm text-muted-foreground ml-4 mt-2 space-y-1">
-                      <li>• Namn och profilbild</li>
-                      <li>• Beskrivning</li>
-                      <li>• Alla egenskaper sammanfattade</li>
-                      <li>• Hobbyer och personlighetsdrag</li>
-                    </ul>
+                  </div>
+
+                  <div className="border-l-4 border-primary/50 pl-4">
+                    <h4 className="font-semibold text-zinc-800 dark:text-white">Step 5: Personality</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      See the character's hobbies and personality traits displayed as badges/tags.
+                    </p>
+                  </div>
+
+                  <div className="border-l-4 border-primary/50 pl-4">
+                    <h4 className="font-semibold text-zinc-800 dark:text-white">Step 6: Final Preview</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Review all information about your character: Name, Profile Picture, Description, and all summarized traits.
+                    </p>
                     <p className="text-sm text-muted-foreground mt-2">
-                      Klicka på "Create my AI" för att slutföra!
+                      Click "Create my AI" to finish!
                     </p>
                   </div>
                 </div>
 
                 <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4 mt-4">
                   <p className="text-sm">
-                    <strong>💡 Tips:</strong> Du kan navigera fram och tillbaka mellan stegen med pil-knapparna för att justera dina val.
+                    <strong>💡 Tip:</strong> You can navigate back and forth between steps using the arrow buttons to adjust your choices.
                   </p>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Utforska befintliga karaktärer</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Explore Existing Characters</h3>
               <p className="mb-4">
-                Gå till <Link href="/characters" className="text-primary hover:underline">Characters</Link>-sidan för att bläddra bland alla tillgängliga AI-karaktärer. Klicka på "View Character" eller "New Character" för att skapa eller chatta.
+                Go to the <Link href="/characters" className="text-primary hover:underline">Characters</Link> page to browse all available AI characters. Click "View Character" or "New Character" to create or chat.
               </p>
             </div>
           </div>
@@ -323,32 +308,32 @@ export default function GuidePage() {
             <div className="bg-primary/10 p-3 rounded-lg">
               <MessageSquare className="h-6 w-6 text-primary" />
             </div>
-            <h2 className="text-3xl font-bold m-0">4. Chatta med AI-karaktärer</h2>
+            <h2 className="text-3xl font-bold m-0 text-zinc-800 dark:text-white">4. Chat with AI Characters</h2>
           </div>
 
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-semibold mb-3">Starta en konversation</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Start a Conversation</h3>
               <div className="bg-muted/50 p-6 rounded-lg space-y-4">
                 <ol className="space-y-3 list-decimal list-inside">
                   <li className="font-medium">
-                    Hitta en karaktär
+                    Find a Character
                     <p className="text-sm text-muted-foreground ml-6 mt-1">
-                      Gå till <Link href="/characters" className="text-primary hover:underline">Characters</Link> för att se alla tillgängliga karaktärer, eller gå till <Link href="/chat" className="text-primary hover:underline">Chatta</Link> för att se dina senaste konversationer.
+                      Go to <Link href="/characters" className="text-primary hover:underline">Characters</Link> to see all available characters, or go to <Link href="/chat" className="text-primary hover:underline">Chat</Link> to see your recent conversations.
                     </p>
                   </li>
                   
                   <li className="font-medium">
-                    Klicka på karaktären
+                    Click the Character
                     <p className="text-sm text-muted-foreground ml-6 mt-1">
-                      Klicka på ett karaktärskort för att öppna chattfönstret med den karaktären.
+                      Click a character card to open the chat window with that character.
                     </p>
                   </li>
                   
                   <li className="font-medium">
-                    Börja prata
+                    Start Talking
                     <p className="text-sm text-muted-foreground ml-6 mt-1">
-                      Skriv ditt meddelande i textfältet längst ner och tryck Enter eller klicka på skicka-knappen (pil-ikon). Karaktären svarar baserat på sin personlighet och konversationshistorik.
+                      Type your message in the text field at the bottom and press Enter or click the send button (arrow icon). The character responds based on its personality and conversation history.
                     </p>
                   </li>
                 </ol>
@@ -356,92 +341,85 @@ export default function GuidePage() {
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Chattfunktioner</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Chat Features</h3>
               <div className="space-y-4">
                 <div className="border border-border rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">� Automatisk sparning</h4>
+                  <h4 className="font-semibold mb-2">💾 Automatic Saving</h4>
                   <p className="text-sm text-muted-foreground">
-                    All chatthistorik sparas automatiskt i localStorage. Du kan se dina tidigare konversationer på <Link href="/chat" className="text-primary hover:underline">Chatta</Link>-sidan under "Recent Conversations".
+                    All chat history is saved automatically. You can see your previous conversations on the <Link href="/chat" className="text-primary hover:underline">Chat</Link> page under "Recent Conversations".
                   </p>
                 </div>
 
                 <div className="border border-border rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">�️ Rensa chatt</h4>
+                  <h4 className="font-semibold mb-2">🧹 Clear Chat</h4>
                   <p className="text-sm text-muted-foreground">
-                    Klicka på menyikonen (tre prickar) längst upp i chattfönstret för att öppna menyn. Välj alternativet för att rensa chatthistoriken. Detta startar en helt ny konversation utan tidigare kontext.
+                    Click on the menu icon (three dots) at the top of the chat window to open the menu. Select the option to clear chat history. This starts a brand new conversation without previous context.
                   </p>
                 </div>
 
                 <div className="border border-border rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">� Sidofält med chattlista</h4>
+                  <h4 className="font-semibold mb-2">📋 Chat List Sidebar</h4>
                   <p className="text-sm text-muted-foreground">
-                    I chattfönstret kan du öppna sidofältet för att se alla karaktärer du har chattat med. Det visar den senaste meddelandet från varje konversation. Klicka på en karaktär för att byta konversation.
+                    In the chat window, you can open the sidebar to see all the characters you have chatted with. It shows the latest message from each conversation. Click a character to switch conversations.
                   </p>
                 </div>
 
                 <div className="border border-border rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">�️ Begär bilder i chatten</h4>
+                  <h4 className="font-semibold mb-2">🖼️ Request Images in Chat</h4>
                   <p className="text-sm text-muted-foreground">
-                    AI:n kan identifiera när du ber om bilder. Skriv något som "Visa mig en bild av..." eller "Skapa en bild av..." så kommer karaktären att generera en bild baserat på din beskrivning.
+                    The AI can identify when you ask for images. Write something like "Show me a picture of..." or "Create an image of..." and the character will generate an image based on your description.
                   </p>
                 </div>
 
                 <div className="border border-border rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">🔊 Röstfunktioner (experimentell)</h4>
+                  <h4 className="font-semibold mb-2">🔊 Voice Features (Experimental)</h4>
                   <p className="text-sm text-muted-foreground">
-                    Vissa karaktärer kan ha röstfunktioner där du kan lyssna på AI:ns svar. Klicka på högtalare-ikonen för att höra meddelandet uppläst.
-                  </p>
-                </div>
-
-                <div className="border border-border rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">📹 Videosamtal (om tillgängligt)</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Om karaktären har en video-URL kan du initiera ett videosamtal för en mer immersiv upplevelse.
+                    Some characters may have voice features where you can listen to the AI's response. Click the speaker icon to hear the message read aloud.
                   </p>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Chatttips</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Chat Tips</h3>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                   <h4 className="font-semibold mb-2 flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary" />
-                    Kontextmedvetenhet
+                    Context Awareness
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    AI:n kommer ihåg hela konversationshistoriken i den aktuella sessionen, så du kan referera tillbaka till tidigare ämnen.
+                    The AI remembers the entire conversation history in the current session, so you can refer back to previous topics.
                   </p>
                 </div>
 
                 <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                   <h4 className="font-semibold mb-2 flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary" />
-                    Personlighetsanpassning
+                    Personality Adaptation
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Varje karaktär har sin egen personlighet, yrke, hobbyer och kommunikationsstil baserat på sina egenskaper.
+                    Each character has its own personality, occupation, hobbies, and communication style based on its traits.
                   </p>
                 </div>
 
                 <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                   <h4 className="font-semibold mb-2 flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary" />
-                    Rensa vid behov
+                    Clear When Needed
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Om konversationen känns utdaterad eller du vill börja om, använd "Rensa chatt" funktionen för en ny start.
+                    If the conversation feels outdated or you want to start over, use the "Clear Chat" feature for a fresh start.
                   </p>
                 </div>
 
                 <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                   <h4 className="font-semibold mb-2 flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-primary" />
-                    Följ riktlinjerna
+                    Follow Guidelines
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Håll konversationer respektfulla och följ våra <Link href="/riktlinjer" className="text-primary hover:underline">community-riktlinjer</Link>.
+                    Keep conversations respectful and follow our <Link href="/guidelines" className="text-primary hover:underline">Community Guidelines</Link>.
                   </p>
                 </div>
               </div>
@@ -455,71 +433,71 @@ export default function GuidePage() {
             <div className="bg-primary/10 p-3 rounded-lg">
               <Coins className="h-6 w-6 text-primary" />
             </div>
-            <h2 className="text-3xl font-bold m-0">5. Tokens och Premium</h2>
+            <h2 className="text-3xl font-bold m-0 text-zinc-800 dark:text-white">5. Tokens and Premium</h2>
           </div>
 
           <div className="space-y-6">
             <div>
-              <h3 className="text-xl font-semibold mb-3">Vad är tokens?</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">What are Tokens?</h3>
               <p className="mb-4">
-                Tokens är plattformens valuta som används för bildgenerering. Token-kostnader per bildgenerering:
+                Tokens are the platform currency used for image generation. Token costs per image generation:
               </p>
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="border border-border rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">1 bild</h4>
+                  <h4 className="font-semibold mb-2 text-zinc-800 dark:text-white">1 image</h4>
                   <p className="text-sm text-muted-foreground">5 tokens</p>
                 </div>
                 <div className="border border-border rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">4 bilder</h4>
+                  <h4 className="font-semibold mb-2 text-zinc-800 dark:text-white">4 images</h4>
                   <p className="text-sm text-muted-foreground">20 tokens</p>
                 </div>
                 <div className="border border-border rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">6 bilder</h4>
+                  <h4 className="font-semibold mb-2 text-zinc-800 dark:text-white">6 images</h4>
                   <p className="text-sm text-muted-foreground">30 tokens</p>
                 </div>
                 <div className="border border-border rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">8 bilder</h4>
+                  <h4 className="font-semibold mb-2 text-zinc-800 dark:text-white">8 images</h4>
                   <p className="text-sm text-muted-foreground">40 tokens</p>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Köp token-paket</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Buy Token Packs</h3>
               <div className="bg-muted/50 p-6 rounded-lg space-y-4">
                 <p className="text-sm text-muted-foreground mb-4">
-                  På <Link href="/premium" className="text-primary hover:underline">Premium</Link>-sidan kan du köpa olika token-paket. Paket och priser hanteras av administratörer och kan variera.
+                  On the <Link href="/premium" className="text-primary hover:underline">Premium</Link> page, you can buy various token packs. Prices and packs are configured by administrators and may vary.
                 </p>
                 
                 <div className="space-y-3">
-                  <h4 className="font-semibold">Så här köper du tokens:</h4>
+                  <h4 className="font-semibold text-zinc-800 dark:text-white">How to Buy Tokens:</h4>
                   <ol className="space-y-2 list-decimal list-inside text-sm text-muted-foreground">
-                    <li>Gå till <Link href="/premium" className="text-primary hover:underline">Premium</Link>-sidan</li>
-                    <li>Scrolla ner till "Token-paket" sektionen</li>
-                    <li>Välj ett paket som passar dina behov</li>
-                    <li>Klicka på "Köp nu"</li>
-                    <li>Fyll i betalningsuppgifter via Stripe</li>
-                    <li>Dina tokens läggs till på ditt konto direkt efter betalning</li>
+                    <li>Go to the <Link href="/premium" className="text-primary hover:underline">Premium</Link> page</li>
+                    <li>Scroll down to the "Token Packs" section</li>
+                    <li>Choose a pack that fits your needs</li>
+                    <li>Click "Buy Now"</li>
+                    <li>Fill in payment details via Stripe</li>
+                    <li>Your tokens are added to your account immediately after payment</li>
                   </ol>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Premium-medlemskap</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Premium Membership</h3>
               <div className="bg-gradient-to-r from-primary/20 to-primary/10 border-2 border-primary rounded-lg p-6 space-y-4">
                 <div className="flex items-center gap-3">
                   <Crown className="h-8 w-8 text-primary" />
-                  <h4 className="text-xl font-bold">Premium Membership</h4>
+                  <h4 className="text-xl font-bold text-zinc-800 dark:text-white">Premium Membership</h4>
                 </div>
                 
                 <p className="text-muted-foreground">
-                  Premium-medlemmar får förbättrade funktioner och förmåner. Exakta funktioner konfigureras av administratörer i "Plan Features" tabellen.
+                  Premium members get enhanced features and benefits. Exact features are configured by administrators in the "Plan Features" table.
                 </p>
                 
                 <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
                   <p className="text-sm">
-                    <strong>💡 Obs:</strong> Premium-funktioner kan inkludera obegränsade tokens, snabbare generering, högre bildkvalitet, prioriterad support och mycket mer. Besök <Link href="/premium" className="text-primary hover:underline">Premium</Link>-sidan för att se aktuella förmåner och priser.
+                    <strong>💡 Note:</strong> Premium features may include unlimited tokens, faster generation, higher image quality, priority support, and much more. Visit the <Link href="/premium" className="text-primary hover:underline">Premium</Link> page to see current benefits and prices.
                   </p>
                 </div>
 
@@ -528,31 +506,11 @@ export default function GuidePage() {
                     href="/premium" 
                     className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-colors font-semibold"
                   >
-                    Se priser och uppgradera
+                    View Pricing and Upgrade
                     <ArrowRight className="h-5 w-5" />
                   </Link>
                 </div>
-
-                <div className="pt-4 border-t border-primary/20">
-                  <p className="text-sm">
-                    <strong>Hur uppgraderar jag?</strong>
-                  </p>
-                  <ol className="text-sm text-muted-foreground space-y-1 mt-2 ml-4 list-decimal">
-                    <li>Gå till <Link href="/premium" className="text-primary hover:underline">Premium</Link>-sidan</li>
-                    <li>Välj önskat Premium-paket</li>
-                    <li>Klicka på "Uppgradera" knappen</li>
-                    <li>Fyll i betalningsuppgifter via säker Stripe-betalning</li>
-                    <li>Bekräfta köpet - Premium aktiveras direkt!</li>
-                  </ol>
-                </div>
               </div>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold mb-3">Kontrollera din premiumstatus</h3>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Premium-sidan visar automatiskt din nuvarande status när du är inloggad. Systemet kontrollerar din prenumeration och visar om du är Free eller Premium-användare.
-              </p>
             </div>
           </div>
         </section>
@@ -563,135 +521,65 @@ export default function GuidePage() {
             <div className="bg-primary/10 p-3 rounded-lg">
               <Settings className="h-6 w-6 text-primary" />
             </div>
-            <h2 className="text-3xl font-bold m-0">6. Inställningar</h2>
+            <h2 className="text-3xl font-bold m-0 text-zinc-800 dark:text-white">6. Settings</h2>
           </div>
 
           <div className="space-y-6">
             <p>
-              Hantera ditt konto och preferenser via <Link href="/settings" className="text-primary hover:underline">Inställningar</Link>-sidan.
+              Manage your account and preferences via the <Link href="/settings" className="text-primary hover:underline">Settings</Link> page.
             </p>
 
             <div>
-              <h3 className="text-xl font-semibold mb-3">Profilinställningar</h3>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Profile Settings</h3>
               <div className="bg-muted/50 p-6 rounded-lg space-y-4">
                 <div className="space-y-2">
-                  <h4 className="font-semibold">Tillgängliga inställningar:</h4>
+                  <h4 className="font-semibold text-zinc-800 dark:text-white">Available Settings:</h4>
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <strong>Användarnamn (Nickname):</strong> Ändra ditt visningsnamn
+                        <strong>Nickname:</strong> Change your display name
                       </div>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <strong>Kön (Gender):</strong> Välj Man, Kvinna eller annat
+                        <strong>Gender:</strong> Select Male, Female, or other
                       </div>
                     </li>
                     <li className="flex items-start gap-2">
                       <Mail className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <strong>E-mail:</strong> Din registrerade e-postadress
+                        <strong>Email:</strong> Your registered email address
                       </div>
                     </li>
                     <li className="flex items-start gap-2">
                       <Lock className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <strong>Lösenord:</strong> Visas maskerat (********)
-                      </div>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                      <div>
-                        <strong>Telefonnummer (Phone):</strong> Valfritt kontaktnummer
+                        <strong>Password:</strong> Masked (********)
                       </div>
                     </li>
                     <li className="flex items-start gap-2">
                       <Crown className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                       <div>
-                        <strong>Nuvarande Plan:</strong> Visar "Gratis" eller "Premium"
+                        <strong>Current Plan:</strong> Shows "Free" or "Premium"
                       </div>
                     </li>
                   </ul>
                 </div>
-
-                <div className="pt-4 border-t">
-                  <p className="text-sm text-muted-foreground">
-                    Klicka på "Spara ändringar" knappen längst ner för att uppdatera din profil.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold mb-3">Språk och notifikationer</h3>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="border border-border rounded-lg p-5 space-y-3">
-                  <h4 className="font-semibold">🌍 Språk</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Välj mellan Svenska (sv) och English (en). Språkinställningen påverkar plattformens gränssnitt.
-                  </p>
-                </div>
-
-                <div className="border border-border rounded-lg p-5 space-y-3">
-                  <h4 className="font-semibold">🔔 Automatiska aviseringar</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Aktivera eller inaktivera automatiska notifikationer från plattformen genom att markera/avmarkera checkboxen.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold mb-3">Chatbot-begränsningar</h3>
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-5">
-                <p className="text-sm text-muted-foreground mb-3">
-                  På inställningssidan finns en omfattande lista över chatbot-begränsningar och förbjudet innehåll, inklusive:
-                </p>
-                <ul className="text-sm text-muted-foreground space-y-1 ml-4">
-                  <li>• Olagliga aktiviteter och kriminellt beteende</li>
-                  <li>• Innehåll relaterat till minderåriga (absolut förbjudet)</li>
-                  <li>• Våld, hot och hatretorik</li>
-                  <li>• Integritetskränkningar och personuppgiftsdelning</li>
-                  <li>• Spam och irrelevant innehåll</li>
-                  <li>• Och många fler kategorier...</li>
-                </ul>
-                <p className="text-sm text-muted-foreground mt-3">
-                  Läs igenom hela listan på <Link href="/settings" className="text-primary hover:underline">Inställningar</Link>-sidan för att förstå vad som är tillåtet.
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-semibold mb-3">Premium-uppgradering</h3>
-              <div className="border border-primary rounded-lg p-5 bg-primary/5">
-                <p className="text-sm text-muted-foreground mb-3">
-                  Om du har ett gratis konto kommer du att se en "Uppgradera till Premium" knapp på inställningssidan som tar dig till <Link href="/premium" className="text-primary hover:underline">Premium</Link>-sidan.
-                </p>
               </div>
             </div>
 
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-5">
               <div className="flex items-center gap-2 mb-3">
                 <Trash2 className="h-5 w-5 text-destructive" />
-                <h3 className="font-semibold text-lg text-destructive m-0">Radera konto</h3>
+                <h3 className="font-semibold text-lg text-destructive m-0">Delete Account</h3>
               </div>
               <p className="text-sm text-muted-foreground mb-3">
-                Längst ner på inställningssidan finns en "Danger Zone" sektion. Här kan du permanent radera ditt konto och all associerad data.
+                At the bottom of the settings page is a "Danger Zone". Here you can permanently delete your account and all associated data.
               </p>
-              <p className="text-sm text-muted-foreground mb-3">
-                <strong>Så här raderar du ditt konto:</strong>
-              </p>
-              <ol className="text-sm text-muted-foreground space-y-1 ml-4 list-decimal">
-                <li>Scrolla ner till "Danger Zone" sektionen</li>
-                <li>Klicka på "Radera konto" knappen</li>
-                <li>En bekräftelsedialog visas där du kan lämna feedback om varför du lämnar</li>
-                <li>Bekräfta borttagningen</li>
-                <li>Ditt konto och all data raderas permanent</li>
-              </ol>
               <p className="text-sm text-destructive mt-3 font-semibold">
-                ⚠️ Varning: Detta kan inte ångras! All din data, karaktärer, chattar och bilder försvinner permanent.
+                ⚠️ Warning: This cannot be undone! All data, characters, chats, and images will be permanently lost.
               </p>
             </div>
           </div>
@@ -703,62 +591,26 @@ export default function GuidePage() {
             <div className="bg-primary/10 p-3 rounded-lg">
               <MessageSquare className="h-6 w-6 text-primary" />
             </div>
-            <h2 className="text-3xl font-bold m-0">7. Support och hjälp</h2>
+            <h2 className="text-3xl font-bold m-0 text-zinc-800 dark:text-white">7. Support and Help</h2>
           </div>
 
           <div className="space-y-6">
-            <p>Behöver du hjälp? Vi finns här för dig!</p>
+            <p>Need help? We're here for you!</p>
 
             <div className="grid md:grid-cols-2 gap-4">
               <Link href="/faq" className="border border-border rounded-lg p-5 hover:border-primary transition-colors space-y-2">
-                <h3 className="font-semibold text-lg">❓ Vanliga frågor (FAQ)</h3>
+                <h3 className="font-semibold text-lg text-zinc-800 dark:text-white">❓ FAQ</h3>
                 <p className="text-sm text-muted-foreground">
-                  Hitta svar på de mest ställda frågorna om plattformen.
+                  Find answers to the most frequently asked questions.
                 </p>
               </Link>
 
-              <Link href="/kontakta" className="border border-border rounded-lg p-5 hover:border-primary transition-colors space-y-2">
-                <h3 className="font-semibold text-lg">📧 Kontakta support</h3>
+              <Link href="/contact" className="border border-border rounded-lg p-5 hover:border-primary transition-colors space-y-2">
+                <h3 className="font-semibold text-lg text-zinc-800 dark:text-white">📧 Contact Support</h3>
                 <p className="text-sm text-muted-foreground">
-                  Skicka ett meddelande till vårt supportteam.
+                  Send a message to our support team.
                 </p>
               </Link>
-
-              <Link href="/riktlinjer" className="border border-border rounded-lg p-5 hover:border-primary transition-colors space-y-2">
-                <h3 className="font-semibold text-lg">📋 Community-riktlinjer</h3>
-                <p className="text-sm text-muted-foreground">
-                  Läs våra regler för att skapa en trygg miljö.
-                </p>
-              </Link>
-
-              <Link href="/rapportera" className="border border-border rounded-lg p-5 hover:border-primary transition-colors space-y-2">
-                <h3 className="font-semibold text-lg">🚨 Rapportera problem</h3>
-                <p className="text-sm text-muted-foreground">
-                  Rapportera olämpligt innehåll eller tekniska problem.
-                </p>
-              </Link>
-            </div>
-
-            <div className="bg-primary/10 border border-primary/20 rounded-lg p-6">
-              <h3 className="font-semibold text-lg mb-3">💡 Tips för snabbare support</h3>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Kontrollera FAQ först - många vanliga frågor besvaras där</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Inkludera skärmdumpar när du rapporterar problem</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Beskriv problemet så detaljerat som möjligt</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                  <span>Premium-medlemmar får prioriterad support med snabbare svarstid</span>
-                </li>
-              </ul>
             </div>
           </div>
         </section>
@@ -766,9 +618,9 @@ export default function GuidePage() {
         {/* Final Section: Next Steps */}
         <section className="bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 rounded-lg p-8 text-center">
           <Sparkles className="h-12 w-12 text-primary mx-auto mb-4" />
-          <h2 className="text-3xl font-bold mb-4">Redo att börja?</h2>
+          <h2 className="text-3xl font-bold mb-4">Ready to Begin?</h2>
           <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-            Nu när du känner till alla funktioner är det dags att utforska Dintyp.se! Skapa din första AI-karaktär, generera fantastiska bilder och ha roliga konversationer.
+            Now that you know all the features, it's time to explore Pocketlove.ai! Create your first AI character, generate amazing images, and have fun conversations.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link 
@@ -776,14 +628,14 @@ export default function GuidePage() {
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-colors font-semibold"
             >
               <Users className="h-5 w-5" />
-              Skapa karaktär
+              Create Character
             </Link>
             <Link 
               href="/generate" 
               className="inline-flex items-center gap-2 border-2 border-primary text-primary px-6 py-3 rounded-md hover:bg-primary/10 transition-colors font-semibold"
             >
               <ImagePlus className="h-5 w-5" />
-              Generera bild
+              Generate Image
             </Link>
           </div>
         </section>

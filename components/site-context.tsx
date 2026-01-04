@@ -30,9 +30,9 @@ type SiteSettings = {
 
 // Update the defaultSettings to include language
 const defaultSettings: SiteSettings = {
-  siteName: "DINTYP.SE",
-  logoText: "DINTYP.SE",
-  language: "sv", // Default to Swedish
+  siteName: "Pocketlove",
+  logoText: "Pocketlove",
+  language: "en", // Default to English
   pricing: {
     currency: "$",
     currencyPosition: "left",
@@ -70,9 +70,9 @@ export function SiteProvider({ children }: { children: ReactNode }) {
     if (savedSettings) {
       try {
         const parsed = JSON.parse(savedSettings)
-  // Merge with defaults and respect persisted language (en | sv)
-  const merged = { ...defaultSettings, ...parsed }
-  setSettings(merged)
+        // Merge with defaults and respect persisted language (en | sv)
+        const merged = { ...defaultSettings, ...parsed }
+        setSettings(merged)
       } catch (error) {
         console.error("Failed to parse site settings:", error)
       }

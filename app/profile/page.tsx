@@ -75,7 +75,7 @@ export default function ProfilePage() {
     email: "",
     phone: "",
     gender: "Male",
-    language: "sv",
+    language: "en",
     notifications: true,
   })
 
@@ -123,7 +123,7 @@ export default function ProfilePage() {
             email: profile.email || user.email || "",
             phone: profile.phone || "",
             gender: profile.gender || "Male",
-            language: profile.language || "sv",
+            language: profile.language || "en",
             notifications: profile.notifications !== false,
           })
           setIsPremium(profile.is_premium || false)
@@ -185,7 +185,7 @@ export default function ProfilePage() {
     } catch (error: any) {
       console.error("Error saving profile:", error)
       setIsSaving(false)
-      setErrorMessage(error.message || "Ett oväntat fel uppstod när profilen skulle sparas.")
+      setErrorMessage(error.message || "An unexpected error occurred while saving the profile.")
       setShowErrorModal(true)
     }
   }
@@ -204,14 +204,14 @@ export default function ProfilePage() {
       })
 
       if (response.ok) {
-        toast.success('Ditt konto kommer att raderas inom kort.')
+        toast.success('Your account will be deleted shortly.')
         logout()
         router.push("/")
       } else {
         throw new Error("Failed to submit deletion")
       }
     } catch (e: any) {
-      toast.error('Kunde inte begära radering')
+      toast.error('Could not request deletion')
     } finally {
       setShowDeleteConfirm(false)
       setShowDeleteModal(false)
@@ -224,7 +224,7 @@ export default function ProfilePage() {
     return (
       <div key="profile-loader" className="min-h-[80vh] flex flex-col items-center justify-center bg-background gap-4">
         <Loader2 className="w-12 h-12 animate-spin text-primary" />
-        <p className="text-muted-foreground font-medium animate-pulse">Laddar din profil...</p>
+        <p className="text-muted-foreground font-medium animate-pulse">Loading your profile...</p>
       </div>
     )
   }
@@ -253,7 +253,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex-1 text-center md:text-left space-y-1">
-              <h1 className="text-3xl md:text-4xl font-black tracking-tight">{profileData.username || "Välkommen"}</h1>
+              <h1 className="text-3xl md:text-4xl font-black tracking-tight">{profileData.username || "Welcome"}</h1>
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
                 <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
                   <Mail className="w-3.5 h-3.5" />
@@ -264,7 +264,7 @@ export default function ProfilePage() {
                 )}
                 <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
                   <Clock className="w-3.5 h-3.5" />
-                  Gick med {new Date(user.createdAt).toLocaleDateString('sv-SE', { month: 'long', year: 'numeric' })}
+                  Joined {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </div>
               </div>
             </div>
@@ -294,13 +294,13 @@ export default function ProfilePage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-border/40 pb-4">
             <TabsList className="bg-muted/50 p-1 rounded-xl h-11 border border-border/40">
               <TabsTrigger value="account" className="rounded-lg font-bold text-xs uppercase tracking-widest px-6 h-9">
-                <User className="w-4 h-4 mr-2" /> Konto
+                <User className="w-4 h-4 mr-2" /> Account
               </TabsTrigger>
               <TabsTrigger value="activity" className="rounded-lg font-bold text-xs uppercase tracking-widest px-6 h-9">
-                <Activity className="w-4 h-4 mr-2" /> Historik
+                <Activity className="w-4 h-4 mr-2" /> History
               </TabsTrigger>
               <TabsTrigger value="security" className="rounded-lg font-bold text-xs uppercase tracking-widest px-6 h-9">
-                <Shield className="w-4 h-4 mr-2" /> Säkerhet
+                <Shield className="w-4 h-4 mr-2" /> Security
               </TabsTrigger>
             </TabsList>
 
@@ -317,15 +317,15 @@ export default function ProfilePage() {
               <div className="lg:col-span-2 space-y-6">
                 <Card className="border-border/40 bg-card/30 backdrop-blur-sm overflow-hidden shadow-xl">
                   <CardHeader className="border-b border-border/40 bg-muted/20">
-                    <CardTitle className="flex items-center gap-2">
-                      <Settings className="w-5 h-5 text-primary" /> Profilinställningar
+                    <CardTitle className="flex items-center gap-2 font-bold text-zinc-800 dark:text-white">
+                      <Settings className="w-5 h-5 text-primary" /> Profile Settings
                     </CardTitle>
-                    <CardDescription>Hantera dina personliga uppgifter och hur du visas på plattformen.</CardDescription>
+                    <CardDescription>Manage your personal details and how you appear on the platform.</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6 pt-6">
+                  <CardContent className="space-y-6 pt-6 text-zinc-800 dark:text-zinc-200">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="username" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Användarnamn</Label>
+                        <Label htmlFor="username" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Username</Label>
                         <div className="relative">
                           <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -337,7 +337,7 @@ export default function ProfilePage() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="gender" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Kön</Label>
+                        <Label htmlFor="gender" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Gender</Label>
                         <div className="relative">
                           <select
                             id="gender"
@@ -345,9 +345,9 @@ export default function ProfilePage() {
                             value={profileData.gender}
                             onChange={(e) => setProfileData({ ...profileData, gender: e.target.value })}
                           >
-                            <option value="Male">Man</option>
-                            <option value="Female">Kvinna</option>
-                            <option value="Other">Annat</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
                           </select>
                           <ChevronRight className="absolute right-3 top-3.5 h-4 w-4 text-muted-foreground rotate-90 pointer-events-none" />
                         </div>
@@ -356,7 +356,7 @@ export default function ProfilePage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">E-postadress</Label>
+                        <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email Address</Label>
                         <div className="relative">
                           <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -367,10 +367,10 @@ export default function ProfilePage() {
                             onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
                           />
                         </div>
-                        <p className="text-[10px] text-muted-foreground italic">OBS: Ändring av e-post kräver verifiering.</p>
+                        <p className="text-[10px] text-muted-foreground italic">NOTE: Changing email requires verification.</p>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Telefonnummer</Label>
+                        <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Phone Number</Label>
                         <div className="relative">
                           <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -379,7 +379,7 @@ export default function ProfilePage() {
                             className="pl-10 h-11 bg-background/50 border-border/40"
                             value={profileData.phone}
                             onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                            placeholder="+46 XXX XX XX XX"
+                            placeholder="+1 XXX XX XX XX"
                           />
                         </div>
                       </div>
@@ -389,7 +389,7 @@ export default function ProfilePage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Språk / Language</Label>
+                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Language</Label>
                         <div className="flex items-center gap-3">
                           <Globe className="w-5 h-5 text-muted-foreground" />
                           <div className="flex gap-2">
@@ -401,19 +401,19 @@ export default function ProfilePage() {
                                 className="uppercase text-[10px] font-black w-24 h-9 rounded-lg"
                                 onClick={() => setProfileData({ ...profileData, language: lang })}
                               >
-                                {lang === "sv" ? "Svenska" : "English"}
+                                {lang === "sv" ? "Swedish" : "English"}
                               </Button>
                             ))}
                           </div>
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Notifikationer</Label>
+                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Notifications</Label>
                         <div className="flex items-center gap-3 bg-muted/40 p-3 rounded-xl border border-border/40 transition-colors hover:bg-muted/60 min-h-[50px]">
                           <Bell className={cn("w-5 h-5 transition-colors", profileData.notifications ? "text-primary" : "text-muted-foreground")} />
                           <div className="flex-1">
-                            <p className="text-xs font-bold">Automatiska aviseringar</p>
-                            <p className="text-[10px] text-muted-foreground">Visa statusuppdateringar och nyheter</p>
+                            <p className="text-xs font-bold">Automatic Notifications</p>
+                            <p className="text-[10px] text-muted-foreground">Show status updates and news</p>
                           </div>
                           <input
                             type="checkbox"
@@ -432,7 +432,7 @@ export default function ProfilePage() {
                       disabled={isSaving}
                     >
                       {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                      {isSaving ? "SPARAR..." : "SPARA ÄNDRINGAR"}
+                      {isSaving ? "SAVING..." : "SAVE CHANGES"}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -441,9 +441,9 @@ export default function ProfilePage() {
                 <Card className="border-primary/20 bg-primary/5 shadow-sm">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2 text-primary italic font-black">
-                      <Lock className="w-5 h-5" /> REGLER & BEGRÄNSNINGAR
+                      <Lock className="w-5 h-5" /> RULES & RESTRICTIONS
                     </CardTitle>
-                    <CardDescription className="text-primary/70">Dessa regler gäller för alla användare på plattformen för att säkerställa en trygg miljö.</CardDescription>
+                    <CardDescription className="text-primary/70">These rules apply to all users on the platform to ensure a safe environment.</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
@@ -468,19 +468,19 @@ export default function ProfilePage() {
                     <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border/10">
                       <div className="flex items-center gap-2">
                         <Sparkles className={cn("w-4 h-4", isPremium ? "text-yellow-500" : "text-muted-foreground")} />
-                        <span className="text-sm font-bold">Medlemskap</span>
+                        <span className="text-sm font-bold">Membership</span>
                       </div>
                       <Badge variant={isPremium ? "default" : "secondary"} className={cn(isPremium && "bg-yellow-500 text-black border-none")}>
-                        {isPremium ? "PREMIUM" : "GRATIS"}
+                        {isPremium ? "PREMIUM" : "FREE"}
                       </Badge>
                     </div>
 
                     <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border/10 text-sm font-bold">
                       <div className="flex items-center gap-2">
                         <CreditCard className="w-4 h-4 text-primary" />
-                        <span>Månatliga Krediter</span>
+                        <span>Monthly Credits</span>
                       </div>
-                      <span>{creditBalance} kr</span>
+                      <span>${creditBalance}</span>
                     </div>
 
                     <div className="pt-2">
@@ -488,7 +488,7 @@ export default function ProfilePage() {
                         className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 font-black tracking-wide text-white h-11"
                         onClick={() => router.push("/premium")}
                       >
-                        {isPremium ? "HANTERA PRENUMERATION" : "UPPGRADERA NU"}
+                        {isPremium ? "MANAGE SUBSCRIPTION" : "UPGRADE NOW"}
                       </Button>
                     </div>
                   </CardContent>
@@ -496,12 +496,12 @@ export default function ProfilePage() {
 
                 <Card className="border-border/40 bg-card/30 backdrop-blur-sm shadow-md">
                   <CardHeader>
-                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Statistik Överblick</CardTitle>
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider text-zinc-800 dark:text-white">Statistics Overview</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase">
-                        <span>Generationer</span>
+                        <span>Generations</span>
                         <span>30%</span>
                       </div>
                       <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
@@ -509,7 +509,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     <p className="text-[10px] text-muted-foreground italic leading-relaxed">
-                      Du har använt ca 30% av dina inkluderade gratisförsök denna månad. Uppgradera för obegränsade möjligheter.
+                      You have used about 30% of your included free tries this month. Upgrade for unlimited possibilities.
                     </p>
                   </CardContent>
                 </Card>
@@ -534,21 +534,21 @@ export default function ProfilePage() {
                   <AlertTriangle className="w-5 h-5" /> Danger Zone
                 </CardTitle>
                 <CardDescription className="text-red-500/70 font-medium">
-                  Åtgärder här kan inte ångras. Var försiktig när du hanterar radering av data.
+                  Actions here cannot be undone. Be careful when handling data deletion.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex flex-col sm:flex-row items-center justify-between p-6 rounded-2xl bg-background border border-red-500/20 shadow-sm gap-4">
                   <div className="text-center sm:text-left">
-                    <p className="text-sm font-black uppercase mb-1">Radera konto permanent</p>
-                    <p className="text-xs text-muted-foreground max-w-sm">Detta kommer att ta bort alla dina karaktärer, meddelanden, tokens och personuppgifter permanent från våra servrar.</p>
+                    <p className="text-sm font-black uppercase mb-1">Permanently Delete Account</p>
+                    <p className="text-xs text-muted-foreground max-w-sm">This will remove all your characters, messages, tokens, and personal data permanently from our servers.</p>
                   </div>
                   <Button
                     variant="destructive"
                     className="font-black h-11 px-8 rounded-xl shadow-lg shadow-red-500/10"
                     onClick={() => setShowDeleteModal(true)}
                   >
-                    <Trash2 className="w-4 h-4 mr-2" /> RADERA KONTO
+                    <Trash2 className="w-4 h-4 mr-2" /> DELETE ACCOUNT
                   </Button>
                 </div>
               </CardContent>
@@ -564,7 +564,7 @@ export default function ProfilePage() {
           className="text-muted-foreground hover:text-red-500 font-bold flex items-center gap-2 py-6 px-8 rounded-full transition-all"
           onClick={logout}
         >
-          <LogOut className="w-4 h-4" /> Logga ut från alla enheter
+          <LogOut className="w-4 h-4" /> Log out from all devices
         </Button>
       </div>
 
@@ -575,14 +575,14 @@ export default function ProfilePage() {
             <div className="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-4">
               <CheckCircle2 className="w-10 h-10" />
             </div>
-            <DialogTitle className="text-2xl font-black text-center">Profilen sparad!</DialogTitle>
+            <DialogTitle className="text-2xl font-black text-center text-zinc-800 dark:text-white">Profile Saved!</DialogTitle>
             <DialogDescription className="text-center text-muted-foreground mt-2">
-              Dina ändringar har sparats framgångsrikt. Din profil är nu uppdaterad.
+              Your changes have been saved successfully. Your profile is now updated.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="sm:justify-center pb-6">
             <Button className="font-bold px-12 rounded-full" onClick={() => setShowSuccessModal(false)}>
-              STÄNG
+              CLOSE
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -595,14 +595,14 @@ export default function ProfilePage() {
             <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4">
               <XCircle className="w-10 h-10" />
             </div>
-            <DialogTitle className="text-2xl font-black text-center">Ett fel uppstod</DialogTitle>
+            <DialogTitle className="text-2xl font-black text-center text-zinc-800 dark:text-white">An error occurred</DialogTitle>
             <DialogDescription className="text-center text-muted-foreground mt-2">
               {errorMessage}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="sm:justify-center pb-6">
             <Button variant="outline" className="font-bold px-12 rounded-full" onClick={() => setShowErrorModal(false)}>
-              STÄNG
+              CLOSE
             </Button>
           </DialogFooter>
         </DialogContent>

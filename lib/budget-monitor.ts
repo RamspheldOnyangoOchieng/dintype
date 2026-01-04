@@ -2,13 +2,11 @@ import { createAdminClient } from './supabase-admin'
 
 // Default monthly limits to prevent surprise bills
 const DEFAULT_MONTHLY_LIMITS = {
-  apiCost: 1000, // ~1000 SEK (~100 USD) max spend per month
-  messages: 4_000_000, // 4M messages = ~100 USD at Novita pricing
+  apiCost: 100, // $100 max spend per month
+  messages: 4_000_000, // 4M messages = ~$100 at Novita pricing
   images: 2500, // Flux-Pro equivalent (conservative)
 }
 
-// Exchange rate USD to SEK (approximate, update as needed)
-const USD_TO_SEK = 10.5
 
 /**
  * Get current budget limits from settings table or return defaults
@@ -35,9 +33,9 @@ export interface MonthlyUsage {
   messages: number
   images: number
   characters: number
-  apiCost: number // in SEK
-  apiCostUSD: number // in USD (actual API cost)
-  tokenRevenue: number // in SEK
+  apiCost: number // in USD
+  apiCostUSD: number // in USD
+  tokenRevenue: number // in USD
 }
 
 export interface BudgetStatus {
@@ -91,16 +89,15 @@ export async function checkMonthlyBudget(): Promise<BudgetStatus> {
 
   // Calculate current usage
   const apiCostUSD = logs.reduce((sum, l) => sum + (l.api_cost || 0), 0)
-  const apiCostSEK = apiCostUSD * USD_TO_SEK
-  const tokenRevenueSEK = logs.reduce((sum, l) => sum + (l.tokens_used || 0), 0) * 0.5 // 1 token ≈ 0.5 SEK (99 SEK / 200 tokens)
+  const tokenRevenueUSD = logs.reduce((sum, l) => sum + (l.tokens_used || 0), 0) * 0.05 // 1 token ≈ $0.05
   
   const usage: MonthlyUsage = {
     messages: logs.filter((l) => l.action.toLowerCase().includes('message')).length,
     images: logs.filter((l) => l.action.toLowerCase().includes('image')).length,
     characters: logs.filter((l) => l.action.toLowerCase().includes('character')).length,
-    apiCost: apiCostSEK,
+    apiCost: apiCostUSD,
     apiCostUSD: apiCostUSD,
-    tokenRevenue: tokenRevenueSEK,
+    tokenRevenue: tokenRevenueUSD,
   }
 
   // Calculate percentage used
@@ -117,7 +114,7 @@ export async function checkMonthlyBudget(): Promise<BudgetStatus> {
       current: usage,
       limits: limits,
       percentUsed,
-      message: `Monthly budget limit reached (${limits.apiCost} SEK). Service temporarily disabled. Contact admin.`,
+      message: `Monthly budget limit reached ($${limits.apiCost}). Service temporarily disabled. Contact admin.`,
     }
   }
 
@@ -196,8 +193,8 @@ export async function getDailyUsageStats(days = 30): Promise<
     date: string
     messages: number
     images: number
-    apiCost: number // SEK
-    tokenRevenue: number // SEK
+    apiCost: number // USD
+    tokenRevenue: number // USD
   }>
 > {
   const supabase = await createAdminClient()
@@ -225,8 +222,8 @@ export async function getDailyUsageStats(days = 30): Promise<
 
     if (log.action.toLowerCase().includes('message')) current.messages++
     if (log.action.toLowerCase().includes('image')) current.images++
-    current.apiCost += (log.api_cost || 0) * USD_TO_SEK // Convert USD to SEK
-    current.tokenRevenue += (log.tokens_used || 0) * 0.5 // 1 token ≈ 0.5 SEK
+    current.apiCost += (log.api_cost || 0)
+    current.tokenRevenue += (log.tokens_used || 0) * 0.05 // 1 token ≈ $0.05
 
     dailyStats.set(date, current)
   })
@@ -240,10 +237,10 @@ export async function getDailyUsageStats(days = 30): Promise<
  * Project monthly cost based on current usage rate
  */
 export async function projectMonthlyCost(): Promise<{
-  projected: number // SEK
+  projected: number // USD
   daysElapsed: number
   daysRemaining: number
-  currentCost: number // SEK
+  currentCost: number // USD
   onTrackToExceed: boolean
 }> {
   const supabase = await createAdminClient()
@@ -261,8 +258,7 @@ export async function projectMonthlyCost(): Promise<{
     .select('api_cost')
     .gte('created_at', monthStart.toISOString())
 
-  const currentCostUSD = logs?.reduce((sum, l) => sum + (l.api_cost || 0), 0) || 0
-  const currentCost = currentCostUSD * USD_TO_SEK // Convert to SEK
+  const currentCost = logs?.reduce((sum, l) => sum + (l.api_cost || 0), 0) || 0
   const dailyAverage = daysElapsed > 0 ? currentCost / daysElapsed : 0
   const projected = dailyAverage * totalDaysInMonth
 

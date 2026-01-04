@@ -15,7 +15,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 overflow-x-hidden">
       <div className="container flex h-16 items-center justify-between px-4 max-w-full">
         <div className="flex items-center gap-6">
-          <span className="font-bold text-xl text-primary">DINTYP.SE</span>
+          <span className="font-bold text-xl text-primary">Pocketlove</span>
           {/* Character Type Tabs - Removed for future implementation */}
         </div>
 
@@ -24,7 +24,7 @@ export function SiteHeader() {
           <ThemeToggle />
           {user ? (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-foreground/90 hidden lg:inline">Hej, {user.username || ""}!</span>
+              <span className="text-sm text-foreground/90 hidden lg:inline">Hello, {user.username || ""}!</span>
               {user.isPremium && (
                 <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600 text-[10px] h-5 px-1.5 uppercase font-bold">
                   Pro

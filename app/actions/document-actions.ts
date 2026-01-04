@@ -57,7 +57,7 @@ export async function updatePrivacyPolicy(content: string) {
         return { error: "Failed to update privacy policy." };
     }
 
-    revalidatePath("/privacy");
+    revalidatePath("/privacy-policy");
     revalidatePath("/admin/dashboard/documents");
 
     return { success: "Privacy policy updated successfully." };

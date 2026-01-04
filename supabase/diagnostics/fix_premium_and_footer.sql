@@ -95,21 +95,21 @@ GRANT ALL ON footer_content TO authenticated; -- Needed for upsert if policy all
 -- Insert default footer content if empty
 INSERT INTO footer_content (id, content)
 SELECT 1, '{
-    "companyName": "Dintyp.se",
-    "companyDescription": "AI Karaktärsutforskare ger uppslukande upplevelser med AI-flickvänner som känns verkliga.",
+    "companyName": "Pocketlove",
+    "companyDescription": "Pocketlove delivers immersive experiences with AI companions that feel real, allowing users to generate images and chat.",
     "features": [
-      { "id": 1, "title": "Skapa bild", "url": "/generate" },
-      { "id": 2, "title": "Chatta", "url": "/chat" },
-      { "id": 3, "title": "Skapa flickvän", "url": "/create-character" },
-      { "id": 4, "title": "Utforska", "url": "/characters" }
+      { "id": 1, "title": "Create Image", "url": "/generate" },
+      { "id": 2, "title": "Chat", "url": "/chat" },
+      { "id": 3, "title": "Create Companion", "url": "/create-character" },
+      { "id": 4, "title": "Explore", "url": "/characters" }
     ],
     "legal": [
-      { "id": 1, "title": "Regler och villkor", "url": "/villkor" },
-      { "id": 2, "title": "Integritetspolicy", "url": "/integritetspolicy" }
+      { "id": 1, "title": "Terms and Conditions", "url": "/terms" },
+      { "id": 2, "title": "Privacy Policy", "url": "/privacy-policy" }
     ],
     "aboutUs": [
-      { "id": 1, "title": "Om oss", "url": "/om-oss" },
-      { "id": 2, "title": "Kontakta oss", "url": "/kontakta" }
+      { "id": 1, "title": "About us", "url": "/about-us" },
+      { "id": 2, "title": "Contact", "url": "/contact" }
     ]
 }'::jsonb
 WHERE NOT EXISTS (SELECT 1 FROM footer_content WHERE id = 1);

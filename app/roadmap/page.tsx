@@ -1,7 +1,7 @@
 import { Metadata } from "next";
-import { 
-  CheckCircle2, 
-  Clock, 
+import {
+  CheckCircle2,
+  Clock,
   Rocket,
   Sparkles,
   MessageSquare,
@@ -18,8 +18,8 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Roadmap - Framtidsplaner | Dintyp.se",
-  description: "Se vår produktroadmap och kommande funktioner för Dintyp.se. Upptäck vad vi arbetar på och vad som kommer härnäst.",
+  title: "Roadmap - Future Plans | Pocketlove",
+  description: "View our product roadmap and upcoming features for Pocketlove. Discover what we are working on and what's coming next.",
 };
 
 export default function RoadmapPage() {
@@ -29,20 +29,20 @@ export default function RoadmapPage() {
       <div className="text-center mb-16">
         <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-4">
           <Rocket className="h-4 w-4" />
-          <span className="text-sm font-semibold">Produktutveckling</span>
+          <span className="text-sm font-semibold">Product Development</span>
         </div>
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          Vår Roadmap
+          Our Roadmap
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Följ med på vår resa! Här ser du vad vi har uppnått, vad vi arbetar på just nu, 
-          och vad som kommer härnäst för Dintyp.se
+          Join us on our journey! Here you can see what we have achieved, what we are currently working on,
+          and what's coming next for Pocketlove.ai
         </p>
       </div>
 
       {/* Timeline */}
       <div className="space-y-12">
-        
+
         {/* Completed Features */}
         <section>
           <div className="flex items-center gap-3 mb-8">
@@ -50,8 +50,8 @@ export default function RoadmapPage() {
               <CheckCircle2 className="h-6 w-6 text-green-500" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold">Klart & Lanserat</h2>
-              <p className="text-muted-foreground">Funktioner som redan är tillgängliga</p>
+              <h2 className="text-3xl font-bold">Done & Launched</h2>
+              <p className="text-muted-foreground">Features already available</p>
             </div>
           </div>
 
@@ -60,14 +60,14 @@ export default function RoadmapPage() {
               <div className="flex items-start gap-3 mb-3">
                 <CheckCircle2 className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">AI-karaktärsskapande</h3>
+                  <h3 className="font-semibold text-lg mb-2">AI Character Creation</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Fullständig 6-stegs wizard för att skapa anpassade AI-karaktärer med personlighet, 
-                    utseende och egenskaper.
+                    Full 6-step wizard to create custom AI characters with personality,
+                    appearance, and traits.
                   </p>
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-green-500" />
-                    <span className="text-xs text-muted-foreground">Lanserad Q4 2024</span>
+                    <span className="text-xs text-muted-foreground">Launched Q4 2024</span>
                   </div>
                 </div>
               </div>
@@ -77,14 +77,14 @@ export default function RoadmapPage() {
               <div className="flex items-start gap-3 mb-3">
                 <CheckCircle2 className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">AI-bildgenerering</h3>
+                  <h3 className="font-semibold text-lg mb-2">AI Image Generation</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Kraftfull bildgenerator med stöd för 1-8 bilder samtidigt, negativ prompt och 
-                    automatisk sparning i galleri.
+                    Powerful image generator supporting 1-8 images simultaneously, negative prompts, and
+                    automatic saving to gallery.
                   </p>
                   <div className="flex items-center gap-2">
                     <ImagePlus className="h-4 w-4 text-green-500" />
-                    <span className="text-xs text-muted-foreground">Lanserad Q4 2024</span>
+                    <span className="text-xs text-muted-foreground">Launched Q4 2024</span>
                   </div>
                 </div>
               </div>
@@ -94,14 +94,14 @@ export default function RoadmapPage() {
               <div className="flex items-start gap-3 mb-3">
                 <CheckCircle2 className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">Intelligent chattfunktion</h3>
+                  <h3 className="font-semibold text-lg mb-2">Intelligent Chat Feature</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Realtids-AI-konversationer med kontextmedvetenhet, personlighetsanpassning och 
-                    chatthistorik.
+                    Real-time AI conversations with context awareness, personality adaptation, and
+                    chat history.
                   </p>
                   <div className="flex items-center gap-2">
                     <MessageSquare className="h-4 w-4 text-green-500" />
-                    <span className="text-xs text-muted-foreground">Lanserad Q4 2024</span>
+                    <span className="text-xs text-muted-foreground">Launched Q4 2024</span>
                   </div>
                 </div>
               </div>
@@ -111,14 +111,14 @@ export default function RoadmapPage() {
               <div className="flex items-start gap-3 mb-3">
                 <CheckCircle2 className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">Premium-system</h3>
+                  <h3 className="font-semibold text-lg mb-2">Premium System</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Token-baserat system med premium-medlemskap, Stripe-betalningar och 
-                    automatisk fakturahantering.
+                    Token-based system with premium memberships, Stripe payments, and
+                    automatic invoice management.
                   </p>
                   <div className="flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-green-500" />
-                    <span className="text-xs text-muted-foreground">Lanserad Q4 2024</span>
+                    <span className="text-xs text-muted-foreground">Launched Q4 2024</span>
                   </div>
                 </div>
               </div>
@@ -128,14 +128,14 @@ export default function RoadmapPage() {
               <div className="flex items-start gap-3 mb-3">
                 <CheckCircle2 className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">Samlingar & Galleri</h3>
+                  <h3 className="font-semibold text-lg mb-2">Collections & Gallery</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Organisera och hantera genererade bilder med samlingar, favoriter och 
-                    nedladdningsfunktion.
+                    Organize and manage generated images with collections, favorites, and
+                    download feature.
                   </p>
                   <div className="flex items-center gap-2">
                     <ImagePlus className="h-4 w-4 text-green-500" />
-                    <span className="text-xs text-muted-foreground">Lanserad Q4 2024</span>
+                    <span className="text-xs text-muted-foreground">Launched Q4 2024</span>
                   </div>
                 </div>
               </div>
@@ -145,14 +145,14 @@ export default function RoadmapPage() {
               <div className="flex items-start gap-3 mb-3">
                 <CheckCircle2 className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">OAuth-inloggning</h3>
+                  <h3 className="font-semibold text-lg mb-2">OAuth Login</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Enkel inloggning med Google, Discord och Twitter/X förutom 
-                    traditionell email/lösenord.
+                    Easy login with Google, Discord, and Twitter/X in addition to
+                    traditional email/password.
                   </p>
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-green-500" />
-                    <span className="text-xs text-muted-foreground">Lanserad Q1 2025</span>
+                    <span className="text-xs text-muted-foreground">Launched Q1 2025</span>
                   </div>
                 </div>
               </div>
@@ -167,8 +167,8 @@ export default function RoadmapPage() {
               <Clock className="h-6 w-6 text-blue-500" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold">Pågående Utveckling</h2>
-              <p className="text-muted-foreground">Vad vi arbetar på just nu</p>
+              <h2 className="text-3xl font-bold">In Progress</h2>
+              <p className="text-muted-foreground">What we are working on right now</p>
             </div>
           </div>
 
@@ -179,13 +179,13 @@ export default function RoadmapPage() {
                   <Clock className="h-5 w-5 text-blue-500 mt-1 animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">Röstgenerering (TTS)</h3>
+                  <h3 className="font-semibold text-lg mb-2">Voice Generation (TTS)</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Text-till-tal för karaktärer så att de kan "tala" sina meddelanden med unika röster.
+                    Text-to-speech for characters so they can "speak" their messages with unique voices.
                   </p>
                   <div className="flex items-center gap-2">
                     <Mic className="h-4 w-4 text-blue-500" />
-                    <span className="text-xs text-blue-500 font-medium">Förväntas Q1 2025</span>
+                    <span className="text-xs text-blue-500 font-medium">Expected Q1 2025</span>
                   </div>
                 </div>
               </div>
@@ -195,14 +195,14 @@ export default function RoadmapPage() {
               <div className="flex items-start gap-3 mb-3">
                 <Clock className="h-5 w-5 text-blue-500 mt-1 animate-pulse flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">Förbättrad Admin Dashboard</h3>
+                  <h3 className="font-semibold text-lg mb-2">Improved Admin Dashboard</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Utökad administratörspanel med användarhantering, bannfunktion, kostnadsloggning 
-                    och detaljerad statistik.
+                    Extended administrator panel with user management, ban feature, cost logging,
+                    and detailed statistics.
                   </p>
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-blue-500" />
-                    <span className="text-xs text-blue-500 font-medium">Förväntas Q1 2025</span>
+                    <span className="text-xs text-blue-500 font-medium">Expected Q1 2025</span>
                   </div>
                 </div>
               </div>
@@ -212,14 +212,14 @@ export default function RoadmapPage() {
               <div className="flex items-start gap-3 mb-3">
                 <Clock className="h-5 w-5 text-blue-500 mt-1 animate-pulse flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">Mobilapp (PWA)</h3>
+                  <h3 className="font-semibold text-lg mb-2">Mobile App (PWA)</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Progressive Web App för bättre mobil-upplevelse med offline-stöd och 
-                    push-notifikationer.
+                    Progressive Web App for a better mobile experience with offline support and
+                    push notifications.
                   </p>
                   <div className="flex items-center gap-2">
                     <Zap className="h-4 w-4 text-blue-500" />
-                    <span className="text-xs text-blue-500 font-medium">Förväntas Q2 2025</span>
+                    <span className="text-xs text-blue-500 font-medium">Expected Q2 2025</span>
                   </div>
                 </div>
               </div>
@@ -229,14 +229,14 @@ export default function RoadmapPage() {
               <div className="flex items-start gap-3 mb-3">
                 <Clock className="h-5 w-5 text-blue-500 mt-1 animate-pulse flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">Community-funktioner</h3>
+                  <h3 className="font-semibold text-lg mb-2">Community Features</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Dela karaktärer, följ andra användare, kommentera och gilla skapelser i 
-                    community-flödet.
+                    Share characters, follow other users, comment, and like creations in
+                    the community feed.
                   </p>
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-blue-500" />
-                    <span className="text-xs text-blue-500 font-medium">Förväntas Q2 2025</span>
+                    <span className="text-xs text-blue-500 font-medium">Expected Q2 2025</span>
                   </div>
                 </div>
               </div>
@@ -251,8 +251,8 @@ export default function RoadmapPage() {
               <Rocket className="h-6 w-6 text-purple-500" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold">Kommande Funktioner</h2>
-              <p className="text-muted-foreground">På vår radar för framtiden</p>
+              <h2 className="text-3xl font-bold">Upcoming Features</h2>
+              <p className="text-muted-foreground">On our radar for the future</p>
             </div>
           </div>
 
@@ -261,14 +261,14 @@ export default function RoadmapPage() {
               <div className="flex items-start gap-3 mb-3">
                 <Rocket className="h-5 w-5 text-purple-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">Videosamtal med AI</h3>
+                  <h3 className="font-semibold text-lg mb-2">Video Calls with AI</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Levande videosamtal där karaktärens ansikte animeras baserat på konversationen 
-                    med lipsync och känslor.
+                    Live video calls where the character's face is animated based on the conversation
+                    with lipsync and emotions.
                   </p>
                   <div className="flex items-center gap-2">
                     <Video className="h-4 w-4 text-purple-500" />
-                    <span className="text-xs text-muted-foreground">Planerad Q3 2025</span>
+                    <span className="text-xs text-muted-foreground">Planned Q3 2025</span>
                   </div>
                 </div>
               </div>
@@ -278,14 +278,14 @@ export default function RoadmapPage() {
               <div className="flex items-start gap-3 mb-3">
                 <Rocket className="h-5 w-5 text-purple-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">Röstkloning</h3>
+                  <h3 className="font-semibold text-lg mb-2">Voice Cloning</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Ladda upp röstprov för att ge din karaktär en helt unik och naturlig röst baserad 
-                    på verkliga inspelningar.
+                    Upload voice samples to give your character a completely unique and natural voice based
+                    on real recordings.
                   </p>
                   <div className="flex items-center gap-2">
                     <Mic className="h-4 w-4 text-purple-500" />
-                    <span className="text-xs text-muted-foreground">Planerad Q3 2025</span>
+                    <span className="text-xs text-muted-foreground">Planned Q3 2025</span>
                   </div>
                 </div>
               </div>
@@ -295,14 +295,14 @@ export default function RoadmapPage() {
               <div className="flex items-start gap-3 mb-3">
                 <Rocket className="h-5 w-5 text-purple-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">Flerspråksstöd</h3>
+                  <h3 className="font-semibold text-lg mb-2">Multi-language Support</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Utökat stöd för fler språk utöver svenska och engelska, inklusive automatisk 
-                    översättning i realtid.
+                    Expanded support for more languages beyond Swedish and English, including automatic
+                    real-time translation.
                   </p>
                   <div className="flex items-center gap-2">
                     <Globe className="h-4 w-4 text-purple-500" />
-                    <span className="text-xs text-muted-foreground">Planerad Q3 2025</span>
+                    <span className="text-xs text-muted-foreground">Planned Q3 2025</span>
                   </div>
                 </div>
               </div>
@@ -312,14 +312,14 @@ export default function RoadmapPage() {
               <div className="flex items-start gap-3 mb-3">
                 <Rocket className="h-5 w-5 text-purple-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">AI-modellval</h3>
+                  <h3 className="font-semibold text-lg mb-2">AI Model Selection</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Välj mellan olika AI-modeller (GPT-4, Claude, Gemini) för varierande 
-                    personlighetstyper och svarsstilar.
+                    Choose between different AI models (GPT-4, Claude, Gemini) for varying
+                    personality types and response styles.
                   </p>
                   <div className="flex items-center gap-2">
                     <Brain className="h-4 w-4 text-purple-500" />
-                    <span className="text-xs text-muted-foreground">Planerad Q4 2025</span>
+                    <span className="text-xs text-muted-foreground">Planned Q4 2025</span>
                   </div>
                 </div>
               </div>
@@ -329,14 +329,14 @@ export default function RoadmapPage() {
               <div className="flex items-start gap-3 mb-3">
                 <Rocket className="h-5 w-5 text-purple-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">Karaktärsmarknadsplats</h3>
+                  <h3 className="font-semibold text-lg mb-2">Character Marketplace</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Köp och sälj karaktärer, bildpaket och prompt-mallar från andra kreatörer i 
-                    community:t.
+                    Buy and sell characters, image packs, and prompt templates from other creators in
+                    the community.
                   </p>
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-4 w-4 text-purple-500" />
-                    <span className="text-xs text-muted-foreground">Planerad Q4 2025</span>
+                    <span className="text-xs text-muted-foreground">Planned Q4 2025</span>
                   </div>
                 </div>
               </div>
@@ -346,14 +346,14 @@ export default function RoadmapPage() {
               <div className="flex items-start gap-3 mb-3">
                 <Rocket className="h-5 w-5 text-purple-500 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-lg mb-2">API för utvecklare</h3>
+                  <h3 className="font-semibold text-lg mb-2">Developer API</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Öppet API för att integrera Dintyp.se's funktioner i egna applikationer och 
-                    tjänster.
+                    Open API to integrate Pocketlove.ai's features into your own applications and
+                    services.
                   </p>
                   <div className="flex items-center gap-2">
                     <Zap className="h-4 w-4 text-purple-500" />
-                    <span className="text-xs text-muted-foreground">Planerad 2026</span>
+                    <span className="text-xs text-muted-foreground">Planned 2026</span>
                   </div>
                 </div>
               </div>
@@ -366,24 +366,24 @@ export default function RoadmapPage() {
       {/* Feedback Section */}
       <div className="mt-16 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 rounded-2xl p-8 md:p-12 text-center">
         <Heart className="h-12 w-12 text-primary mx-auto mb-4" />
-        <h2 className="text-3xl font-bold mb-4">Din feedback är viktig!</h2>
+        <h2 className="text-3xl font-bold mb-4">Your feedback is important!</h2>
         <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-          Vill du se en specifik funktion? Har du idéer om hur vi kan förbättra plattformen? 
-          Vi lyssnar på våra användare och din feedback formar vår roadmap.
+          Want to see a specific feature? Have ideas on how we can improve the platform?
+          We listen to our users, and your feedback shapes our roadmap.
         </p>
         <div className="flex gap-4 justify-center flex-wrap">
-          <a 
-            href="/kontakta" 
+          <a
+            href="/contact"
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-colors font-semibold"
           >
             <MessageSquare className="h-5 w-5" />
-            Kontakta oss
+            Contact Us
           </a>
-          <a 
-            href="/faq" 
+          <a
+            href="/faq"
             className="inline-flex items-center gap-2 border-2 border-primary text-primary px-6 py-3 rounded-md hover:bg-primary/10 transition-colors font-semibold"
           >
-            Läs FAQ
+            Read FAQ
           </a>
         </div>
       </div>
@@ -391,8 +391,8 @@ export default function RoadmapPage() {
       {/* Note */}
       <div className="mt-8 text-center">
         <p className="text-sm text-muted-foreground">
-          <strong>OBS:</strong> Alla datum är uppskattningar och kan ändras baserat på utvecklingsprioriteringar 
-          och användarfeedback. Vi strävar alltid efter högsta kvalitet i varje release.
+          <strong>NOTE:</strong> All dates are estimates and subject to change based on development priorities
+          and user feedback. We always strive for the highest quality in every release.
         </p>
       </div>
     </div>

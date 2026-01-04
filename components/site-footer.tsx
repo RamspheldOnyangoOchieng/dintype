@@ -18,29 +18,29 @@ export function SiteFooter() {
   const [isEditing, setIsEditing] = useState(false)
 
   const defaultData = useMemo(() => ({
-    companyName: "Dintyp.se",
-    companyDescription: "AI Karaktärsutforskare ger uppslukande upplevelser med AI-flickvänner som känns verkliga, vilket gör att användarna kan skapa bilder och chatta.",
+    companyName: "Pocketlove",
+    companyDescription: "Pocketlove provides immersive experiences with AI companions that feel real, allowing users to create images and chat.",
     features: [
-      { id: 1, title: "Skapa bild", url: "/generate" },
-      { id: 2, title: "Chatta", url: "/chat" },
-      { id: 3, title: "Skapa flickvän", url: "/create-character" },
-      { id: 4, title: "Utforska", url: "/characters" },
+      { id: 1, title: "Create Image", url: "/generate" },
+      { id: 2, title: "Chat", url: "/chat" },
+      { id: 3, title: "Create Companion", url: "/create-character" },
+      { id: 4, title: "Explore", url: "/characters" },
     ],
     legal: [
-      { id: 1, title: "Regler och villkor", url: "/villkor" },
-      { id: 2, title: "Integritetspolicy", url: "/integritetspolicy" },
-      { id: 3, title: "Rapportering och klagomål", url: "/rapportera" },
-      { id: 4, title: "Riktlinjer", url: "/riktlinjer" },
+      { id: 1, title: "Terms and Conditions", url: "/terms" },
+      { id: 2, title: "Privacy Policy", url: "/privacy-policy" },
+      { id: 3, title: "Report and Complaints", url: "/report" },
+      { id: 4, title: "Guidelines", url: "/guidelines" },
       { id: 5, title: "Cookies", url: "/cookies" },
     ],
     aboutUs: [
-      { id: 1, title: "Hur det fungerar", url: "/hur-det-fungerar" },
-      { id: 2, title: "Om oss", url: "/om-oss" },
+      { id: 1, title: "How it Works", url: "/how-it-works" },
+      { id: 2, title: "About Us", url: "/about-us" },
       { id: 3, title: "Roadmap", url: "/roadmap" },
-      { id: 4, title: "Blogg", url: "/blogg" },
+      { id: 4, title: "Blog", url: "/blog" },
       { id: 5, title: "Guide", url: "/guide" },
-      { id: 6, title: "Kontakta oss", url: "/kontakta" },
-      { id: 7, title: "Frågor och svar", url: "/faq" },
+      { id: 6, title: "Contact Us", url: "/contact" },
+      { id: 7, title: "FAQ", url: "/faq" },
     ],
   }), [language])
 
@@ -179,7 +179,7 @@ export function SiteFooter() {
           <div className="space-y-4">
             <Link href="/" className="inline-block">
               <h2 className="text-xl font-bold text-zinc-100 dark:text-foreground">
-                Dintyp<span className="text-primary">.se</span>
+                Pocketlove<span className="text-primary">.ai</span>
               </h2>
             </Link>
             <p className="text-zinc-400 dark:text-muted-foreground text-sm">{tempData.companyDescription}</p>
@@ -187,7 +187,7 @@ export function SiteFooter() {
 
           {/* AI-flickvänner Section */}
           <div className="space-y-3">
-            <h3 className="text-base font-medium text-zinc-100 dark:text-foreground">AI-flickvänner</h3>
+            <h3 className="text-base font-medium text-zinc-100 dark:text-foreground">AI Companions</h3>
             <ul className="space-y-2">
               {tempData.features.map((item: any) => (
                 <li key={item.id}>
@@ -201,7 +201,7 @@ export function SiteFooter() {
 
           {/* Villkor Section */}
           <div className="space-y-3">
-            <h3 className="text-base font-medium text-zinc-100 dark:text-foreground">Villkor</h3>
+            <h3 className="text-base font-medium text-zinc-100 dark:text-foreground">Legal</h3>
             <ul className="space-y-2">
               {tempData.legal.map((item: any) => (
                 <li key={item.id}>
@@ -215,7 +215,7 @@ export function SiteFooter() {
 
           {/* Om oss Section */}
           <div className="space-y-3">
-            <h3 className="text-base font-medium text-zinc-100 dark:text-foreground">Om oss</h3>
+            <h3 className="text-base font-medium text-zinc-100 dark:text-foreground">About Us</h3>
             <ul className="space-y-2">
               {tempData.aboutUs.map((item: any) => (
                 <li key={item.id}>
@@ -248,7 +248,7 @@ export function SiteFooter() {
                   />
                 ) : (
                   <span className="text-zinc-100 dark:text-foreground">
-                    Dintyp<span className="text-primary">.se</span>
+                    Pocketlove<span className="text-primary">.ai</span>
                   </span>
                 )}
               </h2>
@@ -270,7 +270,7 @@ export function SiteFooter() {
 
           {/* Column 2: AI-flickvänner */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-zinc-100 dark:text-foreground">AI-flickvänner</h3>
+            <h3 className="text-lg font-medium text-zinc-100 dark:text-foreground">AI Companions</h3>
             <ul className="space-y-3">
               {tempData.features.map((item: any) => (
                 <li key={item.id}>
@@ -312,7 +312,7 @@ export function SiteFooter() {
 
           {/* Column 3: Villkor */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-zinc-100 dark:text-foreground">Villkor</h3>
+            <h3 className="text-lg font-medium text-zinc-100 dark:text-foreground">Legal</h3>
             <ul className="space-y-3">
               {tempData.legal.map((item: any) => (
                 <li key={item.id}>
@@ -343,7 +343,7 @@ export function SiteFooter() {
 
           {/* Column 4: Om oss */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-zinc-100 dark:text-foreground">Om oss</h3>
+            <h3 className="text-lg font-medium text-zinc-100 dark:text-foreground">About Us</h3>
             <ul className="space-y-3">
               {tempData.aboutUs.map((item: any) => (
                 <li key={item.id}>
@@ -375,7 +375,7 @@ export function SiteFooter() {
 
         {/* Bottom */}
         <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-border">
-          <div className="text-muted-foreground text-xs text-center">© {currentYear} Dintyp.se. Alla rättigheter förbehållna.</div>
+          <div className="text-muted-foreground text-xs text-center">© {currentYear} Pocketlove.ai. All rights reserved.</div>
         </div>
       </div>
     </div>

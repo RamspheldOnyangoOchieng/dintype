@@ -6,10 +6,10 @@ import { type TranslationKey, translations } from "./translations"
 
 export function useTranslations() {
   const { settings } = useSite()
-  const language = settings.language || "sv"
+  const language = settings.language || "en"
 
   const t = useMemo(() => (key: TranslationKey): string => {
-    return translations[language][key] || translations.sv[key] || key
+    return translations[language][key] || translations.en[key] || key
   }, [language])
 
   return { t, language }

@@ -21,7 +21,7 @@ interface PremiumUpgradeModalProps {
 export function PremiumUpgradeModal({
   isOpen,
   onClose,
-  feature = "Obegränsat Skapande",
+  feature = "Unlimited Creation",
   description,
   imageSrc,
   buttonText,
@@ -37,7 +37,7 @@ export function PremiumUpgradeModal({
   // Set defaults based on mode if not provided
   let displayImage = imageSrc
   let displayDescription = description
-  let displayButtonText = buttonText || "Uppgradera till Premium"
+  let displayButtonText = buttonText || "Upgrade to Premium"
   let displayBadge = "Premium"
 
   if (mode === 'expired') {
@@ -47,11 +47,11 @@ export function PremiumUpgradeModal({
   } else if (mode === 'tokens-depleted') {
     displayImage = displayImage || "https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963046/premium-modals/tokens_depleted.jpg"
     displayDescription = displayDescription || "You used your 100 free premium tokens. Buy more tokens to use premium features"
-    displayButtonText = displayButtonText || "Köp Tokens"
+    displayButtonText = displayButtonText || "Buy Tokens"
     displayBadge = "Tokens"
   } else if (mode === 'message-limit') {
     displayImage = displayImage || "https://res.cloudinary.com/ddg02aqiw/image/upload/v1767043020/daily_limit_reached.jpg"
-    displayDescription = displayDescription || "Daglig meddelandegräns uppnådd. Uppgradera för att chatta obegränsat!"
+    displayDescription = displayDescription || "Daily message limit reached. Upgrade for unlimited chat!"
     displayBadge = "Limit Reached"
   } else {
     displayImage = displayImage || "https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963040/premium-modals/premium_upgrade.jpg"
@@ -60,18 +60,18 @@ export function PremiumUpgradeModal({
 
   const benefits = mode === 'tokens-depleted' || mode === 'message-limit'
     ? [
-      "Fortsätt skapa AI-karaktärer",
-      "Generera högkvalitativa bilder",
-      "Använd exklusiva röstmeddelanden",
-      "Chatten förblir GRATIS",
-      "Enkelt att fylla på"
+      "Continue creating AI characters",
+      "Generate high-quality images",
+      "Use exclusive voice messages",
+      "Chat remains FREE",
+      "Easy to top up"
     ]
     : [
-      "Skapa AI-videor",
-      "Skapa egna AI-flickvänner",
-      "Obegränsat antal meddelanden",
-      "Ta bort bildoskärpa",
-      "Få 100 GRATIS tokens / månad"
+      "Create AI videos",
+      "Create your own AI characters",
+      "Unlimited messaging",
+      "Remove image blur",
+      "Get 100 FREE tokens / month"
     ]
 
   return (
@@ -117,7 +117,7 @@ export function PremiumUpgradeModal({
               <div className="flex items-center gap-2 mb-4">
                 <Crown className={`h-5 w-5 ${mode === 'expired' ? 'text-red-500' : 'text-[#ff4b7d]'}`} />
                 <span className="text-sm font-bold uppercase tracking-widest text-zinc-500">
-                  {mode === 'expired' ? 'Subscription Expired' : mode === 'tokens-depleted' ? 'Token Wallet' : 'Premium Medlemskap'}
+                  {mode === 'expired' ? 'Subscription Expired' : mode === 'tokens-depleted' ? 'Token Wallet' : 'Premium Membership'}
                 </span>
               </div>
 

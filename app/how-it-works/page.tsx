@@ -1,17 +1,17 @@
 import { Metadata } from "next";
 import Link from "next/link";
-import { 
-  Sparkles, 
-  MessageSquare, 
-  ImagePlus, 
-  Users, 
+import {
+  Sparkles,
+  MessageSquare,
+  ImagePlus,
+  Users,
   ArrowRight,
   CheckCircle2
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Hur det fungerar | Dintyp.se",
-  description: "Lär dig hur Dintyp.se fungerar - Skapa AI-karaktärer, chatta och generera bilder på några enkla steg.",
+  title: "How it Works | Pocketlove",
+  description: "Learn how Pocketlove works - Create AI characters, chat, and generate images in a few simple steps.",
 };
 
 export const dynamic = 'force-dynamic';
@@ -22,16 +22,16 @@ export default function HowItWorksPage() {
       {/* Hero Section */}
       <div className="text-center mb-16">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          Hur det fungerar
+          How it Works
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Upptäck hur lätt det är att skapa och interagera med AI-karaktärer på Dintyp.se
+          Discover how easy it is to create and interact with AI characters on Pocketlove
         </p>
       </div>
 
       {/* Steps */}
       <div className="space-y-16 mb-16">
-        
+
         {/* Step 1 */}
         <div className="grid md:grid-cols-2 gap-8 items-center">
           <div className="order-2 md:order-1">
@@ -43,30 +43,30 @@ export default function HowItWorksPage() {
                 <Users className="h-6 w-6 text-primary" />
               </div>
             </div>
-            <h2 className="text-3xl font-bold mb-4">Skapa din AI-karaktär</h2>
+            <h2 className="text-3xl font-bold mb-4">Create your AI Character</h2>
             <p className="text-muted-foreground mb-4">
-              Välj från hundratals fördefinierade karaktärer eller skapa din egen från grunden. 
-              Anpassa allt från utseende till personlighet, yrke och intressen.
+              Choose from hundreds of predefined characters or create your own from scratch.
+              Customize everything from appearance to personality, occupation, and interests.
             </p>
             <ul className="space-y-2 mb-6">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span>Välj ålder, kroppstyp och etnicitet</span>
+                <span>Choose age, body type, and ethnicity</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span>Bestäm yrke och hobbyer</span>
+                <span>Define occupation and hobbies</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span>Anpassa personlighetsdrag</span>
+                <span>Customize personality traits</span>
               </li>
             </ul>
-            <Link 
+            <Link
               href="/create-character"
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-colors font-semibold"
             >
-              Skapa karaktär nu
+              Create Character Now
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
@@ -89,30 +89,30 @@ export default function HowItWorksPage() {
                 <MessageSquare className="h-6 w-6 text-blue-500" />
               </div>
             </div>
-            <h2 className="text-3xl font-bold mb-4">Chatta med AI:n</h2>
+            <h2 className="text-3xl font-bold mb-4">Chat with the AI</h2>
             <p className="text-muted-foreground mb-4">
-              Starta meningsfulla konversationer med din AI-karaktär. 
-              Varje karaktär har sin egen unika personlighet och svarar baserat på sina egenskaper.
+              Start meaningful conversations with your AI character.
+              Each character has its own unique personality and responds based on its traits.
             </p>
             <ul className="space-y-2 mb-6">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                <span>Naturliga konversationer i realtid</span>
+                <span>Natural real-time conversations</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                <span>AI:n kommer ihåg tidigare i konversationen</span>
+                <span>AI remembers previous parts of the conversation</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                <span>Personlighetsanpassade svar</span>
+                <span>Personality-adapted responses</span>
               </li>
             </ul>
-            <Link 
+            <Link
               href="/chat"
               className="inline-flex items-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 transition-colors font-semibold"
             >
-              Börja chatta
+              Start Chatting
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
@@ -129,30 +129,30 @@ export default function HowItWorksPage() {
                 <ImagePlus className="h-6 w-6 text-purple-500" />
               </div>
             </div>
-            <h2 className="text-3xl font-bold mb-4">Generera AI-bilder</h2>
+            <h2 className="text-3xl font-bold mb-4">Generate AI Images</h2>
             <p className="text-muted-foreground mb-4">
-              Skapa fantastiska AI-genererade bilder med vår kraftfulla bildgenerator. 
-              Skriv helt enkelt vad du vill se och låt AI:n skapa det åt dig.
+              Create stunning AI-generated images with our powerful image generator.
+              Simply type what you want to see and let the AI create it for you.
             </p>
             <ul className="space-y-2 mb-6">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
-                <span>Fotorealistiska resultat</span>
+                <span>Photo-realistic results</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
-                <span>Generera 1-8 bilder samtidigt</span>
+                <span>Generate 1-8 images simultaneously</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
-                <span>Automatisk sparning i galleri</span>
+                <span>Automatic saving to gallery</span>
               </li>
             </ul>
-            <Link 
+            <Link
               href="/generate"
               className="inline-flex items-center gap-2 bg-purple-500 text-white px-6 py-3 rounded-md hover:bg-purple-600 transition-colors font-semibold"
             >
-              Generera bilder
+              Generate Images
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
@@ -165,35 +165,35 @@ export default function HowItWorksPage() {
 
       {/* Features Overview */}
       <div className="bg-muted/50 rounded-2xl p-8 md:p-12 mb-16">
-        <h2 className="text-3xl font-bold text-center mb-8">Kraftfulla funktioner</h2>
+        <h2 className="text-3xl font-bold text-center mb-8">Powerful Features</h2>
         <div className="grid md:grid-cols-3 gap-8">
           <div className="text-center">
             <div className="bg-primary/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <Sparkles className="h-8 w-8 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Avancerad AI</h3>
+            <h3 className="font-semibold text-lg mb-2">Advanced AI</h3>
             <p className="text-sm text-muted-foreground">
-              Powered av de senaste AI-modellerna för naturliga konversationer och högkvalitativa bilder
+              Powered by the latest AI models for natural conversations and high-quality images
             </p>
           </div>
-          
+
           <div className="text-center">
             <div className="bg-primary/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <Users className="h-8 w-8 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Obegränsad kreativitet</h3>
+            <h3 className="font-semibold text-lg mb-2">Unlimited Creativity</h3>
             <p className="text-sm text-muted-foreground">
-              Skapa så många karaktärer du vill och utforska olika personligheter och stilar
+              Create as many characters as you want and explore different personalities and styles
             </p>
           </div>
-          
+
           <div className="text-center">
             <div className="bg-primary/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <MessageSquare className="h-8 w-8 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">24/7 Tillgängligt</h3>
+            <h3 className="font-semibold text-lg mb-2">Available 24/7</h3>
             <p className="text-sm text-muted-foreground">
-              Dina AI-karaktärer är alltid redo att chatta, när som helst på dygnet
+              Your AI characters are always ready to chat, any time of the day
             </p>
           </div>
         </div>
@@ -201,23 +201,23 @@ export default function HowItWorksPage() {
 
       {/* CTA Section */}
       <div className="bg-gradient-to-r from-primary/20 via-primary/10 to-primary/5 rounded-2xl p-8 md:p-12 text-center">
-        <h2 className="text-3xl font-bold mb-4">Redo att komma igång?</h2>
+        <h2 className="text-3xl font-bold mb-4">Ready to get started?</h2>
         <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Gå med idag och börja skapa dina egna AI-karaktärer helt gratis
+          Join today and start creating your own AI characters for free
         </p>
         <div className="flex gap-4 justify-center flex-wrap">
-          <Link 
-            href="/create-character" 
+          <Link
+            href="/create-character"
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-4 rounded-md hover:bg-primary/90 transition-colors font-semibold text-lg"
           >
-            Kom igång nu
+            Get Started Now
             <ArrowRight className="h-6 w-6" />
           </Link>
-          <Link 
-            href="/guide" 
+          <Link
+            href="/guide"
             className="inline-flex items-center gap-2 border-2 border-primary text-primary px-8 py-4 rounded-md hover:bg-primary/10 transition-colors font-semibold text-lg"
           >
-            Läs fullständig guide
+            Read Full Guide
           </Link>
         </div>
       </div>
@@ -225,13 +225,13 @@ export default function HowItWorksPage() {
       {/* Need Help */}
       <div className="text-center mt-12">
         <p className="text-muted-foreground">
-          Har du frågor? Besök vår{" "}
+          Have questions? Visit our{" "}
           <Link href="/faq" className="text-primary hover:underline font-semibold">
-            FAQ-sida
+            FAQ page
           </Link>
-          {" "}eller{" "}
-          <Link href="/kontakta" className="text-primary hover:underline font-semibold">
-            kontakta support
+          {" "}or{" "}
+          <Link href="/contact" className="text-primary hover:underline font-semibold">
+            contact support
           </Link>
         </p>
       </div>

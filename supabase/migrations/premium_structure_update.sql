@@ -33,11 +33,11 @@ END $$;
 TRUNCATE TABLE token_packages RESTART IDENTITY CASCADE;
 
 INSERT INTO token_packages (name, tokens, price, description, active, created_at, updated_at) VALUES
-('100 tokens (FREE)', 100, 0, 'Gratis med Premium prenumeration', true, NOW(), NOW()),
-('200 tokens', 200, 99, '200 tokens för 9,99€ / 99kr', true, NOW(), NOW()),
-('550 tokens', 550, 249, '550 tokens för 24,99€ / 249kr', true, NOW(), NOW()),
-('1,550 tokens', 1550, 499, '1,550 tokens för 49,99€ / 499kr', true, NOW(), NOW()),
-('5,800 tokens', 5800, 1499, '5,800 tokens för 149,99€ / 1,499kr', true, NOW(), NOW());
+('100 tokens (FREE)', 100, 0, 'Free with Premium subscription', true, NOW(), NOW()),
+('200 tokens', 200, 99, '200 tokens for $9.99', true, NOW(), NOW()),
+('550 tokens', 550, 249, '550 tokens for $24.99', true, NOW(), NOW()),
+('1,550 tokens', 1550, 499, '1,550 tokens for $49.99', true, NOW(), NOW()),
+('5,800 tokens', 5800, 1499, '5,800 tokens for $149.99', true, NOW(), NOW());
 
 -- =====================================================
 -- 2. CREATE/UPDATE PREMIUM SUBSCRIPTION TABLE
@@ -106,9 +106,9 @@ INSERT INTO plan_features (
     created_at,
     updated_at
 ) VALUES
-('price', 'Price', 'Pris', '0 EUR / 0 SEK', '0 EUR / 0 SEK', '11 EUR / 110 SEK month', '11 EUR / 110 SEK månad', 1, true, NOW(), NOW()),
+('price', 'Price', 'Pris', '$0', '$0', '$11.99 / month', '$11.99 / månad', 1, true, NOW(), NOW()),
 ('text_messages', 'Text Messages', 'Textmeddelanden', '3 free messages', '3 fria meddelanden', 'Unlimited (NSFW & SFW)', 'Obegränsat (NSFW & SFW)', 2, true, NOW(), NOW()),
-('create_ai_girlfriend', 'Create AI Girlfriend', 'Skapa AI flickvän', 'Not possible', 'Inte möjligt', 'Unlimited', 'Obegränsat', 3, true, NOW(), NOW()),
+('create_ai_girlfriend', 'Create AI Companion', 'Skapa AI kompanjon', 'Not possible', 'Inte möjligt', 'Unlimited', 'Obegränsat', 3, true, NOW(), NOW()),
 ('create_images', 'Create Images', 'Skapa bilder', '1 free SFW', '1 gratis SFW', 'Unlimited (NSFW & SFW)', 'Obegränsat (NSFW & SFW)', 4, true, NOW(), NOW()),
 ('free_tokens', 'Free Tokens', 'Gratis tokens', 'Not available', 'Ingår ej', '100 free tokens', '100 gratis tokens', 5, true, NOW(), NOW()),
 ('buy_tokens', 'Buy Tokens', 'Köpa tokens', 'No', 'Nej', 'Yes', 'Ja', 6, true, NOW(), NOW());
@@ -142,8 +142,8 @@ INSERT INTO token_costs (
     description_sv,
     active
 ) VALUES
-('text_message', 'Text Messages', 'Textmeddelanden', 5, '5 tokens per message', '5 tokens per message', true),
-('create_girlfriend', 'Create AI Girlfriend', 'Skapa AI flickvän', 2, '2 tokens per girlfriend', '2 tokens per flickvän', true),
+('text_message', 'Text Messages', 'Textmeddelanden', 5, '5 tokens per message', '5 tokens per meddelande', true),
+('create_girlfriend', 'Create AI Companion', 'Skapa AI kompanjon', 2, '2 tokens per companion', '2 tokens per kompanjon', true),
 ('image_generation_stability', 'Create Images (Stability)', 'Skapa bilder (Stability)', 5, 'Stability AI model', 'Stability AI modell', true),
 ('image_generation_flux', 'Create Images (Flux)', 'Skapa bilder (Flux)', 10, 'Flux AI model', 'Flux AI modell', true);
 
