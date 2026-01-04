@@ -1461,30 +1461,33 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           </div>
 
           {/* Profile Info */}
-          <div className="p-4">
-            <h4 className="text-2xl font-bold mb-1">{character?.name}</h4>
-            <p className="text-muted-foreground mb-4">{character?.description}</p>
+          {/* Profile Info */}
+          <div className="p-4 flex flex-col gap-4">
+            <div>
+              <h4 className="text-2xl font-bold mb-1">{character?.name}</h4>
+              <div className="text-muted-foreground text-sm leading-relaxed space-y-4">
+                <p>{character?.description}</p>
 
-            <div className="flex flex-col gap-2 mb-6">
-              <Button
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground border-none font-bold h-12"
-                onClick={handleAdvancedGenerate}
-              >
-                <Wand2 className="mr-2 h-5 w-5" />
-                {t("generate.generate")}
-              </Button>
+                {/* Integrated Details */}
+                <div className="pt-2 border-t border-border/40 text-xs space-y-1">
+                  {character?.age && <p><span className="font-semibold text-foreground">Age:</span> {character.age}</p>}
+                  {character?.body && <p><span className="font-semibold text-foreground">Body:</span> {translateValue(character.body)}</p>}
+                  {character?.ethnicity && <p><span className="font-semibold text-foreground">Ethnicity:</span> {translateValue(character.ethnicity)}</p>}
+                  {character?.occupation && <p><span className="font-semibold text-foreground">Occupation:</span> {translateValue(character.occupation)}</p>}
+                  {character?.relationship && <p><span className="font-semibold text-foreground">Relationship:</span> {translateValue(character.relationship)}</p>}
+                  {character?.personality && <p><span className="font-semibold text-foreground">Personality:</span> {translateValue(character.personality)}</p>}
+                  {character?.hobbies && <p><span className="font-semibold text-foreground">Hobbies:</span> {translateValue(character.hobbies)}</p>}
+                </div>
+              </div>
             </div>
-            <h3 className="text-lg font-medium mb-4">{t("chat.aboutMe")}</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <ProfileDetail icon="🎂" label={t("profile.age").toUpperCase()} value={character?.age?.toString() || "25"} />
-              <ProfileDetail icon="💪" label={t("profile.body").toUpperCase()} value={character?.body || "Average"} />
-              <ProfileDetail icon="🌎" label={t("profile.ethnicity").toUpperCase()} value={character?.ethnicity || "Mixed"} />
-              <ProfileDetail icon="🗣️" label={t("profile.language").toUpperCase()} value={character?.language || "English"} />
-              <ProfileDetail icon="💑" label={t("profile.relationship").toUpperCase()} value={character?.relationship || "Single"} />
-              <ProfileDetail icon="💼" label={t("profile.occupation").toUpperCase()} value={character?.occupation || "Student"} />
-              <ProfileDetail icon="🎯" label={t("profile.hobbies").toUpperCase()} value={character?.hobbies || "Reading, Music"} />
-              <ProfileDetail icon="😊" label={t("profile.personality").toUpperCase()} value={character?.personality || "Friendly"} />
-            </div>
+
+            <Button
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground border-none font-bold h-12 mt-2"
+              onClick={handleAdvancedGenerate}
+            >
+              <Wand2 className="mr-2 h-5 w-5" />
+              {t("generate.generate")}
+            </Button>
           </div>
         </div>
       </div>
@@ -1563,4 +1566,60 @@ function ProfileDetail({ icon, label, value }: { icon: string; label: string; va
       <div className="text-sm">{value}</div>
     </div>
   )
+}
+
+function translateValue(value: string | undefined): string {
+  if (!value) return "";
+  
+  const map: Record<string, string> = {
+    // Relationships
+    "Singel": "Single",
+    "Gift": "Married",
+    "Dejtar": "Dating",
+    "Komplicerat": "Complicated",
+    
+    // Body
+    "Atletisk": "Athletic",
+    "Kurvig": "Curvy",
+    "Smal": "Slim",
+    "Alldaglig": "Average",
+    "Muskulös": "Muscular",
+    
+    // Personality
+    "Sportig": "Athletic",
+    "Lekfull": "Playful",
+    "Nyfiken": "Curious",
+    "Busig": "Mischievous",
+    "Snäll": "Kind",
+    "Intelligent": "Intelligent",
+    "Rolig": "Funny",
+    "Seriös": "Serious",
+    "Driven": "Driven",
+    
+    // Occupations
+    "Universitetsstudent": "University Student",
+    "Student": "Student",
+    "Lärare": "Teacher",
+    "Sjuksköterska": "Nurse",
+    "Ingenjör": "Engineer",
+    
+    // Ethnicity
+    "Vit": "White",
+    "Svart": "Black",
+    "Asiat": "Asian",
+    "Latina": "Latina",
+    "Mellanöstern": "Middle Eastern"
+  };
+
+  // Check strict match first
+  if (map[value]) return map[value];
+  
+  // Check case-insensitive match
+  const lowerValue = value.toLowerCase();
+  for (const [k, v] of Object.entries(map)) {
+    if (k.toLowerCase() === lowerValue) return v;
+  }
+  
+  // If no match, return original (capitalize first letter just in case)
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }

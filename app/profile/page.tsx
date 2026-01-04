@@ -85,6 +85,7 @@ export default function ProfilePage() {
 
   // Password State
   const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
     newPassword: "",
     confirmPassword: ""
   })
@@ -198,13 +199,20 @@ export default function ProfilePage() {
   }
 
   const handleUpdatePassword = async () => {
-    if (!passwordData.newPassword) return
-    
+    if (!passwordData.currentPassword) {
+      toast.error("Please enter your current password")
+      return;
+    }
+    if (!passwordData.newPassword) {
+      toast.error("Please enter a new password")
+      return;
+    }
+
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast.error("Passwords do not match")
       return
     }
-    
+
     if (passwordData.newPassword.length < 6) {
       toast.error("Password must be at least 6 characters long")
       return
@@ -213,6 +221,18 @@ export default function ProfilePage() {
     try {
       setIsPasswordSaving(true)
       const supabase = createClient()
+
+      // 1. Verify current password by signing in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || '',
+        password: passwordData.currentPassword
+      })
+
+      if (signInError) {
+        throw new Error("Current password is incorrect")
+      }
+
+      // 2. Update to new password
       const { error } = await supabase.auth.updateUser({
         password: passwordData.newPassword
       })
@@ -220,7 +240,7 @@ export default function ProfilePage() {
       if (error) throw error
 
       toast.success("Password updated successfully")
-      setPasswordData({ newPassword: "", confirmPassword: "" })
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" })
     } catch (error: any) {
       console.error("Error updating password:", error)
       toast.error(error.message || "Failed to update password")
@@ -575,6 +595,16 @@ export default function ProfilePage() {
                 <CardDescription>Update your password to keep your account secure.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="current-password">Current Password</Label>
+                    <Input
+                      id="current-password"
+                      type="password"
+                      placeholder="Enter current password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                    />
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="new-password">New Password</Label>
@@ -599,8 +629,8 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
               <CardFooter className="bg-muted/30 border-t border-border/40 p-4">
-                <Button 
-                  onClick={handleUpdatePassword} 
+                <Button
+                  onClick={handleUpdatePassword}
                   disabled={isPasswordSaving || !passwordData.newPassword}
                   className="ml-auto bg-primary hover:bg-primary/90 font-bold text-white px-8"
                 >
