@@ -14,7 +14,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const { settings, updateSettings } = useSite()
-  const language = settings.language || "sv"
+  const language = settings.language || "en"
 
   const t = (key: TranslationKey): string => {
     return translations[language][key] || translations.sv[key] || key
