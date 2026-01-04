@@ -43,6 +43,7 @@ import { SupabaseDebug } from "@/components/supabase-debug"
 import { PremiumUpgradeModal } from "@/components/premium-upgrade-modal"
 import { isAskingForImage, extractImagePrompt, imageUrlToBase64 } from "@/lib/image-utils"
 import { ImageModal } from "@/components/image-modal"
+import { CharacterGallery } from "@/components/character-gallery"
 import { containsNSFW } from "@/lib/nsfw-filter"
 import { toast } from "sonner"
 
@@ -1465,6 +1466,19 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             <h4 className="text-xl font-bold">{character?.name}</h4>
             <p className="text-muted-foreground text-sm leading-relaxed">{character?.description}</p>
 
+            {/* Character Gallery */}
+            {characterId && (
+              <CharacterGallery 
+                characterId={characterId} 
+                onImageClick={(url) => {
+                  if (url) {
+                    setSelectedImage([url])
+                    setSelectedImagePrompt("")
+                  }
+                }}
+              />
+            )}
+
             <Button
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground border-none font-bold h-12 mt-2"
               onClick={handleAdvancedGenerate}
@@ -1554,21 +1568,21 @@ function ProfileDetail({ icon, label, value }: { icon: string; label: string; va
 
 function translateValue(value: string | undefined): string {
   if (!value) return "";
-  
+
   const map: Record<string, string> = {
     // Relationships
     "Singel": "Single",
     "Gift": "Married",
     "Dejtar": "Dating",
     "Komplicerat": "Complicated",
-    
+
     // Body
     "Atletisk": "Athletic",
     "Kurvig": "Curvy",
     "Smal": "Slim",
     "Alldaglig": "Average",
     "Muskulös": "Muscular",
-    
+
     // Personality
     "Sportig": "Athletic",
     "Lekfull": "Playful",
@@ -1579,14 +1593,14 @@ function translateValue(value: string | undefined): string {
     "Rolig": "Funny",
     "Seriös": "Serious",
     "Driven": "Driven",
-    
+
     // Occupations
     "Universitetsstudent": "University Student",
     "Student": "Student",
     "Lärare": "Teacher",
     "Sjuksköterska": "Nurse",
     "Ingenjör": "Engineer",
-    
+
     // Ethnicity
     "Vit": "White",
     "Svart": "Black",
@@ -1599,16 +1613,16 @@ function translateValue(value: string | undefined): string {
   const translateSingle = (part: string) => {
     const trimmed = part.trim();
     if (!trimmed) return part; // Keep whitespace/punctuation
-    
+
     // Check strict match first
     if (map[trimmed]) return map[trimmed];
-    
+
     // Check case-insensitive match
     const lowerValue = trimmed.toLowerCase();
     for (const [k, v] of Object.entries(map)) {
       if (k.toLowerCase() === lowerValue) return v;
     }
-    
+
     return trimmed;
   };
 
