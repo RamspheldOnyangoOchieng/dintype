@@ -47,7 +47,7 @@ export default function ImageGenerationForm() {
 
         // Check local storage for free usage (simple daily check)
         const today = new Date().toDateString()
-        const key = `dintyp_free_used_${user.id}_${today}`
+        const key = `pocketlove_free_used_${user.id}_${today}`
         if (localStorage.getItem(key)) {
           setHasUsedFreeImage(true)
         }
@@ -126,7 +126,7 @@ export default function ImageGenerationForm() {
       if (!isPremium) {
         setHasUsedFreeImage(true)
         const today = new Date().toDateString()
-        localStorage.setItem(`dintyp_free_used_${user.id}_${today}`, "true")
+        localStorage.setItem(`pocketlove_free_used_${user.id}_${today}`, "true")
       }
 
       const data = await response.json()
@@ -290,7 +290,7 @@ export default function ImageGenerationForm() {
                         <span className="text-lg font-bold">{count}</span>
                         {count === 1 ? (
                           <span className="text-[10px] uppercase font-bold text-green-400">
-                             FREE
+                            FREE
                           </span>
                         ) : (
                           <span className="text-[10px] uppercase font-bold text-blue-400">

@@ -75,7 +75,7 @@ export function SiteFooter() {
 
   const handleSave = async () => {
     try {
-      const { error } = await supabase.from("footer_content").upsert({
+      const { error } = await (supabase.from("footer_content") as any).upsert({
         id: 1,
         content: tempData,
         updated_at: new Date().toISOString(),
