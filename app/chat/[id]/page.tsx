@@ -1431,16 +1431,15 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   <ChevronRight className="h-6 w-6" />
                 </button>
 
-                {/* Dots Indicator */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 transition-all duration-300">
+                {/* Tiny Dots Indicator */}
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 z-10">
                   {galleryImages.map((_, idx) => (
                     <button
                       key={idx}
-                      className={`w-1.5 h-1.5 rounded-full transition-all focus:outline-none p-0 border-0 flex-shrink-0 ${idx === currentImageIndex 
-                        ? "bg-white scale-125 opacity-100" 
-                        : "bg-white/40 hover:bg-white/60 opacity-60"
+                      className={`w-1 h-1 rounded-full transition-all focus:outline-none p-0 border-0 flex-shrink-0 ${idx === currentImageIndex 
+                        ? "bg-white opacity-100" 
+                        : "bg-white/30 hover:bg-white/50 opacity-40"
                       }`}
-                      style={{ minWidth: '6px', minHeight: '6px' }}
                       onClick={(e) => {
                         e.stopPropagation();
                         setCurrentImageIndex(idx);
