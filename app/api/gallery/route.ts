@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/lib/supabase-admin';
 
 export async function GET(request: NextRequest) {
     try {
@@ -11,12 +12,13 @@ export async function GET(request: NextRequest) {
         }
 
         const supabase = await createClient();
+        const supabaseAdmin = await createAdminClient();
 
         // Get current user (optional - for checking unlocks)
         const { data: { user } } = await supabase.auth.getUser();
 
-        // Fetch all gallery images for this character
-        const { data: galleryImages, error: galleryError } = await supabase
+        // First, fetch from character_gallery table
+        const { data: galleryImages, error: galleryError } = await supabaseAdmin
             .from('character_gallery')
             .select('*')
             .eq('character_id', characterId)
@@ -24,14 +26,47 @@ export async function GET(request: NextRequest) {
             .order('created_at', { ascending: false });
 
         if (galleryError) {
-            console.error('Error fetching gallery:', galleryError);
-            return NextResponse.json({ error: 'Failed to fetch gallery' }, { status: 500 });
+            console.error('Error fetching character_gallery:', galleryError);
         }
+
+        // Also fetch from generated_images table for this character
+        const { data: generatedImages, error: generatedError } = await supabaseAdmin
+            .from('generated_images')
+            .select('*')
+            .eq('character_id', characterId)
+            .order('created_at', { ascending: false });
+
+        if (generatedError) {
+            console.error('Error fetching generated_images:', generatedError);
+        }
+
+        // Merge images: prefer character_gallery, add any missing from generated_images
+        const existingUrls = new Set((galleryImages || []).map(img => img.image_url));
+
+        // Add generated images that are not already in gallery
+        const additionalFromGenerated = (generatedImages || [])
+            .filter(img => !existingUrls.has(img.image_url))
+            .map(img => ({
+                id: img.id,
+                character_id: characterId,
+                image_url: img.image_url,
+                thumbnail_url: img.image_url,
+                is_locked: img.user_id !== user?.id, // Locked for other users
+                is_nsfw: false,
+                unlock_cost: 100,
+                generated_by: img.user_id,
+                is_admin_uploaded: false,
+                is_free_preview: false,
+                sort_order: 999,
+                created_at: img.created_at
+            }));
+
+        const allImages = [...(galleryImages || []), ...additionalFromGenerated];
 
         // If user is logged in, check which images they've unlocked
         let unlockedImageIds: string[] = [];
         if (user) {
-            const { data: userUnlocks } = await supabase
+            const { data: userUnlocks } = await supabaseAdmin
                 .from('user_unlocked_images')
                 .select('gallery_image_id')
                 .eq('user_id', user.id);
@@ -40,7 +75,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Process images - hide actual URLs for locked images
-        const processedImages = (galleryImages || []).map(img => {
+        const processedImages = allImages.map(img => {
             const isUnlockedByUser = unlockedImageIds.includes(img.id);
             const isFreePreview = img.is_free_preview;
             const isGeneratedByUser = user && img.generated_by === user.id;
@@ -55,7 +90,7 @@ export async function GET(request: NextRequest) {
                 thumbnailUrl: canView ? (img.thumbnail_url || img.image_url) : null,
                 isLocked: img.is_locked && !canView,
                 isNsfw: img.is_nsfw,
-                unlockCost: img.unlock_cost,
+                unlockCost: img.unlock_cost || 100,
                 isFreePreview: img.is_free_preview,
                 isUnlockedByUser,
                 isOwnImage: isGeneratedByUser,

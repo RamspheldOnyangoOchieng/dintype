@@ -1,9 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Lock, Unlock, Loader2, Image as ImageIcon } from "lucide-react"
+import { Lock, Unlock, Loader2, Image as ImageIcon, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import { useAuth } from "@/components/auth-context"
 
@@ -28,10 +27,11 @@ interface CharacterGalleryProps {
 
 export function CharacterGallery({ characterId, onImageClick }: CharacterGalleryProps) {
     const { user, tokenBalance, refreshUser } = useAuth()
-    const [activeTab, setActiveTab] = useState<"gallery" | "unlocked">("gallery")
+    const [activeView, setActiveView] = useState<"locked" | "unlocked">("locked")
     const [images, setImages] = useState<GalleryImage[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [unlockingId, setUnlockingId] = useState<string | null>(null)
+    const [isUnlockingAll, setIsUnlockingAll] = useState(false)
 
     const fetchGallery = async () => {
         try {
@@ -95,13 +95,66 @@ export function CharacterGallery({ characterId, onImageClick }: CharacterGallery
         }
     }
 
-    const allImages = images
+    const handleUnlockAllGallery = async () => {
+        if (!user) {
+            toast.error("Please login to unlock gallery")
+            return
+        }
+
+        const lockedImages = images.filter(img => img.isLocked)
+        if (lockedImages.length === 0) {
+            toast.info("No locked images to unlock")
+            return
+        }
+
+        const totalCost = lockedImages.reduce((sum, img) => sum + (img.unlockCost || 100), 0)
+
+        if ((tokenBalance || 0) < totalCost) {
+            toast.error(`Not enough tokens. Need ${totalCost} tokens.`)
+            return
+        }
+
+        setIsUnlockingAll(true)
+
+        try {
+            // Unlock each image one by one
+            for (const img of lockedImages) {
+                const response = await fetch("/api/gallery/unlock", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ imageId: img.id })
+                })
+
+                const data = await response.json()
+
+                if (response.ok && data.success) {
+                    setImages(prev => prev.map(i =>
+                        i.id === img.id
+                            ? { ...i, isLocked: false, imageUrl: data.imageUrl, thumbnailUrl: data.imageUrl, isUnlockedByUser: true }
+                            : i
+                    ))
+                }
+            }
+
+            toast.success(`Gallery unlocked! ${totalCost} tokens spent.`)
+            refreshUser()
+        } catch (error) {
+            console.error("Error unlocking gallery:", error)
+            toast.error("Failed to unlock gallery")
+        } finally {
+            setIsUnlockingAll(false)
+        }
+    }
+
+    const lockedImages = images.filter(img => img.isLocked)
     const unlockedImages = images.filter(img => !img.isLocked)
+    const displayImages = activeView === "locked" ? lockedImages : unlockedImages
+    const totalUnlockCost = lockedImages.reduce((sum, img) => sum + (img.unlockCost || 100), 0)
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <div className="flex items-center justify-center py-6">
+                <Loader2 className="w-5 h-5 animate-spin text-primary" />
             </div>
         )
     }
@@ -117,105 +170,107 @@ export function CharacterGallery({ characterId, onImageClick }: CharacterGallery
 
     return (
         <div className="space-y-3">
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "gallery" | "unlocked")}>
-                <TabsList className="w-full bg-background/50 border border-border/40 h-9">
-                    <TabsTrigger value="gallery" className="flex-1 text-xs font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        GALLERY
-                    </TabsTrigger>
-                    <TabsTrigger value="unlocked" className="flex-1 text-xs font-bold data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                        UNLOCKED
-                    </TabsTrigger>
-                </TabsList>
+            {/* Locked / Unlocked Toggle Buttons */}
+            <div className="flex gap-2">
+                <Button
+                    variant={activeView === "locked" ? "default" : "outline"}
+                    size="sm"
+                    className={`flex-1 h-9 text-xs font-bold ${activeView === "locked" ? "bg-primary text-primary-foreground" : "border-border/40"}`}
+                    onClick={() => setActiveView("locked")}
+                >
+                    <Lock className="w-3 h-3 mr-1.5" />
+                    LOCKED ({lockedImages.length})
+                </Button>
+                <Button
+                    variant={activeView === "unlocked" ? "default" : "outline"}
+                    size="sm"
+                    className={`flex-1 h-9 text-xs font-bold ${activeView === "unlocked" ? "bg-primary text-primary-foreground" : "border-border/40"}`}
+                    onClick={() => setActiveView("unlocked")}
+                >
+                    <Unlock className="w-3 h-3 mr-1.5" />
+                    UNLOCKED ({unlockedImages.length})
+                </Button>
+            </div>
 
-                <TabsContent value="gallery" className="mt-3 space-y-3">
-                    {/* Unlock All Button */}
-                    {allImages.some(img => img.isLocked) && (
-                        <Button
-                            variant="outline"
-                            className="w-full border-primary/50 text-primary hover:bg-primary/10 h-10 text-sm font-bold"
-                            disabled={!user}
-                        >
-                            <Lock className="w-4 h-4 mr-2" />
-                            ⚡ 100 Unlock Gallery
-                        </Button>
-                    )}
-
-                    {/* Gallery Grid */}
-                    <div className="grid grid-cols-2 gap-2">
-                        {allImages.map((image) => (
-                            <div
-                                key={image.id}
-                                className="relative aspect-square rounded-xl overflow-hidden bg-card border border-border/40"
-                            >
-                                {image.isLocked ? (
-                                    // Locked Image
-                                    <div
-                                        className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center cursor-pointer hover:from-gray-700 hover:to-gray-800 transition-colors"
-                                        onClick={() => handleUnlockImage(image.id)}
-                                    >
-                                        <div className="absolute inset-0 backdrop-blur-xl" />
-                                        {unlockingId === image.id ? (
-                                            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                                        ) : (
-                                            <div className="relative z-10 flex flex-col items-center">
-                                                <Lock className="w-8 h-8 text-yellow-500 drop-shadow-lg" />
-                                                <span className="text-xs text-white/70 mt-1">{image.unlockCost}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    // Unlocked Image
-                                    <img
-                                        src={image.imageUrl || image.thumbnailUrl || "/placeholder.svg"}
-                                        alt="Gallery"
-                                        className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
-                                        onClick={() => onImageClick?.(image.imageUrl || "")}
-                                    />
-                                )}
-
-                                {/* NSFW Badge */}
-                                {image.isNsfw && !image.isLocked && (
-                                    <div className="absolute top-1 right-1 bg-red-500/80 text-white text-[8px] px-1.5 py-0.5 rounded font-bold">
-                                        18+
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="unlocked" className="mt-3">
-                    {unlockedImages.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground text-sm">
-                            <Unlock className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                            <p>No unlocked images yet</p>
-                            <p className="text-xs mt-1">Unlock images from the gallery tab</p>
-                        </div>
+            {/* Unlock All Gallery Button */}
+            {lockedImages.length > 0 && activeView === "locked" && (
+                <Button
+                    variant="outline"
+                    className="w-full border-primary/50 text-primary hover:bg-primary/10 h-10 text-sm font-bold"
+                    disabled={!user || isUnlockingAll || (tokenBalance || 0) < totalUnlockCost}
+                    onClick={handleUnlockAllGallery}
+                >
+                    {isUnlockingAll ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     ) : (
-                        <div className="grid grid-cols-2 gap-2">
-                            {unlockedImages.map((image) => (
-                                <div
-                                    key={image.id}
-                                    className="relative aspect-square rounded-xl overflow-hidden bg-card border border-border/40"
-                                >
-                                    <img
-                                        src={image.imageUrl || image.thumbnailUrl || "/placeholder.svg"}
-                                        alt="Gallery"
-                                        className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
-                                        onClick={() => onImageClick?.(image.imageUrl || "")}
-                                    />
+                        <>
+                            <ImageIcon className="w-4 h-4 mr-1" />
+                            <Zap className="w-4 h-4 mr-1 text-yellow-500" />
+                        </>
+                    )}
+                    {totalUnlockCost} Unlock Gallery
+                </Button>
+            )}
 
-                                    {image.isNsfw && (
-                                        <div className="absolute top-1 right-1 bg-red-500/80 text-white text-[8px] px-1.5 py-0.5 rounded font-bold">
-                                            18+
+            {/* Gallery Grid */}
+            <div className="grid grid-cols-2 gap-2">
+                {displayImages.length === 0 ? (
+                    <div className="col-span-2 text-center py-6 text-muted-foreground text-sm">
+                        {activeView === "locked" ? (
+                            <>
+                                <Unlock className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                                <p>All images unlocked!</p>
+                            </>
+                        ) : (
+                            <>
+                                <Lock className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                                <p>No unlocked images yet</p>
+                                <p className="text-xs mt-1">Tap locked images to unlock</p>
+                            </>
+                        )}
+                    </div>
+                ) : (
+                    displayImages.map((image) => (
+                        <div
+                            key={image.id}
+                            className="relative aspect-square rounded-xl overflow-hidden bg-card border border-border/40"
+                        >
+                            {image.isLocked ? (
+                                // Locked Image
+                                <div
+                                    className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center cursor-pointer hover:from-gray-700 hover:to-gray-800 transition-colors"
+                                    onClick={() => handleUnlockImage(image.id)}
+                                >
+                                    <div className="absolute inset-0 backdrop-blur-xl bg-black/40" />
+                                    {unlockingId === image.id ? (
+                                        <Loader2 className="w-8 h-8 animate-spin text-primary relative z-10" />
+                                    ) : (
+                                        <div className="relative z-10 flex flex-col items-center">
+                                            <Lock className="w-8 h-8 text-yellow-500 drop-shadow-lg" />
+                                            <span className="text-xs text-white/80 mt-1 font-medium">{image.unlockCost} 🪙</span>
                                         </div>
                                     )}
                                 </div>
-                            ))}
+                            ) : (
+                                // Unlocked Image
+                                <img
+                                    src={image.imageUrl || image.thumbnailUrl || "/placeholder.svg"}
+                                    alt="Gallery"
+                                    className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
+                                    onClick={() => onImageClick?.(image.imageUrl || "")}
+                                />
+                            )}
+
+                            {/* NSFW Badge */}
+                            {image.isNsfw && !image.isLocked && (
+                                <div className="absolute top-1 right-1 bg-red-500/80 text-white text-[8px] px-1.5 py-0.5 rounded font-bold">
+                                    18+
+                                </div>
+                            )}
                         </div>
-                    )}
-                </TabsContent>
-            </Tabs>
+                    ))
+                )}
+            </div>
         </div>
     )
 }

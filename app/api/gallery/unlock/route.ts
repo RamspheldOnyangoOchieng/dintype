@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/lib/supabase-admin';
 
 export async function POST(request: NextRequest) {
     try {
@@ -10,6 +11,7 @@ export async function POST(request: NextRequest) {
         }
 
         const supabase = await createClient();
+        const supabaseAdmin = await createAdminClient();
 
         // Get current user
         const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -18,19 +20,46 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
         }
 
-        // Fetch the gallery image details
-        const { data: galleryImage, error: imageError } = await supabase
+        // Fetch the gallery image details - try character_gallery first
+        let galleryImage = null;
+        let imageSource = 'gallery';
+
+        const { data: galleryData, error: galleryError } = await supabaseAdmin
             .from('character_gallery')
             .select('*')
             .eq('id', imageId)
             .single();
 
-        if (imageError || !galleryImage) {
+        if (galleryData) {
+            galleryImage = galleryData;
+            imageSource = 'gallery';
+        } else {
+            // Try generated_images table
+            const { data: generatedData, error: generatedError } = await supabaseAdmin
+                .from('generated_images')
+                .select('*')
+                .eq('id', imageId)
+                .single();
+
+            if (generatedData) {
+                galleryImage = {
+                    id: generatedData.id,
+                    image_url: generatedData.image_url,
+                    is_locked: true,
+                    unlock_cost: 100,
+                    generated_by: generatedData.user_id,
+                    is_free_preview: false
+                };
+                imageSource = 'generated';
+            }
+        }
+
+        if (!galleryImage) {
             return NextResponse.json({ error: 'Image not found' }, { status: 404 });
         }
 
         // Check if already unlocked
-        const { data: existingUnlock } = await supabase
+        const { data: existingUnlock } = await supabaseAdmin
             .from('user_unlocked_images')
             .select('id')
             .eq('user_id', user.id)
@@ -57,7 +86,7 @@ export async function POST(request: NextRequest) {
         const unlockCost = galleryImage.unlock_cost || 100;
 
         // Check user's token balance
-        const { data: userTokens, error: tokensError } = await supabase
+        const { data: userTokens, error: tokensError } = await supabaseAdmin
             .from('user_tokens')
             .select('balance')
             .eq('user_id', user.id)
@@ -74,7 +103,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Deduct tokens
-        const { error: deductError } = await supabase
+        const { error: deductError } = await supabaseAdmin
             .from('user_tokens')
             .update({
                 balance: currentBalance - unlockCost,
@@ -88,7 +117,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Record the unlock
-        const { error: unlockError } = await supabase
+        const { error: unlockError } = await supabaseAdmin
             .from('user_unlocked_images')
             .insert({
                 user_id: user.id,
@@ -99,13 +128,15 @@ export async function POST(request: NextRequest) {
         if (unlockError) {
             console.error('Error recording unlock:', unlockError);
             // Attempt to refund tokens
-            await supabase
+            await supabaseAdmin
                 .from('user_tokens')
                 .update({ balance: currentBalance })
                 .eq('user_id', user.id);
 
             return NextResponse.json({ error: 'Failed to unlock image' }, { status: 500 });
         }
+
+        console.log(`✅ User ${user.id.substring(0, 8)} unlocked image ${imageId} for ${unlockCost} tokens`);
 
         return NextResponse.json({
             success: true,

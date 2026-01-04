@@ -148,6 +148,29 @@ export async function POST(request: NextRequest) {
             console.log("ℹ️  Image already in character profile");
           }
         }
+
+        // Also add to character_gallery table for the gallery feature
+        console.log("📸 Adding to character gallery...");
+        const { error: galleryError } = await supabaseAdmin
+          .from("character_gallery")
+          .insert({
+            character_id: characterId,
+            image_url: permanentImageUrl,
+            is_locked: true, // Locked by default for other users
+            is_nsfw: false,
+            unlock_cost: 100,
+            generated_by: userId,
+            is_admin_uploaded: false,
+            is_free_preview: false,
+            sort_order: 0
+          });
+
+        if (galleryError) {
+          console.error("⚠️ Failed to add to character_gallery:", galleryError);
+        } else {
+          console.log("✅ Added to character gallery!");
+        }
+
       } catch (charError) {
         console.error("❌ Error in character update logic:", charError);
       }
