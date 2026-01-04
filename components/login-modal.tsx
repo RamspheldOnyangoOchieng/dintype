@@ -141,7 +141,7 @@ export function LoginModal() {
                 <div className="relative h-64 md:h-full w-full hidden md:block">
                     <Image
                         src="/login-placeholder.jpeg"
-                        alt="Inloggningsbild"
+                        alt="Login image"
                         layout="fill"
                         objectFit="cover"
                         className="rounded-l-lg"
@@ -149,7 +149,7 @@ export function LoginModal() {
                 </div>
                 <div className="relative p-4 sm:p-6 md:p-8">
                     <DialogTitle className="sr-only">{t("auth.login")}</DialogTitle>
-                    <DialogDescription className="sr-only">Vänligen logga in på ditt konto för att fortsätta.</DialogDescription>
+                    <DialogDescription className="sr-only">Please login to your account to continue.</DialogDescription>
 
                     <div className="text-center mb-6 sm:mb-8">
                         <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">{t("auth.login")}</h1>

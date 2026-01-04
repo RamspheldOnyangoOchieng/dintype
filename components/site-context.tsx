@@ -6,7 +6,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from "
 type SiteSettings = {
   siteName: string
   logoText: string
-  language: "en" | "sv" // Add language setting
+  language: "en" // Add language setting
   pricing: {
     currency: string
     currencyPosition: "left" | "right"

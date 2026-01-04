@@ -42,10 +42,10 @@ export default function ConfirmEmailModal({
       setResending(true);
       try {
         await onResend();
-        toast.success("Bekräftelselänk skickad!");
+        toast.success("Confirmation link sent!");
         setTimer(15);
       } catch (error) {
-        toast.error("Kunde inte skicka länk");
+        toast.error("Could not send link");
       } finally {
         setResending(false);
       }
@@ -74,16 +74,16 @@ export default function ConfirmEmailModal({
             <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-[#333]">
               <Image
                 src="/signup-placeholder.jpeg"
-                alt="DINTYP.SE"
+                alt="Pocketlove"
                 fill
                 className="object-cover"
               />
             </div>
           </div>
-          <h2 className="text-2xl font-bold mb-2 text-white">Bekräfta din e-mail</h2>
+          <h2 className="text-2xl font-bold mb-2 text-white">Confirm your email</h2>
           <p className="text-gray-300 text-center mb-2">
-            Vi har skickat en bekräftelselänk till <span className="font-semibold text-blue-400">{email}</span>.<br />
-            Om du inte ser den, kontrollera din skräppost.
+            We have sent a confirmation link to <span className="font-semibold text-blue-400">{email}</span>.<br />
+            If you don't see it, check your spam folder.
           </p>
           <div className="text-sm text-gray-400 mb-4">00:{timer.toString().padStart(2, "0")}</div>
           <Button
@@ -91,15 +91,15 @@ export default function ConfirmEmailModal({
             onClick={handleResend}
             disabled={timer > 0 || resending}
           >
-            {resending ? "Skickar..." : "Skicka länken igen"}
+            {resending ? "Sending..." : "Resend link"}
           </Button>
           <div className="border-t border-[#333] pt-4 mt-4 text-center w-full">
-            <span className="text-gray-400">Har du redan ett konto?</span>
+            <span className="text-gray-400">Already have an account?</span>
             <button
               className="text-blue-400 underline ml-1"
               onClick={onSignIn || (() => router.push("/login"))}
             >
-              Logga in
+              Login
             </button>
           </div>
         </div>

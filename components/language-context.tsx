@@ -5,22 +5,24 @@ import { useSite } from "./site-context"
 import { type TranslationKey, translations } from "@/lib/translations"
 
 type LanguageContextType = {
-  language: "en" | "sv"
+  language: "en"
   t: (key: TranslationKey) => string
-  changeLanguage: (lang: "en" | "sv") => void
+  changeLanguage: (lang: "en") => void
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined)
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const { settings, updateSettings } = useSite()
-  const language = settings.language || "en"
+  const language = "en"
 
   const t = (key: TranslationKey): string => {
-    return translations[language][key] || translations.sv[key] || key
+    return translations[language][key] || key
   }
 
-  const changeLanguage = (lang: "en" | "sv") => {
+  const changeLanguage = (lang: "en") => {
+    // Only 'en' is supported
+    if (lang !== "en") return
     updateSettings({ language: lang })
   }
 

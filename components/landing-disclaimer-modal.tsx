@@ -78,80 +78,7 @@ const translations = {
       "Advertising or attempting to transact regulated or restricted goods"
     ],
   },
-  sv: {
-    ageTitle: "Den här sidan är endast för vuxna!",
-    ageDesc: "Den innehåller enbart AI-genererat vuxeninnehåll. Genom att besöka denna webbplats bekräftar du att du är 18 år eller äldre. Vi använder cookies för grundläggande analys och skräppostdetektering. Allt innehåll på denna webbplats är AI-genererat! Eventuella likheter med verkliga personer är helt tillfälliga.",
-    cookieTitle: "Denna webbplats använder cookies",
-    cookieDesc: "För att ändra dina inställningar, klicka på knappen för inställningar.",
-    cookieSettings: "Cookie-inställningar",
-    confirmAll: "Bekräfta alla villkor",
-    reject: "Avvisa icke-nödvändiga",
-    termsLink: "Villkor",
-    privacyLink: "Integritet",
-    ageCheckbox: "Jag bekräftar att jag är minst 18 år gammal",
-    termsCheckbox: "Jag godkänner Villkor och Policyer",
-    needConfirm: "Bekräfta ålder och godkänn villkor först",
-    rulesTitle: "Chatbots är strikt tillåtna för sexting med minimiålder 18. Begränsade och blockerade aktiviteter från chatbots:",
-    rules: [
-      "Illegal verksamhet och kriminellt beteende",
-      "Kommersiella sexuella aktiviteter (inklusive prostitution)",
-      "Människohandel",
-      "Sexuell exploatering och pornografi (inklusive barnpornografi)",
-      "Uppmaning till eller främjande av kriminell verksamhet",
-      "Exploatering av barnarbete",
-      "Främjande av olagliga droger eller substansmissbruk",
-      "Främjande av olagliga vapen",
-      "Användning av tjänsten för phishing, bedrägerier eller kapning av konton",
-      "Spridning eller diskussion om kannibalism",
-      "Brott mot lokala, nationella eller internationella lagar och regler",
-      "Barnexploatering och skydd av minderåriga",
-      "Skapande eller avbildning av minderåriga karaktärer (realistiska, fiktiva, AI-genererade eller 'åldrade')",
-      "Delning av sexualiserat eller exploaterande material som involverar minderåriga (inklusive teckningar, konst eller AI-genererade bilder)",
-      "Allt innehåll som skadar, lockar eller utsätter minderåriga för fara",
-      "Sexuella innehållsbegränsningar",
-      "Explicit bilder som visar verklig eller realistisk nakenhet eller sexuella handlingar",
-      "Öppna eller antydda sexuella handlingar, om inte tydligt fiktiva och inom tillåtna sammanhang",
-      "Kink-innehåll som involverar:",
-      "Död eller allvarlig skada på människor eller djur",
-      "Amputation, stympning",
-      "Kannibalism",
-      "Kroppsvätskor (avföring, urin, sperma, saliv, slem, menstruationsblod, kräkningar)",
-      "Tidigare (verkliga) djur",
-      "Icke samtyckande sexuella handlingar (våldtäkt, sexuella övergrepp, sextortion, hämndporr, etc.)",
-      "Incest (inklusive icke-blodrelaterade scenarier som styvförhållanden)",
-      "Sexuella avbildningar i digital eller verklig konst om inte inom strikt utbildnings-, vetenskapligt eller komiskt sammanhang",
-      "Våld och skada",
-      "Uppmaning till, glorifiering eller avbildning av våld, mord eller terrorism",
-      "Hot om fysisk skada eller våld",
-      "Främjande eller uppmuntran till självskada, självmord, ätstörningar eller drogmissbruk",
-      "Avbildningar av blod, död av djur eller intensivt våld",
-      "Diskussioner som uppmuntrar eller främjar nekrofili",
-      "Hatpropaganda och diskriminering",
-      "Innehåll som främjar hat eller våld mot individer eller grupper baserat på:",
-      "Ras eller etnicitet",
-      "Nationalitet",
-      "Religion",
-      "Funktionsnedsättning",
-      "Kön eller könsidentitet",
-      "Sexuell läggning",
-      "Ålder eller veteranstatus",
-      "Idolisering eller glorifiering av hatfigurer (t.ex. Adolf Hitler, Joseph Stalin, Pol Pot)",
-      "Integritet, bedrägeri och imitation",
-      "Delning av personliga eller konfidentiella uppgifter om andra utan samtycke",
-      "Imitation av verkliga individer, inklusive kändisar eller offentliga personer",
-      "Uppladdning av verkliga bilder eller AI-genererade bilder som liknar verkliga individer utan samtycke",
-      "Användning av tjänsten för bedrägligt beteende (falsk information, flera konton, falska identiteter)",
-      "Begäran om betalning från användare under falska förespeglingar",
-      "Desinformation och politisk påverkan",
-      "Publicering av desinformation som kan leda till våld, skada eller störa politiska processer",
-      "Diskussioner om politiska åsikter eller religiösa och andliga övertygelser (explicit förbjudna ämnen)",
-      "Spam och irrelevant innehåll",
-      "Spam, inklusive att skicka oönskade reklam-, kommersiella eller massmeddelanden",
-      "Generering av meningslöst, irrelevant eller syfteslöst innehåll",
-      "Begränsade varor och transaktioner",
-      "Annonsering eller försök att transagera reglerade eller begränsade varor"
-    ],
-  },
+  // Swedish translations removed
 };
 
 interface CookiePreferences {
@@ -171,17 +98,17 @@ export default function LandingDisclaimerModal({
   open,
   onConfirm,
   onCookieSettings,
-  lang = "sv",
+  lang = "en",
   initialPreferences,
 }: {
   open: boolean;
   // Called with final saved preferences (either accept all or custom)
   onConfirm: (prefs: CookiePreferences, full?: ConsentPayload) => void;
   onCookieSettings: () => void;
-  lang?: "en" | "sv";
+  lang?: "en";
   initialPreferences?: Partial<CookiePreferences>;
 }) {
-  const t = translations[lang];
+  const t = translations["en"];
   const [showSettings, setShowSettings] = useState(false);
   const [prefs, setPrefs] = useState<CookiePreferences>({
     analytics: initialPreferences?.analytics ?? true,
@@ -223,50 +150,50 @@ export default function LandingDisclaimerModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-xl w-[95%] md:w-[75%] max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col p-4 md:p-8 relative border border-blue-400/30">
+      <div className="bg-gradient-to-r from-primary/90 to-primary rounded-xl shadow-xl w-[95%] md:w-[75%] max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col p-4 md:p-8 relative border border-primary/30">
         {!showSettings && (
           <>
-            <h2 className="text-2xl font-bold mb-2 text-white">{t.ageTitle}</h2>
-            <p className="text-white mb-3">{t.ageDesc}</p>
-            <p className="text-white text-xs mb-4 space-x-4">
-              <a href="/terms" className="underline hover:text-blue-200" target="_blank" rel="noopener noreferrer">{t.termsLink}</a>
-              <a href="/privacy" className="underline hover:text-blue-200" target="_blank" rel="noopener noreferrer">{t.privacyLink}</a>
+            <h2 className="text-2xl font-bold mb-2 text-primary-foreground">{t.ageTitle}</h2>
+            <p className="text-primary-foreground mb-3">{t.ageDesc}</p>
+            <p className="text-primary-foreground text-xs mb-4 space-x-4">
+              <a href="/terms" className="underline hover:text-white/80 transition-colors" target="_blank" rel="noopener noreferrer">{t.termsLink}</a>
+              <a href="/privacy" className="underline hover:text-white/80 transition-colors" target="_blank" rel="noopener noreferrer">{t.privacyLink}</a>
             </p>
-            <h3 className="text-lg font-bold mb-2 text-white">{t.cookieTitle}</h3>
-            <p className="text-white mb-4">{t.cookieDesc}</p>
-            <h3 className="text-lg font-bold mb-2 text-white">{t.rulesTitle}</h3>
-            <ul className="text-white text-sm mb-6 list-disc pl-6 max-h-48 overflow-y-auto">
+            <h3 className="text-lg font-bold mb-2 text-primary-foreground">{t.cookieTitle}</h3>
+            <p className="text-primary-foreground mb-4">{t.cookieDesc}</p>
+            <h3 className="text-lg font-bold mb-2 text-primary-foreground">{t.rulesTitle}</h3>
+            <ul className="text-primary-foreground text-sm mb-6 list-disc pl-6 max-h-48 overflow-y-auto">
               {t.rules.map((rule, idx) => (
                 <li key={idx}>{rule}</li>
               ))}
             </ul>
             <div className="space-y-3 mb-4">
-              <label className="flex items-start gap-2 text-white text-sm cursor-pointer select-none">
+              <label className="flex items-start gap-2 text-primary-foreground text-sm cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  className="mt-1 h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-400"
+                  className="mt-1 h-4 w-4 rounded border-primary-foreground/50 text-primary focus:ring-primary-foreground/50 bg-white/10"
                   checked={ageConfirmed}
                   onChange={(e) => setAgeConfirmed(e.target.checked)}
                 />
                 <span>{t.ageCheckbox}</span>
               </label>
-              <label className="flex items-start gap-2 text-white text-sm cursor-pointer select-none">
+              <label className="flex items-start gap-2 text-primary-foreground text-sm cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  className="mt-1 h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-400"
+                  className="mt-1 h-4 w-4 rounded border-primary-foreground/50 text-primary focus:ring-primary-foreground/50 bg-white/10"
                   checked={termsAccepted}
                   onChange={(e) => setTermsAccepted(e.target.checked)}
                 />
                 <span>{t.termsCheckbox}</span>
               </label>
               {(!ready || showValidation) && (
-                <p className={`text-xs font-medium transition-colors ${showValidation ? "text-red-200 animate-pulse" : "text-red-100/80"}`}>{t.needConfirm}</p>
+                <p className={`text-xs font-medium transition-colors ${showValidation ? "text-red-200 animate-pulse" : "text-white/80"}`}>{t.needConfirm}</p>
               )}
             </div>
             <div className="flex flex-col lg:flex-row gap-3 mt-2">
               <div className="flex flex-1 gap-3">
                 <Button
-                  className="bg-white text-blue-600 hover:text-blue-700 font-semibold flex-1 border border-blue-200 hover:border-blue-300 shadow-sm pointer-events-auto"
+                  className="bg-white text-primary hover:text-primary/80 font-semibold flex-1 border border-white/20 hover:border-white/40 shadow-sm pointer-events-auto hover:bg-white/90"
                   type="button"
                   onClick={() => setShowSettings(true)}
                 >
@@ -283,7 +210,7 @@ export default function LandingDisclaimerModal({
                 </Button>
               </div>
               <Button
-                className={`bg-blue-500 hover:bg-blue-600 text-white font-semibold flex-1 shadow focus:ring-2 focus:ring-offset-2 focus:ring-blue-300 ${!ready && "opacity-60"}`}
+                className={`bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold flex-1 shadow focus:ring-2 focus:ring-offset-2 focus:ring-primary ${!ready && "opacity-60"}`}
                 type="button"
                 onClick={acceptAll}
                 aria-disabled={!ready}
@@ -295,76 +222,70 @@ export default function LandingDisclaimerModal({
         )}
 
         {showSettings && (
-          <div className="text-white space-y-6">
+          <div className="text-primary-foreground space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">{t.cookieTitle}</h2>
               <button
-                className="text-sm underline hover:text-blue-200"
+                className="text-sm underline hover:text-white/80 transition-colors"
                 onClick={() => setShowSettings(false)}
               >
-                ← {lang === "sv" ? "Tillbaka" : "Back"}
+                ← Back
               </button>
             </div>
             <p className="text-sm opacity-90">{t.cookieDesc}</p>
-            <div className="bg-blue-800/40 rounded-lg p-4 border border-blue-300/20">
-              <h3 className="font-semibold">{lang === "sv" ? "Nödvändiga" : "Necessary"}</h3>
+            <div className="bg-black/10 rounded-lg p-4 border border-white/10">
+              <h3 className="font-semibold">Necessary</h3>
               <p className="text-xs opacity-80">
-                {lang === "sv"
-                  ? "Obligatoriska för att webbplatsen ska fungera (alltid aktiverade)."
-                  : "Required for the site to function (always enabled)."}
+                Required for the site to function (always enabled).
               </p>
-              <div className="mt-2 text-xs inline-block px-2 py-1 rounded bg-blue-900/50 border border-blue-700/40">
-                {lang === "sv" ? "Aktiv" : "Active"}
+              <div className="mt-2 text-xs inline-block px-2 py-1 rounded bg-black/20 border border-white/10">
+                Active
               </div>
             </div>
-            <div className="bg-blue-800/40 rounded-lg p-4 border border-blue-300/20 flex items-start justify-between gap-4">
+            <div className="bg-black/10 rounded-lg p-4 border border-white/10 flex items-start justify-between gap-4">
               <div>
-                <h3 className="font-semibold">{lang === "sv" ? "Analys" : "Analytics"}</h3>
+                <h3 className="font-semibold">Analytics</h3>
                 <p className="text-xs opacity-80 max-w-md">
-                  {lang === "sv"
-                    ? "Hjälper oss förstå användning och förbättra tjänsten."
-                    : "Helps us understand usage and improve the service."}
+                  Helps us understand usage and improve the service.
                 </p>
               </div>
               <label className="inline-flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-400"
+                  className="h-4 w-4 rounded border-primary-foreground/50 text-primary focus:ring-primary-foreground/50 bg-white/10"
                   checked={prefs.analytics}
                   onChange={(e) => setPrefs((p) => ({ ...p, analytics: e.target.checked }))}
                 />
-                <span className="text-sm">{prefs.analytics ? (lang === "sv" ? "På" : "On") : (lang === "sv" ? "Av" : "Off")}</span>
+                <span className="text-sm">{prefs.analytics ? "On" : "Off"}</span>
               </label>
             </div>
-            <div className="bg-blue-800/40 rounded-lg p-4 border border-blue-300/20 flex items-start justify-between gap-4">
+            <div className="bg-black/10 rounded-lg p-4 border border-white/10 flex items-start justify-between gap-4">
               <div>
-                <h3 className="font-semibold">{lang === "sv" ? "Marknadsföring" : "Marketing"}</h3>
+                <h3 className="font-semibold">Marketing</h3>
                 <p className="text-xs opacity-80 max-w-md">
-                  {lang === "sv"
-                    ? "Används för personaliserat innehåll och erbjudanden."
-                    : "Used for personalized content and offers."}
+                  Used for personalized content and offers.
                 </p>
               </div>
               <label className="inline-flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-400"
+                  className="h-4 w-4 rounded border-primary-foreground/50 text-primary focus:ring-primary-foreground/50 bg-white/10"
                   checked={prefs.marketing}
                   onChange={(e) => setPrefs((p) => ({ ...p, marketing: e.target.checked }))}
                 />
-                <span className="text-sm">{prefs.marketing ? (lang === "sv" ? "På" : "On") : (lang === "sv" ? "Av" : "Off")}</span>
+                <span className="text-sm">{prefs.marketing ? "On" : "Off"}</span>
               </label>
             </div>
             <div className="flex flex-col lg:flex-row gap-3 pt-2">
               <div className="flex flex-1 gap-3">
                 <Button
                   variant="outline"
-                  className={`bg-white text-blue-600 hover:text-blue-700 font-semibold flex-1 border border-blue-200 hover:border-blue-300 shadow-sm ${!ready && "opacity-60"}`}
+                  className={`bg-white text-primary hover:text-primary/80 font-semibold flex-1 border border-white/20 hover:border-white/40 shadow-sm ${!ready && "opacity-60"}`}
                   type="button"
                   onClick={saveCustom}
                   aria-disabled={!ready}
                 >
-                  {lang === "sv" ? "Spara inställningar" : "Save preferences"}
+                  Save preferences
                 </Button>
                 <Button
                   variant="destructive"
@@ -377,12 +298,12 @@ export default function LandingDisclaimerModal({
                 </Button>
               </div>
               <Button
-                className={`bg-blue-500 hover:bg-blue-600 text-white font-semibold flex-1 shadow focus:ring-2 focus:ring-offset-2 focus:ring-blue-300 ${!ready && "opacity-60"}`}
+                className={`bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold flex-1 shadow focus:ring-2 focus:ring-offset-2 focus:ring-primary ${!ready && "opacity-60"}`}
                 type="button"
                 onClick={acceptAll}
                 aria-disabled={!ready}
               >
-                {lang === "sv" ? "Acceptera alla" : "Accept all"}
+                Accept all
               </Button>
             </div>
           </div>

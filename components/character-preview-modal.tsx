@@ -31,9 +31,9 @@ export function CharacterPreviewModal({ isOpen, onClose, redirectPath }: Charact
     const [isRedirecting, setIsRedirecting] = useState(false)
     const [character, setCharacter] = useState<Character>({
         name: "Luna",
-        description: "En vänlig och uppmärksam AI-kompanjon",
+        description: "A friendly and attentive AI companion",
         image_url: "",
-        personality: "Vänlig, Rolig, Omtänksam"
+        personality: "Friendly, Funny, Caring"
     })
     const [loadingCharacter, setLoadingCharacter] = useState(true)
 
@@ -71,9 +71,9 @@ export function CharacterPreviewModal({ isOpen, onClose, redirectPath }: Charact
 
                         setCharacter({
                             name: data.name,
-                            description: data.description || "En fantastisk AI-vän",
+                            description: data.description || "An amazing AI friend",
                             image_url: finalImageUrl,
-                            personality: data.personality || "Vänlig, Smart"
+                            personality: data.personality || "Friendly, Smart"
                         })
                     }
                 } catch (e) {
@@ -131,10 +131,10 @@ export function CharacterPreviewModal({ isOpen, onClose, redirectPath }: Charact
                 <DialogHeader className="space-y-3">
                     <DialogTitle className="text-3xl font-bold text-foreground flex items-center gap-3">
                         <Heart className="h-8 w-8 text-primary" />
-                        Upptäck AI-vänner
+                        Discover AI Friends
                     </DialogTitle>
                     <DialogDescription className="text-base text-muted-foreground">
-                        Skapa din egen AI-vän eller upptäck befintliga
+                        Create your own AI friend or discover existing ones
                     </DialogDescription>
                 </DialogHeader>
 
@@ -171,7 +171,7 @@ export function CharacterPreviewModal({ isOpen, onClose, redirectPath }: Charact
                             </div>
                             <Button variant="outline" className="w-full mt-auto" disabled>
                                 <Sparkles className="w-4 h-4 mr-2" />
-                                Exempel
+                                Example
                             </Button>
                         </CardContent>
                     </Card>
@@ -185,20 +185,20 @@ export function CharacterPreviewModal({ isOpen, onClose, redirectPath }: Charact
                             <div className="w-24 h-24 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center mb-4 transition-colors">
                                 <Plus className="w-12 h-12 text-primary" />
                             </div>
-                            <h3 className="font-bold text-xl mb-2 text-foreground">Skapa din AI-vän</h3>
+                            <h3 className="font-bold text-xl mb-2 text-foreground">Create your AI Friend</h3>
                             <p className="text-sm text-muted-foreground mb-6">
-                                Designa din perfekta AI-kompanjon med unika egenskaper och personlighet
+                                Design your perfect AI companion with unique traits and personality
                             </p>
                             <Button
                                 className="w-full"
                                 disabled={isRedirecting}
                             >
                                 {isRedirecting ? (
-                                    "Laddar..."
+                                    "Loading..."
                                 ) : user ? (
-                                    "Kom igång"
+                                    "Get Started"
                                 ) : (
-                                    "Logga in för att skapa"
+                                    "Login to create"
                                 )}
                             </Button>
                         </CardContent>
@@ -208,7 +208,7 @@ export function CharacterPreviewModal({ isOpen, onClose, redirectPath }: Charact
                 <div className="text-center text-sm text-muted-foreground">
                     {!user && (
                         <p>
-                            Logga in för att skapa och hantera dina AI-vänner
+                            Login to create and manage your AI friends
                         </p>
                     )}
                 </div>

@@ -249,7 +249,6 @@ export default function Home() {
         onConfirm={handleConfirm}
         onCookieSettings={handleCookieSettings}
         initialPreferences={consent?.preferences}
-        lang={lang as "en" | "sv"}
       />
     </div>
   )

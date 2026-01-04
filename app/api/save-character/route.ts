@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(
                 {
                     success: false,
-                    error: `Du behöver ${CHARACTER_CREATION_TOKEN_COST} tokens för att skapa en karaktär (du har ${balance}).`,
+                    error: `You need ${CHARACTER_CREATION_TOKEN_COST} tokens to create a character (you have ${balance}).`,
                     insufficient_tokens: true,
                     currentBalance: balance,
                     requiredTokens: CHARACTER_CREATION_TOKEN_COST
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
             const deductionSuccess = await deductTokens(
                 userId,
                 CHARACTER_CREATION_TOKEN_COST,
-                `Skapade AI-karaktär: ${characterName}`,
+                `Created AI character: ${characterName}`,
                 {
                     activity_type: 'character_creation',
                     character_name: characterName,

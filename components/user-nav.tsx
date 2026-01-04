@@ -43,7 +43,7 @@ export function UserNav() {
                         <Link href="/profile">
                             <DropdownMenuItem className="cursor-pointer">
                                 <User className="mr-2 h-4 w-4" />
-                                <span>Profil & Inställningar</span>
+                                <span>Profile & Settings</span>
                             </DropdownMenuItem>
                         </Link>
                         <Link href="/premium">
@@ -54,7 +54,7 @@ export function UserNav() {
                         </Link>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={openLogoutModal}>Logga ut</DropdownMenuItem>
+                    <DropdownMenuItem onClick={openLogoutModal}>Logout</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         )
@@ -65,7 +65,7 @@ export function UserNav() {
             <Button variant="outline" onClick={openLoginModal}>
                 {t("auth.login")}
             </Button>
-            <Button onClick={openSignupModal} className="hidden sm:inline-flex">Skapa gratis konto</Button>
+            <Button onClick={openSignupModal} className="hidden sm:inline-flex">Create Free Account</Button>
         </div>
     )
 }

@@ -71,105 +71,105 @@ export default function Sidebar() {
             <Link href="/">
               <Button variant="ghost" className={`w-full justify-start ${pathname === "/" ? "bg-[#252525]" : ""}`}>
                 <Home className="mr-2 h-5 w-5" />
-                Hem
+                Home
               </Button>
             </Link>
-            <Link href="/create-character">
-              <Button
-                variant="ghost"
-                className={`w-full justify-start ${pathname?.startsWith("/create-character") ? "bg-[#252525]" : ""}`}
-              >
-                <span className="mr-2 text-lg">🧬</span>
-                Skapa karaktär
+          <Link href="/create-character">
+            <Button
+              variant="ghost"
+              className={`w-full justify-start ${pathname?.startsWith("/create-character") ? "bg-[#252525]" : ""}`}
+            >
+              <span className="mr-2 text-lg">🧬</span>
+              Skapa karaktär
+            </Button>
+          </Link>
+          <Link href="/chat">
+            <Button
+              variant="ghost"
+              className={`w-full justify-start ${pathname?.startsWith("/chat") ? "bg-[#252525]" : ""}`}
+            >
+              <MessageSquare className="mr-2 h-5 w-5" />
+              Chatt
+            </Button>
+          </Link>
+          <Link href="/generate">
+            <Button
+              variant="ghost"
+              className={`w-full justify-start ${pathname?.startsWith("/generate") ? "bg-[#252525]" : ""}`}
+            >
+              <ImageIcon className="mr-2 h-5 w-5" />
+              Generera
+            </Button>
+          </Link>
+          <Link href="/characters">
+            <Button
+              variant="ghost"
+              className={`w-full justify-start ${pathname?.startsWith("/characters") ? "bg-[#252525]" : ""}`}
+            >
+              <Users className="mr-2 h-5 w-5" />
+              Alla karaktärer
+            </Button>
+          </Link>
+          <Link href="/collections">
+            <Button
+              variant="ghost"
+              className={`w-full justify-start ${pathname?.startsWith("/collections") ? "bg-[#252525]" : ""}`}
+            >
+              <FolderHeart className="mr-2 h-5 w-5" />
+              Mina bilder
+            </Button>
+          </Link>
+          <Link href="/premium">
+            <Button
+              variant="ghost"
+              className={`w-full justify-start ${pathname?.startsWith("/premium") ? "bg-[#252525]" : ""}`}
+            >
+              <Crown className="mr-2 h-5 w-5 text-primary" />
+              {subscriptionsEnabled ? "Premium" : "Lägg till kredit"}
+            </Button>
+          </Link>
+          {isAdmin && (
+            <Link href="/admin/dashboard">
+              <Button variant="ghost" className="w-full justify-start">
+                <Settings className="mr-2 h-5 w-5" />
+                Admin
               </Button>
             </Link>
-            <Link href="/chat">
-              <Button
-                variant="ghost"
-                className={`w-full justify-start ${pathname?.startsWith("/chat") ? "bg-[#252525]" : ""}`}
-              >
-                <MessageSquare className="mr-2 h-5 w-5" />
-                Chatt
-              </Button>
-            </Link>
-            <Link href="/generate">
-              <Button
-                variant="ghost"
-                className={`w-full justify-start ${pathname?.startsWith("/generate") ? "bg-[#252525]" : ""}`}
-              >
-                <ImageIcon className="mr-2 h-5 w-5" />
-                Generera
-              </Button>
-            </Link>
-            <Link href="/characters">
-              <Button
-                variant="ghost"
-                className={`w-full justify-start ${pathname?.startsWith("/characters") ? "bg-[#252525]" : ""}`}
-              >
-                <Users className="mr-2 h-5 w-5" />
-                Alla karaktärer
-              </Button>
-            </Link>
-            <Link href="/collections">
-              <Button
-                variant="ghost"
-                className={`w-full justify-start ${pathname?.startsWith("/collections") ? "bg-[#252525]" : ""}`}
-              >
-                <FolderHeart className="mr-2 h-5 w-5" />
-                Mina bilder
-              </Button>
-            </Link>
-            <Link href="/premium">
-              <Button
-                variant="ghost"
-                className={`w-full justify-start ${pathname?.startsWith("/premium") ? "bg-[#252525]" : ""}`}
-              >
-                <Crown className="mr-2 h-5 w-5 text-primary" />
-                {subscriptionsEnabled ? "Premium" : "Lägg till kredit"}
-              </Button>
-            </Link>
-            {isAdmin && (
-              <Link href="/admin/dashboard">
-                <Button variant="ghost" className="w-full justify-start">
-                  <Settings className="mr-2 h-5 w-5" />
-                  Admin
-                </Button>
-              </Link>
-            )}
-          </nav>
-        </div>
-
-        {/* Sidebar Footer */}
-        <div className="p-4 border-t border-[#252525]">
-          {user ? (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <div className="w-8 h-8 rounded-full bg-[#252525] flex items-center justify-center mr-2">
-                  <User className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">{user.username}</p>
-                  <p className="text-xs text-gray-400">{user.email}</p>
-                </div>
-              </div>
-              <Button variant="ghost" size="icon" onClick={openLogoutModal}>
-                <LogOut className="h-5 w-5" />
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Link href="/login" className="block">
-                <Button variant="outline" className="w-full">
-                  Logga in
-                </Button>
-              </Link>
-              <Link href="/signup" className="block">
-                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">Skapa konto</Button>
-              </Link>
-            </div>
           )}
-        </div>
+        </nav>
+      </div>
+
+      {/* Sidebar Footer */}
+      <div className="p-4 border-t border-[#252525]">
+        {user ? (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-8 h-8 rounded-full bg-[#252525] flex items-center justify-center mr-2">
+                <User className="h-4 w-4" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">{user.username}</p>
+                <p className="text-xs text-gray-400">{user.email}</p>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" onClick={openLogoutModal}>
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Link href="/login" className="block">
+              <Button variant="outline" className="w-full">
+                Logga in
+              </Button>
+            </Link>
+            <Link href="/signup" className="block">
+              <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">Skapa konto</Button>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
+    </div >
   )
 }

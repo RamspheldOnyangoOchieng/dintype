@@ -26,7 +26,7 @@ import { useSite } from "@/components/site-context"
 import { useEffect, useState } from "react"
 import { UserAvatar } from "./user-avatar"
 import { useTranslations } from "@/lib/use-translations"
-import { LanguageSelector } from "./language-selector"
+
 import { CharacterPreviewModal } from "@/components/character-preview-modal"
 
 export default function AppSidebar() {
@@ -275,11 +275,7 @@ export default function AppSidebar() {
             )}
           </div>
 
-          {isOpen && (
-            <div className="px-4 py-2 border-t border-border">
-              <LanguageSelector />
-            </div>
-          )}
+
 
           {isOpen && (
             <div className="px-4 py-2 border-t border-border text-xs text-muted-foreground">

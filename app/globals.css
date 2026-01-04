@@ -33,8 +33,9 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
     /* Brand: Lighter Sky Blue & Pink */
-    --primary: 199 89% 60%;
-    /* sky blue 400 #38bdf8 */
+    /* Updated to a brighter/lighter blue */
+    --primary: 200 95% 65%;
+    /* sky blue 400ish, very bright */
     --primary-foreground: 0 0% 100%;
     --secondary: 322 81% 65%;
     /* pink/magenta #e949ad */
