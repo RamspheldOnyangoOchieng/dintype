@@ -83,6 +83,13 @@ export default function ProfilePage() {
   const [isDataLoading, setIsDataLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
 
+  // Password State
+  const [passwordData, setPasswordData] = useState({
+    newPassword: "",
+    confirmPassword: ""
+  })
+  const [isPasswordSaving, setIsPasswordSaving] = useState(false)
+
   // Modal States
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [showErrorModal, setShowErrorModal] = useState(false)
@@ -187,6 +194,38 @@ export default function ProfilePage() {
       setIsSaving(false)
       setErrorMessage(error.message || "An unexpected error occurred while saving the profile.")
       setShowErrorModal(true)
+    }
+  }
+
+  const handleUpdatePassword = async () => {
+    if (!passwordData.newPassword) return
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error("Passwords do not match")
+      return
+    }
+    
+    if (passwordData.newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters long")
+      return
+    }
+
+    try {
+      setIsPasswordSaving(true)
+      const supabase = createClient()
+      const { error } = await supabase.auth.updateUser({
+        password: passwordData.newPassword
+      })
+
+      if (error) throw error
+
+      toast.success("Password updated successfully")
+      setPasswordData({ newPassword: "", confirmPassword: "" })
+    } catch (error: any) {
+      console.error("Error updating password:", error)
+      toast.error(error.message || "Failed to update password")
+    } finally {
+      setIsPasswordSaving(false)
     }
   }
 
@@ -528,6 +567,49 @@ export default function ProfilePage() {
 
           {/* Security Tab */}
           <TabsContent value="security" className="space-y-6">
+            <Card className="border-border/40 bg-card/30 backdrop-blur-sm shadow-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 font-bold text-zinc-800 dark:text-white">
+                  <Lock className="w-5 h-5 text-primary" /> Password Management
+                </CardTitle>
+                <CardDescription>Update your password to keep your account secure.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password">New Password</Label>
+                    <Input
+                      id="new-password"
+                      type="password"
+                      placeholder="Enter new password"
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password">Confirm Password</Label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      placeholder="Confirm new password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="bg-muted/30 border-t border-border/40 p-4">
+                <Button 
+                  onClick={handleUpdatePassword} 
+                  disabled={isPasswordSaving || !passwordData.newPassword}
+                  className="ml-auto bg-primary hover:bg-primary/90 font-bold text-white px-8"
+                >
+                  {isPasswordSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                  UPDATE PASSWORD
+                </Button>
+              </CardFooter>
+            </Card>
+
             <Card className="border-red-500/20 bg-red-500/5 shadow-inner">
               <CardHeader>
                 <CardTitle className="text-red-500 flex items-center gap-2 italic font-black uppercase tracking-wider">
