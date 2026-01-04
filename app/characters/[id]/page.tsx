@@ -51,7 +51,7 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Laddar karaktär...</p>
+            <p className="text-muted-foreground">Loading character...</p>
           </div>
         </div>
       </div>
@@ -63,11 +63,11 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
       <div className="container py-8">
         <div className="text-center py-20">
           <h1 className="text-4xl font-bold mb-4">404</h1>
-          <p className="text-xl text-muted-foreground mb-8">Karaktären hittades inte</p>
+          <p className="text-xl text-muted-foreground mb-8">Character not found</p>
           <Button asChild className="bg-primary hover:bg-primary/90 text-white">
             <Link href="/characters">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Tillbaka till karaktärer
+              Back to characters
             </Link>
           </Button>
         </div>
@@ -82,14 +82,14 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
           <Button variant="ghost" asChild className="hover:text-primary">
             <Link href="/characters">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Tillbaka till karaktärer
+              Back to characters
             </Link>
           </Button>
           <div className="flex gap-2">
             <Button asChild variant="default" className="bg-primary hover:bg-primary/90 text-white">
               <Link href={`/chat/${character.id}`}>
                 <MessageCircle className="mr-2 h-4 w-4" />
-                Starta chatt
+                Start Chat
               </Link>
             </Button>
           </div>
@@ -121,7 +121,7 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
                   {character.isPublic && (
                     <div className="bg-primary/10 text-primary px-3 py-1 rounded-full flex items-center text-xs font-bold">
                       <Globe className="h-3 w-3 mr-1" />
-                      Publik
+                      Public
                     </div>
                   )}
                 </div>
@@ -148,25 +148,25 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
                   )}
                   {character.body && (
                     <div>
-                      <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Kroppstyp</p>
+                      <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Body Type</p>
                       <p className="font-bold text-lg capitalize">{character.body}</p>
                     </div>
                   )}
                   {character.personality && (
                     <div>
-                      <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Personlighet</p>
+                      <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Personality</p>
                       <p className="font-bold text-lg capitalize">{character.personality}</p>
                     </div>
                   )}
                   {character.relationship && (
                     <div>
-                      <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Relation</p>
+                      <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Relationship</p>
                       <p className="font-bold text-lg capitalize">{character.relationship}</p>
                     </div>
                   )}
                   {character.occupation && (
                     <div>
-                      <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Sysselsättning</p>
+                      <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Occupation</p>
                       <p className="font-bold text-lg">{character.occupation}</p>
                     </div>
                   )}
@@ -175,7 +175,7 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
                 <Button asChild size="lg" className="w-full bg-primary hover:bg-primary/90 text-white font-black h-14 rounded-xl shadow-lg shadow-primary/20">
                   <Link href={`/chat/${character.id}`}>
                     <MessageCircle className="mr-2 h-5 w-5" />
-                    Börja chatta med {character.name}
+                    Start chatting with {character.name}
                   </Link>
                 </Button>
               </div>

@@ -1030,7 +1030,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         setMessages([welcomeMessage])
         saveMessageToLocalStorage(characterId!, welcomeMessage)
-        toast.success("Chatthistoriken har rensats.")
+        toast.success("Chat history cleared.")
       }
     } catch (error) {
       console.error("Error clearing chat:", error)
