@@ -10,8 +10,23 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Image ID is required' }, { status: 400 });
         }
 
+        // Check if this is a profile image (synthetic ID) - these are free
+        if (typeof imageId === 'string' && (imageId.startsWith('char-main-') || imageId.startsWith('char-img-'))) {
+            return NextResponse.json({
+                success: true,
+                message: 'Profile images are free',
+                imageUrl: null,
+                tokensSpent: 0
+            });
+        }
+
         const supabase = await createClient();
         const supabaseAdmin = await createAdminClient();
+
+        if (!supabaseAdmin) {
+            console.error('Failed to create admin client');
+            return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+        }
 
         // Get current user
         const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -22,7 +37,6 @@ export async function POST(request: NextRequest) {
 
         // Fetch the gallery image details - try character_gallery first
         let galleryImage = null;
-        let imageSource = 'gallery';
 
         const { data: galleryData, error: galleryError } = await supabaseAdmin
             .from('character_gallery')
@@ -32,7 +46,6 @@ export async function POST(request: NextRequest) {
 
         if (galleryData) {
             galleryImage = galleryData;
-            imageSource = 'gallery';
         } else {
             // Try generated_images table
             const { data: generatedData, error: generatedError } = await supabaseAdmin
@@ -50,11 +63,11 @@ export async function POST(request: NextRequest) {
                     generated_by: generatedData.user_id,
                     is_free_preview: false
                 };
-                imageSource = 'generated';
             }
         }
 
         if (!galleryImage) {
+            console.error('Image not found:', imageId);
             return NextResponse.json({ error: 'Image not found' }, { status: 404 });
         }
 
@@ -64,13 +77,14 @@ export async function POST(request: NextRequest) {
             .select('id')
             .eq('user_id', user.id)
             .eq('gallery_image_id', imageId)
-            .single();
+            .maybeSingle();
 
         if (existingUnlock) {
             return NextResponse.json({
                 success: true,
                 message: 'Already unlocked',
-                imageUrl: galleryImage.image_url
+                imageUrl: galleryImage.image_url,
+                tokensSpent: 0
             });
         }
 
@@ -79,7 +93,8 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({
                 success: true,
                 message: 'Free access',
-                imageUrl: galleryImage.image_url
+                imageUrl: galleryImage.image_url,
+                tokensSpent: 0
             });
         }
 
@@ -90,7 +105,7 @@ export async function POST(request: NextRequest) {
             .from('user_tokens')
             .select('balance')
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
 
         const currentBalance = userTokens?.balance || 0;
 
