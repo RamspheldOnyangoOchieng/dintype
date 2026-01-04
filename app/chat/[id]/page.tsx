@@ -1432,12 +1432,15 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 </button>
 
                 {/* Dots Indicator */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 transition-all duration-300">
                   {galleryImages.map((_, idx) => (
                     <button
                       key={idx}
-                      className={`w-2 h-2 rounded-full transition-all focus:outline-none ${idx === currentImageIndex ? "bg-white w-4" : "bg-white/50 hover:bg-white/70"
-                        }`}
+                      className={`w-1.5 h-1.5 rounded-full transition-all focus:outline-none p-0 border-0 flex-shrink-0 ${idx === currentImageIndex 
+                        ? "bg-white scale-125 opacity-100" 
+                        : "bg-white/40 hover:bg-white/60 opacity-60"
+                      }`}
+                      style={{ minWidth: '6px', minHeight: '6px' }}
                       onClick={(e) => {
                         e.stopPropagation();
                         setCurrentImageIndex(idx);
@@ -1468,8 +1471,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
             {/* Character Gallery */}
             {characterId && (
-              <CharacterGallery 
-                characterId={characterId} 
+              <CharacterGallery
+                characterId={characterId}
                 onImageClick={(url) => {
                   if (url) {
                     setSelectedImage([url])
