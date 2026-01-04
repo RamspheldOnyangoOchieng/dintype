@@ -1405,7 +1405,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       : (character?.image || "/placeholder.svg"))
                   }
                   alt={character?.name || "Character"}
-                  className="w-full h-full object-cover transition-opacity duration-300"
+                  className="w-full h-full object-contain bg-background transition-opacity duration-300"
                   onError={() => handleImageError("profile")}
                   loading="lazy"
                 />
@@ -1461,26 +1461,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           </div>
 
           {/* Profile Info */}
-          <div className="p-4 flex flex-col gap-4">
-            <div>
-              <h4 className="text-2xl font-bold mb-1">{character?.name}</h4>
-              <div className="text-muted-foreground text-sm leading-relaxed space-y-4">
-                <div className="max-h-[150px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/10 select-text">
-                  <p>{character?.description}</p>
-                </div>
-
-                {/* Integrated Details */}
-                <div className="pt-2 border-t border-border/40 text-xs space-y-1">
-                  {character?.age && <p><span className="font-semibold text-foreground">Age:</span> {character.age}</p>}
-                  {character?.body && <p><span className="font-semibold text-foreground">Body:</span> {translateValue(character.body)}</p>}
-                  {character?.ethnicity && <p><span className="font-semibold text-foreground">Ethnicity:</span> {translateValue(character.ethnicity)}</p>}
-                  {character?.occupation && <p><span className="font-semibold text-foreground">Occupation:</span> {translateValue(character.occupation)}</p>}
-                  {character?.relationship && <p><span className="font-semibold text-foreground">Relationship:</span> {translateValue(character.relationship)}</p>}
-                  {character?.personality && <p><span className="font-semibold text-foreground">Personality:</span> {translateValue(character.personality)}</p>}
-                  {character?.hobbies && <p><span className="font-semibold text-foreground">Hobbies:</span> {translateValue(character.hobbies)}</p>}
-                </div>
-              </div>
-            </div>
+          <div className="p-4 flex flex-col gap-3">
+            <h4 className="text-xl font-bold">{character?.name}</h4>
+            <p className="text-muted-foreground text-sm leading-relaxed">{character?.description}</p>
 
             <Button
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground border-none font-bold h-12 mt-2"
