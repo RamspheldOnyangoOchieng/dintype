@@ -1219,7 +1219,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 {character?.name || t("general.loading")}
               </h4>
               <span className="text-[10px] md:text-xs text-muted-foreground truncate">
-                {messages.length > 0 ? messages[messages.length - 1].timestamp : t("chat.noMessagesYet")}
+                {isSendingMessage ? (
+                  <span className="text-primary animate-pulse font-medium">typing...</span>
+                ) : (
+                  messages.length > 0 ? messages[messages.length - 1].timestamp : t("chat.noMessagesYet")
+                )}
               </span>
             </div>
           </div>
@@ -1287,21 +1291,21 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               </div>
             </div>
           ))}
-          {isLoading && (
-            <div className="flex justify-start" key="ai-thinking-indicator">
-              <div className="max-w-[70%] bg-[#252525] text-white rounded-2xl p-3">
-                <div className="flex space-x-2">
+          {isSendingMessage && (
+            <div className="flex justify-start mb-4" key="ai-typing-indicator">
+              <div className="bg-[#252525] text-white rounded-2xl p-3 border border-white/5 rounded-tl-none">
+                <div className="flex space-x-1.5 items-center px-1">
                   <div
-                    className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce"
-                    style={{ animationDelay: "0ms" }}
+                    className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce"
+                    style={{ animationDelay: "0ms", animationDuration: "0.8s" }}
                   ></div>
                   <div
-                    className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce"
-                    style={{ animationDelay: "150ms" }}
+                    className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce"
+                    style={{ animationDelay: "200ms", animationDuration: "0.8s" }}
                   ></div>
                   <div
-                    className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce"
-                    style={{ animationDelay: "300ms" }}
+                    className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce"
+                    style={{ animationDelay: "400ms", animationDuration: "0.8s" }}
                   ></div>
                 </div>
               </div>
