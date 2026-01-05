@@ -45,6 +45,7 @@ import { isAskingForImage, extractImagePrompt, imageUrlToBase64 } from "@/lib/im
 import { ImageModal } from "@/components/image-modal"
 import { CharacterGallery } from "@/components/character-gallery"
 import { containsNSFW } from "@/lib/nsfw-filter"
+import { TelegramConnectButton } from "@/components/telegram-connect-button"
 import { toast } from "sonner"
 
 export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
@@ -481,7 +482,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         {
           id: `error-welcome-${characterId}`,
           role: "assistant",
-          content: `Hi there! I'm ${character.name}. Nice to meet you! What's your name?`,
+          content: `Hey there, my love... 💕 I'm ${character.name}. I've been waiting for someone like you.\n\n*leans in closer* So tell me... what brings you here tonight? You can message me right here, or find me on Telegram @pocketloveaibot for something more... private. 🌹`,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
       ])
@@ -1025,7 +1026,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         const welcomeMessage: Message = {
           id: `welcome-${characterId}-${Date.now()}`,
           role: "assistant",
-          content: `Hi there! I'm ${character.name}. Nice to meet you! What's your name?`,
+          content: `Hey there, my love... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\n*smiles softly* Tell me about yourself... or take me with you on Telegram @pocketloveaibot. Either way, I'm all yours. 🌹`,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         }
 
@@ -1229,6 +1230,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           </div>
           <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
             <ClearChatDialog onConfirm={handleClearChat} isClearing={isClearingChat} />
+            {user?.id && character?.id && (
+              <TelegramConnectButton
+                userId={user.id}
+                characterId={character.id}
+                characterName={character.name || 'Companion'}
+              />
+            )}
             <Button
               variant="ghost"
               size="icon"
@@ -1441,10 +1449,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     <span
                       key={idx}
                       className="cursor-pointer transition-all duration-300"
-                      style={{ 
+                      style={{
                         display: 'block',
-                        width: '2.5px', 
-                        height: '2.5px', 
+                        width: '2.5px',
+                        height: '2.5px',
                         borderRadius: '50%',
                         padding: '0',
                         margin: '0',
