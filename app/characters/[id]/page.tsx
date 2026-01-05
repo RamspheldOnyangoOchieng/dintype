@@ -12,6 +12,8 @@ import { CharacterGallery } from "@/components/character-gallery"
 import { CharacterFeed } from "@/components/character-feed"
 import { MeetOnTelegramButton } from "@/components/meet-on-telegram-button"
 import { TelegramConnectButton } from "@/components/telegram-connect-button"
+import { EditCharacterDialog } from "@/components/edit-character-dialog"
+import { useAuth } from "@/components/auth-context"
 import { Edit, ArrowLeft, Globe, MessageCircle, Send, Sparkles, BookOpen, ImageIcon, User, Activity } from "lucide-react"
 import type { Character } from "@/lib/types"
 
@@ -23,7 +25,8 @@ interface CharacterDetailPageProps {
 
 export default function CharacterDetailPage({ params }: CharacterDetailPageProps) {
   const router = useRouter()
-  const { characters, isLoading } = useCharacters()
+  const { characters, isLoading, refreshCharacters } = useCharacters()
+  const { user } = useAuth()
   const [character, setCharacter] = useState<Character | null>(null)
   const [characterId, setCharacterId] = useState<string | null>(null)
   const [isMounted, setIsMounted] = useState(false)
@@ -93,6 +96,16 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
               Back to characters
             </Link>
           </Button>
+
+          {user && character && (user.id === character.user_id || (user as any).isAdmin) && (
+              <EditCharacterDialog 
+                 character={character} 
+                 onUpdate={(updated) => {
+                    setCharacter(updated);
+                    refreshCharacters();
+                 }} 
+              />
+          )}
         </div>
 
         {/* Hero Section */}
@@ -149,8 +162,8 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
                   </Link>
                 </Button>
 
-                <MeetOnTelegramButton 
-                  characterId={character.id} 
+                <MeetOnTelegramButton
+                  characterId={character.id}
                   characterName={character.name}
                   variant="outline"
                   className="flex-1 border-white/10 hover:bg-white/5 text-white font-bold h-14 rounded-xl transition-all hover:scale-[1.02]"

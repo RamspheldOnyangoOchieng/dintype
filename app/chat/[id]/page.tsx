@@ -46,6 +46,7 @@ import { ImageModal } from "@/components/image-modal"
 import { CharacterGallery } from "@/components/character-gallery"
 import { containsNSFW } from "@/lib/nsfw-filter"
 import { TelegramConnectButton } from "@/components/telegram-connect-button"
+import { MeetOnTelegramButton } from "@/components/meet-on-telegram-button"
 import { WelcomeMessage } from "@/components/welcome-message"
 import { toast } from "sonner"
 
@@ -1282,7 +1283,21 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       }}
                     />
                   ) : (
-                    <p className="text-current leading-relaxed break-words whitespace-pre-wrap">{message.content}</p>
+                    <>
+                      <p className="text-current leading-relaxed break-words whitespace-pre-wrap">
+                        {message.content.replace(/\[TELEGRAM_LINK\]/g, '')}
+                      </p>
+                      {message.content.includes('[TELEGRAM_LINK]') && character && (
+                         <div className="mt-3">
+                           <MeetOnTelegramButton 
+                             characterId={character.id} 
+                             characterName={character.name}
+                             variant="secondary"
+                             className="w-full bg-blue-500/20 text-blue-200 hover:bg-blue-500/30 border-blue-500/20"
+                           />
+                         </div>
+                      )}
+                    </>
                   )}
                 </div>
                 {message.isImage && message.imageUrl && (

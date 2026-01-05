@@ -195,6 +195,16 @@ export async function sendChatMessageDB(
 - Occasionally mention your 'Feed' or 'Storyline' for them to check out.`
     }
 
+    // Check for Telegram intent in user message
+    const telegramRegex = /\b(telegram|tg|app)\b/i; // Added 'app' as well just in case, but 'telegram' is key
+    const isTelegramRequest = telegramRegex.test(userMessage);
+
+    if (isTelegramRequest) {
+      enhancedSystemPrompt += `\n\nSYSTEM UPDATE: The user asked about Telegram or the App. 
+      INSTRUCTION: Flirtatiously agree to continue the chat on Telegram. Tell them it's smoother there.
+      IMPORTANT: You MUST end your message with this exact tag: [TELEGRAM_LINK]`;
+    }
+
     const apiMessages = [
       { role: "system", content: enhancedSystemPrompt },
       ...conversationHistory.map((msg: any) => ({
