@@ -26,6 +26,12 @@ import { useSite } from "@/components/site-context"
 import { useEffect, useState } from "react"
 import { UserAvatar } from "./user-avatar"
 import { useTranslations } from "@/lib/use-translations"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 import { CharacterPreviewModal } from "@/components/character-preview-modal"
 
@@ -53,12 +59,6 @@ export default function AppSidebar() {
       href: "/",
       active: pathname === "/",
     },
-    // {
-    //   icon: <Heart className="h-5 w-5" />,
-    //   label: "My AI",
-    //   href: "/my-ai",
-    //   active: pathname?.startsWith("/my-ai"),
-    // },
     {
       icon: <MessageSquare className="h-5 w-5" />,
       label: t("general.chat"),
@@ -104,14 +104,7 @@ export default function AppSidebar() {
     },
   ]
 
-  const supportLinks: { icon: React.ReactNode; label: string; href: string; active: boolean }[] = [
-    // {
-    //   icon: <Users className="h-5 w-5" />,
-    //   label: "Affiliate",
-    //   href: "/affiliate",
-    //   active: pathname?.startsWith("/affiliate"),
-    // },
-  ]
+  const supportLinks: { icon: React.ReactNode; label: string; href: string; active: boolean }[] = []
 
   // Filter menu items - only show adminOnly items to admin users
   const visibleMenuItems = menuItems.filter(item => {
@@ -162,74 +155,94 @@ export default function AppSidebar() {
             )}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-6">
-            <nav>
-              <ul className="space-y-2">
-                {visibleMenuItems.map(item => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      onClick={(e) => {
-                        // Show preview modal for character/collection routes
-                        if ((item.href === "/my-ai" || item.href === "/collections") && !user) {
-                          e.preventDefault()
-                          setPreviewModalPath(item.href)
-                          setShowPreviewModal(true)
-                          return
-                        }
+          <TooltipProvider delayDuration={0}>
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              <nav>
+                <ul className="space-y-2">
+                  {visibleMenuItems.map(item => (
+                    <li key={item.href}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Link
+                            href={item.href}
+                            onClick={(e) => {
+                              if ((item.href === "/my-ai" || item.href === "/collections") && !user) {
+                                e.preventDefault()
+                                setPreviewModalPath(item.href)
+                                setShowPreviewModal(true)
+                                return
+                              }
 
-                        // For other protected routes, just show login
-                        const otherProtectedRoutes = ["/generate", "/create-character"]
-                        if (otherProtectedRoutes.includes(item.href) && !user) {
-                          e.preventDefault()
-                          if (typeof window !== 'undefined') {
-                            sessionStorage.setItem('postLoginRedirect', item.href)
-                          }
-                          openLoginModal()
-                        }
-                      }}
-                      className={cn(
-                        "flex items-center gap-4 rounded-full transition-all duration-200",
-                        isOpen ? "px-4 py-2" : "h-12 w-12 justify-center",
-                        item.active
-                          ? "bg-primary/10 text-primary shadow-[0_0_15px_-3px_rgba(var(--primary-rgb),0.4)]"
-                          : "hover:bg-secondary",
-                      )}
-                    >
-                      {item.icon}
-                      {isOpen && <span className="font-medium">{item.label}</span>}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
+                              const otherProtectedRoutes = ["/generate", "/create-character"]
+                              if (otherProtectedRoutes.includes(item.href) && !user) {
+                                e.preventDefault()
+                                if (typeof window !== 'undefined') {
+                                  sessionStorage.setItem('postLoginRedirect', item.href)
+                                }
+                                openLoginModal()
+                              }
+                            }}
+                            className={cn(
+                              "flex items-center gap-4 rounded-full transition-all duration-200",
+                              isOpen ? "px-4 py-2" : "h-12 w-12 justify-center",
+                              item.active
+                                ? "bg-primary/10 text-primary shadow-[0_0_15px_-3px_rgba(var(--primary-rgb),0.4)]"
+                                : "hover:bg-secondary",
+                            )}
+                          >
+                            {item.icon}
+                            {isOpen && <span className="font-medium">{item.label}</span>}
+                          </Link>
+                        </TooltipTrigger>
+                        {!isOpen && (
+                          <TooltipContent side="right" className="font-medium">
+                            {item.label}
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
 
-            {isOpen && (
-              <div className="px-4">
-                <div className="h-px bg-border" />
-              </div>
-            )}
+              {isOpen && (
+                <div className="px-4">
+                  <div className="h-px bg-border" />
+                </div>
+              )}
 
-            <nav>
-              <ul className="space-y-2">
-                {supportLinks.map(item => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-4 rounded-full transition-all duration-200",
-                        isOpen ? "px-4 py-2" : "h-12 w-12 justify-center",
-                        item.active ? "bg-secondary" : "hover:bg-secondary",
-                      )}
-                    >
-                      {item.icon}
-                      {isOpen && <span className="font-medium">{item.label}</span>}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          </div>
+              {supportLinks.length > 0 && (
+                <nav>
+                  <ul className="space-y-2">
+                    {supportLinks.map(item => (
+                      <li key={item.href}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Link
+                              href={item.href}
+                              className={cn(
+                                "flex items-center gap-4 rounded-full transition-all duration-200",
+                                isOpen ? "px-4 py-2" : "h-12 w-12 justify-center",
+                                item.active ? "bg-secondary" : "hover:bg-secondary",
+                              )}
+                            >
+                              {item.icon}
+                              {isOpen && <span className="font-medium">{item.label}</span>}
+                            </Link>
+                          </TooltipTrigger>
+                          {!isOpen && (
+                            <TooltipContent side="right">
+                              {item.label}
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              )}
+            </div>
+          </TooltipProvider>
 
           {isOpen && (
             <div className="p-4 space-y-4">
@@ -245,37 +258,55 @@ export default function AppSidebar() {
           )}
 
           <div className={`border-t border-border ${isOpen ? "p-4" : "p-2"}`}>
-            {user ? (
-              <div className="flex items-center gap-3">
-                <Link href="/profile" className="flex-shrink-0">
-                  <UserAvatar />
-                </Link>
-                {isOpen && (
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold truncate">{user.username}</p>
-                    <p className="text-sm text-muted-foreground truncate">{user.isAdmin ? t("general.admin") : t("general.user")}</p>
-                  </div>
-                )}
-                {isOpen && (
-                  <button onClick={openLogoutModal} className="p-2 rounded-full hover:bg-secondary transition-colors">
-                    <LogOut className="h-5 w-5" />
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className={cn("flex", isOpen ? "flex-col space-y-2" : "flex-col items-center space-y-2")}>
-                <Button
-                  variant="outline"
-                  className={cn("w-full rounded-full", !isOpen && "w-12 h-12 p-0")}
-                  onClick={openLoginModal}
-                >
-                  {isOpen ? t("auth.login") : <User className="h-5 w-5" />}
-                </Button>
-              </div>
-            )}
+            <TooltipProvider delayDuration={0}>
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link href="/profile" className="flex-shrink-0">
+                        <UserAvatar />
+                      </Link>
+                    </TooltipTrigger>
+                    {!isOpen && (
+                      <TooltipContent side="right">
+                        {t("general.profile")}
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                  {isOpen && (
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate">{user.username}</p>
+                      <p className="text-sm text-muted-foreground truncate">{user.isAdmin ? t("general.admin") : t("general.user")}</p>
+                    </div>
+                  )}
+                  {isOpen && (
+                    <button onClick={openLogoutModal} className="p-2 rounded-full hover:bg-secondary transition-colors">
+                      <LogOut className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className={cn("flex", isOpen ? "flex-col space-y-2" : "flex-col items-center space-y-2")}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn("w-full rounded-full", !isOpen && "w-12 h-12 p-0")}
+                        onClick={openLoginModal}
+                      >
+                        {isOpen ? t("auth.login") : <User className="h-5 w-5" />}
+                      </Button>
+                    </TooltipTrigger>
+                    {!isOpen && (
+                      <TooltipContent side="right">
+                        {t("auth.login")}
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </div>
+              )}
+            </TooltipProvider>
           </div>
-
-
 
           {isOpen && (
             <div className="px-4 py-2 border-t border-border text-xs text-muted-foreground">
@@ -288,7 +319,6 @@ export default function AppSidebar() {
         </div>
       </div>
 
-      {/* Character Preview Modal */}
       <CharacterPreviewModal
         isOpen={showPreviewModal}
         onClose={() => setShowPreviewModal(false)}
