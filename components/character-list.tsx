@@ -165,23 +165,24 @@ export function CharacterList({ characters }: CharacterListProps) {
           </div>
 
           {/* Character Details Overlay */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 z-20 transition-all duration-500 translate-y-2 group-hover:translate-y-0 text-white">
-            <div className="mb-4">
-              <h3 className="text-2xl font-black text-white tracking-tight mb-1 group-hover:text-primary transition-colors drop-shadow-lg">{character.name}</h3>
+          <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 z-20 transition-all duration-500 md:translate-y-2 md:group-hover:translate-y-0 text-white bg-gradient-to-t from-black/95 via-black/80 to-transparent">
+            <div className="mb-3 md:mb-4">
+              <h3 className="text-xl md:text-2xl font-black text-white tracking-tight mb-1 group-hover:text-primary transition-colors drop-shadow-lg">{character.name}</h3>
               {character.description && (
-                <p className="text-white/60 text-xs line-clamp-1 group-hover:line-clamp-3 group-hover:text-white/90 transition-all duration-500 leading-relaxed drop-shadow-md">
+                <p className="text-white/70 text-[10px] md:text-xs line-clamp-1 group-hover:line-clamp-3 transition-all duration-500 leading-relaxed drop-shadow-md">
                   {character.description}
                 </p>
               )}
             </div>
 
-            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-500 delay-100">
-              <Button asChild className="flex-1 bg-white text-black hover:bg-white/90 font-bold rounded-xl transition-all scale-95 group-hover:scale-100">
-                <Link href={`/characters/${character.id}`}>View Profile</Link>
+            <div className="flex flex-col sm:flex-row gap-2 md:opacity-0 md:group-hover:opacity-100 transition-all duration-500 delay-100">
+              <Button asChild variant="outline" className="flex-1 h-9 md:h-10 text-xs md:text-sm border-white/20 hover:bg-white/10 rounded-xl bg-black/40 backdrop-blur-md text-white transition-all">
+                <Link href={`/characters/${character.id}`}>Details</Link>
               </Button>
-              <Button asChild variant="outline" className="h-10 w-10 p-0 border-white/20 hover:bg-white/20 rounded-xl bg-black/20 backdrop-blur-md text-white group/chat transition-all duration-300">
-                <Link href={`/chat/${character.id}`} className="flex items-center justify-center">
-                  <MessageSquare className="h-4 w-4 group-hover/chat:scale-110 transition-transform" />
+              <Button asChild className="flex-1 h-9 md:h-10 text-xs md:text-sm bg-primary hover:bg-primary/90 text-white font-black rounded-xl transition-all shadow-lg shadow-primary/20">
+                <Link href={`/chat/${character.id}`} className="flex items-center justify-center gap-2">
+                  <MessageSquare className="h-3 w-3 md:h-4 md:w-4" />
+                  Chat Now
                 </Link>
               </Button>
             </div>

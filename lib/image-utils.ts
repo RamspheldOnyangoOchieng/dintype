@@ -15,7 +15,9 @@ export const isAskingForImage = (message: string): boolean => {
     lowerCaseMessage.includes("can i see") ||
     lowerCaseMessage.includes("send me") ||
     lowerCaseMessage.includes("show me") ||
-    lowerCaseMessage.includes("show")
+    lowerCaseMessage.includes("show") ||
+    lowerCaseMessage.includes("selfie") ||
+    lowerCaseMessage.includes("photo")
   )
 }
 

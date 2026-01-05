@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Send, Sparkles } from 'lucide-react'
 import Link from 'next/link'
+import { MeetOnTelegramButton } from './meet-on-telegram-button'
 
 interface WelcomeMessageProps {
     characterName: string
@@ -25,21 +26,18 @@ export function WelcomeMessage({ characterName, characterId, onStartChat }: Welc
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Button
                     onClick={onStartChat}
-                    className="flex-1 bg-primary hover:bg-primary/90 text-white font-semibold gap-2 py-5 rounded-xl shadow-lg shadow-primary/20"
+                    className="flex-1 bg-primary hover:bg-primary/90 text-white font-black gap-2 py-6 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
                 >
-                    <Sparkles className="h-4 w-4" />
-                    Quick Flirt Here
+                    <Sparkles className="h-5 w-5" />
+                    Chat on Web
                 </Button>
 
-                <Link href={telegramLink} target="_blank" className="flex-1">
-                    <Button
-                        variant="outline"
-                        className="w-full border-white/20 hover:bg-white/10 text-white font-semibold gap-2 py-5 rounded-xl backdrop-blur-sm"
-                    >
-                        <Send className="h-4 w-4" />
-                        Meet on Telegram
-                    </Button>
-                </Link>
+                <MeetOnTelegramButton
+                    characterId={characterId}
+                    characterName={characterName}
+                    variant="outline"
+                    className="flex-1 border-white/20 hover:bg-white/10 text-white font-bold h-auto py-4 rounded-xl backdrop-blur-sm transition-all hover:scale-[1.02]"
+                />
             </div>
 
             <p className="text-white/40 text-xs text-center pt-2">

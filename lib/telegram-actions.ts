@@ -37,14 +37,6 @@ export async function generateTelegramLinkCode(
             .eq('character_id', characterId)
             .maybeSingle()
 
-        if (existingLink) {
-            return {
-                success: true,
-                isAlreadyLinked: true,
-                linkedTelegramUsername: existingLink.telegram_username || existingLink.telegram_first_name || 'Unknown',
-            }
-        }
-
         // Generate a unique link code
         const code = `link_${crypto.randomBytes(16).toString('hex')}`
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
@@ -62,7 +54,12 @@ export async function generateTelegramLinkCode(
         // Generate the Telegram deep link
         const linkUrl = `https://t.me/${BOT_USERNAME}?start=${code}`
 
-        return { success: true, linkUrl }
+        return { 
+            success: true, 
+            linkUrl,
+            isAlreadyLinked: !!existingLink,
+            linkedTelegramUsername: existingLink?.telegram_username || existingLink?.telegram_first_name || 'Unknown',
+        }
     } catch (error) {
         console.error('[Telegram Link] Error generating code:', error)
         return { success: false, error: 'Failed to generate link' }

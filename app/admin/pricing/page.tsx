@@ -200,9 +200,7 @@ export default function PricingPage() {
                 className="w-full rounded-md border border-input bg-background px-3 py-2"
               >
                 <option value="USD">USD ($)</option>
-                <option value="SEK">SEK (kr)</option>
                 <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
               </select>
             </div>
 
@@ -228,7 +226,7 @@ export default function PricingPage() {
               <Label htmlFor="yearly-price">Yearly Price</Label>
               <div className="flex items-center">
                 <span className="mr-2">
-                  {currency === "SEK" ? "kr" : currency === "USD" ? "$" : currency === "EUR" ? "€" : "£"}
+                  {currency === "USD" ? "$" : "€"}
                 </span>
                 <Input
                   id="yearly-price"

@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       if (planError || !plan) {
         // Fallback for 'premium_monthly' if DB fetch fails but ID matches (Fail-safe)
         if (planId === 'premium_monthly') {
-          priceAmount = 110
+          priceAmount = 11.99
           productName = 'Premium Membership'
           productDescription = 'Unlimited access for 1 month'
           productMetadata = {
@@ -90,6 +90,7 @@ export async function POST(request: NextRequest) {
             planName: productName,
             planDuration: "1",
             price: priceAmount.toString(),
+            currency: "USD"
           }
         } else {
           return NextResponse.json({ success: false, error: "Plan not found" }, { status: 404 })
@@ -133,12 +134,12 @@ export async function POST(request: NextRequest) {
       line_items: [
         {
           price_data: {
-            currency: "sek", // Swedish Krona
+            currency: (metadata?.currency || "usd").toLowerCase(),
             product_data: {
               name: productName,
               description: productDescription,
             },
-            unit_amount: toStripeAmount(priceAmount), // Convert SEK to öre (1 kr = 100 öre)
+            unit_amount: toStripeAmount(priceAmount), // Convert to subunits (cents)
           },
           quantity: 1,
         },

@@ -2,19 +2,11 @@
  * Currency Formatting Utilities
  * 
  * Provides consistent currency formatting across the application
- * following USD/English conventions by default.
+ * following USD/EUR/English conventions.
  */
 
 /**
  * Format a price
- * 
- * Default conventions (USD):
- * - Comma as thousands separator: $1,499.00
- * - Currency symbol before amount: $99.00
- * 
- * @param amount - The amount
- * @param options - Formatting options
- * @returns Formatted price string
  */
 export function formatCurrency(
   amount: number,
@@ -32,7 +24,10 @@ export function formatCurrency(
     locale = 'en-US'
   } = options;
 
-  return new Intl.NumberFormat(locale, {
+  // For EUR, we might want a different locale
+  const activeLocale = currency === 'EUR' ? 'de-DE' : locale;
+
+  return new Intl.NumberFormat(activeLocale, {
     style: 'currency',
     currency: currency,
     minimumFractionDigits: includeDecimals ? 2 : 0,
@@ -41,23 +36,37 @@ export function formatCurrency(
 }
 
 /**
- * Alias for backward compatibility during transition
+ * Convenience formatters
  */
-export const formatSEK = (amount: number, options: any = {}) => {
-  return formatCurrency(amount, { ...options, currency: 'USD', locale: 'en-US' });
+export const formatUSD = (amount: number, includeDecimals = true) =>
+  formatCurrency(amount, { currency: 'USD', locale: 'en-US', includeDecimals });
+
+export const formatEUR = (amount: number, includeDecimals = true) =>
+  formatCurrency(amount, { currency: 'EUR', locale: 'de-DE', includeDecimals });
+
+/**
+ * Format in both USD and EUR
+ */
+export const formatDual = (amountUSD: number, amountEUR: number) => {
+  return `${formatUSD(amountUSD)} / ${formatEUR(amountEUR)}`;
 };
+
+/**
+ * Alias for backward compatibility - now returns USD
+ */
+export const formatSEK = (amount: number) => formatUSD(amount);
 
 /**
  * Format token package price with equivalent images
  */
-export function formatTokenPackagePrice(tokens: number, price: number): {
+export function formatTokenPackagePrice(tokens: number, price: number, currency: string = 'USD'): {
   price: string;
   tokens: string;
   images: string;
   full: string;
 } {
   const images = Math.floor(tokens / 5); // Assuming 5 tokens per image
-  const formattedPrice = formatCurrency(price);
+  const formattedPrice = formatCurrency(price, { currency });
 
   return {
     price: formattedPrice,
@@ -69,20 +78,18 @@ export function formatTokenPackagePrice(tokens: number, price: number): {
 
 /**
  * Format subscription price
- * 
- * @example
- * formatSubscriptionPrice(11.99) // "$11.99/month"
  */
 export function formatSubscriptionPrice(
   price: number,
+  currency: string = 'USD',
   period: 'month' | 'year' = 'month'
 ): string {
   const periodText = period === 'month' ? '/month' : '/year';
-  return `${formatCurrency(price)}${periodText}`;
+  return `${formatCurrency(price, { currency })}${periodText}`;
 }
 
 /**
- * Parse price from database (handles both number and string)
+ * Parse price from database
  */
 export function parsePrice(price: any): number {
   if (typeof price === 'number') return price;
@@ -91,46 +98,38 @@ export function parsePrice(price: any): number {
 }
 
 /**
- * Get currency symbol
+ * Global Defaults
  */
 export const CURRENCY_SYMBOL = '$';
 export const CURRENCY_CODE = 'USD';
 export const CURRENCY_NAME = 'US Dollars';
 
 /**
- * Premium subscription pricing constants (USD)
+ * Premium subscription pricing constants
  */
 export const PRICING = {
   PREMIUM_MONTHLY_USD: 11.99,
-  PREMIUM_MONTHLY_FORMATTED: '$11.99/month',
+  PREMIUM_MONTHLY_EUR: 11.99,
+  PREMIUM_MONTHLY_FORMATTED: '$11.99 / 11,99 €',
 
   TOKEN_PACKAGES: {
-    SMALL: { tokens: 200, price: 9.99, images: 40 },
-    MEDIUM: { tokens: 550, price: 24.99, images: 110 },
-    LARGE: { tokens: 1550, price: 49.99, images: 310 },
-    MEGA: { tokens: 5800, price: 149.99, images: 1160 },
+    SMALL: { tokens: 200, price_usd: 9.99, price_eur: 9.99, images: 40 },
+    MEDIUM: { tokens: 550, price_usd: 24.99, price_eur: 24.99, images: 110 },
+    LARGE: { tokens: 1550, price_usd: 49.99, price_eur: 49.99, images: 310 },
+    MEGA: { tokens: 5800, price_usd: 149.99, price_eur: 149.99, images: 1160 },
   },
 } as const;
 
 /**
  * Format price for Stripe (convert to cents)
- * Stripe expects amounts in the smallest currency unit (cents for USD)
- * 1 USD = 100 cents
  */
 export function toStripeAmount(amountInCurrency: number): number {
   return Math.round(amountInCurrency * 100);
 }
 
 /**
- * Format price from Stripe (convert from cents to currency)
+ * Format price from Stripe
  */
 export function fromStripeAmount(amountInCents: number): number {
   return amountInCents / 100;
-}
-
-/**
- * Format price range
- */
-export function formatPriceRange(min: number, max: number): string {
-  return `${formatCurrency(min, { includeDecimals: false })}-${formatCurrency(max)}`;
 }

@@ -323,7 +323,7 @@ export default function PremiumPage() {
             <CardHeader className="p-6 pb-2">
               <CardTitle className="text-xl font-bold italic">Free Plan</CardTitle>
               <CardDescription className="text-2xl font-black text-foreground pt-1">
-                0 € <span className="text-xs font-medium text-muted-foreground italic">per month</span>
+                $0 / 0 € <span className="text-xs font-medium text-muted-foreground italic">per month</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6 pt-4 space-y-4 flex-grow">
@@ -361,7 +361,7 @@ export default function PremiumPage() {
                 Premium Plan <Sparkles className="w-4 h-4 text-primary animate-pulse" />
               </CardTitle>
               <CardDescription className="text-3xl font-black text-foreground pt-1 flex items-baseline gap-2">
-                11 € <span className="text-xs font-medium text-muted-foreground italic">/ 110 SEK per month</span>
+                $11.99 / 11,99 € <span className="text-xs font-medium text-muted-foreground italic">per month</span>
               </CardDescription>
             </CardHeader>
 
@@ -492,7 +492,7 @@ export default function PremiumPage() {
                     <div className="pt-2 border-t border-border/20 mt-2 flex justify-between items-center">
                       <span className="text-[9px] font-bold text-muted-foreground">PRICE</span>
                       <span className="text-sm font-black text-primary italic">
-                        {user?.isAdmin ? "FREE" : (pkg.priceDisplay || `${pkg.price} kr`)}
+                        {user?.isAdmin ? "FREE" : (pkg.priceDisplay || `$${pkg.price}`)}
                       </span>
                     </div>
                   </div>

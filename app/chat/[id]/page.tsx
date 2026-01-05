@@ -49,6 +49,7 @@ import { TelegramConnectButton } from "@/components/telegram-connect-button"
 import { MeetOnTelegramButton } from "@/components/meet-on-telegram-button"
 import { WelcomeMessage } from "@/components/welcome-message"
 import { toast } from "sonner"
+import { ImageGenerationLoading } from "@/components/image-generation-loading"
 
 export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   const [characterId, setCharacterId] = useState<string | null>(null);
@@ -1227,6 +1228,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               <span className="text-[10px] md:text-xs text-muted-foreground truncate">
                 {isSendingMessage ? (
                   <span className="text-primary animate-pulse font-medium">typing...</span>
+                ) : isGeneratingImage ? (
+                  <span className="text-primary animate-pulse font-medium">Designing image...</span>
                 ) : (
                   messages.length > 0 ? messages[messages.length - 1].timestamp : t("chat.noMessagesYet")
                 )}
@@ -1349,15 +1352,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               </div>
             </div>
           )}
-          {isGeneratingImage && (
-            <div className="flex justify-start" key="image-generation-indicator">
-              <div className="max-w-[70%] bg-[#252525] text-white rounded-2xl p-3">
-                <div className="flex items-center space-x-2">
-                  <div className="w-full aspect-square max-w-xs rounded-2xl bg-gray-700 animate-pulse"></div>
-                </div>
-              </div>
-            </div>
-          )}
+          {isGeneratingImage && <ImageGenerationLoading />}
           <div ref={messagesEndRef} />
         </div>
 
