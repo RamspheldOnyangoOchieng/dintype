@@ -261,6 +261,10 @@ export async function sendChatMessageDB(
 
     if (!aiResponseContent) throw new Error("Empty AI response");
 
+    // STRIP DEEPSEEK THINKING TAGS: DeepSeek-R1 outputs internal chain-of-thought in <think> tags.
+    // We strip these out to maintain immersion for the user.
+    const sanitizedContent = aiResponseContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
     // 11. Save AI response
     const { data: savedMsg } = await supabase
       .from('messages')
@@ -268,7 +272,7 @@ export async function sendChatMessageDB(
         session_id: sessionId,
         user_id: userId,
         role: 'assistant',
-        content: aiResponseContent,
+        content: sanitizedContent,
         metadata: { model, isPremium, lang }
       })
       .select()
@@ -281,7 +285,7 @@ export async function sendChatMessageDB(
       message: {
         id: savedMsg?.id || crypto.randomUUID(),
         role: "assistant",
-        content: aiResponseContent,
+        content: sanitizedContent,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
       }
     }

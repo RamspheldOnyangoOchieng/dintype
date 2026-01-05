@@ -211,6 +211,9 @@ IMPORTANT INSTRUCTIONS:
       const completion = await response.json()
       const responseContent = completion.choices[0].message.content || "I'm not sure how to respond to that."
 
+      // STRIP DEEPSEEK THINKING TAGS
+      const sanitizedResponse = responseContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
       // Log API cost (approximate)
       const totalTokens = completion.usage?.total_tokens || 250
       const apiCost = (totalTokens / 1_000_000) * apiCostPerMillion
@@ -227,7 +230,7 @@ IMPORTANT INSTRUCTIONS:
 
       return {
         id: Math.random().toString(36).substring(2, 15),
-        content: responseContent,
+        content: sanitizedResponse,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }
     } catch (apiError) {
