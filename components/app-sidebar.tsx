@@ -260,7 +260,7 @@ export default function AppSidebar() {
           <div className={`border-t border-border ${isOpen ? "p-4" : "p-2"}`}>
             <TooltipProvider delayDuration={0}>
               {user ? (
-                <div className="flex items-center gap-3">
+                <div className={cn("flex items-center gap-3", !isOpen && "flex-col items-center")}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Link href="/profile" className="flex-shrink-0">
@@ -269,7 +269,7 @@ export default function AppSidebar() {
                     </TooltipTrigger>
                     {!isOpen && (
                       <TooltipContent side="right">
-                        {t("general.profile")}
+                        {t("sidebar.profile")}
                       </TooltipContent>
                     )}
                   </Tooltip>
@@ -279,11 +279,18 @@ export default function AppSidebar() {
                       <p className="text-sm text-muted-foreground truncate">{user.isAdmin ? t("general.admin") : t("general.user")}</p>
                     </div>
                   )}
-                  {isOpen && (
-                    <button onClick={openLogoutModal} className="p-2 rounded-full hover:bg-secondary transition-colors">
-                      <LogOut className="h-5 w-5" />
-                    </button>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button onClick={openLogoutModal} className="p-2 rounded-full hover:bg-secondary transition-colors">
+                        <LogOut className="h-5 w-5" />
+                      </button>
+                    </TooltipTrigger>
+                    {!isOpen && (
+                      <TooltipContent side="right">
+                        {t("auth.logout")}
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
                 </div>
               ) : (
                 <div className={cn("flex", isOpen ? "flex-col space-y-2" : "flex-col items-center space-y-2")}>
