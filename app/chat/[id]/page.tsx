@@ -151,6 +151,32 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     storageType: "localStorage",
   })
 
+  // Gallery state
+  const [galleryItems, setGalleryItems] = useState<any[]>([])
+  const [isGalleryLoading, setIsGalleryLoading] = useState(false)
+
+  const fetchGallery = useCallback(async () => {
+    if (!characterId) return
+    try {
+      setIsGalleryLoading(true)
+      const response = await fetch(`/api/gallery?characterId=${characterId}`)
+      const data = await response.json()
+      if (data.images) {
+        setGalleryItems(data.images)
+      }
+    } catch (error) {
+      console.error("Error fetching gallery in ChatPage:", error)
+    } finally {
+      setIsGalleryLoading(false)
+    }
+  }, [characterId])
+
+  useEffect(() => {
+    if (characterId) {
+      fetchGallery()
+    }
+  }, [characterId, fetchGallery])
+
   // Carousel state
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
@@ -158,19 +184,32 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const galleryImages = useMemo(() => {
     if (!character) return []
 
-    // Start with the main image
+    // Start with the main image (always unlocked)
     let imgs = [character.image || "/placeholder.svg"]
 
-    // Add additional images from the array if they exist
+    // Add additional images from the character.images array (legacy/fallback)
+    // Only if they aren't explicitly locked in the gallery
     if (character.images && Array.isArray(character.images) && character.images.length > 0) {
-      // Filter out matches to main image and ensure uniqueness
-      const additional = character.images.filter((img: string) => img && img !== character.image)
+      const additional = character.images.filter((img: string) => {
+        if (!img || img === character.image) return false
+        // Check if this image is in the gallery and locked
+        const galleryMatch = galleryItems.find(g => g.imageUrl === img || g.thumbnailUrl === img)
+        if (galleryMatch && galleryMatch.isLocked) return false
+        return true
+      })
       imgs = [...imgs, ...additional]
     }
 
+    // Add explicitly unlocked images from the gallery
+    const unlockedFromGallery = galleryItems
+      .filter(img => !img.isLocked && img.imageUrl)
+      .map(img => img.imageUrl)
+
+    imgs = [...imgs, ...unlockedFromGallery]
+
     // Ensure uniqueness
     return Array.from(new Set(imgs))
-  }, [character])
+  }, [character, galleryItems])
 
   const handleNextImage = () => {
     if (galleryImages.length === 0) return
@@ -1610,6 +1649,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     setSelectedImagePrompt("")
                   }
                 }}
+                onGalleryUpdate={fetchGallery}
               />
             )}
 

@@ -23,7 +23,7 @@ type AuthContextType = {
   user: User | null
   users: User[]
   login: (email: string, password: string) => Promise<boolean>
-  signup: (username: string, email: string, password: string) => Promise<boolean>
+  signup: (username: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>
   logout: () => void
   tokenBalance: number
   creditBalance: number
@@ -313,13 +313,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const signup = async (username: string, email: string, password: string): Promise<boolean> => {
+  const signup = async (username: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const { data, error } = await signUp(email, password)
 
       if (error) {
         console.error("Signup error:", error.message)
-        return false
+        return { success: false, error: error.message }
       }
 
       if (data?.user) {
@@ -330,13 +330,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Note: We don't set the user here because they need to confirm their email first
         // or log in after signup
-        return true
+        return { success: true }
       }
 
-      return false
+      return { success: false, error: "Failed to create user" }
     } catch (error) {
       console.error("Signup error:", error)
-      return false
+      return { success: false, error: error instanceof Error ? error.message : "Unknown error" }
     }
   }
 

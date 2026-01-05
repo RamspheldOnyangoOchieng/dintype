@@ -42,13 +42,13 @@ export function SignupModal() {
 
         setIsLoading(true)
         try {
-            const success = await signup(username, email, password)
+            const { success, error: signupError } = await signup(username, email, password)
             if (success) {
                 toast.success(t("signup.creatingAccount"))
                 closeSignupModal() // Close the signup modal first
                 setShowConfirmEmail(true)
             } else {
-                const errorMessage = t("signup.emailInUse")
+                const errorMessage = signupError || t("signup.emailInUse")
                 setError(errorMessage)
                 toast.error(errorMessage)
             }
@@ -294,7 +294,10 @@ export function SignupModal() {
                 open={showConfirmEmail}
                 onClose={() => setShowConfirmEmail(false)}
                 onResend={async () => {
-                    await signup(username, email, password)
+                    const { success, error } = await signup(username, email, password)
+                    if (error) {
+                      toast.error(error)
+                    }
                 }}
                 onSignIn={switchToLogin}
             />

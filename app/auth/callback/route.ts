@@ -21,5 +21,5 @@ export async function GET(request: NextRequest) {
   if (next) {
     return NextResponse.redirect(`${origin}${next}`)
   }
-  return NextResponse.redirect(`${origin}/`)
+  return NextResponse.redirect(`${origin}/?login=true`)
 }

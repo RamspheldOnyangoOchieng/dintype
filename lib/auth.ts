@@ -17,9 +17,13 @@ export async function signUp(email: string, password: string) {
     email,
     password,
     options: {
-      emailRedirectTo: `${window.location.origin}/auth/callback?next=%2F%3Flogin%3Dtrue`,
+      emailRedirectTo: `${window.location.origin}/auth/callback`,
     },
   })
+
+  if (error) {
+    console.error("Supabase signUp error:", error.message, error.status)
+  }
 
   // Instead of throwing an error, return both data and error
   return { data, error }

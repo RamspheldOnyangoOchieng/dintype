@@ -23,9 +23,10 @@ interface GalleryImage {
 interface CharacterGalleryProps {
     characterId: string
     onImageClick?: (imageUrl: string) => void
+    onGalleryUpdate?: () => void
 }
 
-export function CharacterGallery({ characterId, onImageClick }: CharacterGalleryProps) {
+export function CharacterGallery({ characterId, onImageClick, onGalleryUpdate }: CharacterGalleryProps) {
     const { user, tokenBalance, refreshUser } = useAuth()
     const [activeView, setActiveView] = useState<"locked" | "unlocked">("locked")
     const [images, setImages] = useState<GalleryImage[]>([])
@@ -84,6 +85,9 @@ export function CharacterGallery({ characterId, onImageClick }: CharacterGallery
 
                 // Refresh user to update token balance
                 refreshUser()
+                
+                // Notify parent that gallery has updated (unlocked image)
+                onGalleryUpdate?.()
             } else {
                 toast.error(data.error || "Failed to unlock image")
             }
@@ -138,6 +142,7 @@ export function CharacterGallery({ characterId, onImageClick }: CharacterGallery
 
             toast.success(`Gallery unlocked! ${totalCost} tokens spent.`)
             refreshUser()
+            onGalleryUpdate?.()
         } catch (error) {
             console.error("Error unlocking gallery:", error)
             toast.error("Failed to unlock gallery")
