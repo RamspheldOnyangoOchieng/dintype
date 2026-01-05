@@ -58,6 +58,14 @@ export async function getUserPlanInfo(userId: string): Promise<UserPlanInfo> {
     }
   }
 
+  // ADMIN CHECK: If user is an admin, they are treated as premium
+  if (planType === 'free') {
+    const adminPrivileges = await getAdminPrivileges(userId);
+    if (adminPrivileges.isAdmin) {
+      planType = 'premium';
+    }
+  }
+
   // Get all restrictions for this plan
   const { data: restrictions } = await supabase
     .from('plan_restrictions')
