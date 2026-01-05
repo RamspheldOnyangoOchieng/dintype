@@ -1431,20 +1431,27 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   <ChevronRight className="h-6 w-6" />
                 </button>
 
-                {/* Tiny Dots Indicator */}
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+                {/* Ultra-tiny Dots Indicator */}
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 z-10 pointer-events-auto">
                   {galleryImages.map((_, idx) => (
-                    <button
+                    <span
                       key={idx}
-                      className={`w-1 h-1 rounded-full transition-all focus:outline-none p-0 border-0 flex-shrink-0 ${idx === currentImageIndex 
-                        ? "bg-white opacity-100" 
-                        : "bg-white/30 hover:bg-white/50 opacity-40"
-                      }`}
+                      className="cursor-pointer transition-all duration-300"
+                      style={{ 
+                        display: 'block',
+                        width: '2.5px', 
+                        height: '2.5px', 
+                        borderRadius: '50%',
+                        padding: '0',
+                        margin: '0',
+                        backgroundColor: idx === currentImageIndex ? '#ffffff' : 'rgba(255,255,255,0.3)',
+                        opacity: idx === currentImageIndex ? '1' : '0.6',
+                        border: 'none'
+                      }}
                       onClick={(e) => {
                         e.stopPropagation();
                         setCurrentImageIndex(idx);
                       }}
-                      aria-label={`Go to image ${idx + 1}`}
                     />
                   ))}
                 </div>
