@@ -23,6 +23,9 @@ export type Character = {
   tags?: string[]
   isPublic?: boolean
   metadata?: any
+  story_conflict?: string
+  story_setting?: string
+  story_plot?: string
 }
 
 export type CharacterInsert = Omit<Character, "id" | "createdAt">
