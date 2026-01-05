@@ -17,7 +17,7 @@ export async function signUp(email: string, password: string) {
     email,
     password,
     options: {
-      emailRedirectTo: `${window.location.origin}/admin/login`,
+      emailRedirectTo: `${window.location.origin}/auth/callback?next=%2F%3Flogin%3Dtrue`,
     },
   })
 

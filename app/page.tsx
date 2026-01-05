@@ -16,7 +16,7 @@ import { CONSENT_VERSION, POLICY_VERSION, CONSENT_STORAGE_KEY } from "@/lib/cons
 import { useConsent } from "@/components/use-consent"
 import { useAuth } from "@/components/auth-context"
 import { useAuthModal } from "@/components/auth-modal-context"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function Home() {
   const { characters, isLoading } = useCharacters()
@@ -42,6 +42,8 @@ export default function Home() {
   const [modalOpen, setModalOpen] = useState(false)
   const [lang, setLang] = useState("en") // or "en" based on user preference
 
+  const searchParams = useSearchParams()
+
   // Check if consent modal should be shown based on centralized consent state
   useEffect(() => {
     if (!isLoaded) return
@@ -57,6 +59,24 @@ export default function Home() {
       setModalOpen(false)
     }
   }, [isLoaded, consent?.version, consent?.policyVersion, consent?.timestamp])
+
+  // Split effect for login modal to avoid conflicts with consent modal
+  useEffect(() => {
+    if (searchParams.get("login") === "true") {
+      // Remove query param immediately to clean up URL
+      const url = new URL(window.location.href)
+      url.searchParams.delete("login")
+      window.history.replaceState({}, "", url.toString())
+
+      // Only open login modal if user is not already authenticated
+      // This handles the case where the callback route successfully signed them in
+      if (!user) {
+        openLoginModal()
+      } else {
+        toast.success(t("auth.loginSuccess") || "Logged in successfully!")
+      }
+    }
+  }, [searchParams, openLoginModal, user, t])
 
   const handleConfirm = (prefs: { analytics: boolean; marketing: boolean }) => {
     updateConsent(prefs)
