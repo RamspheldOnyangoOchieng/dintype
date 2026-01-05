@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CharacterGallery } from "@/components/character-gallery"
 import { CharacterFeed } from "@/components/character-feed"
+import { MeetOnTelegramButton } from "@/components/meet-on-telegram-button"
 import { TelegramConnectButton } from "@/components/telegram-connect-button"
 import { Edit, ArrowLeft, Globe, MessageCircle, Send, Sparkles, BookOpen, ImageIcon, User, Activity } from "lucide-react"
 import type { Character } from "@/lib/types"
@@ -148,12 +149,12 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
                   </Link>
                 </Button>
 
-                <Button asChild size="lg" variant="outline" className="flex-1 border-white/10 hover:bg-white/5 text-white font-bold h-14 rounded-xl transition-all hover:scale-[1.02]">
-                  <Link href={telegramLink} target="_blank">
-                    <Send className="mr-2 h-5 w-5" />
-                    Meet on Telegram
-                  </Link>
-                </Button>
+                <MeetOnTelegramButton 
+                  characterId={character.id} 
+                  characterName={character.name}
+                  variant="outline"
+                  className="flex-1 border-white/10 hover:bg-white/5 text-white font-bold h-14 rounded-xl transition-all hover:scale-[1.02]"
+                />
               </div>
               <p className="text-center text-xs text-white/30 mt-3">Messages sync automatically between platforms 💕</p>
             </div>
