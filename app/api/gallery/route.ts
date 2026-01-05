@@ -57,8 +57,8 @@ export async function GET(request: NextRequest) {
             return {
                 id: img.id,
                 characterId: img.character_id,
-                imageUrl: canView ? img.image_url : null,
-                thumbnailUrl: canView ? (img.thumbnail_url || img.image_url) : null,
+                imageUrl: img.image_url,
+                thumbnailUrl: img.thumbnail_url || img.image_url,
                 isLocked: img.is_locked && !canView,
                 isNsfw: img.is_nsfw || false,
                 unlockCost: img.unlock_cost || 100,

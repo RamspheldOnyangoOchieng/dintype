@@ -187,29 +187,44 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     // Start with the main image (always unlocked)
     let imgs = [character.image || "/placeholder.svg"]
 
+    // While gallery is loading, only show the main image to avoid showing locked ones temporarily
+    if (isGalleryLoading && galleryItems.length === 0) {
+      return imgs
+    }
+
     // Add additional images from the character.images array (legacy/fallback)
     // Only if they aren't explicitly locked in the gallery
     if (character.images && Array.isArray(character.images) && character.images.length > 0) {
       const additional = character.images.filter((img: string) => {
         if (!img || img === character.image) return false
-        // Check if this image is in the gallery and locked
-        const galleryMatch = galleryItems.find(g => g.imageUrl === img || g.thumbnailUrl === img)
+
+        // Check if this image is in the gallery
+        const galleryMatch = galleryItems.find(g =>
+          g.imageUrl === img ||
+          g.thumbnailUrl === img ||
+          (img.includes('cloudinary.com') && g.imageUrl?.includes(img.split('/').pop()?.split('.')[0] || '___'))
+        )
+
+        // If it's in the gallery and locked, HIDE it
         if (galleryMatch && galleryMatch.isLocked) return false
+
+        // If it's NOT in the gallery, we'll keep it for now as it might be a public preview image
+        // added manually to the character record but not meant to be part of the locked gallery.
         return true
       })
       imgs = [...imgs, ...additional]
     }
 
-    // Add explicitly unlocked images from the gallery
+    // Add explicitly unlocked images from the gallery that might not be in the character.images array
     const unlockedFromGallery = galleryItems
       .filter(img => !img.isLocked && img.imageUrl)
       .map(img => img.imageUrl)
 
     imgs = [...imgs, ...unlockedFromGallery]
 
-    // Ensure uniqueness
-    return Array.from(new Set(imgs))
-  }, [character, galleryItems])
+    // Ensure uniqueness and valid URLs
+    return Array.from(new Set(imgs.filter(img => !!img)))
+  }, [character, galleryItems, isGalleryLoading])
 
   const handleNextImage = () => {
     if (galleryImages.length === 0) return
