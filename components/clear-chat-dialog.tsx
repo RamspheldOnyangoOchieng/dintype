@@ -16,10 +16,15 @@ import { Trash2 } from "lucide-react"
 interface ClearChatDialogProps {
   onConfirm: () => Promise<void>
   isClearing: boolean
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  showTrigger?: boolean
 }
 
-export function ClearChatDialog({ onConfirm, isClearing }: ClearChatDialogProps) {
-  const [open, setOpen] = useState(false)
+export function ClearChatDialog({ onConfirm, isClearing, open: controlledOpen, onOpenChange, showTrigger = true }: ClearChatDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const setOpen = onOpenChange !== undefined ? onOpenChange : setInternalOpen
 
   const handleConfirm = async () => {
     await onConfirm()
@@ -28,11 +33,13 @@ export function ClearChatDialog({ onConfirm, isClearing }: ClearChatDialogProps)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white" title="Clear chat history">
-          <Trash2 className="h-5 w-5" />
-        </Button>
-      </DialogTrigger>
+      {showTrigger && (
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white" title="Clear chat history">
+            <Trash2 className="h-5 w-5" />
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-md bg-[#1A1A1A] border-[#252525] text-white">
         <DialogHeader>
           <DialogTitle>Clear chat history</DialogTitle>

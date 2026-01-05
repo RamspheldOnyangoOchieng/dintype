@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
-import { getUserPlanInfo, deductTokens } from '@/lib/subscription-limits';
+import { getUserPlanInfo, deductTokens, checkImageGenerationLimit, incrementImageUsage } from '@/lib/subscription-limits';
+import { isAskingForImage, extractImagePrompt } from '@/lib/image-utils';
+import { getNovitaApiKey } from '@/lib/api-keys';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
@@ -22,12 +24,27 @@ async function sendTelegramMessage(chatId: number, text: string, options?: { rep
 }
 
 // Helper to send "typing" action
-async function sendTypingAction(chatId: number) {
+async function sendTypingAction(chatId: number, action: 'typing' | 'upload_photo' = 'typing') {
     await fetch(`${TELEGRAM_API_URL}/sendChatAction`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: chatId, action: 'typing' }),
+        body: JSON.stringify({ chat_id: chatId, action }),
     });
+}
+
+// Helper to send photo
+async function sendTelegramPhoto(chatId: number, photoUrl: string, caption?: string) {
+    const response = await fetch(`${TELEGRAM_API_URL}/sendPhoto`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            chat_id: chatId,
+            photo: photoUrl,
+            caption: caption,
+            parse_mode: 'HTML',
+        }),
+    });
+    return response.json();
 }
 
 // Generate AI response using same logic as web chat
@@ -89,7 +106,7 @@ async function generateAIResponse(
     try {
         const response = await fetch(url, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${ apiKey } `, 'Content-Type': 'application/json' },
+            headers: { 'Authorization': `Bearer ${apiKey} `, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: apiMessages,
                 model: model,
@@ -114,6 +131,75 @@ async function generateAIResponse(
         console.error('AI generation error:', error);
         return "I couldn't think of what to say... Try messaging me again? 💕";
     }
+}
+
+// Enhance image prompt
+async function enhanceImagePrompt(userPrompt: string, characterDescription: string) {
+    const apiKey = await getNovitaApiKey();
+    if (!apiKey) return userPrompt;
+
+    try {
+        const response = await fetch("https://api.novita.ai/v3/openai/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+                model: "deepseek/deepseek-r1-turbo",
+                messages: [
+                    {
+                        role: "system",
+                        content: "You are a prompt enhancement assistant for a realistic AI image generator. Take the user's request and character description to create a vivid, highly detailed image prompt. Focus on realistic lighting, textures, and composition. Keep it safe but intimate and premium. Output ONLY the enhanced prompt.",
+                    },
+                    {
+                        role: "user",
+                        content: `User prompt: "${userPrompt}"\n\nCharacter Info: "${characterDescription}"`,
+                    },
+                ],
+                max_tokens: 300,
+                temperature: 0.7,
+            }),
+        });
+
+        if (!response.ok) return userPrompt;
+        const data = await response.json();
+        let content = data.choices?.[0]?.message?.content || userPrompt;
+        return content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+    } catch (e) {
+        return userPrompt;
+    }
+}
+
+// Poll for image generation result
+async function pollImageStatus(taskId: string, maxSeconds: number = 25) {
+    const apiKey = await getNovitaApiKey();
+    if (!apiKey) return null;
+
+    const start = Date.now();
+    while (Date.now() - start < maxSeconds * 1000) {
+        try {
+            const response = await fetch(`https://api.novita.ai/v3/async/task-result?task_id=${taskId}`, {
+                method: "GET",
+                headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.task?.status === "TASK_STATUS_SUCCEED" && data.images?.[0]?.image_url) {
+                    return data.images[0].image_url;
+                }
+                if (data.task?.status === "TASK_STATUS_FAILED") {
+                    console.error("Image generation failed:", data.task.reason);
+                    return null;
+                }
+            }
+        } catch (e) {
+            console.error("Polling error:", e);
+        }
+        await new Promise(r => setTimeout(r, 2000)); // Poll every 2 seconds
+    }
+    return null;
 }
 
 // Get recommended characters
@@ -188,367 +274,453 @@ export async function POST(request: NextRequest) {
                         await sendTelegramMessage(
                             chatId,
                             `💕 You're now chatting with <b>${character.name}</b>!\n\n${character.description || ''}\n\n<i>Send a message to start your conversation...</i>`,
-        {
-            reply_markup: {
-                inline_keyboard: [[
-                    { text: '🔄 Switch Character', callback_data: 'show_chars' }
-                ]]
+                            {
+                                reply_markup: {
+                                    inline_keyboard: [[
+                                        { text: '🔄 Switch Character', callback_data: 'show_chars' }
+                                    ]]
+                                }
+                            }
+                        );
+                    } else {
+                        // Create a temporary link for guest users
+                        await supabase.from('telegram_links').upsert({
+                            telegram_id: telegramUserId.toString(),
+                            user_id: null, // Guest user
+                            character_id: characterId,
+                            telegram_username: callbackQuery.from.username || null,
+                            telegram_first_name: callbackQuery.from.first_name || 'Guest',
+                            is_guest: true,
+                            created_at: new Date().toISOString(),
+                        }, { onConflict: 'telegram_id' });
+
+                        await sendTelegramMessage(
+                            chatId,
+                            `💕 You're now chatting with <b>${character.name}</b>!\n\n${character.description || ''}\n\n<i>Send a message to start flirting... Or link your Pocketlove account for unlimited fun!</i>`,
+                            {
+                                reply_markup: {
+                                    inline_keyboard: [
+                                        [{ text: '🔗 Link Pocketlove Account', url: `${SITE_URL}/chat/${characterId}` }],
+                                        [{ text: '🔄 Switch Character', callback_data: 'show_chars' }]
+                                    ]
+                                }
+                            }
+                        );
+                    }
+                }
+
+                // Answer the callback query
+                await fetch(`${TELEGRAM_API_URL}/answerCallbackQuery`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ callback_query_id: callbackQuery.id }),
+                });
+
+                return NextResponse.json({ ok: true });
+            }
+
+            if (action === 'show_chars') {
+                // Show character selection
+                const characters = await getRecommendedCharacters(supabase, 6);
+
+                const buttons = characters.map((char: any) => ([
+                    { text: char.name, callback_data: `select_char:${char.id}` }
+                ]));
+
+                buttons.push([{ text: '🌐 See All on Pocketlove', url: `${SITE_URL}/characters` }]);
+
+                await sendTelegramMessage(
+                    chatId,
+                    `💕 <b>Choose Your Companion</b>\n\nWho would you like to chat with today?`,
+                    { reply_markup: { inline_keyboard: buttons } }
+                );
+
+                await fetch(`${TELEGRAM_API_URL}/answerCallbackQuery`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ callback_query_id: callbackQuery.id }),
+                });
+
+                return NextResponse.json({ ok: true });
             }
         }
-                        );
-    } else {
-        // Create a temporary link for guest users
-        await supabase.from('telegram_links').upsert({
-            telegram_id: telegramUserId.toString(),
-            user_id: null, // Guest user
-            character_id: characterId,
-            telegram_username: callbackQuery.from.username || null,
-            telegram_first_name: callbackQuery.from.first_name || 'Guest',
-            is_guest: true,
-            created_at: new Date().toISOString(),
-        }, { onConflict: 'telegram_id' });
 
-        await sendTelegramMessage(
-            chatId,
-            `💕 You're now chatting with <b>${character.name}</b>!\n\n${character.description || ''}\n\n<i>Send a message to start flirting... Or link your Pocketlove account for unlimited fun!</i>`,
-            {
-                reply_markup: {
-                    inline_keyboard: [
-                        [{ text: '🔗 Link Pocketlove Account', url: `${SITE_URL}/chat/${characterId}` }],
-                        [{ text: '🔄 Switch Character', callback_data: 'show_chars' }]
-                    ]
+        // Handle regular messages
+        if (update.message) {
+            const message = update.message;
+            const chatId = message.chat.id;
+            const telegramUserId = message.from.id;
+            const text = message.text || '';
+            const firstName = message.from.first_name || 'Beautiful';
+
+            // Check for existing link
+            const { data: linkedAccount } = await supabase
+                .from('telegram_links')
+                .select('user_id, character_id, is_guest')
+                .eq('telegram_id', telegramUserId.toString())
+                .maybeSingle();
+
+            // Handle /start command
+            if (text.startsWith('/start')) {
+                const linkCode = text.split(' ')[1];
+
+                if (linkCode && linkCode.startsWith('char_')) {
+                    // Deep link to a specific character
+                    const characterId = linkCode.replace('char_', '');
+
+                    // Get character info
+                    const { data: character } = await supabase
+                        .from('characters')
+                        .select('id, name, image_url, description')
+                        .ilike('id', `${characterId}%`) // Handle partial IDs if needed, or exact match
+                        .limit(1)
+                        .maybeSingle();
+
+                    if (character) {
+                        // Create or update link (guest or existing)
+                        await supabase.from('telegram_links').upsert({
+                            telegram_id: telegramUserId.toString(),
+                            user_id: linkedAccount?.user_id || null,
+                            character_id: character.id,
+                            telegram_username: message.from.username || null,
+                            telegram_first_name: firstName,
+                            is_guest: !linkedAccount?.user_id,
+                            created_at: new Date().toISOString(),
+                        }, { onConflict: 'telegram_id' });
+
+                        await sendTelegramMessage(
+                            chatId,
+                            `💕 You're now chatting with <b>${character.name}</b>!\n\n${character.description || ''}\n\n<i>Send a message to start...</i>`,
+                            {
+                                reply_markup: {
+                                    inline_keyboard: [
+                                        [{ text: '🔗 Link to Web Account', url: `${SITE_URL}/chat/${character.id}` }],
+                                        [{ text: '🔄 Switch Character', callback_data: 'show_chars' }]
+                                    ]
+                                }
+                            }
+                        );
+                        return NextResponse.json({ ok: true });
+                    }
+                }
+
+                if (linkCode && linkCode.startsWith('link_')) {
+                    // User is trying to link their account from web
+                    const { data: pendingLink } = await supabase
+                        .from('telegram_link_codes')
+                        .select('user_id, character_id, character_name')
+                        .eq('code', linkCode)
+                        .eq('used', false)
+                        .gte('expires_at', new Date().toISOString())
+                        .maybeSingle();
+
+                    if (pendingLink) {
+                        await supabase.from('telegram_links').upsert({
+                            telegram_id: telegramUserId.toString(),
+                            user_id: pendingLink.user_id,
+                            character_id: pendingLink.character_id,
+                            telegram_username: message.from.username || null,
+                            telegram_first_name: firstName,
+                            is_guest: false,
+                            created_at: new Date().toISOString(),
+                        }, { onConflict: 'telegram_id' });
+
+                        await supabase
+                            .from('telegram_link_codes')
+                            .update({ used: true })
+                            .eq('code', linkCode);
+
+                        await sendTelegramMessage(
+                            chatId,
+                            `✨ <b>Connected!</b>\n\nHey ${firstName}! 💕 You're now linked to your Pocketlove account.\n\nChatting with <b>${pendingLink.character_name}</b>.\n\n<i>Send me a message... I've been waiting for you.</i> 🌹`,
+                            {
+                                reply_markup: {
+                                    inline_keyboard: [[
+                                        { text: '🔄 Switch Character', callback_data: 'show_chars' }
+                                    ]]
+                                }
+                            }
+                        );
+                        return NextResponse.json({ ok: true });
+                    }
+                }
+
+                // Regular /start - show character selection
+                const characters = await getRecommendedCharacters(supabase, 6);
+
+                const buttons = characters.map((char: any) => ([
+                    { text: char.name, callback_data: `select_char:${char.id}` }
+                ]));
+
+                buttons.push([{ text: '🌐 See All on Pocketlove', url: `${SITE_URL}/characters` }]);
+
+                await sendTelegramMessage(
+                    chatId,
+                    `Hey ${firstName}... 💕\n\nI'm your future favorite distraction. Pick someone who catches your eye and let's make this personal.\n\n<b>Choose Your Companion:</b>`,
+                    { reply_markup: { inline_keyboard: buttons } }
+                );
+
+                return NextResponse.json({ ok: true });
+            }
+
+            // Handle /switch command
+            if (text === '/switch' || text === '/characters') {
+                const characters = await getRecommendedCharacters(supabase, 6);
+
+                const buttons = characters.map((char: any) => ([
+                    { text: char.name, callback_data: `select_char:${char.id}` }
+                ]));
+
+                buttons.push([{ text: '🌐 See All on Pocketlove', url: `${SITE_URL}/characters` }]);
+
+                await sendTelegramMessage(
+                    chatId,
+                    `💕 <b>Choose Your Companion</b>\n\nWho would you like to chat with?`,
+                    { reply_markup: { inline_keyboard: buttons } }
+                );
+
+                return NextResponse.json({ ok: true });
+            }
+
+            // Regular chat message - needs a selected character
+            if (!linkedAccount || !linkedAccount.character_id) {
+                // No character selected - show character selection
+                const characters = await getRecommendedCharacters(supabase, 6);
+
+                const buttons = characters.map((char: any) => ([
+                    { text: char.name, callback_data: `select_char:${char.id}` }
+                ]));
+
+                buttons.push([{ text: '🌐 See All on Pocketlove', url: `${SITE_URL}/characters` }]);
+
+                await sendTelegramMessage(
+                    chatId,
+                    `First, pick someone to chat with... 💕`,
+                    { reply_markup: { inline_keyboard: buttons } }
+                );
+
+                return NextResponse.json({ ok: true });
+            }
+
+            // Send typing indicator
+            await sendTypingAction(chatId);
+
+            // Get user plan info (for linked users only)
+            let isPremium = false;
+            if (linkedAccount.user_id) {
+                const planInfo = await getUserPlanInfo(linkedAccount.user_id);
+                isPremium = planInfo.planType === 'premium';
+
+                // Deduct tokens for free users
+                if (!isPremium) {
+                    const tokenSuccess = await deductTokens(linkedAccount.user_id, 5, 'telegram_chat');
+                    if (!tokenSuccess) {
+                        await sendTelegramMessage(
+                            chatId,
+                            "You've run out of free messages! 💔\n\nUpgrade to Premium for unlimited chats.",
+                            {
+                                reply_markup: {
+                                    inline_keyboard: [[
+                                        { text: '💎 Go Premium', url: `${SITE_URL}/premium` }
+                                    ]]
+                                }
+                            }
+                        );
+                        return NextResponse.json({ ok: true });
+                    }
                 }
             }
-        );
-    }
-}
-
-// Answer the callback query
-await fetch(`${TELEGRAM_API_URL}/answerCallbackQuery`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ callback_query_id: callbackQuery.id }),
-});
-
-return NextResponse.json({ ok: true });
-            }
-
-if (action === 'show_chars') {
-    // Show character selection
-    const characters = await getRecommendedCharacters(supabase, 6);
-
-    const buttons = characters.map((char: any) => ([
-        { text: char.name, callback_data: `select_char:${char.id}` }
-    ]));
-
-    buttons.push([{ text: '🌐 See All on Pocketlove', url: `${SITE_URL}/characters` }]);
-
-    await sendTelegramMessage(
-        chatId,
-        `💕 <b>Choose Your Companion</b>\n\nWho would you like to chat with today?`,
-        { reply_markup: { inline_keyboard: buttons } }
-    );
-
-    await fetch(`${TELEGRAM_API_URL}/answerCallbackQuery`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ callback_query_id: callbackQuery.id }),
-    });
-
-    return NextResponse.json({ ok: true });
-}
-        }
-
-// Handle regular messages
-if (update.message) {
-    const message = update.message;
-    const chatId = message.chat.id;
-    const telegramUserId = message.from.id;
-    const text = message.text || '';
-    const firstName = message.from.first_name || 'Beautiful';
-
-    // Check for existing link
-    const { data: linkedAccount } = await supabase
-        .from('telegram_links')
-        .select('user_id, character_id, is_guest')
-        .eq('telegram_id', telegramUserId.toString())
-        .maybeSingle();
-
-    // Handle /start command
-    if (text.startsWith('/start')) {
-        const linkCode = text.split(' ')[1];
-
-        if (linkCode && linkCode.startsWith('char_')) {
-            // Deep link to a specific character
-            const characterId = linkCode.replace('char_', '');
 
             // Get character info
             const { data: character } = await supabase
                 .from('characters')
-                .select('id, name, image_url, description')
-                .ilike('id', `${characterId}%`) // Handle partial IDs if needed, or exact match
-                .limit(1)
+                .select('name, system_prompt, description')
+                .eq('id', linkedAccount.character_id)
                 .maybeSingle();
 
-            if (character) {
-                // Create or update link (guest or existing)
-                await supabase.from('telegram_links').upsert({
-                    telegram_id: telegramUserId.toString(),
-                    user_id: linkedAccount?.user_id || null,
-                    character_id: character.id,
-                    telegram_username: message.from.username || null,
-                    telegram_first_name: firstName,
-                    is_guest: !linkedAccount?.user_id,
-                    created_at: new Date().toISOString(),
-                }, { onConflict: 'telegram_id' });
+            const characterName = character?.name || 'Your Companion';
+            const characterPrompt = character?.system_prompt || character?.description || '';
 
-                await sendTelegramMessage(
-                    chatId,
-                    `💕 You're now chatting with <b>${character.name}</b>!\n\n${character.description || ''}\n\n<i>Send a message to start...</i>`,
-                    {
-                        reply_markup: {
-                            inline_keyboard: [
-                                [{ text: '🔗 Link to Web Account', url: `${SITE_URL}/chat/${character.id}` }],
-                                [{ text: '🔄 Switch Character', callback_data: 'show_chars' }]
-                            ]
+            // Get conversation history
+            let conversationHistory: { role: string; content: string }[] = [];
+
+            if (linkedAccount.user_id) {
+                const { data: session } = await supabase
+                    .from('conversation_sessions')
+                    .select('id')
+                    .eq('user_id', linkedAccount.user_id)
+                    .eq('character_id', linkedAccount.character_id)
+                    .eq('is_active', true)
+                    .maybeSingle();
+
+                let sessionId = session?.id;
+
+                if (sessionId) {
+                    const { data: messages } = await supabase
+                        .from('messages')
+                        .select('role, content')
+                        .eq('session_id', sessionId)
+                        .order('created_at', { ascending: true })
+                        .limit(30);
+
+                    conversationHistory = messages || [];
+                } else {
+                    const { data: newSession } = await supabase
+                        .from('conversation_sessions')
+                        .insert({
+                            user_id: linkedAccount.user_id,
+                            character_id: linkedAccount.character_id,
+                            is_active: true,
+                        })
+                        .select('id')
+                        .single();
+
+                    sessionId = newSession?.id;
+                }
+
+                // Save user message
+                if (sessionId) {
+                    await supabase.from('messages').insert({
+                        session_id: sessionId,
+                        user_id: linkedAccount.user_id,
+                        role: 'user',
+                        content: text,
+                        metadata: { source: 'telegram', telegram_message_id: message.message_id },
+                    });
+                }
+
+                // --- NEW: Image Generation Handler ---
+                if (isAskingForImage(text)) {
+                    await sendTelegramMessage(chatId, `I'm designing that image for you. Give me just a moment... 🎨`);
+                    await sendTypingAction(chatId, 'upload_photo');
+
+                    // Check limits
+                    const limitCheck = await checkImageGenerationLimit(linkedAccount.user_id);
+                    if (!limitCheck.allowed) {
+                        await sendTelegramMessage(chatId, limitCheck.message || "You've reached your image limit. 💔");
+                        return NextResponse.json({ ok: true });
+                    }
+
+                    const prompt = extractImagePrompt(text);
+                    const enhancedPrompt = await enhanceImagePrompt(prompt, characterPrompt);
+                    const apiKey = await getNovitaApiKey();
+
+                    if (apiKey) {
+                        // Deduct tokens first
+                        const tokensToDeduct = isPremium ? 5 : 0; // Free usage uses weekly limit, premium uses tokens
+                        if (isPremium) {
+                            await deductTokens(linkedAccount.user_id, tokensToDeduct, 'telegram_image_gen');
+                        }
+
+                        try {
+                            const genResponse = await fetch("https://api.novita.ai/v3/async/txt2img", {
+                                method: "POST",
+                                headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    extra: { response_image_type: "jpeg" },
+                                    request: {
+                                        prompt: enhancedPrompt,
+                                        model_name: "epicrealism_naturalSinRC1VAE_106430.safetensors",
+                                        width: 512,
+                                        height: 768,
+                                        image_num: 1,
+                                        steps: 25,
+                                        guidance_scale: 7.5,
+                                        sampler_name: "Euler a",
+                                    },
+                                }),
+                            });
+
+                            if (genResponse.ok) {
+                                const genData = await genResponse.json();
+                                const taskId = genData.data?.task_id || genData.task_id;
+
+                                if (taskId) {
+                                    const imageUrl = await pollImageStatus(taskId);
+                                    if (imageUrl) {
+                                        await sendTelegramPhoto(chatId, imageUrl, `Here's what I made for you... do you like it? 💕`);
+                                        await incrementImageUsage(linkedAccount.user_id);
+
+                                        // Save to DB
+                                        await supabase.from('generated_images').insert({
+                                            user_id: linkedAccount.user_id,
+                                            character_id: linkedAccount.character_id,
+                                            image_url: imageUrl,
+                                            prompt: enhancedPrompt,
+                                            source: 'telegram'
+                                        });
+                                        return NextResponse.json({ ok: true });
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.error("Telegram image gen error:", e);
                         }
                     }
+
+                    await sendTelegramMessage(chatId, "I'm sorry, I couldn't generate the image right now. Let's keep chatting instead? 💕");
+                    return NextResponse.json({ ok: true });
+                }
+                // --- END: Image Generation Handler ---
+
+                // Generate AI response
+                const aiResponse = await generateAIResponse(
+                    text,
+                    characterName,
+                    characterPrompt,
+                    conversationHistory,
+                    isPremium
                 );
-                return NextResponse.json({ ok: true });
-            }
-        }
 
-        if (linkCode && linkCode.startsWith('link_')) {
-            // User is trying to link their account from web
-            const { data: pendingLink } = await supabase
-                .from('telegram_link_codes')
-                .select('user_id, character_id, character_name')
-                .eq('code', linkCode)
-                .eq('used', false)
-                .gte('expires_at', new Date().toISOString())
-                .maybeSingle();
+                // Save AI response
+                if (sessionId) {
+                    await supabase.from('messages').insert({
+                        session_id: sessionId,
+                        user_id: linkedAccount.user_id,
+                        role: 'assistant',
+                        content: aiResponse,
+                        metadata: { source: 'telegram', model: isPremium ? 'deepseek-r1' : 'gpt-4o-mini' },
+                    });
+                }
 
-            if (pendingLink) {
-                await supabase.from('telegram_links').upsert({
-                    telegram_id: telegramUserId.toString(),
-                    user_id: pendingLink.user_id,
-                    character_id: pendingLink.character_id,
-                    telegram_username: message.from.username || null,
-                    telegram_first_name: firstName,
-                    is_guest: false,
-                    created_at: new Date().toISOString(),
-                }, { onConflict: 'telegram_id' });
-
-                await supabase
-                    .from('telegram_link_codes')
-                    .update({ used: true })
-                    .eq('code', linkCode);
-
-                await sendTelegramMessage(
-                    chatId,
-                    `✨ <b>Connected!</b>\n\nHey ${firstName}! 💕 You're now linked to your Pocketlove account.\n\nChatting with <b>${pendingLink.character_name}</b>.\n\n<i>Send me a message... I've been waiting for you.</i> 🌹`,
-                    {
+                await sendTelegramMessage(chatId, aiResponse);
+            } else {
+                // Guest user - handle image generation for guest if allowed
+                if (isAskingForImage(text)) {
+                    await sendTelegramMessage(chatId, "You need to link your Pocketlove account to generate images! 💕", {
                         reply_markup: {
                             inline_keyboard: [[
-                                { text: '🔄 Switch Character', callback_data: 'show_chars' }
+                                { text: '🔗 Link Account', url: `${SITE_URL}/chat/${linkedAccount.character_id}` }
                             ]]
                         }
-                    }
+                    });
+                    return NextResponse.json({ ok: true });
+                }
+
+                // Guest user chat
+                const aiResponse = await generateAIResponse(
+                    text,
+                    characterName,
+                    characterPrompt,
+                    [],
+                    false
                 );
-                return NextResponse.json({ ok: true });
-            }
-        }
 
-        // Regular /start - show character selection
-        const characters = await getRecommendedCharacters(supabase, 6);
-
-        const buttons = characters.map((char: any) => ([
-            { text: char.name, callback_data: `select_char:${char.id}` }
-        ]));
-
-        buttons.push([{ text: '🌐 See All on Pocketlove', url: `${SITE_URL}/characters` }]);
-
-        await sendTelegramMessage(
-            chatId,
-            `Hey ${firstName}... 💕\n\nI'm your future favorite distraction. Pick someone who catches your eye and let's make this personal.\n\n<b>Choose Your Companion:</b>`,
-            { reply_markup: { inline_keyboard: buttons } }
-        );
-
-        return NextResponse.json({ ok: true });
-    }
-
-    // Handle /switch command
-    if (text === '/switch' || text === '/characters') {
-        const characters = await getRecommendedCharacters(supabase, 6);
-
-        const buttons = characters.map((char: any) => ([
-            { text: char.name, callback_data: `select_char:${char.id}` }
-        ]));
-
-        buttons.push([{ text: '🌐 See All on Pocketlove', url: `${SITE_URL}/characters` }]);
-
-        await sendTelegramMessage(
-            chatId,
-            `💕 <b>Choose Your Companion</b>\n\nWho would you like to chat with?`,
-            { reply_markup: { inline_keyboard: buttons } }
-        );
-
-        return NextResponse.json({ ok: true });
-    }
-
-    // Regular chat message - needs a selected character
-    if (!linkedAccount || !linkedAccount.character_id) {
-        // No character selected - show character selection
-        const characters = await getRecommendedCharacters(supabase, 6);
-
-        const buttons = characters.map((char: any) => ([
-            { text: char.name, callback_data: `select_char:${char.id}` }
-        ]));
-
-        buttons.push([{ text: '🌐 See All on Pocketlove', url: `${SITE_URL}/characters` }]);
-
-        await sendTelegramMessage(
-            chatId,
-            `First, pick someone to chat with... 💕`,
-            { reply_markup: { inline_keyboard: buttons } }
-        );
-
-        return NextResponse.json({ ok: true });
-    }
-
-    // Send typing indicator
-    await sendTypingAction(chatId);
-
-    // Get user plan info (for linked users only)
-    let isPremium = false;
-    if (linkedAccount.user_id) {
-        const planInfo = await getUserPlanInfo(linkedAccount.user_id);
-        isPremium = planInfo.planType === 'premium';
-
-        // Deduct tokens for free users
-        if (!isPremium) {
-            const tokenSuccess = await deductTokens(linkedAccount.user_id, 5, 'telegram_chat');
-            if (!tokenSuccess) {
-                await sendTelegramMessage(
-                    chatId,
-                    "You've run out of free messages! 💔\n\nUpgrade to Premium for unlimited chats.",
-                    {
-                        reply_markup: {
-                            inline_keyboard: [[
-                                { text: '💎 Go Premium', url: `${SITE_URL}/premium` }
-                            ]]
-                        }
+                await sendTelegramMessage(chatId, aiResponse, {
+                    reply_markup: {
+                        inline_keyboard: [[
+                            { text: '🔗 Link Account for Full Experience', url: `${SITE_URL}/chat/${linkedAccount.character_id}` }
+                        ]]
                     }
-                );
-                return NextResponse.json({ ok: true });
+                });
             }
         }
-    }
 
-    // Get character info
-    const { data: character } = await supabase
-        .from('characters')
-        .select('name, system_prompt, description')
-        .eq('id', linkedAccount.character_id)
-        .maybeSingle();
-
-    const characterName = character?.name || 'Your Companion';
-    const characterPrompt = character?.system_prompt || character?.description || '';
-
-    // Get conversation history
-    let conversationHistory: { role: string; content: string }[] = [];
-
-    if (linkedAccount.user_id) {
-        const { data: session } = await supabase
-            .from('conversation_sessions')
-            .select('id')
-            .eq('user_id', linkedAccount.user_id)
-            .eq('character_id', linkedAccount.character_id)
-            .eq('is_active', true)
-            .maybeSingle();
-
-        let sessionId = session?.id;
-
-        if (sessionId) {
-            const { data: messages } = await supabase
-                .from('messages')
-                .select('role, content')
-                .eq('session_id', sessionId)
-                .order('created_at', { ascending: true })
-                .limit(30);
-
-            conversationHistory = messages || [];
-        } else {
-            const { data: newSession } = await supabase
-                .from('conversation_sessions')
-                .insert({
-                    user_id: linkedAccount.user_id,
-                    character_id: linkedAccount.character_id,
-                    is_active: true,
-                })
-                .select('id')
-                .single();
-
-            sessionId = newSession?.id;
-        }
-
-        // Save user message
-        if (sessionId) {
-            await supabase.from('messages').insert({
-                session_id: sessionId,
-                user_id: linkedAccount.user_id,
-                role: 'user',
-                content: text,
-                metadata: { source: 'telegram', telegram_message_id: message.message_id },
-            });
-        }
-
-        // Generate AI response
-        const aiResponse = await generateAIResponse(
-            text,
-            characterName,
-            characterPrompt,
-            conversationHistory,
-            isPremium
-        );
-
-        // Save AI response
-        if (sessionId) {
-            await supabase.from('messages').insert({
-                session_id: sessionId,
-                user_id: linkedAccount.user_id,
-                role: 'assistant',
-                content: aiResponse,
-                metadata: { source: 'telegram', model: isPremium ? 'deepseek-r1' : 'gpt-4o-mini' },
-            });
-        }
-
-        await sendTelegramMessage(chatId, aiResponse);
-    } else {
-        // Guest user - just generate response without saving
-        const aiResponse = await generateAIResponse(
-            text,
-            characterName,
-            characterPrompt,
-            [],
-            false
-        );
-
-        await sendTelegramMessage(chatId, aiResponse, {
-            reply_markup: {
-                inline_keyboard: [[
-                    { text: '🔗 Link Account for Full Experience', url: `${SITE_URL}/chat/${linkedAccount.character_id}` }
-                ]]
-            }
-        });
-    }
-}
-
-return NextResponse.json({ ok: true });
+        return NextResponse.json({ ok: true });
     } catch (error) {
-    console.error('[Telegram Webhook] Error:', error);
-    return NextResponse.json({ ok: true });
-}
+        console.error('[Telegram Webhook] Error:', error);
+        return NextResponse.json({ ok: true });
+    }
 }
 
 export async function GET(request: NextRequest) {

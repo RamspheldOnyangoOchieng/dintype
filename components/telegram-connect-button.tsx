@@ -18,14 +18,22 @@ interface TelegramConnectButtonProps {
     userId: string
     characterId: string
     characterName: string
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
+    showTrigger?: boolean
 }
 
 export function TelegramConnectButton({
     userId,
     characterId,
     characterName,
+    open: controlledOpen,
+    onOpenChange,
+    showTrigger = true,
 }: TelegramConnectButtonProps) {
-    const [isOpen, setIsOpen] = useState(false)
+    const [internalOpen, setInternalOpen] = useState(false)
+    const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen
+    const setIsOpen = onOpenChange !== undefined ? onOpenChange : setInternalOpen
     const [isLoading, setIsLoading] = useState(false)
     const [isLinked, setIsLinked] = useState(false)
     const [linkedUsername, setLinkedUsername] = useState<string>('')
@@ -96,16 +104,18 @@ export function TelegramConnectButton({
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px]"
-                    title="Connect Telegram"
-                >
-                    <Send className="h-5 w-5" />
-                </Button>
-            </DialogTrigger>
+            {showTrigger && (
+                <DialogTrigger asChild>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px]"
+                        title="Connect Telegram"
+                    >
+                        <Send className="h-5 w-5" />
+                    </Button>
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">

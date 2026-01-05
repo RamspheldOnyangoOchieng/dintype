@@ -50,8 +50,19 @@ import { MeetOnTelegramButton } from "@/components/meet-on-telegram-button"
 import { WelcomeMessage } from "@/components/welcome-message"
 import { toast } from "sonner"
 import { ImageGenerationLoading } from "@/components/image-generation-loading"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu"
+import { Trash2, UserCircle, Settings, Info, Share2, MessageCircle } from "lucide-react"
 
 export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
+  const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
+  const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
   const [characterId, setCharacterId] = useState<string | null>(null);
   const { characters, isLoading: charactersLoading, updateCharacter, refreshCharacters } = useCharacters();
   const [character, setCharacter] = useState<any>(null);
@@ -1236,15 +1247,20 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-            <ClearChatDialog onConfirm={handleClearChat} isClearing={isClearingChat} />
-            {user?.id && character?.id && (
-              <TelegramConnectButton
-                userId={user.id}
-                characterId={character.id}
-                characterName={character.name || 'Companion'}
-              />
-            )}
+          <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-2">
+            {/* Desktop Actions */}
+            <div className="hidden sm:flex items-center gap-1 md:gap-2">
+              <ClearChatDialog onConfirm={handleClearChat} isClearing={isClearingChat} />
+              {user?.id && character?.id && (
+                <TelegramConnectButton
+                  userId={user.id}
+                  characterId={character.id}
+                  characterName={character.name || 'Companion'}
+                />
+              )}
+            </div>
+
+            {/* Profile Sidebar Toggle (Desktop only) */}
             <Button
               variant="ghost"
               size="icon"
@@ -1257,9 +1273,81 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             >
               <User className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation">
-              <MoreVertical className="h-5 w-5" />
-            </Button>
+
+            {/* Responsive More Menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation">
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-[#1A1A1A] border-[#252525] text-white min-w-[200px] z-50">
+                <DropdownMenuLabel className="text-xs text-white/40 uppercase tracking-widest font-black py-3 px-4">Chat Options</DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-[#252525]" />
+
+                {/* Mobile-only Items */}
+                <div className="sm:hidden">
+                  <DropdownMenuItem
+                    onSelect={() => setIsTelegramModalOpen(true)}
+                    className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer"
+                  >
+                    <Send className="h-4 w-4 text-primary" />
+                    <span>Connect Telegram</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onSelect={() => setIsClearDialogOpen(true)}
+                    className="flex items-center gap-3 py-3 px-4 text-red-400 focus:text-red-300 focus:bg-red-400/10 cursor-pointer"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    <span>Clear Chat History</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-[#252525]" />
+                </div>
+
+                {/* Profile Toggle for tablets/smaller desktops */}
+                <DropdownMenuItem
+                  onSelect={() => setIsProfileOpen(!isProfileOpen)}
+                  className="lg:hidden flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer"
+                >
+                  <UserCircle className="h-4 w-4" />
+                  <span>{isProfileOpen ? "Hide Profile Details" : "Show Profile Details"}</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem asChild>
+                  <Link href={`/characters/${character?.id}`} className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer w-full">
+                    <Info className="h-4 w-4" />
+                    <span>Character Settings</span>
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer">
+                  <Share2 className="h-4 w-4" />
+                  <span>Share Character</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Hidden Dialogs that are triggered by the menu */}
+            <div className="hidden">
+              <ClearChatDialog
+                onConfirm={handleClearChat}
+                isClearing={isClearingChat}
+                open={isClearDialogOpen}
+                onOpenChange={setIsClearDialogOpen}
+                showTrigger={false}
+              />
+              {user?.id && character?.id && (
+                <TelegramConnectButton
+                  userId={user.id}
+                  characterId={character.id}
+                  characterName={character.name || 'Companion'}
+                  open={isTelegramModalOpen}
+                  onOpenChange={setIsTelegramModalOpen}
+                  showTrigger={false}
+                />
+              )}
+            </div>
           </div>
         </div>
 
@@ -1291,14 +1379,14 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                         {message.content.replace(/\[TELEGRAM_LINK\]/g, '')}
                       </p>
                       {message.content.includes('[TELEGRAM_LINK]') && character && (
-                         <div className="mt-3">
-                           <MeetOnTelegramButton 
-                             characterId={character.id} 
-                             characterName={character.name}
-                             variant="secondary"
-                             className="w-full bg-blue-500/20 text-blue-200 hover:bg-blue-500/30 border-blue-500/20"
-                           />
-                         </div>
+                        <div className="mt-3">
+                          <MeetOnTelegramButton
+                            characterId={character.id}
+                            characterName={character.name}
+                            variant="secondary"
+                            className="w-full bg-blue-500/20 text-blue-200 hover:bg-blue-500/30 border-blue-500/20"
+                          />
+                        </div>
                       )}
                     </>
                   )}
