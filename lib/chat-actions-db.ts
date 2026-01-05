@@ -17,17 +17,9 @@ export type Message = {
 }
 
 /**
- * Detect language of the message (simple check)
+ * Detect language of the message (English only - Swedish removed)
  */
-function detectLanguage(text: string): "sv" | "en" {
-  const swedishWords = ["hej", "tjena", "hur", "mår", "du", "bra", "tack", "vad", "gör", "fin", "snygg", "älskar", "dig", "fitta", "kuk", "sex", "knulla", "bröst", "tuttar", "vacker", "söndag", "måndag"];
-  const lowerText = text.toLowerCase();
-
-  const svCount = swedishWords.filter(word => lowerText.includes(word)).length;
-  const englishWords = ["hi", "hello", "how", "are", "you", "good", "thanks", "what", "doing", "beautiful", "love", "fuck", "dick", "pussy", "naked", "nude", "tit", "breast", "boob", "sexy", "hot", "want", "need"];
-  const enCount = englishWords.filter(word => lowerText.includes(word)).length;
-
-  if (svCount > enCount) return "sv";
+function detectLanguage(text: string): "en" {
   return "en";
 }
 
@@ -141,7 +133,7 @@ export async function sendChatMessageDB(
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: lang === "sv" ? "Jag genererar en bild åt dig. Vänta lite..." : "I'm generating an image for you. Just a moment...",
+        content: "I'm generating an image for you. Just a moment...",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         isImage: true
       }
@@ -196,7 +188,7 @@ export async function sendChatMessageDB(
 ### SYSTEM INSTRUCTIONS ###
 - Keep all responses SFW.
 - Limit to 2 short sentences.
-- Respond in ${lang === 'sv' ? 'Swedish' : 'English'}.`
+- Respond in English.`
     }
 
     const apiMessages = [

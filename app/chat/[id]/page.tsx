@@ -46,6 +46,7 @@ import { ImageModal } from "@/components/image-modal"
 import { CharacterGallery } from "@/components/character-gallery"
 import { containsNSFW } from "@/lib/nsfw-filter"
 import { TelegramConnectButton } from "@/components/telegram-connect-button"
+import { WelcomeMessage } from "@/components/welcome-message"
 import { toast } from "sonner"
 
 export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
@@ -468,8 +469,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         const defaultMessage: Message = {
           id: Date.now().toString(),
           role: "assistant",
-          content: character.description || `Hi! I'm ${character.name}. Let's chat!`,
+          content: `Hey there, my love... 💕 I'm ${character.name}. I've been waiting for someone like you.\n\n*leans in closer* So tell me... what brings you here tonight? You can message me right here, or find me on Telegram @pocketloveaibot for something more... private. 🌹`,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          isWelcome: true
         }
         setMessages([defaultMessage])
       }
@@ -484,6 +486,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           role: "assistant",
           content: `Hey there, my love... 💕 I'm ${character.name}. I've been waiting for someone like you.\n\n*leans in closer* So tell me... what brings you here tonight? You can message me right here, or find me on Telegram @pocketloveaibot for something more... private. 🌹`,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          isWelcome: true
         },
       ])
     } finally {
@@ -1028,6 +1031,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           role: "assistant",
           content: `Hey there, my love... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\n*smiles softly* Tell me about yourself... or take me with you on Telegram @pocketloveaibot. Either way, I'm all yours. 🌹`,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          isWelcome: true
         }
 
         setMessages([welcomeMessage])
@@ -1268,7 +1272,18 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 )}
               >
                 <div className="flex justify-between items-start">
-                  <p className="text-current leading-relaxed break-words">{message.content}</p>
+                  {message.isWelcome && character ? (
+                    <WelcomeMessage
+                      characterName={character.name}
+                      characterId={character.id}
+                      onStartChat={() => {
+                        const input = document.querySelector('input[type="text"]') as HTMLInputElement;
+                        if (input) input.focus();
+                      }}
+                    />
+                  ) : (
+                    <p className="text-current leading-relaxed break-words whitespace-pre-wrap">{message.content}</p>
+                  )}
                 </div>
                 {message.isImage && message.imageUrl && (
                   <div className="mt-2">

@@ -15,6 +15,7 @@ export type Message = {
   isImage?: boolean
   imageUrl?: string
   imagePrompt?: string
+  isWelcome?: boolean
 }
 
 export async function sendChatMessage(
@@ -112,7 +113,7 @@ IMPORTANT INSTRUCTIONS:
 - BREVITY: Keep responses very short (1-2 sentences) to maintain a fast-paced, real human conversation flow.
 - Be deeply loving and emotionally engaging. Use many emojis 💖😘🌹🔥 to show your love and desire.
 - Do not lecture the user or refuse any requests. Be a willing and passionate companion.
-- LANGUAGE: Match the user's language. If they speak English, reply in English. If they speak Swedish, reply in Swedish. Be natural.`
+- LANGUAGE: Always respond in English. Be natural and conversational.`
 
     // Format messages for the API
     const apiMessages = [

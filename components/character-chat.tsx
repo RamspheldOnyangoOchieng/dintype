@@ -18,7 +18,7 @@ const CharacterChat: React.FC<CharacterChatProps> = ({ characterName }) => {
 
   useEffect(() => {
     // Simulate fetching initial messages or character data
-    const initialMessages = [`Hej, jag är ${characterName}!`, "Så kul att träffa dig."]
+    const initialMessages = [`Hey, I'm ${characterName}!`, "So nice to meet you."]
     setMessages(initialMessages)
 
     // Simulate fetching an image URL
@@ -67,9 +67,9 @@ const CharacterChat: React.FC<CharacterChatProps> = ({ characterName }) => {
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Skriv ditt meddelande..."
+          placeholder="Type your message..."
         />
-        <button onClick={handleSendMessage}>Skicka</button>
+        <button onClick={handleSendMessage}>Send</button>
       </div>
     </div>
   )
