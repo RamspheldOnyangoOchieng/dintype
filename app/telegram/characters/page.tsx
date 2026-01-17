@@ -119,7 +119,7 @@ export default function TelegramMiniAppPage() {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-transparent">
+            <div className="flex flex-col items-center justify-center bg-transparent" style={{ height: viewportHeight ? `${viewportHeight}px` : '400px' }}>
                 <Loader2 className="w-8 h-8 text-[#ff0080] animate-spin" />
             </div>
         )
@@ -131,10 +131,10 @@ export default function TelegramMiniAppPage() {
     })
 
     return (
-        <div className="bg-transparent min-h-screen flex flex-col justify-end text-white select-none">
+        <div className="bg-transparent flex flex-col justify-end text-white select-none overflow-x-hidden">
             {/* The Bottom Sheet Panel with Reference Design */}
             <div className="bg-[#0b0b0b] rounded-t-[1.5rem] border-t border-white/5 overflow-hidden flex flex-col shadow-2xl"
-                style={{ height: '80vh' }}>
+                style={{ height: viewportHeight ? `${viewportHeight}px` : '80vh' }}>
 
                 {/* Header Navigation */}
                 <div className="flex items-center justify-between px-5 pt-4 pb-2">
