@@ -119,8 +119,6 @@ export default function TelegramMiniAppPage() {
                     tg.BackButton.onClick(() => {
                         if (viewMode === 'full') {
                             setViewMode('mini')
-                        } else if (viewMode === 'mini') {
-                            setViewMode('collapsed')
                         } else {
                             tg.close()
                         }
@@ -135,6 +133,20 @@ export default function TelegramMiniAppPage() {
 
         fetchInitialData()
     }, [viewMode])
+
+    const handleExpandApp = () => {
+        setViewMode('full')
+    }
+
+    const handleCloseApp = () => {
+        if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+            window.Telegram.WebApp.close()
+        }
+    }
+
+    const handleMiniMode = () => {
+        setViewMode('mini')
+    }
 
     // Filter characters by gender
     const filteredCharacters = characters.filter(char => {
@@ -175,13 +187,7 @@ export default function TelegramMiniAppPage() {
     }
 
     const handleExpandApp = () => {
-        // Note: We intentionally don't call expand() here to keep the Telegram header visible
-        // The app appears as a panel within Telegram rather than fullscreen
         setViewMode('full')
-    }
-
-    const handleCollapseApp = () => {
-        setViewMode('collapsed')
     }
 
     const handleMiniMode = () => {
@@ -204,30 +210,7 @@ export default function TelegramMiniAppPage() {
         )
     }
 
-    // Collapsed View - Just profile picture bubble
-    if (viewMode === 'collapsed' && selectedCharacter) {
-        return (
-            <div
-                className="fixed bottom-4 right-4 z-50 cursor-pointer"
-                onClick={handleExpandApp}
-            >
-                <div className="relative">
-                    <div className="w-16 h-16 rounded-full overflow-hidden border-3 border-[#ff0080] shadow-[0_0_20px_rgba(255,0,128,0.5)] animate-pulse">
-                        <Image
-                            src={selectedCharacter.image_url || selectedCharacter.image || "/placeholder.svg"}
-                            alt={selectedCharacter.name}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                        />
-                    </div>
-                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-[#ff0080] rounded-full flex items-center justify-center">
-                        <ChevronUp className="w-3 h-3 text-white" />
-                    </div>
-                </div>
-            </div>
-        )
-    }
+
 
     // Mini View - "Half-way" panel that lets you see Telegram behind it
     if (viewMode === 'mini') {
@@ -242,14 +225,21 @@ export default function TelegramMiniAppPage() {
                 <div className="flex flex-col items-center pt-3 pb-1" onClick={handleExpandApp}>
                     <div className="w-12 h-1.5 bg-white/20 rounded-full mb-3" />
                     <div className="flex items-center justify-between w-full px-6">
-                        <button onClick={(e) => { e.stopPropagation(); handleCollapseApp(); }} className="text-white/40 text-xs font-bold uppercase tracking-widest">
-                            Hide
+                        <button
+                            onClick={(e) => { e.stopPropagation(); handleCloseApp(); }}
+                            className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 active:scale-90 transition-transform"
+                        >
+                            <X className="w-5 h-5 text-white/50" />
                         </button>
                         <div className="text-center">
                             <h2 className="text-white font-black text-xs tracking-tighter uppercase">Assistant</h2>
+                            <p className="text-[8px] text-white/20 font-bold uppercase mt-0.5">Mini App</p>
                         </div>
-                        <button onClick={handleExpandApp} className="text-[#ff0080] text-xs font-bold uppercase tracking-widest">
-                            Full
+                        <button
+                            onClick={(e) => { e.stopPropagation(); handleExpandApp(); }}
+                            className="w-10 h-10 rounded-2xl bg-[#ff0080] flex items-center justify-center shadow-[0_0_15px_rgba(255,0,128,0.4)] active:scale-95 transition-transform"
+                        >
+                            <ChevronUp className="w-5 h-5 text-white" />
                         </button>
                     </div>
                 </div>
@@ -342,7 +332,7 @@ export default function TelegramMiniAppPage() {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 bg-black/95 backdrop-blur z-30 flex-shrink-0">
                 <button
-                    onClick={handleCollapseApp}
+                    onClick={handleCloseApp}
                     className="text-white hex-primary-text font-medium text-sm hover:opacity-70 transition-opacity"
                 >
                     Close
