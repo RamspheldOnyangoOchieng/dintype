@@ -29,9 +29,9 @@ export default function TelegramMiniAppPage() {
     const [loading, setLoading] = useState(true)
     const [filter, setFilter] = useState<'female' | 'male'>("female")
     const [selectingId, setSelectingId] = useState<string | null>(null)
-    const [tokens, setTokens] = useState(12)
+    const [tokens, setTokens] = useState(0)
     const [diamonds, setDiamonds] = useState(0)
-    const [userName, setUserName] = useState("Jugador")
+    const [userName, setUserName] = useState("Player")
     const [viewportHeight, setViewportHeight] = useState<number | null>(null)
 
     const supabase = createClient()
@@ -39,7 +39,7 @@ export default function TelegramMiniAppPage() {
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                // Fetch characters
+                // Fetch REAL character data from Supabase
                 const { data: charData } = await supabase
                     .from('characters')
                     .select('*')
@@ -51,12 +51,10 @@ export default function TelegramMiniAppPage() {
                 if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
                     const tg = window.Telegram.WebApp
                     tg.ready()
-
-                    // DO NOT tg.expand() - we want it to stay mini as per reference
                     tg.setHeaderColor('#000000')
 
                     const user = tg.initDataUnsafe?.user
-                    if (user) setUserName(user.first_name || "Jugador")
+                    if (user) setUserName(user.first_name || "Player")
 
                     // Update viewport
                     setViewportHeight(tg.viewportHeight)
@@ -64,7 +62,7 @@ export default function TelegramMiniAppPage() {
                         setViewportHeight(tg.viewportHeight)
                     })
 
-                    // Fetch user balances
+                    // Fetch actual user data from backend
                     const response = await fetch('/api/telegram/user-data', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -108,7 +106,6 @@ export default function TelegramMiniAppPage() {
                 })
             })
 
-            // On success, close the app to get back into the chat instantly
             if (response.ok) {
                 if (tg) tg.close()
             }
@@ -135,41 +132,40 @@ export default function TelegramMiniAppPage() {
 
     return (
         <div className="bg-transparent min-h-screen flex flex-col justify-end text-white select-none">
-            {/* The Bottom Sheet - Exactly matching the reference image */}
+            {/* The Bottom Sheet Panel with Reference Design */}
             <div className="bg-[#0b0b0b] rounded-t-[1.5rem] border-t border-white/5 overflow-hidden flex flex-col shadow-2xl"
-                style={{ height: '78vh' }}>
+                style={{ height: '80vh' }}>
 
                 {/* Header Navigation */}
                 <div className="flex items-center justify-between px-5 pt-4 pb-2">
                     <button
                         onClick={() => window.Telegram?.WebApp?.close()}
-                        className="text-white text-md font-medium px-1"
+                        className="text-white text-md font-medium px-1 hover:opacity-70 transition-opacity"
                     >
                         Close
                     </button>
 
                     <div className="text-center">
-                        <h2 className="text-white font-bold text-[14px] leading-tight">Your Wife</h2>
-                        <p className="text-white/30 text-[10px] font-medium leading-tight">mini app</p>
+                        <h2 className="text-white font-bold text-[14px] leading-tight">PocketLove</h2>
+                        <p className="text-white/30 text-[10px] font-medium leading-tight lowercase">mini app</p>
                     </div>
 
-                    <button className="w-8 h-8 rounded-full flex items-center justify-center border border-white/10">
+                    <button className="w-8 h-8 rounded-full flex items-center justify-center border border-white/10 active:bg-white/5">
                         <MoreVertical className="w-4 h-4 text-white/70" />
                     </button>
                 </div>
 
-                {/* Greeting & Status Bar */}
+                {/* English Greeting & LIVE User Data */}
                 <div className="px-5 py-4 flex items-center justify-between">
                     <div>
                         <div className="flex items-center gap-1">
-                            <span className="text-white font-bold text-sm">Hola</span>
-                            <span className="text-white/40 text-sm">|</span>
+                            <span className="text-white font-bold text-sm">Hello,</span>
                             <span className="text-white font-bold text-sm tracking-tight">{userName}</span>
                         </div>
-                        <p className="text-white/30 text-[10px] font-medium mt-0.5">¡Hablemos!</p>
+                        <p className="text-white/30 text-[10px] font-medium mt-0.5 lowercase tracking-wider">Start a dialogue!</p>
                     </div>
 
-                    {/* Status Pill */}
+                    {/* Backend Linked Status Pill */}
                     <div className="bg-[#151515] rounded-xl flex items-center overflow-hidden border border-white/5">
                         <div className="flex items-center gap-1.5 px-3 py-1.5">
                             <Heart className="w-3.5 h-3.5 text-cyan-400 fill-cyan-400" />
@@ -179,35 +175,35 @@ export default function TelegramMiniAppPage() {
                             <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
                             <span className="text-white text-xs font-bold">{tokens}</span>
                         </div>
-                        <button className="bg-[#ff0080] p-1.5 px-2.5">
+                        <button className="bg-[#ff0080] p-1.5 px-2.5 active:opacity-80 transition-opacity">
                             <Plus className="w-3.5 h-3.5 text-white" strokeWidth={3} />
                         </button>
                     </div>
                 </div>
 
-                {/* Section Title */}
+                {/* English Header */}
                 <div className="px-5 py-2 flex items-center gap-2">
-                    <h2 className="text-2xl font-black text-white tracking-tight">Personajes</h2>
+                    <h2 className="text-2xl font-black text-white tracking-tight">Characters</h2>
                     <Users className="w-5 h-5 text-white/50" />
                 </div>
 
-                {/* Gender Tabs */}
+                {/* Gender Tabs with English Labels */}
                 <div className="px-5 py-3 flex gap-3">
                     <button
                         onClick={() => setFilter('female')}
                         className={`flex-1 py-3.5 rounded-xl text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all ${filter === 'female' ? 'bg-gradient-to-r from-[#ff0080] to-[#7928ca] text-white' : 'bg-[#151515] text-white/30'}`}
                     >
-                        ♀ FEMENINO
+                        ♀ FEMALE
                     </button>
                     <button
                         onClick={() => setFilter('male')}
                         className={`flex-1 py-3.5 rounded-xl text-[10px] font-black tracking-widest flex items-center justify-center gap-2 transition-all ${filter === 'male' ? 'bg-white/40 text-black' : 'bg-[#151515] text-white/30'}`}
                     >
-                        ♂ MASCULINO
+                        ♂ MALE
                     </button>
                 </div>
 
-                {/* Characters Grid */}
+                {/* Characters Grid with REAL database content */}
                 <div className="flex-1 overflow-y-auto px-5 pt-2 pb-10 custom-scrollbar">
                     <div className="grid grid-cols-2 gap-4">
                         {filteredCharacters.map((char) => (
@@ -239,12 +235,6 @@ export default function TelegramMiniAppPage() {
                     </div>
                 </div>
             </div>
-
-            {/* Background click to close area (not visible but facilitates the feel) */}
-            <div
-                className="absolute top-0 left-0 right-0 h-[22vh] cursor-pointer"
-                onClick={() => window.Telegram?.WebApp?.close()}
-            />
 
             <style jsx>{`
                 .custom-scrollbar::-webkit-scrollbar {
