@@ -76,9 +76,8 @@ export default function TelegramMiniAppPage() {
                     const tg = window.Telegram.WebApp
                     tg.ready()
 
-                    // Match the dark theme
+                    // Match the dark theme but don't force a background color
                     tg.setHeaderColor('#000000')
-                    tg.setBackgroundColor('#000000')
 
                     const updateViewport = () => {
                         if (tg.viewportStableHeight) {
@@ -139,6 +138,9 @@ export default function TelegramMiniAppPage() {
     }, [viewMode])
 
     const handleExpandApp = () => {
+        if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+            window.Telegram.WebApp.expand()
+        }
         setViewMode('full')
     }
 

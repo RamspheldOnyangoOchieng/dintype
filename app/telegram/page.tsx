@@ -19,9 +19,8 @@ export default function TelegramRootPage() {
         if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
             const tg = window.Telegram.WebApp
             tg.ready()
-            tg.expand()
+            // Removed tg.expand() to allow app to start as a "halfway" bottom sheet
             tg.setHeaderColor('#000000')
-            tg.setBackgroundColor('#000000')
         }
 
         // Redirect to characters page

@@ -31,7 +31,14 @@ export default function TelegramLayout({
                 remains visible at the top. The WebApp API provides viewport height 
                 which the child components use.
             */}
-            <div className="bg-black text-white overflow-hidden">
+            <div className="text-white overflow-hidden bg-transparent">
+                <style dangerouslySetInnerHTML={{
+                    __html: `
+                    html, body { 
+                        background: transparent !important; 
+                        background-color: transparent !important;
+                    }
+                ` }} />
                 {children}
             </div>
         </>
