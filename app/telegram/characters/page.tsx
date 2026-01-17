@@ -103,7 +103,8 @@ export default function TelegramMiniAppPage() {
             })
 
             if (response.ok) {
-                // Stay open in mini mode so the user can see the chat above
+                // Success - close the app immediately to return to the Telegram chat
+                if (tg) tg.close()
                 setSelectingId(null)
             }
         } catch (err) {
