@@ -88,3 +88,54 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Independent Scroll Panes - Prevent scroll bleed between panes */
+@layer components {
+  .scroll-pane {
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Custom scrollbar styling for dark theme */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  .scrollbar-thumb-gray-800::-webkit-scrollbar-thumb {
+    background: #27272a;
+  }
+
+  .scrollbar-thumb-gray-800::-webkit-scrollbar-thumb:hover {
+    background: #3f3f46;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Chat background styling */
+  .chat-background {
+    background: linear-gradient(180deg, rgba(10, 10, 10, 0.95) 0%, rgba(15, 15, 15, 0.98) 100%);
+  }
+}

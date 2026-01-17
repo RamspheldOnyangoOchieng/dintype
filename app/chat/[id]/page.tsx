@@ -1251,12 +1251,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   return (
     <div
       key="chat-page-root"
-      className="flex flex-col md:flex-row bg-background h-full w-full overflow-hidden"
-      style={{ position: 'relative', top: 0 }}
+      className="flex flex-col md:flex-row bg-background w-full overflow-hidden"
+      style={{ position: 'relative', top: 0, height: '100vh', maxHeight: '100vh' }}
       suppressHydrationWarning
     >
-      {/* Left Sidebar - Chat List */}
-      <div className="hidden md:block md:w-72 border-b md:border-b-0 md:border-r border-border flex flex-col rounded-tr-2xl rounded-br-2xl">
+      {/* Left Sidebar - Chat List - Independent Scroll */}
+      <div className="hidden md:flex md:w-72 border-b md:border-b-0 md:border-r border-border flex-col rounded-tr-2xl rounded-br-2xl h-full overflow-hidden">
         <div className="p-4 border-b border-border flex items-center justify-between">
           <div className="flex items-center">
             <Button variant="ghost" size="icon" className="mr-2 md:hidden" onClick={toggle}>
@@ -1271,7 +1271,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             <Input placeholder={t("chat.searchForProfile")} className="pl-9 bg-card border-none" />
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800">
+        <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800" style={{ overscrollBehavior: 'contain' }}>
           <div className="p-2 space-y-2">
             {/* Chat List Items - Only show characters with chat history */}
             {characters
@@ -1317,8 +1317,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         </div>
       </div>
 
-      {/* Middle - Chat Area */}
-      <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+      {/* Middle - Chat Area - Independent Scroll with Fixed Header */}
+      <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
         {/* Story Mode Progress Bar */}
         {storyProgress && !storyProgress.is_completed && currentChapter && (
           <div className="bg-background/95 backdrop-blur px-4 py-2 border-b border-border z-20">
@@ -1331,8 +1331,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             <Progress value={(storyProgress.current_chapter_number / 10) * 100} className="h-1 bg-secondary [&>div]:bg-amber-500" />
           </div>
         )}
-        {/* Chat Header */}
-        <div className="border-b border-border flex items-center px-3 md:px-4 py-3 md:py-4 justify-between bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
+        {/* Chat Header - Fixed/Static */}
+        <div className="border-b border-border flex items-center px-3 md:px-4 py-3 md:py-4 justify-between bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10 flex-shrink-0">
           <div className="flex items-center min-w-0 flex-1">
             <Button
               variant="ghost"
@@ -1484,8 +1484,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           </div>
         </div>
 
-        {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 scroll-smooth overscroll-behavior-contain min-h-0 chat-background" data-messages-container>
+        {/* Chat Messages - Scrollable Area */}
+        <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 scroll-smooth min-h-0 chat-background" style={{ overscrollBehavior: 'contain' }} data-messages-container>
           {messages.map((message) => (
             <div key={message.id} className={`flex w-full ${message.role === "user" ? "justify-end" : "justify-start"}`}>
               <div
@@ -1612,12 +1612,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         </div>
       </div>
 
-      {/* Right Sidebar - Profile */}
+      {/* Right Sidebar - Profile - Independent Scroll */}
       <div className={cn(
-        "hidden border-l border-border transition-all duration-300 ease-in-out bg-background/50 backdrop-blur-sm",
-        isProfileOpen ? "lg:block lg:w-80" : "lg:hidden w-0 overflow-hidden"
+        "hidden border-l border-border transition-all duration-300 ease-in-out bg-background/50 backdrop-blur-sm h-full",
+        isProfileOpen ? "lg:flex lg:flex-col lg:w-80" : "lg:hidden w-0 overflow-hidden"
       )}>
-        <div className="h-full overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800">
+        <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800" style={{ overscrollBehavior: 'contain' }}>
           {/* Profile Images Carousel */}
           <div className="relative w-full h-[280px]">
             {showVideo ? (
@@ -1747,18 +1747,36 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               />
             )}
 
-            <Button
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground border-none font-bold h-12 mt-2"
-              onClick={handleAdvancedGenerate}
-            >
-              <Wand2 className="mr-2 h-5 w-5" />
-              {t("generate.generate")}
-            </Button>
-            {storyProgress && !storyProgress.is_completed && (
-              <div className="text-center mt-2 text-xs text-amber-500 flex items-center justify-center gap-1">
-                <Lock className="h-3 w-3" /> Image generation locked until story complete
-              </div>
-            )}
+            {/* Generate Image Button - Locked during story mode */}
+            {(() => {
+              const isLocked = storyProgress && !storyProgress.is_completed;
+              return (
+                <>
+                  <Button
+                    className={cn(
+                      "w-full border-none font-bold h-12 mt-2 transition-all duration-300",
+                      isLocked
+                        ? "bg-primary/30 hover:bg-primary/40 text-primary-foreground/60 cursor-not-allowed"
+                        : "bg-primary hover:bg-primary/90 text-primary-foreground"
+                    )}
+                    onClick={handleAdvancedGenerate}
+                    disabled={isLocked}
+                  >
+                    {isLocked ? (
+                      <Lock className="mr-2 h-5 w-5 text-amber-500/80" />
+                    ) : (
+                      <Wand2 className="mr-2 h-5 w-5" />
+                    )}
+                    {t("generate.generate")}
+                  </Button>
+                  {isLocked && (
+                    <div className="text-center mt-2 text-xs text-amber-500/80 flex items-center justify-center gap-1">
+                      <Lock className="h-3 w-3" /> Image generation locked until story complete
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </div>
       </div>
