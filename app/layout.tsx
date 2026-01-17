@@ -56,7 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
       </head>
-      <body className={cn("bg-background font-sans antialiased overflow-x-hidden", poppins.variable)} style={{ margin: 0, padding: 0, position: 'relative', top: 0 }}>
+      <body className={cn("font-sans antialiased overflow-x-hidden", poppins.variable)} style={{ margin: 0, padding: 0, position: 'relative', top: 0, background: 'transparent' }}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <AuthProvider>
             <AuthModalProvider>

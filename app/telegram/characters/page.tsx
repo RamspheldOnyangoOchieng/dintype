@@ -55,6 +55,7 @@ export default function TelegramMiniAppPage() {
     const [telegramUser, setTelegramUser] = useState<any>(null)
     const [viewportHeight, setViewportHeight] = useState<number | null>(null)
     const [showMoreMenu, setShowMoreMenu] = useState(false)
+    const [isMiniExpanded, setIsMiniExpanded] = useState(false)
 
     const supabase = createClient()
 
@@ -111,8 +112,9 @@ export default function TelegramMiniAppPage() {
                                     const activeChar = (charData as any[]).find((c: any) => c.id === data.user.activeCharacterId)
                                     if (activeChar) {
                                         setSelectedCharacter(activeChar as Character)
-                                        // If we already have a character, start in helper mode
+                                        // If we already have a character, start in docked helper mode
                                         setViewMode('mini')
+                                        setIsMiniExpanded(false)
                                     }
                                 }
                             }
@@ -122,6 +124,7 @@ export default function TelegramMiniAppPage() {
                     tg.BackButton.onClick(() => {
                         if (viewMode === 'full') {
                             setViewMode('mini')
+                            setIsMiniExpanded(true)
                         } else {
                             tg.close()
                         }
@@ -135,7 +138,7 @@ export default function TelegramMiniAppPage() {
         }
 
         fetchInitialData()
-    }, [viewMode])
+    }, []) // Only fetch once on mount
 
     const handleExpandApp = () => {
         if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
@@ -180,8 +183,11 @@ export default function TelegramMiniAppPage() {
             })
 
             if (response.ok) {
-                // Success - switch to helper mode immediately
-                setViewMode('mini')
+                // Success - close the app immediately to return to the Telegram chat
+                // This is what the user meant by "getting into the chat immediately"
+                if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+                    window.Telegram.WebApp.close()
+                }
                 setSelectingId(null)
             }
         } catch (err) {
@@ -197,11 +203,13 @@ export default function TelegramMiniAppPage() {
     if (loading) {
         return (
             <div
-                className="flex flex-col items-center justify-center bg-black"
+                className="flex flex-col items-center justify-center bg-transparent"
                 style={{ height: viewportHeight ? `${viewportHeight}px` : 'calc(100vh - 60px)' }}
             >
-                <Loader2 className="w-8 h-8 text-[#ff0080] animate-spin" />
-                <p className="mt-4 text-gray-400 font-medium tracking-tight">Loading...</p>
+                <div className="bg-black/80 backdrop-blur-xl p-8 rounded-[2.5rem] flex flex-col items-center border border-white/10 shadow-2xl">
+                    <Loader2 className="w-10 h-10 text-[#ff0080] animate-spin" />
+                    <p className="mt-4 text-white font-black uppercase text-[10px] tracking-widest">Initializing...</p>
+                </div>
             </div>
         )
     }
@@ -210,107 +218,139 @@ export default function TelegramMiniAppPage() {
 
     // Mini View - "Half-way" panel that lets you see Telegram behind it
     if (viewMode === 'mini') {
-        const miniHeight = viewportHeight ? Math.floor(viewportHeight * 0.5) : 380;
+        const miniHeight = isMiniExpanded
+            ? (viewportHeight ? Math.floor(viewportHeight * 0.55) : 420)
+            : 85; // Very small bar when docked
 
         return (
             <div
-                className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-2xl rounded-t-[2.5rem] shadow-[0_-20px_60px_rgba(0,0,0,0.9)] z-50 overflow-hidden border-t border-white/10 animate-in slide-in-from-bottom duration-500"
+                className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-3xl rounded-t-[2rem] shadow-[0_-20px_60px_rgba(0,0,0,0.8)] z-50 overflow-hidden border-t border-white/10 transition-all duration-500 ease-in-out"
                 style={{ height: `${miniHeight}px` }}
             >
-                {/* Drag Handle & Header */}
-                <div className="flex flex-col items-center pt-3 pb-1" onClick={handleExpandApp}>
-                    <div className="w-12 h-1.5 bg-white/20 rounded-full mb-3" />
-                    <div className="flex items-center justify-between w-full px-6">
-                        <button
-                            onClick={(e) => { e.stopPropagation(); handleCloseApp(); }}
-                            className="text-white/40 text-xs font-bold uppercase tracking-widest px-4 py-2 hover:text-white transition-colors"
-                        >
-                            Close App
-                        </button>
-                        <div className="text-center">
-                            <h2 className="text-white font-black text-xs tracking-tighter uppercase">PocketLove Assistant</h2>
-                        </div>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); handleExpandApp(); }}
-                            className="bg-[#ff0080] text-white text-[10px] font-black uppercase px-4 py-2 rounded-xl shadow-[0_4px_15px_rgba(255,0,128,0.4)] active:scale-95 transition-all"
-                        >
-                            Open Cards
-                        </button>
-                    </div>
-                </div>
-
-                {/* Quick Info & Active Character */}
-                <div className="px-6 py-4 flex items-center justify-between border-b border-white/5">
-                    {selectedCharacter ? (
+                {/* Compact "Docked" Header (Visible when collapsed) */}
+                {!isMiniExpanded && (
+                    <div className="flex items-center justify-between h-[85px] px-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#ff0080]">
-                                <Image
-                                    src={selectedCharacter.image_url || selectedCharacter.image || "/placeholder.svg"}
-                                    alt={selectedCharacter.name}
-                                    width={48} height={48} className="object-cover"
-                                    unoptimized
-                                />
-                            </div>
-                            <div>
-                                <h3 className="text-white font-black text-sm">{selectedCharacter.name}</h3>
-                                <p className="text-[#ff0080] text-[10px] font-bold uppercase">Active Chat</p>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
-                                <Users className="w-5 h-5 text-white/20" />
-                            </div>
-                            <div>
-                                <h3 className="text-white/40 font-bold text-sm">No Active Chat</h3>
-                                <p className="text-white/20 text-[10px] font-bold uppercase">Pick a character</p>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="flex items-center gap-3">
-                        <div className="flex flex-col items-end">
-                            <div className="flex items-center gap-1">
-                                <Zap className="w-3 h-3 text-amber-400" />
-                                <span className="text-white font-black text-xs">{tokens}</span>
-                            </div>
-                            <span className="text-white/30 text-[8px] font-bold uppercase">Tokens</span>
-                        </div>
-                        <button onClick={handleExpandApp} className="w-10 h-10 rounded-2xl bg-[#ff0080] flex items-center justify-center shadow-[0_0_15px_rgba(255,0,128,0.4)]">
-                            <Plus className="w-5 h-5 text-white" />
-                        </button>
-                    </div>
-                </div>
-
-                {/* Horizontal Character Selection (Mini) */}
-                <div className="px-6 py-4">
-                    <div className="flex items-center justify-between mb-3">
-                        <span className="text-white/40 text-[10px] font-black uppercase tracking-widest">Switch Partner</span>
-                        <div className="flex gap-2">
-                            <button onClick={() => setFilter('female')} className={`text-[10px] font-black ${filter === 'female' ? 'text-white' : 'text-white/20'}`}>♀</button>
-                            <button onClick={() => setFilter('male')} className={`text-[10px] font-black ${filter === 'male' ? 'text-white' : 'text-white/20'}`}>♂</button>
-                        </div>
-                    </div>
-                    <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-                        {filteredCharacters.slice(0, 8).map((char) => (
-                            <div
-                                key={char.id}
-                                onClick={() => handleSelect(char)}
-                                className={`flex-shrink-0 w-24 flex flex-col items-center gap-2 transition-all active:scale-90 ${selectedCharacter?.id === char.id ? 'opacity-100' : 'opacity-40 hover:opacity-100'}`}
-                            >
-                                <div className={`relative w-20 h-20 rounded-3xl overflow-hidden border-2 transition-all ${selectedCharacter?.id === char.id ? 'border-[#ff0080] shadow-[0_0_15px_rgba(255,0,128,0.3)]' : 'border-white/10'}`}>
-                                    <Image src={char.image_url || char.image || "/placeholder.svg"} alt={char.name} fill className="object-cover" unoptimized />
-                                    {selectingId === char.id && (
-                                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                                            <Loader2 className="w-6 h-6 text-white animate-spin" />
+                            {selectedCharacter ? (
+                                <>
+                                    <div className="w-11 h-11 rounded-full overflow-hidden border-2 border-[#ff0080]">
+                                        <Image src={selectedCharacter.image_url || selectedCharacter.image || "/placeholder.svg"} alt={selectedCharacter.name} width={44} height={44} className="object-cover" unoptimized />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-white font-black text-sm leading-tight">{selectedCharacter.name}</h3>
+                                        <div className="flex items-center gap-1">
+                                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                                            <span className="text-white/40 text-[9px] font-bold uppercase">Active Chat</span>
                                         </div>
-                                    )}
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="text-white/30 text-xs font-bold uppercase">No Active Chat</div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <div className="flex flex-col items-end">
+                                <div className="flex items-center gap-1">
+                                    <Zap className="w-3 h-3 text-amber-400" />
+                                    <span className="text-white font-black text-xs">{tokens}</span>
                                 </div>
-                                <span className="text-white text-[10px] font-bold truncate w-full text-center">{char.name}</span>
+                                <span className="text-white/30 text-[8px] font-bold uppercase tracking-tighter">Tokens</span>
                             </div>
-                        ))}
+                            <button
+                                onClick={() => setIsMiniExpanded(true)}
+                                className="w-10 h-10 rounded-2xl bg-[#ff0080] flex items-center justify-center shadow-[0_4px_15px_rgba(255,0,128,0.4)] active:scale-90 transition-all"
+                            >
+                                <Plus className="w-5 h-5 text-white" />
+                            </button>
+                        </div>
                     </div>
-                </div>
+                )}
+
+                {/* Full "Expanded" Mini UI */}
+                {isMiniExpanded && (
+                    <div className="flex flex-col h-full animate-in fade-in zoom-in-95 duration-300">
+                        {/* Drag Handle & Header */}
+                        <div className="flex flex-col items-center pt-3 pb-1" onClick={() => setIsMiniExpanded(false)}>
+                            <div className="w-12 h-1.5 bg-white/20 rounded-full mb-3" />
+                            <div className="flex items-center justify-between w-full px-6">
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); handleCloseApp(); }}
+                                    className="text-white/40 text-[10px] font-black uppercase tracking-widest px-3 py-2 bg-white/5 rounded-xl hover:text-white transition-colors"
+                                >
+                                    Close
+                                </button>
+                                <div className="text-center">
+                                    <h2 className="text-white font-black text-[10px] tracking-tighter uppercase whitespace-nowrap">Assistant Helper</h2>
+                                </div>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); handleExpandApp(); }}
+                                    className="bg-white/10 text-white text-[10px] font-black uppercase px-4 py-2 rounded-xl active:scale-95 transition-all"
+                                >
+                                    Cards
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Quick Info */}
+                        <div className="px-6 py-4 flex items-center justify-between border-b border-white/5">
+                            {selectedCharacter && (
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#ff0080]">
+                                        <Image src={selectedCharacter.image_url || selectedCharacter.image || "/placeholder.svg"} alt={selectedCharacter.name} width={48} height={48} className="object-cover" unoptimized />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-white font-black text-sm">{selectedCharacter.name}</h3>
+                                        <p className="text-[#ff0080] text-[10px] font-bold uppercase">Active Chat</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex items-center gap-3">
+                                <div className="flex flex-col items-end px-2">
+                                    <div className="flex items-center gap-1">
+                                        <Zap className="w-3.5 h-3.5 text-amber-400" />
+                                        <span className="text-white font-black text-sm">{tokens}</span>
+                                    </div>
+                                    <span className="text-white/30 text-[9px] font-bold uppercase">Balance</span>
+                                </div>
+                                <button onClick={() => setIsMiniExpanded(false)} className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+                                    <ChevronDown className="w-5 h-5 text-white/50" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Switcher */}
+                        <div className="px-6 py-5 flex-1 overflow-hidden flex flex-col">
+                            <div className="flex items-center justify-between mb-4">
+                                <span className="text-white/40 text-[10px] font-black uppercase tracking-widest">Switch Partner</span>
+                                <div className="flex gap-2">
+                                    <button onClick={() => setFilter('female')} className={`text-[11px] font-black px-3 py-1 rounded-lg ${filter === 'female' ? 'bg-[#ff0080] text-white' : 'bg-white/5 text-white/40'}`}>♀ FEMALE</button>
+                                    <button onClick={() => setFilter('male')} className={`text-[11px] font-black px-3 py-1 rounded-lg ${filter === 'male' ? 'bg-white/40 text-black' : 'bg-white/5 text-white/40'}`}>♂ MALE</button>
+                                </div>
+                            </div>
+                            <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                                {filteredCharacters.slice(0, 10).map((char) => (
+                                    <div
+                                        key={char.id}
+                                        onClick={() => handleSelect(char)}
+                                        className={`flex-shrink-0 w-24 flex flex-col items-center gap-2 transition-all active:scale-90 ${selectedCharacter?.id === char.id ? 'opacity-100' : 'opacity-40 hover:opacity-100'}`}
+                                    >
+                                        <div className={`relative w-20 h-20 rounded-[1.75rem] overflow-hidden border-2 transition-all ${selectedCharacter?.id === char.id ? 'border-[#ff0080] shadow-[0_0_20px_rgba(255,0,128,0.4)]' : 'border-white/10'}`}>
+                                            <Image src={char.image_url || char.image || "/placeholder.svg"} alt={char.name} fill className="object-cover" unoptimized />
+                                            {selectingId === char.id && (
+                                                <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                                                    <Loader2 className="w-6 h-6 text-[#ff0080] animate-spin" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <span className="text-white text-[11px] font-black truncate w-full text-center tracking-tight">{char.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         )
     }

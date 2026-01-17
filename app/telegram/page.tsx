@@ -28,7 +28,7 @@ export default function TelegramRootPage() {
     }, [router])
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-black">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-transparent">
             <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[#ff0080] to-[#7928ca] animate-pulse" />
             <p className="mt-4 text-white/60 text-sm font-medium">Loading PocketLove AI...</p>
         </div>
