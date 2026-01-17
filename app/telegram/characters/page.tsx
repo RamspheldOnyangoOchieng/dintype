@@ -186,14 +186,6 @@ export default function TelegramMiniAppPage() {
         }
     }
 
-    const handleExpandApp = () => {
-        setViewMode('full')
-    }
-
-    const handleMiniMode = () => {
-        setViewMode('mini')
-    }
-
     // Get username for display
     const userName = telegramUser?.first_name || "Player"
 
