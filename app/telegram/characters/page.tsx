@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/utils/supabase/client"
 import Image from "next/image"
-import { Loader2, Plus, Zap, Heart } from "lucide-react"
+import { Loader2, Zap } from "lucide-react"
 
 declare global {
     interface Window {
@@ -30,7 +30,6 @@ export default function TelegramMiniAppPage() {
     const [filter, setFilter] = useState<'female' | 'male'>("female")
     const [selectingId, setSelectingId] = useState<string | null>(null)
     const [tokens, setTokens] = useState(0)
-    const [diamonds, setDiamonds] = useState(0)
     const [userName, setUserName] = useState("Player")
     const [viewportHeight, setViewportHeight] = useState<number | null>(null)
 
@@ -51,17 +50,16 @@ export default function TelegramMiniAppPage() {
                 if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
                     const tg = window.Telegram.WebApp
                     tg.ready()
-                    tg.expand() // Open full screen for selection
+
+                    // DO NOT tg.expand() - we want the halfway "mini" state
                     tg.setHeaderColor('#000000')
 
                     const user = tg.initDataUnsafe?.user
                     if (user) setUserName(user.first_name || "Player")
 
-                    // Update viewport
                     setViewportHeight(tg.viewportHeight)
                     tg.onEvent('viewportChanged', () => setViewportHeight(tg.viewportHeight))
 
-                    // Fetch user balances
                     const response = await fetch('/api/telegram/user-data', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -72,7 +70,6 @@ export default function TelegramMiniAppPage() {
                         const data = await response.json()
                         if (data.user) {
                             setTokens(data.user.tokens)
-                            setDiamonds(data.user.diamonds)
                         }
                     }
                 }
@@ -94,7 +91,6 @@ export default function TelegramMiniAppPage() {
             const tg = window.Telegram?.WebApp
             const initData = tg?.initData || ""
 
-            // Haptic feedback
             if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium')
 
             const response = await fetch('/api/telegram/select', {
@@ -106,19 +102,16 @@ export default function TelegramMiniAppPage() {
                 })
             })
 
-            // ALWAYS close the app after selection attempt to return to chat
-            // The user wants to "get back to telegram" immediately
-            setTimeout(() => {
-                if (tg) tg.close()
-            }, 600) // Small delay for the visual feedback
-
+            if (response.ok) {
+                // Stay open in mini mode so the user can see the chat above
+                setSelectingId(null)
+            }
         } catch (err) {
             console.error("Selection error:", err)
-            if (window.Telegram?.WebApp) window.Telegram.WebApp.close()
+            setSelectingId(null)
         }
     }
 
-    // Loading State
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-transparent">
@@ -133,72 +126,68 @@ export default function TelegramMiniAppPage() {
     })
 
     return (
-        <div className="bg-transparent min-h-screen flex flex-col overflow-x-hidden text-white">
-            {/* Simple Top Bar */}
-            <div className="flex justify-between items-center px-6 py-8">
-                <div>
-                    <h1 className="text-2xl font-black tracking-tight">{userName}</h1>
-                    <p className="text-white/30 text-xs font-bold uppercase tracking-widest mt-1">Select Partner</p>
+        <div className="bg-transparent min-h-screen flex flex-col justify-end text-white select-none">
+            {/* Dark Panel Area (Bottom part of the halfway screen) */}
+            <div className="bg-[#0c0c0c] rounded-t-[2.5rem] border-t border-white/10 shadow-[0_-20px_50px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col">
+                {/* Drag Handle */}
+                <div className="flex justify-center py-3">
+                    <div className="w-10 h-1 bg-white/20 rounded-full" />
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="flex flex-col items-end">
-                        <div className="flex items-center gap-1">
-                            <Zap className="w-4 h-4 text-amber-400" />
-                            <span className="text-lg font-black">{tokens}</span>
-                        </div>
+
+                {/* User Info */}
+                <div className="px-6 py-4 flex justify-between items-center">
+                    <div>
+                        <h1 className="text-3xl font-black tracking-tight">{userName}</h1>
+                        <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mt-0.5">Select Partner</p>
+                    </div>
+                    <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
+                        <Zap className="w-4 h-4 text-amber-400" />
+                        <span className="text-xl font-black leading-none">{tokens}</span>
                     </div>
                 </div>
-            </div>
 
-            {/* Filter */}
-            <div className="px-6 mb-8 flex gap-3">
-                <button
-                    onClick={() => setFilter('female')}
-                    className={`flex-1 py-3 rounded-2xl text-[10px] font-black tracking-widest transition-all ${filter === 'female' ? 'bg-[#ff0080] text-white' : 'bg-white/5 text-white/30'}`}
-                >
-                    ♀ FEMALE
-                </button>
-                <button
-                    onClick={() => setFilter('male')}
-                    className={`flex-1 py-3 rounded-2xl text-[10px] font-black tracking-widest transition-all ${filter === 'male' ? 'bg-white/40 text-black' : 'bg-white/5 text-white/30'}`}
-                >
-                    ♂ MALE
-                </button>
-            </div>
-
-            {/* Grid */}
-            <div className="flex-1 px-6 pb-12 grid grid-cols-2 gap-4 overflow-y-auto">
-                {filteredCharacters.map((char) => (
-                    <div
-                        key={char.id}
-                        onClick={() => handleSelect(char)}
-                        className={`relative aspect-[3/4.2] rounded-[2rem] overflow-hidden border-2 transition-all active:scale-95 ${selectingId === char.id ? 'border-[#ff0080] scale-95' : 'border-white/5'}`}
+                {/* Filter */}
+                <div className="px-6 mb-6 flex gap-3">
+                    <button
+                        onClick={() => setFilter('female')}
+                        className={`flex-1 py-3.5 rounded-2xl text-[11px] font-black tracking-widest transition-all ${filter === 'female' ? 'bg-[#ff0080] text-white shadow-[0_4px_15px_rgba(255,0,128,0.4)]' : 'bg-[#1a1a1a] text-white/30'}`}
                     >
-                        <Image src={char.image_url || char.image || "/placeholder.svg"} alt={char.name} fill className="object-cover" unoptimized />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                        ♀ FEMALE
+                    </button>
+                    <button
+                        onClick={() => setFilter('male')}
+                        className={`flex-1 py-3.5 rounded-2xl text-[11px] font-black tracking-widest transition-all ${filter === 'male' ? 'bg-white/40 text-black' : 'bg-[#1a1a1a] text-white/30'}`}
+                    >
+                        ♂ MALE
+                    </button>
+                </div>
 
-                        {selectingId === char.id && (
-                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
-                                <Loader2 className="w-8 h-8 text-[#ff0080] animate-spin" />
+                {/* Horizontal Character Grid */}
+                <div className="flex-1 px-6 pb-20 overflow-y-auto no-scrollbar">
+                    <div className="grid grid-cols-2 gap-4">
+                        {filteredCharacters.map((char) => (
+                            <div
+                                key={char.id}
+                                onClick={() => handleSelect(char)}
+                                className={`relative aspect-[3/4.2] rounded-[2rem] overflow-hidden border-2 transition-all active:scale-95 ${selectingId === char.id ? 'border-[#ff0080] ring-4 ring-[#ff0080]/20' : 'border-white/5'}`}
+                            >
+                                <Image src={char.image_url || char.image || "/placeholder.svg"} alt={char.name} fill className="object-cover" unoptimized />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+                                {selectingId === char.id && (
+                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
+                                        <Loader2 className="w-8 h-8 text-[#ff0080] animate-spin" />
+                                    </div>
+                                )}
+
+                                <div className="absolute bottom-4 left-5 right-5">
+                                    <h3 className="text-lg font-black leading-tight truncate">{char.name}</h3>
+                                    <p className="text-white/40 text-[9px] font-bold uppercase tracking-widest truncate">{char.relationship || char.category}</p>
+                                </div>
                             </div>
-                        )}
-
-                        <div className="absolute bottom-4 left-5 right-5">
-                            <h3 className="text-lg font-black leading-tight truncate">{char.name}</h3>
-                            <p className="text-white/40 text-[9px] font-bold uppercase tracking-widest truncate">{char.relationship || char.category}</p>
-                        </div>
+                        ))}
                     </div>
-                ))}
-            </div>
-
-            {/* Footer Close Button */}
-            <div className="p-6">
-                <button
-                    onClick={() => window.Telegram?.WebApp?.close()}
-                    className="w-full py-4 bg-white/5 rounded-2xl text-white/40 text-xs font-black uppercase tracking-[0.2em]"
-                >
-                    Back to Chat
-                </button>
+                </div>
             </div>
         </div>
     )
