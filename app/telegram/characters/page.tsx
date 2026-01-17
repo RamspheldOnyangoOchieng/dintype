@@ -40,7 +40,7 @@ type Character = {
     relationship?: string
 }
 
-type ViewMode = 'full' | 'mini' | 'collapsed'
+type ViewMode = 'full' | 'mini'
 
 export default function TelegramMiniAppPage() {
     const [characters, setCharacters] = useState<Character[]>([])
@@ -107,10 +107,14 @@ export default function TelegramMiniAppPage() {
                                 setTokens(data.user.tokens)
                                 setDiamonds(data.user.diamonds)
 
-                                // Set active character if any
+                                // Set active character if any and start in mini mode if so
                                 if (data.user.activeCharacterId) {
                                     const activeChar = (charData as any[]).find((c: any) => c.id === data.user.activeCharacterId)
-                                    if (activeChar) setSelectedCharacter(activeChar as Character)
+                                    if (activeChar) {
+                                        setSelectedCharacter(activeChar as Character)
+                                        // If we already have a character, start in helper mode
+                                        setViewMode('mini')
+                                    }
                                 }
                             }
                         }
@@ -174,11 +178,9 @@ export default function TelegramMiniAppPage() {
             })
 
             if (response.ok) {
-                // Flash success state then minimize to half-way
-                setTimeout(() => {
-                    setViewMode('mini')
-                    setSelectingId(null)
-                }, 800)
+                // Success - switch to helper mode immediately
+                setViewMode('mini')
+                setSelectingId(null)
             }
         } catch (err) {
             console.error("Selection error:", err)
@@ -219,19 +221,18 @@ export default function TelegramMiniAppPage() {
                     <div className="flex items-center justify-between w-full px-6">
                         <button
                             onClick={(e) => { e.stopPropagation(); handleCloseApp(); }}
-                            className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10 active:scale-90 transition-transform"
+                            className="text-white/40 text-xs font-bold uppercase tracking-widest px-4 py-2 hover:text-white transition-colors"
                         >
-                            <X className="w-5 h-5 text-white/50" />
+                            Close App
                         </button>
                         <div className="text-center">
-                            <h2 className="text-white font-black text-xs tracking-tighter uppercase">Assistant</h2>
-                            <p className="text-[8px] text-white/20 font-bold uppercase mt-0.5">Mini App</p>
+                            <h2 className="text-white font-black text-xs tracking-tighter uppercase">PocketLove Assistant</h2>
                         </div>
                         <button
                             onClick={(e) => { e.stopPropagation(); handleExpandApp(); }}
-                            className="w-10 h-10 rounded-2xl bg-[#ff0080] flex items-center justify-center shadow-[0_0_15px_rgba(255,0,128,0.4)] active:scale-95 transition-transform"
+                            className="bg-[#ff0080] text-white text-[10px] font-black uppercase px-4 py-2 rounded-xl shadow-[0_4px_15px_rgba(255,0,128,0.4)] active:scale-95 transition-all"
                         >
-                            <ChevronUp className="w-5 h-5 text-white" />
+                            Open Cards
                         </button>
                     </div>
                 </div>
