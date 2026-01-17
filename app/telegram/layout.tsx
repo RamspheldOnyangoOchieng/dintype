@@ -1,5 +1,19 @@
 import type React from "react"
 import Script from "next/script"
+import type { Metadata, Viewport } from "next"
+
+export const metadata: Metadata = {
+    title: "PocketLove AI - Telegram Mini App",
+    description: "Chat with AI companions on Telegram",
+}
+
+export const viewport: Viewport = {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: "cover",
+}
 
 export default function TelegramLayout({
     children,
@@ -7,12 +21,19 @@ export default function TelegramLayout({
     children: React.ReactNode
 }) {
     return (
-        <div className="min-h-screen bg-[#000000] text-white">
+        <>
             <Script
                 src="https://telegram.org/js/telegram-web-app.js"
                 strategy="beforeInteractive"
             />
-            {children}
-        </div>
+            {/* 
+                The container doesn't use 100vh/min-h-screen so the Telegram header 
+                remains visible at the top. The WebApp API provides viewport height 
+                which the child components use.
+            */}
+            <div className="bg-black text-white overflow-hidden">
+                {children}
+            </div>
+        </>
     )
 }
