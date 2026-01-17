@@ -147,7 +147,7 @@ export default function TelegramCharactersPage() {
     }
 
     return (
-        <div className="bg-[#0b0b0b] text-white select-none min-h-screen flex flex-col">
+        <div className="bg-[#0b0b0b] text-white select-none h-screen flex flex-col overflow-hidden">
             {/* Drag Handle */}
             <div className="flex justify-center pt-4 pb-2">
                 <div className="w-12 h-1 bg-white/20 rounded-full" />
@@ -208,8 +208,8 @@ export default function TelegramCharactersPage() {
                 <button
                     onClick={() => setFilter('female')}
                     className={`flex-1 py-4 rounded-2xl text-[11px] font-black tracking-widest transition-all ${filter === 'female'
-                            ? 'bg-gradient-to-br from-[#ff0080] to-[#7928ca] text-white shadow-lg shadow-[#ff0080]/30'
-                            : 'bg-[#151515] text-white/30 hover:bg-[#1a1a1a]'
+                        ? 'bg-gradient-to-br from-[#ff0080] to-[#7928ca] text-white shadow-lg shadow-[#ff0080]/30'
+                        : 'bg-[#151515] text-white/30 hover:bg-[#1a1a1a]'
                         }`}
                 >
                     ♀ FEMALE
@@ -217,16 +217,16 @@ export default function TelegramCharactersPage() {
                 <button
                     onClick={() => setFilter('male')}
                     className={`flex-1 py-4 rounded-2xl text-[11px] font-black tracking-widest transition-all ${filter === 'male'
-                            ? 'bg-white/90 text-black shadow-lg'
-                            : 'bg-[#151515] text-white/30 hover:bg-[#1a1a1a]'
+                        ? 'bg-white/90 text-black shadow-lg'
+                        : 'bg-[#151515] text-white/30 hover:bg-[#1a1a1a]'
                         }`}
                 >
                     ♂ MALE
                 </button>
             </div>
 
-            {/* Character Grid - ALL CHARACTERS */}
-            <div className="flex-1 overflow-y-auto px-6 pb-10">
+            {/* Character Grid - ALL CHARACTERS with proper scrolling */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 pb-24 -webkit-overflow-scrolling-touch">
                 {filteredCharacters.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20">
                         <p className="text-white/30 text-sm">No characters found</p>
@@ -238,10 +238,10 @@ export default function TelegramCharactersPage() {
                                 key={char.id}
                                 onClick={() => handleSelect(char)}
                                 className={`group relative aspect-[3/4] rounded-[1.5rem] overflow-hidden border-2 transition-all duration-200 active:scale-95 cursor-pointer ${selectingId === char.id
-                                        ? 'border-[#ff0080] ring-4 ring-[#ff0080]/30'
-                                        : activeCharacterId === char.id
-                                            ? 'border-[#ff0080]/50'
-                                            : 'border-white/5 hover:border-white/20'
+                                    ? 'border-[#ff0080] ring-4 ring-[#ff0080]/30'
+                                    : activeCharacterId === char.id
+                                        ? 'border-[#ff0080]/50'
+                                        : 'border-white/5 hover:border-white/20'
                                     }`}
                             >
                                 <Image
