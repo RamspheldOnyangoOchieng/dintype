@@ -24,7 +24,7 @@ type Character = {
     relationship?: string
 }
 
-export default function TelegramMiniAppPage() {
+export default function TelegramCharactersPage() {
     const [characters, setCharacters] = useState<Character[]>([])
     const [loading, setLoading] = useState(true)
     const [filter, setFilter] = useState<'female' | 'male'>("female")
@@ -36,14 +36,12 @@ export default function TelegramMiniAppPage() {
     const supabase = createClient()
 
     useEffect(() => {
-        // 1. CALL READY IMMEDIATELY
+        // Initialize Telegram WebApp IMMEDIATELY
         if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
             const tg = window.Telegram.WebApp
             tg.ready()
-            // CRITICAL: DO NOT CALL expand(). 
-            // This keeps the Mini App as a bottom sheet.
+            // NEVER call expand() - this is what "takes you outside" the modal feel
             tg.setHeaderColor('#000000')
-            tg.setBackgroundColor('#000000')
         }
 
         const fetchInitialData = async () => {
@@ -104,6 +102,7 @@ export default function TelegramMiniAppPage() {
                 })
             })
 
+            // Close modal instantly on success to return to chat logic
             if (response.ok) {
                 if (tg) tg.close()
             }
@@ -128,42 +127,37 @@ export default function TelegramMiniAppPage() {
     })
 
     return (
-        <div className="bg-transparent text-white select-none overflow-hidden">
+        <div className="bg-transparent text-white select-none overflow-hidden flex flex-col justify-end min-h-[55vh]">
             {/* 
-                THE "MODAL" CONTAINER
-                We use fixed height (55vh) and NO min-h-screen on the outer wrapper.
-                This allows the Telegram chat history to be visible in the upper half.
+                THE MODAL:
+                We force 55vh height and bottom justification.
+                This leaves the top of the Telegram chat window completely clear.
             */}
             <div className="bg-[#0b0b0b] rounded-t-[2.5rem] border-t border-white/10 flex flex-col shadow-2xl overflow-hidden"
                 style={{ height: '55vh' }}>
 
-                {/* Reference Design Header */}
+                {/* Modal Header */}
                 <div className="flex items-center justify-between px-6 pt-5 pb-2">
-                    <button
-                        onClick={() => window.Telegram?.WebApp?.close()}
-                        className="text-white text-base font-medium"
-                    >
+                    <button onClick={() => window.Telegram?.WebApp?.close()} className="text-white text-base font-medium">
                         Close
                     </button>
-
                     <div className="text-center">
                         <h2 className="text-white font-bold text-sm leading-tight">PocketLove</h2>
-                        <p className="text-white/30 text-[10px] font-medium leading-tight">mini app</p>
+                        <p className="text-white/30 text-[10px] font-medium leading-tight">companion modal</p>
                     </div>
-
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center border border-white/5 active:bg-white/5">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center border border-white/5">
                         <MoreVertical className="w-4 h-4 text-white/40" />
                     </div>
                 </div>
 
-                {/* English Greetings & Live Backend Data */}
+                {/* Greeting & Real Data */}
                 <div className="px-6 py-4 flex items-center justify-between">
                     <div>
                         <div className="flex items-center gap-1.5">
-                            <span className="text-white font-bold text-[15px]">Hello,</span>
-                            <span className="text-white font-bold text-[15px]">{userName}</span>
+                            <span className="text-white font-bold text-base">Hello,</span>
+                            <span className="text-[#ff0080] font-black text-base italic tracking-tight">{userName}</span>
                         </div>
-                        <p className="text-white/30 text-[11px] font-medium tracking-wide uppercase mt-1">Start a dialogue!</p>
+                        <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mt-0.5">Start a dialogue!</p>
                     </div>
 
                     <div className="bg-[#151515] rounded-2xl flex items-center overflow-hidden border border-white/5">
@@ -175,33 +169,34 @@ export default function TelegramMiniAppPage() {
                             <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
                             <span className="text-white text-sm font-bold">{tokens}</span>
                         </div>
-                        <button className="bg-[#ff0080] py-2 px-3 hover:opacity-90 active:scale-95 transition-transform">
+                        <button className="bg-[#ff0080] py-2 px-3 active:scale-95 transition-transform">
                             <Plus className="w-4 h-4 text-white" strokeWidth={3} />
                         </button>
                     </div>
                 </div>
 
-                <div className="px-6 py-2 flex items-center gap-2.5">
-                    <h2 className="text-2xl font-black text-white tracking-tight">Characters</h2>
-                    <Users className="w-5 h-5 text-white/30" />
+                <div className="px-6 py-1 flex items-center gap-2.5">
+                    <h2 className="text-2xl font-black text-white tracking-tighter">Companion</h2>
+                    <Users className="w-5 h-5 text-white/20" />
                 </div>
 
+                {/* Filter Tabs */}
                 <div className="px-6 py-3 flex gap-3">
                     <button
                         onClick={() => setFilter('female')}
-                        className={`flex-1 py-4 rounded-2xl text-[11px] font-black tracking-widest transition-all ${filter === 'female' ? 'bg-gradient-to-br from-[#ff0080] to-[#7928ca] text-white shadow-[0_4px_20px_rgba(255,0,128,0.3)]' : 'bg-[#151515] text-white/20'}`}
+                        className={`flex-1 py-4 rounded-2xl text-[10px] font-black tracking-[0.2em] transition-all ${filter === 'female' ? 'bg-gradient-to-br from-[#ff0080] to-[#7928ca] text-white shadow-[0_10px_30px_rgba(255,0,128,0.4)]' : 'bg-[#151515] text-white/20'}`}
                     >
                         ♀ FEMALE
                     </button>
                     <button
                         onClick={() => setFilter('male')}
-                        className={`flex-1 py-4 rounded-2xl text-[11px] font-black tracking-widest transition-all ${filter === 'male' ? 'bg-white/40 text-black' : 'bg-[#151515] text-white/20'}`}
+                        className={`flex-1 py-4 rounded-2xl text-[10px] font-black tracking-[0.2em] transition-all ${filter === 'male' ? 'bg-white/40 text-black' : 'bg-[#151515] text-white/20'}`}
                     >
                         ♂ MALE
                     </button>
                 </div>
 
-                {/* Real Database Content scrolling area */}
+                {/* Real Character Selection Grid */}
                 <div className="flex-1 overflow-y-auto px-6 pb-20 no-scrollbar">
                     <div className="grid grid-cols-2 gap-4">
                         {filteredCharacters.map((char) => (
@@ -218,7 +213,7 @@ export default function TelegramMiniAppPage() {
                                     </div>
                                 )}
                                 <div className="absolute bottom-5 left-6 right-6">
-                                    <h3 className="text-lg font-bold text-white truncate">{char.name}</h3>
+                                    <h3 className="text-lg font-black text-white truncate leading-tight">{char.name}</h3>
                                 </div>
                             </div>
                         ))}

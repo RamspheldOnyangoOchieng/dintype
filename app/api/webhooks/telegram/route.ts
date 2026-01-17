@@ -58,7 +58,7 @@ async function setChatMenuButton(chatId?: number) {
                 menu_button: {
                     type: "web_app",
                     text: "Explore ✨",
-                    web_app: { url: `${SITE_URL}/telegram/characters` }
+                    web_app: { url: `${SITE_URL}/telegram` }
                 }
             }),
         });
@@ -419,7 +419,7 @@ export async function POST(request: NextRequest) {
                                     // Persistent "App" button at the bottom (Reply Keyboard)
                                     keyboard: [[{
                                         text: "Open App ✨",
-                                        web_app: { url: `${SITE_URL}/telegram/characters` }
+                                        web_app: { url: `${SITE_URL}/telegram` }
                                     }]],
                                     resize_keyboard: true,
                                     is_persistent: true,
@@ -468,7 +468,7 @@ export async function POST(request: NextRequest) {
                                 reply_markup: {
                                     keyboard: [[{
                                         text: "Open App ✨",
-                                        web_app: { url: `${SITE_URL}/telegram/characters` }
+                                        web_app: { url: `${SITE_URL}/telegram` }
                                     }]],
                                     resize_keyboard: true,
                                     is_persistent: true,
@@ -490,7 +490,7 @@ export async function POST(request: NextRequest) {
                         reply_markup: {
                             keyboard: [[{
                                 text: "Explore Characters ✨",
-                                web_app: { url: `${SITE_URL}/telegram/characters` }
+                                web_app: { url: `${SITE_URL}/telegram` }
                             }]],
                             resize_keyboard: true,
                             is_persistent: true,
