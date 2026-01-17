@@ -59,63 +59,82 @@ export default function TelegramMiniAppPage() {
     const supabase = createClient()
 
     useEffect(() => {
-        const fetchCharacters = async () => {
+        const fetchInitialData = async () => {
             try {
-                const { data, error } = await supabase
+                // Fetch characters
+                const { data: charData } = await supabase
                     .from('characters')
                     .select('*')
                     .eq('is_public', true)
 
-                if (data) {
-                    setCharacters(data as Character[])
+                if (charData) {
+                    setCharacters(charData as Character[])
+                }
+
+                // Initialize Telegram WebApp and fetch user data
+                if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+                    const tg = window.Telegram.WebApp
+                    tg.ready()
+
+                    // Match the dark theme
+                    tg.setHeaderColor('#000000')
+                    tg.setBackgroundColor('#000000')
+
+                    const updateViewport = () => {
+                        if (tg.viewportStableHeight) {
+                            setViewportHeight(tg.viewportStableHeight)
+                        } else if (tg.viewportHeight) {
+                            setViewportHeight(tg.viewportHeight)
+                        }
+                    }
+
+                    updateViewport()
+                    tg.onEvent('viewportChanged', updateViewport)
+
+                    if (tg.initDataUnsafe?.user) {
+                        setTelegramUser(tg.initDataUnsafe.user)
+
+                        // Fetch real user data from our backend
+                        const response = await fetch('/api/telegram/user-data', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ initData: tg.initData })
+                        })
+
+                        if (response.ok) {
+                            const data = await response.json()
+                            if (data.user) {
+                                setTokens(data.user.tokens)
+                                setDiamonds(data.user.diamonds)
+
+                                // Set active character if any
+                                if (data.user.activeCharacterId) {
+                                    const activeChar = (charData as any[]).find((c: any) => c.id === data.user.activeCharacterId)
+                                    if (activeChar) setSelectedCharacter(activeChar as Character)
+                                }
+                            }
+                        }
+                    }
+
+                    tg.BackButton.onClick(() => {
+                        if (viewMode === 'full') {
+                            setViewMode('mini')
+                        } else if (viewMode === 'mini') {
+                            setViewMode('collapsed')
+                        } else {
+                            tg.close()
+                        }
+                    })
                 }
             } catch (err) {
-                console.error("Error fetching characters:", err)
+                console.error("Error fetching data:", err)
             } finally {
                 setLoading(false)
             }
         }
 
-        fetchCharacters()
-
-        // Initialize Telegram WebApp - DON'T fully expand to leave Telegram header visible
-        if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
-            const tg = window.Telegram.WebApp
-            tg.ready()
-            // Don't call tg.expand() - this leaves the Telegram header visible!
-            // tg.expand() <- removed on purpose
-
-            // Match the dark theme
-            tg.setHeaderColor('#000000')
-            tg.setBackgroundColor('#000000')
-
-            // Get the available viewport height from Telegram
-            const updateViewport = () => {
-                if (tg.viewportStableHeight) {
-                    setViewportHeight(tg.viewportStableHeight)
-                } else if (tg.viewportHeight) {
-                    setViewportHeight(tg.viewportHeight)
-                }
-            }
-
-            updateViewport()
-            tg.onEvent('viewportChanged', updateViewport)
-
-            // Get telegram user data
-            if (tg.initDataUnsafe?.user) {
-                setTelegramUser(tg.initDataUnsafe.user)
-            }
-
-            // Handle back button
-            tg.BackButton.onClick(() => {
-                if (viewMode === 'full') {
-                    setViewMode('collapsed')
-                } else {
-                    tg.close()
-                }
-            })
-        }
-    }, [])
+        fetchInitialData()
+    }, [viewMode])
 
     // Filter characters by gender
     const filteredCharacters = characters.filter(char => {
@@ -143,9 +162,9 @@ export default function TelegramMiniAppPage() {
             })
 
             if (response.ok) {
-                // Flash success state then collapse
+                // Flash success state then minimize to half-way
                 setTimeout(() => {
-                    setViewMode('collapsed')
+                    setViewMode('mini')
                     setSelectingId(null)
                 }, 800)
             }
@@ -210,119 +229,102 @@ export default function TelegramMiniAppPage() {
         )
     }
 
-    // Mini View - Show partial character list
+    // Mini View - "Half-way" panel that lets you see Telegram behind it
     if (viewMode === 'mini') {
+        const miniHeight = viewportHeight ? Math.floor(viewportHeight * 0.5) : 380;
+
         return (
-            <div className="fixed bottom-0 left-0 right-0 bg-black rounded-t-[2rem] shadow-[0_-10px_50px_rgba(0,0,0,0.8)] z-50 max-h-[60vh] overflow-hidden">
-                {/* Header with drag handle */}
-                <div
-                    className="flex items-center justify-between px-6 py-4 border-b border-white/10 cursor-pointer"
-                    onClick={handleExpandApp}
-                >
-                    <div className="flex items-center gap-3">
-                        <span className="text-white/80">Close</span>
-                    </div>
-
-                    <div className="text-center">
-                        <h2 className="text-white font-bold">PocketLove AI</h2>
-                        <span className="text-xs text-white/50">mini app</span>
-                    </div>
-
-                    <button
-                        onClick={(e) => { e.stopPropagation(); handleCollapseApp(); }}
-                        className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"
-                    >
-                        <ChevronDown className="w-4 h-4 text-white" />
-                    </button>
-                </div>
-
-                {/* User & Tokens */}
-                <div className="flex justify-between items-center px-6 py-3">
-                    <div>
-                        <span className="text-[#ff0080] text-xs uppercase font-bold">Hello</span>
-                        <span className="text-white/50 mx-1">|</span>
-                        <span className="text-white text-xs font-bold">{userName}</span>
-                        <p className="text-white/40 text-[10px]">Let's chat!</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="flex items-center bg-[#1a1a1a] rounded-full px-3 py-1.5 gap-1">
-                            <Heart className="w-3 h-3 text-cyan-400" />
-                            <span className="text-white text-xs font-bold">{diamonds}</span>
+            <div
+                className="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-2xl rounded-t-[2.5rem] shadow-[0_-20px_60px_rgba(0,0,0,0.9)] z-50 overflow-hidden border-t border-white/10 animate-in slide-in-from-bottom duration-500"
+                style={{ height: `${miniHeight}px` }}
+            >
+                {/* Drag Handle & Header */}
+                <div className="flex flex-col items-center pt-3 pb-1" onClick={handleExpandApp}>
+                    <div className="w-12 h-1.5 bg-white/20 rounded-full mb-3" />
+                    <div className="flex items-center justify-between w-full px-6">
+                        <button onClick={(e) => { e.stopPropagation(); handleCollapseApp(); }} className="text-white/40 text-xs font-bold uppercase tracking-widest">
+                            Hide
+                        </button>
+                        <div className="text-center">
+                            <h2 className="text-white font-black text-xs tracking-tighter uppercase">Assistant</h2>
                         </div>
-                        <div className="flex items-center bg-[#1a1a1a] rounded-full px-3 py-1.5 gap-1">
-                            <Zap className="w-3 h-3 text-amber-400" />
-                            <span className="text-white text-xs font-bold">{tokens}</span>
-                        </div>
-                        <button className="w-7 h-7 rounded-full bg-[#ff0080] flex items-center justify-center">
-                            <Plus className="w-4 h-4 text-white" />
+                        <button onClick={handleExpandApp} className="text-[#ff0080] text-xs font-bold uppercase tracking-widest">
+                            Full
                         </button>
                     </div>
                 </div>
 
-                {/* Characters Title */}
-                <div className="px-6 py-2">
-                    <div className="flex items-center gap-2">
-                        <h1 className="text-2xl font-black text-white">Characters</h1>
-                        <Users className="w-5 h-5 text-white/50" />
-                    </div>
-                </div>
-
-                {/* Filter Tabs */}
-                <div className="px-6 py-2">
-                    <div className="flex bg-[#111] p-1 rounded-xl">
-                        <button
-                            onClick={() => setFilter('female')}
-                            className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${filter === 'female'
-                                ? 'bg-gradient-to-r from-[#ff0080] to-[#7928ca] text-white'
-                                : 'text-gray-500'
-                                }`}
-                        >
-                            ♀ FEMALE
-                        </button>
-                        <button
-                            onClick={() => setFilter('male')}
-                            className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all ${filter === 'male'
-                                ? 'bg-[#222] text-white'
-                                : 'text-gray-500'
-                                }`}
-                        >
-                            ♂ MALE
-                        </button>
-                    </div>
-                </div>
-
-                {/* Characters Grid - Limited in mini mode */}
-                <div className="px-4 py-4 grid grid-cols-2 gap-3 overflow-y-auto max-h-[35vh]">
-                    {filteredCharacters.slice(0, 4).map((char) => (
-                        <div
-                            key={char.id}
-                            onClick={() => handleSelect(char)}
-                            className={`group relative aspect-[3/4] rounded-2xl overflow-hidden bg-[#0a0a0a] border-2 transition-all duration-300 active:scale-95 ${selectingId === char.id ? 'border-[#ff0080]' : 'border-white/5'
-                                }`}
-                        >
-                            <Image
-                                src={char.image_url || char.image || "/placeholder.svg"}
-                                alt={char.name}
-                                fill
-                                className="object-cover"
-                                unoptimized
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-
-                            {selectingId === char.id && (
-                                <div className="absolute inset-0 bg-[#ff0080]/30 flex items-center justify-center z-20">
-                                    <CheckCircle2 className="w-10 h-10 text-white" />
-                                </div>
-                            )}
-
-                            <div className="absolute bottom-0 left-0 right-0 p-3">
-                                <h3 className="text-lg font-black text-white leading-none">{char.name}</h3>
-                                <p className="text-gray-400 text-[9px] font-medium mt-0.5 truncate">
-                                    {char.relationship || char.description?.slice(0, 30) || 'Companion'}
-                                </p>
+                {/* Quick Info & Active Character */}
+                <div className="px-6 py-4 flex items-center justify-between border-b border-white/5">
+                    {selectedCharacter ? (
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#ff0080]">
+                                <Image
+                                    src={selectedCharacter.image_url || selectedCharacter.image || "/placeholder.svg"}
+                                    alt={selectedCharacter.name}
+                                    width={48} height={48} className="object-cover"
+                                    unoptimized
+                                />
+                            </div>
+                            <div>
+                                <h3 className="text-white font-black text-sm">{selectedCharacter.name}</h3>
+                                <p className="text-[#ff0080] text-[10px] font-bold uppercase">Active Chat</p>
                             </div>
                         </div>
-                    ))}
+                    ) : (
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                                <Users className="w-5 h-5 text-white/20" />
+                            </div>
+                            <div>
+                                <h3 className="text-white/40 font-bold text-sm">No Active Chat</h3>
+                                <p className="text-white/20 text-[10px] font-bold uppercase">Pick a character</p>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-end">
+                            <div className="flex items-center gap-1">
+                                <Zap className="w-3 h-3 text-amber-400" />
+                                <span className="text-white font-black text-xs">{tokens}</span>
+                            </div>
+                            <span className="text-white/30 text-[8px] font-bold uppercase">Tokens</span>
+                        </div>
+                        <button onClick={handleExpandApp} className="w-10 h-10 rounded-2xl bg-[#ff0080] flex items-center justify-center shadow-[0_0_15px_rgba(255,0,128,0.4)]">
+                            <Plus className="w-5 h-5 text-white" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Horizontal Character Selection (Mini) */}
+                <div className="px-6 py-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <span className="text-white/40 text-[10px] font-black uppercase tracking-widest">Switch Partner</span>
+                        <div className="flex gap-2">
+                            <button onClick={() => setFilter('female')} className={`text-[10px] font-black ${filter === 'female' ? 'text-white' : 'text-white/20'}`}>♀</button>
+                            <button onClick={() => setFilter('male')} className={`text-[10px] font-black ${filter === 'male' ? 'text-white' : 'text-white/20'}`}>♂</button>
+                        </div>
+                    </div>
+                    <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                        {filteredCharacters.slice(0, 8).map((char) => (
+                            <div
+                                key={char.id}
+                                onClick={() => handleSelect(char)}
+                                className={`flex-shrink-0 w-24 flex flex-col items-center gap-2 transition-all active:scale-90 ${selectedCharacter?.id === char.id ? 'opacity-100' : 'opacity-40 hover:opacity-100'}`}
+                            >
+                                <div className={`relative w-20 h-20 rounded-3xl overflow-hidden border-2 transition-all ${selectedCharacter?.id === char.id ? 'border-[#ff0080] shadow-[0_0_15px_rgba(255,0,128,0.3)]' : 'border-white/10'}`}>
+                                    <Image src={char.image_url || char.image || "/placeholder.svg"} alt={char.name} fill className="object-cover" unoptimized />
+                                    {selectingId === char.id && (
+                                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                            <Loader2 className="w-6 h-6 text-white animate-spin" />
+                                        </div>
+                                    )}
+                                </div>
+                                <span className="text-white text-[10px] font-bold truncate w-full text-center">{char.name}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         )
