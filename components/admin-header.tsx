@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { UserNav } from "@/components/user-nav"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
 import AdminSidebar from "@/components/admin-sidebar"
@@ -11,7 +11,7 @@ export function AdminHeader() {
 
     return (
         <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-16 items-center justify-between">
+            <div className="flex h-16 items-center justify-between px-4 sm:px-6">
                 <div className="flex items-center lg:hidden">
                     <Sheet open={open} onOpenChange={setOpen}>
                         <SheetTrigger asChild>
@@ -21,11 +21,12 @@ export function AdminHeader() {
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" className="p-0">
+                            <SheetTitle className="sr-only">Admin Menu</SheetTitle>
                             <AdminSidebar onNavigate={() => setOpen(false)} />
                         </SheetContent>
                     </Sheet>
                 </div>
-                
+
                 <div className="hidden lg:flex" /> {/* Spacer for desktop to keep right items pushed */}
 
                 <div className="flex items-center space-x-2 ml-auto">

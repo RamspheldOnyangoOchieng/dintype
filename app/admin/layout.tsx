@@ -18,11 +18,11 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AdminGuard>
-      <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">
+      <div className="grid min-h-screen w-full max-w-[100vw] overflow-x-hidden lg:grid-cols-[280px_1fr]">
         <div className="hidden border-r bg-card text-card-foreground lg:block">
           <AdminSidebar />
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col min-w-0">
           <AdminHeader />
           {/* key={pathname} forces remount on navigation to prevent hydration errors from extensions like Google Translate */}
           <main className="flex-1 p-4 sm:p-6 w-full overflow-x-auto" key={pathname}>{children}</main>

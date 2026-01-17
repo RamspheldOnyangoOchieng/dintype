@@ -1,25 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/lib/supabase-admin';
 
 export async function DELETE(
     request: NextRequest,
     { params }: { params: { id: string } }
 ) {
     try {
-        // Get user from session cookies
-        const cookieStore = await cookies();
-        const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-            global: {
-                headers: {
-                    cookie: cookieStore.toString()
-                }
-            }
-        });
-
+        const supabase = await createClient();
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
         if (authError || !user) {
@@ -34,11 +22,13 @@ export async function DELETE(
         console.log('🗑️  Deleting character:', characterId, 'for user:', user.id.substring(0, 8));
 
         // First, verify the character belongs to this user
-        const { data: character, error: fetchError } = await supabase
+        const { data, error: fetchError } = await supabase
             .from('characters')
             .select('id, user_id, name')
             .eq('id', characterId)
             .single();
+
+        const character = data as { id: string, user_id: string, name: string } | null;
 
         if (fetchError || !character) {
             console.log('❌ Character not found:', fetchError?.message);

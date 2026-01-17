@@ -47,6 +47,26 @@ async function sendTelegramPhoto(chatId: number, photoUrl: string, caption?: str
     return response.json();
 }
 
+// Helper to set the persistent Menu Button (The blue "Menu" button)
+async function setChatMenuButton(chatId?: number) {
+    try {
+        await fetch(`${TELEGRAM_API_URL}/setChatMenuButton`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: chatId, // If undefined, sets default for the bot
+                menu_button: {
+                    type: "web_app",
+                    text: "Explore ✨",
+                    web_app: { url: `${SITE_URL}/telegram/characters` }
+                }
+            }),
+        });
+    } catch (e) {
+        console.error("Error setting menu button:", e);
+    }
+}
+
 // Generate AI response using same logic as web chat
 async function generateAIResponse(
     userMessage: string,
@@ -362,6 +382,9 @@ export async function POST(request: NextRequest) {
 
             // Handle /start command
             if (text.startsWith('/start')) {
+                // Set the permanent menu button for this user immediately
+                await setChatMenuButton(chatId);
+
                 const linkCode = text.split(' ')[1];
 
                 if (linkCode && linkCode.startsWith('char_')) {
@@ -393,9 +416,17 @@ export async function POST(request: NextRequest) {
                             `💕 You're now chatting with <b>${character.name}</b>!\n\n${character.description || ''}\n\n<i>Send a message to start...</i>`,
                             {
                                 reply_markup: {
+                                    // Persistent "App" button at the bottom (Reply Keyboard)
+                                    keyboard: [[{
+                                        text: "Open App ✨",
+                                        web_app: { url: `${SITE_URL}/telegram/characters` }
+                                    }]],
+                                    resize_keyboard: true,
+                                    is_persistent: true,
+                                    // Inline buttons for specific actions
                                     inline_keyboard: [
                                         [{ text: '🔗 Link to Web Account', url: `${SITE_URL}/chat/${character.id}` }],
-                                        [{ text: '🔄 Switch Character', callback_data: 'show_chars' }]
+                                        [{ text: '🔄 Switch Character', web_app: { url: `${SITE_URL}/telegram/characters` } }]
                                     ]
                                 }
                             }
@@ -435,8 +466,14 @@ export async function POST(request: NextRequest) {
                             `✨ <b>Connected!</b>\n\nHey ${firstName}! 💕 You're now linked to your Pocketlove account.\n\nChatting with <b>${pendingLink.character_name}</b>.\n\n<i>Send me a message... I've been waiting for you.</i> 🌹`,
                             {
                                 reply_markup: {
+                                    keyboard: [[{
+                                        text: "Open App ✨",
+                                        web_app: { url: `${SITE_URL}/telegram/characters` }
+                                    }]],
+                                    resize_keyboard: true,
+                                    is_persistent: true,
                                     inline_keyboard: [[
-                                        { text: '🔄 Switch Character', callback_data: 'show_chars' }
+                                        { text: '🔄 Switch Character', web_app: { url: `${SITE_URL}/telegram/characters` } }
                                     ]]
                                 }
                             }
@@ -445,19 +482,23 @@ export async function POST(request: NextRequest) {
                     }
                 }
 
-                // Regular /start - show character selection
-                const characters = await getRecommendedCharacters(supabase, 6);
-
-                const buttons = characters.map((char: any) => ([
-                    { text: char.name, callback_data: `select_char:${char.id}` }
-                ]));
-
-                buttons.push([{ text: '🌐 See All on Pocketlove', url: `${SITE_URL}/characters` }]);
-
+                // Regular /start - show character selection via Mini App
                 await sendTelegramMessage(
                     chatId,
                     `Hey ${firstName}... 💕\n\nI'm your future favorite distraction. Pick someone who catches your eye and let's make this personal.\n\n<b>Choose Your Companion:</b>`,
-                    { reply_markup: { inline_keyboard: buttons } }
+                    {
+                        reply_markup: {
+                            keyboard: [[{
+                                text: "Explore Characters ✨",
+                                web_app: { url: `${SITE_URL}/telegram/characters` }
+                            }]],
+                            resize_keyboard: true,
+                            is_persistent: true,
+                            inline_keyboard: [
+                                [{ text: '🌐 Open Mini App', web_app: { url: `${SITE_URL}/telegram/characters` } }]
+                            ]
+                        }
+                    }
                 );
 
                 return NextResponse.json({ ok: true });
@@ -465,18 +506,16 @@ export async function POST(request: NextRequest) {
 
             // Handle /switch command
             if (text === '/switch' || text === '/characters') {
-                const characters = await getRecommendedCharacters(supabase, 6);
-
-                const buttons = characters.map((char: any) => ([
-                    { text: char.name, callback_data: `select_char:${char.id}` }
-                ]));
-
-                buttons.push([{ text: '🌐 See All on Pocketlove', url: `${SITE_URL}/characters` }]);
-
                 await sendTelegramMessage(
                     chatId,
-                    `💕 <b>Choose Your Companion</b>\n\nWho would you like to chat with?`,
-                    { reply_markup: { inline_keyboard: buttons } }
+                    `💕 <b>Choose Your Companion</b>\n\nWho would you like to chat with today?`,
+                    {
+                        reply_markup: {
+                            inline_keyboard: [[
+                                { text: '🌐 Open Mini App', web_app: { url: `${SITE_URL}/telegram/characters` } }
+                            ]]
+                        }
+                    }
                 );
 
                 return NextResponse.json({ ok: true });

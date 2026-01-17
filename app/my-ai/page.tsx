@@ -7,6 +7,8 @@ import { Heart, MessageCircle, Trash2, Plus, Sparkles, Edit } from 'lucide-react
 import { useAuthModal } from '@/components/auth-modal-context';
 import { useAuth } from '@/components/auth-context';
 import { PremiumUpgradeModal } from '@/components/premium-upgrade-modal';
+import { DeleteAIPartnerModal } from '@/components/delete-ai-partner-modal';
+import { ActionStatusModal } from '@/components/action-status-modal';
 
 interface Character {
   id: string;
@@ -32,6 +34,13 @@ export default function MyAIPage() {
   const { user } = useAuth();
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [showExpiredModal, setShowExpiredModal] = useState(false);
+  const [characterToDelete, setCharacterToDelete] = useState<Character | null>(null);
+  const [statusModal, setStatusModal] = useState<{ isOpen: boolean, type: 'success' | 'error', title: string, description: string }>({
+    isOpen: false,
+    type: 'success',
+    title: '',
+    description: ''
+  });
 
   useEffect(() => {
     checkAuthAndFetchCharacters();
@@ -76,12 +85,16 @@ export default function MyAIPage() {
     }
   }
 
-  async function handleDelete(characterId: string) {
-    if (!confirm('Are you sure you want to delete this AI Life Partner?')) {
-      return;
-    }
+  function handleDelete(character: Character) {
+    setCharacterToDelete(character);
+  }
 
+  async function confirmDelete() {
+    if (!characterToDelete) return;
+
+    const characterId = characterToDelete.id;
     setDeletingId(characterId);
+    setCharacterToDelete(null);
 
     try {
       const response = await fetch(`/api/delete-character/${characterId}`, {
@@ -90,12 +103,28 @@ export default function MyAIPage() {
 
       if (response.ok) {
         setCharacters(characters.filter(c => c.id !== characterId));
+        setStatusModal({
+          isOpen: true,
+          type: 'success',
+          title: 'DELETED',
+          description: 'Your connection has been successfully removed.'
+        });
       } else {
-        alert('Failed to delete AI companion');
+        setStatusModal({
+          isOpen: true,
+          type: 'error',
+          title: 'FAILED',
+          description: 'We couldn\'t delete your AI companion right now. Please try again.'
+        });
       }
     } catch (error) {
       console.error('Error deleting character:', error);
-      alert('An error occurred');
+      setStatusModal({
+        isOpen: true,
+        type: 'error',
+        title: 'ERROR',
+        description: 'An unexpected connection error occurred.'
+      });
     } finally {
       setDeletingId(null);
     }
@@ -271,7 +300,7 @@ export default function MyAIPage() {
                           EDIT
                         </button>
                         <button
-                          onClick={() => handleDelete(character.id)}
+                          onClick={() => handleDelete(character)}
                           disabled={deletingId === character.id}
                           className="flex-1 h-12 flex items-center justify-center gap-2 bg-white/10 hover:bg-red-500/20 backdrop-blur-md border border-white/20 text-white hover:border-red-500/40 rounded-xl font-bold text-xs transition-all disabled:opacity-50"
                         >
@@ -341,6 +370,21 @@ export default function MyAIPage() {
         mode="expired"
         feature="Premium Expired"
         description="Your Premium membership has expired. Renew to unlock your saved characters and continue chatting."
+      />
+
+      <DeleteAIPartnerModal
+        isOpen={!!characterToDelete}
+        onClose={() => setCharacterToDelete(null)}
+        onConfirm={confirmDelete}
+        characterName={characterToDelete?.name || ''}
+      />
+
+      <ActionStatusModal
+        isOpen={statusModal.isOpen}
+        onClose={() => setStatusModal({ ...statusModal, isOpen: false })}
+        type={statusModal.type}
+        title={statusModal.title}
+        description={statusModal.description}
       />
     </div>
   );

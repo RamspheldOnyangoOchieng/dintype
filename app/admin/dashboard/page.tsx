@@ -147,7 +147,8 @@ export default function AdminDashboardPage() {
           }
         }
       } catch (e) {
-        console.error("Failed to fetch budget limits")
+        // Silently fail for budget limits to avoid console noise
+        // console.warn("Failed to fetch budget limits")
       }
     }
 

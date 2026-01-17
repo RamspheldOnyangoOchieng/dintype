@@ -371,12 +371,14 @@ export default function EditCharacterPage() {
               Storyline
             </Button>
 
-            {/* Placeholder for future specific character image gallery if needed 
-              <Button variant="ghost" className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#252525]">
-                <ImageIcon className="mr-2 h-4 w-4" />
-                Images (Gallery)
-              </Button>
-              */}
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#252525]"
+              onClick={() => router.push(`/admin/dashboard/characters/${id}/images`)}
+            >
+              <ImageIcon className="mr-2 h-4 w-4" />
+              Profile Photos
+            </Button>
 
             <div className="pt-4 mt-4 border-t border-[#252525]">
               <Button

@@ -1,10 +1,9 @@
-
 "use client"
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
-import { ArrowLeft, BookOpen, Edit2, Plus, Trash2, Save, GripVertical, FileText, MessageSquare, Image as ImageIcon, Terminal } from "lucide-react"
+import { ArrowLeft, BookOpen, Edit2, Plus, Trash2, Save, GripVertical, FileText, MessageSquare, Image as ImageIcon, Terminal, Check, ChevronLeft, } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -208,54 +207,66 @@ export default function CharacterStorylinePage() {
     if (loading) return <div className="p-8 text-center text-gray-400">Loading storyline...</div>
 
     return (
-        <div className="h-[calc(100vh-4rem)] flex flex-col bg-[#0a0a0a] text-white">
+        <div className="min-h-[calc(100vh-4rem)] w-full max-w-[100vw] overflow-x-hidden flex flex-col bg-[#0a0a0a] text-white">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-4 border-b border-white/10 bg-[#0f0f0f] gap-4">
-                <div className="flex items-center gap-3">
-                    <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-gray-400 hover:text-white shrink-0">
+            {/* Header - Always visible now to access buttons on mobile */}
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between px-4 py-4 border-b border-white/10 bg-[#0f0f0f] gap-4 shrink-0">
+                <div className="flex items-center gap-3 w-full lg:w-auto overflow-hidden">
+                    {/* Mobile Back to List Button - Only shows when editing a chapter */}
+                    <div className={`${selectedChapterId ? 'block md:hidden' : 'hidden'}`}>
+                        <Button variant="ghost" size="icon" onClick={() => setSelectedChapterId(null)} className="text-gray-400 hover:text-white shrink-0 -ml-2">
+                            <ChevronLeft className="h-6 w-6" />
+                        </Button>
+                    </div>
+
+                    <Button variant="ghost" size="icon" onClick={() => router.back()} className={`${selectedChapterId ? 'hidden md:flex' : 'flex'} text-gray-400 hover:text-white shrink-0`}>
                         <ArrowLeft className="h-5 w-5" />
                     </Button>
-                    <div className="min-w-0">
-                        <h1 className="text-lg sm:text-xl font-bold flex items-center gap-2 truncate">
+
+                    <div className="min-w-0 flex-1 lg:flex-none">
+                        <h1 className="text-lg font-bold flex items-center gap-2 truncate">
                             <BookOpen className="h-5 w-5 text-primary shrink-0" />
-                            <span className="truncate">{characterName}</span>
+                            <span className="truncate max-w-[150px] sm:max-w-[200px] md:max-w-md">{characterName}</span>
                             <span className="text-gray-500 shrink-0">/</span>
                             <span className="shrink-0">Storyline</span>
                         </h1>
                     </div>
                 </div>
-                <div className="flex gap-2 w-full sm:w-auto">
-                    <Button onClick={handleCreateNew} variant="secondary" className="flex-1 sm:flex-none">
-                        <Plus className="mr-2 h-4 w-4" /> Add <span className="hidden sm:inline ml-1">Chapter</span>
+
+                <div className="flex flex-row gap-3 w-full lg:w-auto">
+                    <Button onClick={handleCreateNew} variant="secondary" className="flex-1 lg:flex-none h-10 w-full lg:w-auto px-4">
+                        <Plus className="mr-2 h-4 w-4" />
+                        <span className="whitespace-nowrap">Add Chapter</span>
                     </Button>
-                    <Button onClick={handleSave} disabled={!isDirty || !selectedChapterId} className={`flex-1 sm:flex-none ${isDirty ? "animate-pulse" : ""}`}>
-                        <Save className="mr-2 h-4 w-4" /> Save <span className="hidden sm:inline ml-1">Changes</span>
+                    <Button onClick={handleSave} disabled={!isDirty || !selectedChapterId} className={`flex-1 lg:flex-none h-10 w-full lg:w-auto px-6 ${isDirty ? "animate-pulse" : ""}`}>
+                        <Save className="mr-2 h-4 w-4" /> Save
                     </Button>
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+            <div className="flex-1 flex flex-col md:flex-row">
                 {/* Sidebar List */}
                 <div className={`
-                    w-full md:w-80 border-b md:border-b-0 md:border-r border-white/10 flex flex-col bg-[#111]
-                    ${selectedChapterId ? 'h-48 md:h-auto' : 'flex-1 md:h-auto'}
-                    transition-all duration-300
+                    w-full md:w-80 border-b md:border-b-0 md:border-r border-white/10 flex-col bg-[#111]
+                    ${selectedChapterId ? 'hidden md:flex' : 'flex'}
+                    md:min-h-full h-full
                 `}>
-                    <div className="p-4 font-semibold text-xs text-gray-500 uppercase tracking-wider flex justify-between items-center">
-                        <span>Chapters ({chapters.length})</span>
-                        <Badge variant="outline" className="md:hidden text-[10px] h-5 opacity-50">Mobile View</Badge>
+                    <div className="p-4 font-semibold text-xs text-gray-500 uppercase tracking-wider flex justify-between items-center bg-[#151515] md:bg-transparent">
+                        <div className="flex items-center gap-4">
+                            <span>Chapters ({chapters.length})</span>
+                        </div>
                     </div>
-                    <ScrollArea className="flex-1">
+                    <div className="flex-1 overflow-y-auto">
                         <div className="space-y-1 p-2">
                             {chapters.map((chapter) => (
                                 <div
                                     key={chapter.id}
                                     onClick={() => setSelectedChapterId(chapter.id)}
                                     className={`
-                                group flex items-start p-3 rounded-lg cursor-pointer transition-all border border-transparent
+                                group flex items-start p-4 md:p-3 rounded-lg cursor-pointer transition-all border border-transparent mb-2 md:mb-0
                                 ${selectedChapterId === chapter.id
                                             ? "bg-primary/10 border-primary/20 text-primary"
-                                            : "hover:bg-white/5 text-gray-400 hover:text-white"
+                                            : "bg-[#1a1a1a] md:bg-transparent border-white/5 md:border-transparent hover:bg-white/5 text-gray-400 hover:text-white"
                                         }
                             `}
                                 >
@@ -266,16 +277,16 @@ export default function CharacterStorylinePage() {
                                         {chapter.chapter_number}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="font-medium truncate">{chapter.title}</div>
-                                        <div className="text-xs opacity-60 truncate">{chapter.description || "No description"}</div>
+                                        <div className="font-medium truncate text-base md:text-sm">{chapter.title}</div>
+                                        <div className="text-sm md:text-xs opacity-60 truncate">{chapter.description || "No description"}</div>
                                     </div>
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 hover:bg-red-400/10 -mt-1 -mr-1 shrink-0"
+                                        className="h-8 w-8 md:h-6 md:w-6 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-red-400 hover:bg-red-400/10 -mt-1 -mr-1 shrink-0"
                                         onClick={(e) => { e.stopPropagation(); handleDelete(chapter.id); }}
                                     >
-                                        <Trash2 className="h-3 w-3" />
+                                        <Trash2 className="h-4 w-4 md:h-3 md:w-3" />
                                     </Button>
                                 </div>
                             ))}
@@ -285,24 +296,27 @@ export default function CharacterStorylinePage() {
                                 </div>
                             )}
                         </div>
-                    </ScrollArea>
+                    </div>
                 </div>
 
                 {/* Editor Area */}
-                <div className="flex-1 flex flex-col bg-[#0a0a0a] overflow-hidden min-h-0">
+                <div className={`
+                    flex-1 flex-col bg-[#0a0a0a] min-h-[500px]
+                    ${selectedChapterId ? 'flex' : 'hidden md:flex'}
+                `}>
                     {selectedChapterId ? (
                         <div className="h-full flex flex-col">
                             <Tabs defaultValue="details" className="flex-1 flex flex-col">
                                 <div className="px-6 py-2 border-b border-white/10 bg-[#151515]">
-                                    <TabsList className="bg-black/40">
-                                        <TabsTrigger value="details">Details & Tone</TabsTrigger>
-                                        <TabsTrigger value="visual">Visual Builder</TabsTrigger>
-                                        <TabsTrigger value="content">Raw JSON (Advanced)</TabsTrigger>
-                                        <TabsTrigger value="prompt">System Prompt</TabsTrigger>
+                                    <TabsList className="bg-black/40 w-full justify-start overflow-x-auto no-scrollbar whitespace-nowrap h-auto py-1">
+                                        <TabsTrigger value="details" className="shrink-0">Details & Tone</TabsTrigger>
+                                        <TabsTrigger value="visual" className="shrink-0">Visual Builder</TabsTrigger>
+                                        <TabsTrigger value="content" className="shrink-0">Raw JSON (Advanced)</TabsTrigger>
+                                        <TabsTrigger value="prompt" className="shrink-0">System Prompt</TabsTrigger>
                                     </TabsList>
                                 </div>
 
-                                <div className="flex-1 overflow-y-auto p-6">
+                                <div className="flex-1 p-6">
                                     <TabsContent value="visual" className="mt-0 max-w-4xl space-y-8">
                                         {/* Visual Editor Logic */}
                                         {(() => {
@@ -435,8 +449,8 @@ export default function CharacterStorylinePage() {
                                         })()}
                                     </TabsContent>
                                     <TabsContent value="details" className="mt-0 space-y-6 max-w-2xl">
-                                        <div className="grid grid-cols-4 gap-4">
-                                            <div className="col-span-1">
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                            <div className="md:col-span-1">
                                                 <Label>Number</Label>
                                                 <Input
                                                     type="number"
@@ -445,7 +459,7 @@ export default function CharacterStorylinePage() {
                                                     className="bg-black/20 border-white/10"
                                                 />
                                             </div>
-                                            <div className="col-span-3">
+                                            <div className="md:col-span-3">
                                                 <Label>Chapter Title</Label>
                                                 <Input
                                                     value={formData.title}

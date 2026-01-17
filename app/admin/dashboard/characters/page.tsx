@@ -74,31 +74,31 @@ export default function AdminCharactersPage() {
     <div className="min-h-screen bg-[#141414] text-white">
       <div className="flex h-screen">
         {/* Main Content */}
-        <div className="flex-1 overflow-auto">
-          <header className="bg-[#1A1A1A] border-b border-[#252525] p-4 flex justify-between items-center">
+        <div className="flex-1 overflow-auto min-w-0">
+          <header className="bg-[#1A1A1A] border-b border-[#252525] p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
             <h2 className="text-xl font-bold">Character Management</h2>
-            <Button variant="outline" onClick={() => router.push("/")}>
+            <Button variant="outline" onClick={() => router.push("/")} className="w-full sm:w-auto">
               <Home className="mr-2 h-4 w-4" />
               View Site
             </Button>
           </header>
 
-          <div className="p-6">
-            <div className="bg-[#1A1A1A] rounded-xl p-6 mb-6">
-              <div className="flex justify-between items-center mb-6">
+          <div className="p-2 md:p-6">
+            <div className="bg-[#1A1A1A] rounded-xl p-4 md:p-6 mb-6 overflow-hidden">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                 <h3 className="text-lg font-medium">Characters ({characters.length})</h3>
-                <div className="flex gap-2">
-                  <div className="relative">
+                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                  <div className="relative w-full sm:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
                       placeholder="Search characters..."
-                      className="pl-9 bg-[#252525] border-[#333] text-white w-64"
+                      className="pl-9 bg-[#252525] border-[#333] text-white w-full h-10"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
-                  <Link href="/admin/dashboard/characters/create">
-                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Link href="/admin/dashboard/characters/create" className="w-full sm:w-auto block">
+                    <Button className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto h-10 px-6 whitespace-nowrap">
                       <Plus className="mr-2 h-4 w-4" />
                       Create Character
                     </Button>
@@ -106,33 +106,33 @@ export default function AdminCharactersPage() {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
+              <div className="w-full overflow-x-auto pb-4 max-w-[calc(100vw-32px)] md:max-w-full">
+                <table className="w-full border-collapse min-w-[800px]">
                   <thead>
                     <tr className="border-b border-[#252525]">
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Name</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Age</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Occupation</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Hover Video</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Created</th>
-                      <th className="text-right py-3 px-4 text-gray-400 font-medium">Actions</th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-medium whitespace-nowrap">Name</th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-medium whitespace-nowrap">Age</th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-medium whitespace-nowrap">Occupation</th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-medium whitespace-nowrap">Hover Video</th>
+                      <th className="text-left py-3 px-4 text-gray-400 font-medium whitespace-nowrap">Created</th>
+                      <th className="text-right py-3 px-4 text-gray-400 font-medium whitespace-nowrap">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredCharacters.map((character) => (
-                      <tr key={character.id} className="border-b border-[#252525] hover:bg-[#252525]/50">
-                        <td className="py-3 px-4">
+                      <tr key={character.id} className="border-b border-[#252525] hover:bg-[#252525]/50 group">
+                        <td className="py-3 px-4 whitespace-nowrap">
                           <div className="flex items-center">
-                            <div className="w-8 h-8 rounded-full bg-[#252525] mr-3 overflow-hidden">
+                            <div className="w-8 h-8 rounded-full bg-[#252525] mr-3 overflow-hidden shrink-0">
                               <img
                                 src={character.image || "/placeholder.svg"}
                                 alt={character.name}
                                 className="w-full h-full object-cover"
                               />
                             </div>
-                            <span>{character.name}</span>
+                            <span className="truncate max-w-[120px] sm:max-w-none font-medium">{character.name}</span>
                             {character.isNew && (
-                              <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
+                              <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full shrink-0">
                                 New
                               </span>
                             )}
