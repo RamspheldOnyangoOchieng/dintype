@@ -395,7 +395,7 @@ export async function POST(request: NextRequest) {
                     const { data: character } = await supabase
                         .from('characters')
                         .select('id, name, image_url, description')
-                        .ilike('id', `${characterId}%`) // Handle partial IDs if needed, or exact match
+                        .ilike('id', `${characterId}%`)
                         .limit(1)
                         .maybeSingle();
 
@@ -411,22 +411,45 @@ export async function POST(request: NextRequest) {
                             created_at: new Date().toISOString(),
                         }, { onConflict: 'telegram_id' });
 
+                        // Check if there's existing conversation history from web
+                        let welcomeMessage = `💕 You're now chatting with <b>${character.name}</b>!\n\n${character.description || ''}\n\n<i>Send a message to start...</i>`;
+
+                        if (linkedAccount?.user_id) {
+                            const { data: existingSession } = await supabase
+                                .from('conversation_sessions')
+                                .select('id')
+                                .eq('user_id', linkedAccount.user_id)
+                                .eq('character_id', character.id)
+                                .eq('is_active', true)
+                                .maybeSingle();
+
+                            if (existingSession) {
+                                const { count } = await supabase
+                                    .from('messages')
+                                    .select('*', { count: 'exact', head: true })
+                                    .eq('session_id', existingSession.id);
+
+                                if (count && count > 0) {
+                                    // User has existing conversation! Personalize the greeting
+                                    welcomeMessage = `💕 Welcome back, ${firstName}!\n\nI see you've been chatting with <b>${character.name}</b> on the web. Your conversation continues here seamlessly!\n\n<i>${character.name} is waiting for you... just pick up where you left off.</i> 💬`;
+                                }
+                            }
+                        }
+
                         await sendTelegramMessage(
                             chatId,
-                            `💕 You're now chatting with <b>${character.name}</b>!\n\n${character.description || ''}\n\n<i>Send a message to start...</i>`,
+                            welcomeMessage,
                             {
                                 reply_markup: {
-                                    // Persistent "App" button at the bottom (Reply Keyboard)
                                     keyboard: [[{
                                         text: "Open App ✨",
                                         web_app: { url: `${SITE_URL}/telegram` }
                                     }]],
                                     resize_keyboard: true,
                                     is_persistent: true,
-                                    // Inline buttons for specific actions
                                     inline_keyboard: [
                                         [{ text: '🔗 Link to Web Account', url: `${SITE_URL}/chat/${character.id}` }],
-                                        [{ text: '🔄 Switch Character', web_app: { url: `${SITE_URL}/telegram/characters` } }]
+                                        [{ text: '🔄 Switch Character', web_app: { url: `${SITE_URL}/telegram` } }]
                                     ]
                                 }
                             }
@@ -461,9 +484,33 @@ export async function POST(request: NextRequest) {
                             .update({ used: true })
                             .eq('code', linkCode);
 
+                        // Check for existing conversation from web
+                        let greetingMessage = `✨ <b>Connected!</b>\n\nHey ${firstName}! 💕 You're now linked to your Pocketlove account.\n\nChatting with <b>${pendingLink.character_name}</b>.\n\n<i>Send me a message... I've been waiting for you.</i> 🌹`;
+
+                        const { data: existingSession } = await supabase
+                            .from('conversation_sessions')
+                            .select('id')
+                            .eq('user_id', pendingLink.user_id)
+                            .eq('character_id', pendingLink.character_id)
+                            .eq('is_active', true)
+                            .maybeSingle();
+
+                        if (existingSession) {
+                            const { data: lastMessages } = await supabase
+                                .from('messages')
+                                .select('content, role')
+                                .eq('session_id', existingSession.id)
+                                .order('created_at', { ascending: false })
+                                .limit(3);
+
+                            if (lastMessages && lastMessages.length > 0) {
+                                greetingMessage = `✨ <b>Synced!</b>\n\nHey ${firstName}! 💕 Your Pocketlove account is now connected.\n\nI can see you've been chatting with <b>${pendingLink.character_name}</b>. All your messages are synced here!\n\n<i>Just continue where you left off...</i> 🌹`;
+                            }
+                        }
+
                         await sendTelegramMessage(
                             chatId,
-                            `✨ <b>Connected!</b>\n\nHey ${firstName}! 💕 You're now linked to your Pocketlove account.\n\nChatting with <b>${pendingLink.character_name}</b>.\n\n<i>Send me a message... I've been waiting for you.</i> 🌹`,
+                            greetingMessage,
                             {
                                 reply_markup: {
                                     keyboard: [[{
@@ -473,7 +520,7 @@ export async function POST(request: NextRequest) {
                                     resize_keyboard: true,
                                     is_persistent: true,
                                     inline_keyboard: [[
-                                        { text: '🔄 Switch Character', web_app: { url: `${SITE_URL}/telegram/characters` } }
+                                        { text: '🔄 Switch Character', web_app: { url: `${SITE_URL}/telegram` } }
                                     ]]
                                 }
                             }
@@ -482,7 +529,61 @@ export async function POST(request: NextRequest) {
                     }
                 }
 
-                // Regular /start - show character selection via Mini App
+                // Check if this is a RETURNING user who already has a linked account
+                if (linkedAccount && linkedAccount.character_id) {
+                    const { data: character } = await supabase
+                        .from('characters')
+                        .select('id, name, description')
+                        .eq('id', linkedAccount.character_id)
+                        .maybeSingle();
+
+                    if (character) {
+                        let welcomeBack = `Hey ${firstName}! 💕\n\nWelcome back! You're still chatting with <b>${character.name}</b>.\n\n<i>Just send a message to continue your conversation...</i>`;
+
+                        // Check for conversation history
+                        if (linkedAccount.user_id) {
+                            const { data: session } = await supabase
+                                .from('conversation_sessions')
+                                .select('id')
+                                .eq('user_id', linkedAccount.user_id)
+                                .eq('character_id', character.id)
+                                .eq('is_active', true)
+                                .maybeSingle();
+
+                            if (session) {
+                                const { count } = await supabase
+                                    .from('messages')
+                                    .select('*', { count: 'exact', head: true })
+                                    .eq('session_id', session.id);
+
+                                if (count && count > 5) {
+                                    welcomeBack = `${firstName}! 💕 Missed me?\n\nWe have ${count} messages in our history. <b>${character.name}</b> remembers everything you've shared.\n\n<i>Pick up where we left off...</i>`;
+                                }
+                            }
+                        }
+
+                        await sendTelegramMessage(
+                            chatId,
+                            welcomeBack,
+                            {
+                                reply_markup: {
+                                    keyboard: [[{
+                                        text: "Open App ✨",
+                                        web_app: { url: `${SITE_URL}/telegram` }
+                                    }]],
+                                    resize_keyboard: true,
+                                    is_persistent: true,
+                                    inline_keyboard: [
+                                        [{ text: '🔄 Switch Character', web_app: { url: `${SITE_URL}/telegram` } }]
+                                    ]
+                                }
+                            }
+                        );
+                        return NextResponse.json({ ok: true });
+                    }
+                }
+
+                // Brand new user - show character selection
                 await sendTelegramMessage(
                     chatId,
                     `Hey ${firstName}... 💕\n\nI'm your future favorite distraction. Pick someone who catches your eye and let's make this personal.\n\n<b>Choose Your Companion:</b>`,
@@ -495,7 +596,7 @@ export async function POST(request: NextRequest) {
                             resize_keyboard: true,
                             is_persistent: true,
                             inline_keyboard: [
-                                [{ text: '🌐 Open Mini App', web_app: { url: `${SITE_URL}/telegram/characters` } }]
+                                [{ text: '🌐 Open Mini App', web_app: { url: `${SITE_URL}/telegram` } }]
                             ]
                         }
                     }
@@ -512,7 +613,7 @@ export async function POST(request: NextRequest) {
                     {
                         reply_markup: {
                             inline_keyboard: [[
-                                { text: '🌐 Open Mini App', web_app: { url: `${SITE_URL}/telegram/characters` } }
+                                { text: '🌐 Open Mini App', web_app: { url: `${SITE_URL}/telegram` } }
                             ]]
                         }
                     }
