@@ -31,6 +31,14 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
     }
   }, [user?.isExpired, isLoading])
 
+  // Telegram mini app pages should render completely standalone without any website layout
+  const isTelegramMiniApp = pathname?.startsWith("/telegram")
+
+  if (isTelegramMiniApp) {
+    // Return children only - no header, sidebar, or footer for Telegram Mini App
+    return <>{children}</>
+  }
+
   const noHeaderPaths = ["/chat", "/generate", "/premium", "/affiliate", "/admin"]
   const noFooterPaths = ["/chat"]
   const showHeader = !noHeaderPaths.some((path) => pathname.startsWith(path))
