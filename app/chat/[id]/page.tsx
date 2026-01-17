@@ -58,7 +58,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
-import { Trash2, UserCircle, Settings, Info, Share2, MessageCircle } from "lucide-react"
+import { Trash2, UserCircle, Settings, Info, Share2, MessageCircle, Lock } from "lucide-react"
+import { getStoryProgress, getChapter, initializeStoryProgress, type StoryChapter, type UserStoryProgress } from "@/lib/story-mode"
+import { Progress } from "@/components/ui/progress"
 
 export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
@@ -132,6 +134,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const [premiumModalDescription, setPremiumModalDescription] = useState("Daily message limit reached. Upgrade to premium to continue.")
   const [premiumModalMode, setPremiumModalMode] = useState<'upgrade' | 'message-limit'>('upgrade')
   const [isInitialLoad, setIsInitialLoad] = useState(true)
+
+  // Story Mode State
+  const [storyProgress, setStoryProgress] = useState<UserStoryProgress | null>(null)
+  const [currentChapter, setCurrentChapter] = useState<StoryChapter | null>(null)
+  const [isLoadingStory, setIsLoadingStory] = useState(false)
 
   // Use a ref for the interval to ensure we always have the latest reference
   const imageCheckIntervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -338,6 +345,41 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     setIsOpen(false);
   }, []);
 
+  // Story Mode Effect
+  useEffect(() => {
+    if (user?.id && characterId) {
+      setIsLoadingStory(true)
+      const loadStory = async () => {
+        try {
+          // Check if story chapters exist first (optimization)
+          // For now, we just try to get progress.
+          let prog = await getStoryProgress(user.id, characterId)
+
+          if (!prog) {
+            // If no progress, check if chapter 1 exists to start a story
+            const ch1 = await getChapter(characterId, 1)
+            if (ch1) {
+              prog = await initializeStoryProgress(user.id, characterId)
+            }
+          }
+
+          if (prog) {
+            setStoryProgress(prog)
+            if (!prog.is_completed) {
+              const ch = await getChapter(characterId, prog.current_chapter_number)
+              setCurrentChapter(ch)
+            }
+          }
+        } catch (e) {
+          console.error("Story load error", e)
+        } finally {
+          setIsLoadingStory(false)
+        }
+      }
+      loadStory()
+    }
+  }, [user, characterId])
+
   // Load characters with chat history
   useEffect(() => {
     if (!isMounted) return
@@ -407,10 +449,18 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
     const promptBase = `${character.name}, ${details.age || ''} ${details.ethnicity || ''} ${character.category === 'anime' ? 'anime style' : 'realistic photo'}. ${character.description?.substring(0, 100) || ''}`
 
+    // Check Story Mode lock
+    if (storyProgress && !storyProgress.is_completed) {
+      toast.error("Complete the storyline to unlock Free Roam image generation!", {
+        icon: <Lock className="h-4 w-4" />
+      })
+      return
+    }
+
     // Redirect to generate page with prompt
     const encodedPrompt = encodeURIComponent(promptBase)
     router.push(`/generate?prompt=${encodedPrompt}&characterId=${character.id}`)
-  }, [character, router])
+  }, [character, router, storyProgress])
 
   // Handle image error
   const handleImageError = useCallback(
@@ -1009,6 +1059,22 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         // 2. Check for image requests
         if (isAskingForImage(newMessage.content)) {
+          // Blocking logic for Story Mode
+          if (storyProgress && !storyProgress.is_completed) {
+            const blockedMsg: Message = {
+              id: Math.random().toString(),
+              role: "assistant",
+              content: "*blushes* I... I can't send photos right now. Let's just talk a bit more first? (Complete the storyline to unlock images)",
+              timestamp: new Date().toLocaleTimeString()
+            }
+            setTimeout(() => {
+              setMessages(prev => [...prev, blockedMsg])
+              saveMessageToLocalStorage(character.id, blockedMsg)
+            }, 1000)
+            setIsSendingMessage(false)
+            return
+          }
+
           const imagePrompt = extractImagePrompt(newMessage.content)
           setIsSendingMessage(false)
           await generateImage(imagePrompt)
@@ -1253,6 +1319,18 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
       {/* Middle - Chat Area */}
       <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+        {/* Story Mode Progress Bar */}
+        {storyProgress && !storyProgress.is_completed && currentChapter && (
+          <div className="bg-background/95 backdrop-blur px-4 py-2 border-b border-border z-20">
+            <div className="flex justify-between items-center mb-1 text-xs">
+              <span className="font-bold text-amber-500 flex items-center gap-1">
+                <Lock className="h-3 w-3" /> Story Mode
+              </span>
+              <span className="text-muted-foreground">Chapter {storyProgress.current_chapter_number} of 10</span>
+            </div>
+            <Progress value={(storyProgress.current_chapter_number / 10) * 100} className="h-1 bg-secondary [&>div]:bg-amber-500" />
+          </div>
+        )}
         {/* Chat Header */}
         <div className="border-b border-border flex items-center px-3 md:px-4 py-3 md:py-4 justify-between bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
           <div className="flex items-center min-w-0 flex-1">
@@ -1299,6 +1377,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   messages.length > 0 ? messages[messages.length - 1].timestamp : t("chat.noMessagesYet")
                 )}
               </span>
+
             </div>
           </div>
           <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-2">
@@ -1675,6 +1754,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               <Wand2 className="mr-2 h-5 w-5" />
               {t("generate.generate")}
             </Button>
+            {storyProgress && !storyProgress.is_completed && (
+              <div className="text-center mt-2 text-xs text-amber-500 flex items-center justify-center gap-1">
+                <Lock className="h-3 w-3" /> Image generation locked until story complete
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1714,32 +1798,34 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         description="Your Premium membership has expired. Renew to continue chatting and creating without limits."
       />
 
-      {selectedImage && (
-        <ImageModal
-          open={!!selectedImage}
-          onOpenChange={(open) => {
-            if (!open) {
-              setSelectedImage(null)
-              setSelectedImagePrompt("")
-            }
-          }}
-          images={selectedImage}
-          initialIndex={0}
-          onDownload={(url, index) => {
-            const a = document.createElement('a')
-            a.href = url
-            a.download = `generated-${index}.jpg`
-            a.click()
-          }}
-          onShare={(url) => {
-            navigator.clipboard.writeText(url)
-            toast.success("Link copied to clipboard!")
-          }}
-          onSave={(index) => handleSaveImage(selectedImage[index], selectedImagePrompt)}
-          savingIndex={isSaving ? 0 : null} // Simple visual feedback
-        />
-      )}
-    </div>
+      {
+        selectedImage && (
+          <ImageModal
+            open={!!selectedImage}
+            onOpenChange={(open) => {
+              if (!open) {
+                setSelectedImage(null)
+                setSelectedImagePrompt("")
+              }
+            }}
+            images={selectedImage}
+            initialIndex={0}
+            onDownload={(url, index) => {
+              const a = document.createElement('a')
+              a.href = url
+              a.download = `generated-${index}.jpg`
+              a.click()
+            }}
+            onShare={(url) => {
+              navigator.clipboard.writeText(url)
+              toast.success("Link copied to clipboard!")
+            }}
+            onSave={(index) => handleSaveImage(selectedImage[index], selectedImagePrompt)}
+            savingIndex={isSaving ? 0 : null} // Simple visual feedback
+          />
+        )
+      }
+    </div >
   )
 }
 

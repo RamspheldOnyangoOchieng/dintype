@@ -475,12 +475,12 @@ export default function AdminDashboardPage() {
                         <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
                           {activity.user?.username || 'System'}
                         </p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-2">
+                        <div className="text-xs text-slate-500 dark:text-slate-400 truncate flex items-center gap-2">
                           <Badge variant="outline" className="text-[9px] h-4 px-1 lowercase font-black bg-zinc-100 dark:bg-zinc-800">
                             {activity.activity_kind || 'action'}
                           </Badge>
                           {activity.description || `${activity.type}: ${activity.amount > 0 ? '+' : ''}${activity.amount}`}
-                        </p>
+                        </div>
                       </div>
                       <div className="ml-auto text-xs text-slate-400 whitespace-nowrap italic">
                         {new Date(activity.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

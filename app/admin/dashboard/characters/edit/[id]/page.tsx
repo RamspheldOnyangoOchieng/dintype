@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useEffect, useState, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -21,6 +21,7 @@ import {
   Wand2,
   Upload,
   AlertTriangle,
+  BookOpen,
 } from "lucide-react"
 import { generateCharacterDescription, generateSystemPrompt, type GenerateCharacterParams } from "@/lib/openai"
 import Image from "next/image"
@@ -35,7 +36,9 @@ const convertFileToBase64 = (file: File): Promise<string> => {
   })
 }
 
-export default function EditCharacterPage({ params }: { params: { id: string } }) {
+export default function EditCharacterPage() {
+  const params = useParams()
+  const id = params.id as string
   const { user, isLoading, refreshSession } = useAuth()
   const { getCharacter, updateCharacter, uploadImage } = useCharacters()
   const router = useRouter()
@@ -68,7 +71,7 @@ export default function EditCharacterPage({ params }: { params: { id: string } }
 
   // Load character data
   useEffect(() => {
-    const character = getCharacter(params.id)
+    const character = getCharacter(id)
     if (character) {
       setFormData({
         name: character.name,
@@ -94,7 +97,7 @@ export default function EditCharacterPage({ params }: { params: { id: string } }
     } else {
       setNotFound(true)
     }
-  }, [params.id, getCharacter])
+  }, [id, getCharacter])
 
   // Redirect if not logged in or not admin
   useEffect(() => {
@@ -267,7 +270,7 @@ export default function EditCharacterPage({ params }: { params: { id: string } }
         await refreshSession()
 
         // Update the character
-        await updateCharacter(params.id, formData)
+        await updateCharacter(id, formData)
       } catch (updateErr) {
         // Check if it's an auth error
         if (
@@ -284,7 +287,7 @@ export default function EditCharacterPage({ params }: { params: { id: string } }
           }
 
           // Try again
-          await updateCharacter(params.id, formData)
+          await updateCharacter(id, formData)
         } else {
           throw updateErr
         }
@@ -339,38 +342,50 @@ export default function EditCharacterPage({ params }: { params: { id: string } }
         {/* Admin Sidebar */}
         <div className="w-64 bg-[#1A1A1A] border-r border-[#252525] flex flex-col">
           <div className="p-4 border-b border-[#252525]">
-            <h1 className="text-xl font-bold">Admin Panel</h1>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
+              Character Editor
+            </h1>
+            <p className="text-xs text-gray-400 mt-1 truncate">{formData.name || "New Character"}</p>
           </div>
 
-          <nav className="flex-1 p-4">
-            <div className="space-y-2">
-              <Button variant="ghost" className="w-full justify-start" onClick={() => router.push("/admin/dashboard")}>
-                <Settings className="mr-2 h-5 w-5" />
-                Site Settings
+          <nav className="flex-1 p-4 space-y-2">
+            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
+              Character Menu
+            </div>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start bg-[#252525] text-primary"
+              onClick={() => { }}
+            >
+              <Users className="mr-2 h-4 w-4" />
+              Profile Details
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#252525]"
+              onClick={() => router.push(`/admin/dashboard/characters/${id}/storyline`)}
+            >
+              <BookOpen className="mr-2 h-4 w-4" />
+              Storyline
+            </Button>
+
+            {/* Placeholder for future specific character image gallery if needed 
+              <Button variant="ghost" className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#252525]">
+                <ImageIcon className="mr-2 h-4 w-4" />
+                Images (Gallery)
               </Button>
+              */}
+
+            <div className="pt-4 mt-4 border-t border-[#252525]">
               <Button
                 variant="ghost"
-                className="w-full justify-start"
-                onClick={() => router.push("/admin/dashboard/users")}
-              >
-                <Users className="mr-2 h-5 w-5" />
-                Users
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start bg-[#252525]"
+                className="w-full justify-start text-gray-400 hover:text-white"
                 onClick={() => router.push("/admin/dashboard/characters")}
               >
-                <MessageSquare className="mr-2 h-5 w-5" />
-                Characters
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <ImageIcon className="mr-2 h-5 w-5" />
-                Images
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <BarChart className="mr-2 h-5 w-5" />
-                Analytics
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to List
               </Button>
             </div>
           </nav>
@@ -381,9 +396,6 @@ export default function EditCharacterPage({ params }: { params: { id: string } }
                 <p className="text-sm font-medium">{user.username}</p>
                 <p className="text-xs text-gray-400">Administrator</p>
               </div>
-              <Button variant="ghost" size="icon" onClick={() => router.push("/admin/login")}>
-                <LogOut className="h-5 w-5" />
-              </Button>
             </div>
           </div>
         </div>

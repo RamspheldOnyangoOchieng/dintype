@@ -36,6 +36,8 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
   const showHeader = !noHeaderPaths.some((path) => pathname.startsWith(path))
   const showFooter = !noFooterPaths.some((path) => pathname.startsWith(path))
 
+  const isAdminPage = pathname?.startsWith("/admin")
+
   return (
     <div
       className="flex bg-background min-h-screen overflow-x-hidden"
@@ -43,7 +45,7 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
       suppressHydrationWarning
     >
       <AppSidebar />
-      <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out overflow-x-hidden ${isOpen ? "md:ml-64" : "md:ml-20"}`}>
+      <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out overflow-x-hidden ${isAdminPage ? "ml-0" : (isOpen ? "md:ml-64" : "md:ml-20")}`}>
         <div key="layout-main-content" className="flex-1 flex flex-col overflow-x-hidden">
           <div className="flex-none">
             {showHeader ? <SiteHeader /> : null}

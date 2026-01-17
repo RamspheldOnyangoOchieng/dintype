@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/auth-context"
 import { useCharacters } from "@/components/character-context"
-import { Home, Search, Trash2, Edit, Plus, Video } from "lucide-react"
+import { Home, Search, Trash2, Edit, Plus, Video, BookOpen } from "lucide-react"
 import { format } from "date-fns"
 import Link from "next/link"
 import { CharacterHoverVideoModal } from "@/components/character-hover-video-modal"
@@ -155,8 +155,8 @@ export default function AdminCharactersPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className={character.videoUrl 
-                                ? "text-purple-400 hover:text-purple-300 hover:bg-purple-900/20" 
+                              className={character.videoUrl
+                                ? "text-purple-400 hover:text-purple-300 hover:bg-purple-900/20"
                                 : "text-gray-400 hover:text-gray-300 hover:bg-gray-900/20"
                               }
                               onClick={() => handleOpenVideoModal(character)}
@@ -164,6 +164,16 @@ export default function AdminCharactersPage() {
                             >
                               <Video className="h-4 w-4" />
                             </Button>
+                            <Link href={`/admin/dashboard/characters/${character.id}/storyline`}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-amber-400 hover:text-amber-300 hover:bg-amber-900/20"
+                                title="Manage Storyline"
+                              >
+                                <BookOpen className="h-4 w-4" />
+                              </Button>
+                            </Link>
                             <Link href={`/admin/dashboard/characters/edit/${character.id}`}>
                               <Button
                                 variant="ghost"
