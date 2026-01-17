@@ -12,7 +12,6 @@ export const viewport: Viewport = {
     initialScale: 1,
     maximumScale: 1,
     userScalable: false,
-    viewportFit: "cover",
 }
 
 export default function TelegramLayout({
@@ -27,16 +26,31 @@ export default function TelegramLayout({
                 strategy="beforeInteractive"
             />
             {/* 
-                The container doesn't use 100vh/min-h-screen so the Telegram header 
-                remains visible at the top. The WebApp API provides viewport height 
-                which the child components use.
+                CRITICAL: No height constraints. 
+                The content should flow naturally so Telegram opens in "compact" mode.
+                Adding overflow-hidden to prevent any scroll bounce from expanding.
             */}
-            <div className="text-white overflow-hidden bg-transparent">
+            <div
+                className="text-white overflow-hidden"
+                style={{
+                    background: 'transparent',
+                    backgroundColor: 'transparent',
+                    minHeight: 'auto',
+                    height: 'auto'
+                }}
+            >
                 <style dangerouslySetInnerHTML={{
                     __html: `
                     html, body { 
                         background: transparent !important; 
                         background-color: transparent !important;
+                        min-height: auto !important;
+                        height: auto !important;
+                        overflow: hidden !important;
+                    }
+                    #__next {
+                        background: transparent !important;
+                        min-height: auto !important;
                     }
                 ` }} />
                 {children}
