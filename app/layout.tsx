@@ -2,15 +2,11 @@ import type React from "react"
 import "./globals.css"
 import "../styles/buttons.css"
 import { Poppins } from "next/font/google"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { AuthProvider } from "@/components/auth-context"
 import { AuthModalProvider } from "@/components/auth-modal-context"
-import { AuthModals } from "@/components/auth-modals"
 import ClientRootLayout from "./ClientRootLayout"
-import { MobileNav } from "@/components/mobile-nav"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Toaster } from "@/components/ui/toaster"
-import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 import { getPageMetadata } from "@/lib/page-metadata"
 
@@ -42,6 +38,14 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+}
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -58,10 +62,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <AuthModalProvider>
               <ClientRootLayout>
                 {children}
-                <MobileNav />
-                <AuthModals />
-                <Toaster />
-                <SonnerToaster />
               </ClientRootLayout>
             </AuthModalProvider>
           </AuthProvider>
@@ -70,4 +70,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   )
 }
-// CSS imports are at the top for proper order

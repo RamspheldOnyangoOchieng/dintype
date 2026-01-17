@@ -54,6 +54,7 @@ export default function TelegramMiniAppPage() {
     const [activeTab, setActiveTab] = useState<'explore' | 'chats' | 'shop' | 'tasks' | 'profile'>('explore')
     const [telegramUser, setTelegramUser] = useState<any>(null)
     const [viewportHeight, setViewportHeight] = useState<number | null>(null)
+    const [showMoreMenu, setShowMoreMenu] = useState(false)
 
     const supabase = createClient()
 
@@ -326,8 +327,6 @@ export default function TelegramMiniAppPage() {
             </div>
         )
     }
-
-    const [showMoreMenu, setShowMoreMenu] = useState(false)
 
     // Full View - Complete app experience (covers most of screen but leaves Telegram header visible)
     return (

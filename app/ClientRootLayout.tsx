@@ -10,13 +10,16 @@ import { SidebarProvider, useSidebar } from "@/components/sidebar-context"
 import { SiteProvider } from "@/components/site-context"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
-import { AnalyticsLoader } from "@/components/use-consent"
 import { usePathname } from "next/navigation"
 import type React from "react"
 import "./globals.css"
 import { useAuth } from "@/components/auth-context"
 import { PremiumUpgradeModal } from "@/components/premium-upgrade-modal"
 import { useState, useEffect } from "react"
+import { MobileNav } from "@/components/mobile-nav"
+import { AuthModals } from "@/components/auth-modals"
+import { Toaster } from "@/components/ui/toaster"
+import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 
 function RootLayoutContent({ children }: { children: React.ReactNode }) {
   const { isOpen } = useSidebar()
@@ -35,8 +38,14 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
   const isTelegramMiniApp = pathname?.startsWith("/telegram")
 
   if (isTelegramMiniApp) {
-    // Return children only - no header, sidebar, or footer for Telegram Mini App
-    return <>{children}</>
+    // Return children only - no header, sidebar, footer, or website navigation for Telegram Mini App
+    return (
+      <>
+        {children}
+        <Toaster />
+        <SonnerToaster />
+      </>
+    )
   }
 
   const noHeaderPaths = ["/chat", "/generate", "/premium", "/affiliate", "/admin"]
@@ -68,6 +77,11 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
           {showFooter ? <SiteFooter /> : null}
         </div>
       </div>
+
+      <MobileNav />
+      <AuthModals />
+      <Toaster />
+      <SonnerToaster />
 
       <PremiumUpgradeModal
         isOpen={showExpiredModal}
