@@ -310,10 +310,10 @@ export default function CharacterStorylinePage() {
     if (loading) return <div className="p-8 text-center text-gray-400">Loading storyline...</div>
 
     return (
-        <div className="min-h-[calc(100vh-4rem)] w-full max-w-[100vw] overflow-x-hidden flex flex-col bg-[#0a0a0a] text-white">
+        <div className="min-h-[calc(100vh-4rem)] w-full max-w-[100vw] overflow-x-hidden flex flex-col bg-background text-foreground">
             {/* Header */}
             {/* Header - Always visible now to access buttons on mobile */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between px-4 py-4 border-b border-white/10 bg-[#0f0f0f] gap-4 shrink-0">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between px-4 py-4 border-b border-border bg-card/50 gap-4 shrink-0">
                 <div className="flex items-center gap-3 w-full lg:w-auto overflow-hidden">
                     {/* Mobile Back to List Button - Only shows when editing a chapter */}
                     <div className={`${selectedChapterId ? 'block md:hidden' : 'hidden'}`}>
@@ -330,7 +330,7 @@ export default function CharacterStorylinePage() {
                         <h1 className="text-lg font-bold flex items-center gap-2 truncate">
                             <BookOpen className="h-5 w-5 text-primary shrink-0" />
                             <span className="truncate max-w-[150px] sm:max-w-[200px] md:max-w-md">{characterName}</span>
-                            <span className="text-gray-500 shrink-0">/</span>
+                            <span className="text-muted-foreground shrink-0">/</span>
                             <span className="shrink-0">Storyline</span>
                         </h1>
                     </div>
@@ -350,11 +350,11 @@ export default function CharacterStorylinePage() {
             <div className="flex-1 flex flex-col md:flex-row">
                 {/* Sidebar List */}
                 <div className={`
-                    w-full md:w-80 border-b md:border-b-0 md:border-r border-white/10 flex-col bg-[#111]
+                    w-full md:w-80 border-b md:border-b-0 md:border-r border-border flex-col bg-card
                     ${selectedChapterId ? 'hidden md:flex' : 'flex'}
                     md:min-h-full h-full
                 `}>
-                    <div className="p-4 font-semibold text-xs text-gray-500 uppercase tracking-wider flex justify-between items-center bg-[#151515] md:bg-transparent">
+                    <div className="p-4 font-semibold text-xs text-muted-foreground uppercase tracking-wider flex justify-between items-center bg-muted/30 md:bg-transparent">
                         <div className="flex items-center gap-4">
                             <span>Chapters ({chapters.length})</span>
                         </div>
@@ -369,13 +369,13 @@ export default function CharacterStorylinePage() {
                                 group flex items-start p-4 md:p-3 rounded-lg cursor-pointer transition-all border border-transparent mb-2 md:mb-0
                                 ${selectedChapterId === chapter.id
                                             ? "bg-primary/10 border-primary/20 text-primary"
-                                            : "bg-[#1a1a1a] md:bg-transparent border-white/5 md:border-transparent hover:bg-white/5 text-gray-400 hover:text-white"
+                                            : "bg-muted/50 md:bg-transparent border-border/50 md:border-transparent hover:bg-muted text-muted-foreground hover:text-foreground"
                                         }
                             `}
                                 >
                                     <div className={`
                                 mt-0.5 mr-3 h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0
-                                ${selectedChapterId === chapter.id ? "bg-primary text-black" : "bg-white/10 group-hover:bg-white/20"}
+                                ${selectedChapterId === chapter.id ? "bg-primary text-primary-foreground" : "bg-muted group-hover:bg-muted/80"}
                             `}>
                                         {chapter.chapter_number}
                                     </div>
@@ -404,14 +404,14 @@ export default function CharacterStorylinePage() {
 
                 {/* Editor Area */}
                 <div className={`
-                    flex-1 flex-col bg-[#0a0a0a] min-h-[500px]
+                    flex-1 flex-col bg-background min-h-[500px]
                     ${selectedChapterId ? 'flex' : 'hidden md:flex'}
                 `}>
                     {selectedChapterId ? (
                         <div className="h-full flex flex-col">
                             <Tabs defaultValue="details" className="flex-1 flex flex-col">
-                                <div className="px-6 py-2 border-b border-white/10 bg-[#151515]">
-                                    <TabsList className="bg-black/40 w-full justify-start overflow-x-auto no-scrollbar whitespace-nowrap h-auto py-1">
+                                <div className="px-6 py-2 border-b border-border bg-muted/50">
+                                    <TabsList className="bg-muted w-full justify-start overflow-x-auto whitespace-nowrap h-auto py-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
                                         <TabsTrigger value="details" className="shrink-0">Details & Tone</TabsTrigger>
                                         <TabsTrigger value="visual" className="shrink-0">Visual Builder</TabsTrigger>
                                         <TabsTrigger value="images" className="shrink-0">Chapter Images (6)</TabsTrigger>
@@ -420,8 +420,8 @@ export default function CharacterStorylinePage() {
                                     </TabsList>
                                 </div>
 
-                                <div className="flex-1 p-6">
-                                    <TabsContent value="images" className="mt-0 space-y-6">
+                                <div className="flex-1 p-4 md:p-6 pb-20 overflow-x-auto min-w-0">
+                                    <TabsContent value="images" className="mt-0 space-y-6 w-full">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                             {[0, 1, 2, 3, 4, 5].map((idx) => {
                                                 const parsed = (() => {
@@ -431,17 +431,17 @@ export default function CharacterStorylinePage() {
                                                 const imageUrl = parsed.chapter_images?.[idx]
 
                                                 return (
-                                                    <Card key={idx} className="bg-[#111] border-white/10 overflow-hidden group">
-                                                        <CardHeader className="p-3 bg-white/5 flex flex-row items-center justify-between">
-                                                            <CardTitle className="text-xs font-bold uppercase tracking-widest text-gray-500">Slot {idx + 1}</CardTitle>
+                                                    <Card key={idx} className="bg-card border-border overflow-hidden group">
+                                                        <CardHeader className="p-3 bg-muted/50 flex flex-row items-center justify-between">
+                                                            <CardTitle className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Slot {idx + 1}</CardTitle>
                                                             {imageUrl && <Check className="h-3 w-3 text-green-500" />}
                                                         </CardHeader>
                                                         <CardContent className="p-4 space-y-4">
-                                                            <div className="aspect-[9/16] relative bg-black/40 rounded-lg overflow-hidden border border-white/5 mb-4 group-hover:border-primary/30 transition-colors">
+                                                            <div className="aspect-[9/16] relative bg-muted/30 rounded-lg overflow-hidden border border-border/50 mb-4 group-hover:border-primary/30 transition-colors">
                                                                 {imageUrl ? (
                                                                     <img src={imageUrl} alt={`Chapter Image ${idx + 1}`} className="w-full h-full object-cover" />
                                                                 ) : (
-                                                                    <div className="flex flex-col items-center justify-center h-full text-gray-600 gap-2">
+                                                                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground/40 gap-2">
                                                                         <ImageIcon className="h-8 w-8 opacity-20" />
                                                                         <span className="text-[10px] uppercase font-medium">Empty Slot</span>
                                                                     </div>
@@ -466,7 +466,7 @@ export default function CharacterStorylinePage() {
                                                                     <Button
                                                                         variant="outline"
                                                                         size="sm"
-                                                                        className="w-full text-[10px] h-8 gap-1 border-white/10 hover:bg-white/5"
+                                                                        className="w-full text-[10px] h-8 gap-1 border-border hover:bg-muted"
                                                                         onClick={() => document.getElementById(`upload-${idx}`)?.click()}
                                                                         disabled={isUploading || isGenerating}
                                                                     >
@@ -488,11 +488,11 @@ export default function CharacterStorylinePage() {
                                                 )
                                             })}
                                         </div>
-                                        <p className="text-xs text-gray-500 italic mt-4">
+                                        <p className="text-xs text-muted-foreground italic mt-4">
                                             Tip: These 6 images will be used by the AI to progress the chapter visual narrative.
                                         </p>
                                     </TabsContent>
-                                    <TabsContent value="visual" className="mt-0 max-w-4xl space-y-8">
+                                    <TabsContent value="visual" className="mt-0 space-y-8 w-full">
                                         {/* Visual Editor Logic */}
                                         {(() => {
                                             let parsed = { opening_message: "", branches: [] };
@@ -546,19 +546,19 @@ export default function CharacterStorylinePage() {
                                                             <Label className="text-lg font-semibold text-primary">Opening Message</Label>
                                                             <Badge variant="outline" className="bg-primary/5 border-primary/20">Step 1</Badge>
                                                         </div>
-                                                        <Card className="bg-[#111] border-white/10">
+                                                        <Card className="bg-card border-border shadow-sm">
                                                             <CardContent className="p-4">
                                                                 <Textarea
                                                                     value={parsed.opening_message || ""}
                                                                     onChange={(e) => updateContent({ ...parsed, opening_message: e.target.value })}
-                                                                    className="min-h-[120px] bg-black/20 border-white/5 text-base leading-relaxed"
+                                                                    className="min-h-[120px] bg-muted/30 border-border/50 text-base leading-relaxed"
                                                                     placeholder="What does the character say to start this chapter?"
                                                                 />
                                                             </CardContent>
                                                         </Card>
                                                     </div>
 
-                                                    <Separator className="bg-white/5" />
+                                                    <Separator className="bg-border/50" />
 
                                                     {/* Branches Section */}
                                                     <div className="space-y-4">
@@ -575,16 +575,16 @@ export default function CharacterStorylinePage() {
                                                         <div className="grid grid-cols-1 gap-4">
                                                             {/* @ts-ignore */}
                                                             {parsed.branches?.map((branch: any, idx: number) => (
-                                                                <Card key={idx} className="bg-[#111] border-white/10 relative group overflow-hidden">
-                                                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-purple-500"></div>
+                                                                <Card key={idx} className="bg-card border-border relative group overflow-hidden shadow-sm">
+                                                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500/80 to-purple-500/80"></div>
                                                                     <CardContent className="p-4 pl-6 space-y-4">
                                                                         <div className="flex gap-4">
                                                                             <div className="flex-1 space-y-2">
-                                                                                <Label className="text-xs text-gray-400 uppercase tracking-wider">Player Option Label</Label>
+                                                                                <Label className="text-xs text-muted-foreground uppercase tracking-wider">Player Option Label</Label>
                                                                                 <Input
                                                                                     value={branch.label || ""}
                                                                                     onChange={(e) => updateBranch(idx, "label", e.target.value)}
-                                                                                    className="bg-black/20 border-white/5 font-medium"
+                                                                                    className="bg-muted/30 border-border/50 font-medium"
                                                                                     placeholder="e.g. 'Tell me more'"
                                                                                 />
                                                                             </div>
@@ -623,7 +623,7 @@ export default function CharacterStorylinePage() {
                                             );
                                         })()}
                                     </TabsContent>
-                                    <TabsContent value="details" className="mt-0 space-y-6 max-w-2xl">
+                                    <TabsContent value="details" className="mt-0 space-y-6 w-full">
                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                             <div className="md:col-span-1">
                                                 <Label>Number</Label>
@@ -734,7 +734,7 @@ export default function CharacterStorylinePage() {
                                         </div>
                                     </TabsContent>
 
-                                    <TabsContent value="prompt" className="mt-0 max-w-3xl">
+                                    <TabsContent value="prompt" className="mt-0 w-full">
                                         <Label className="mb-2 block">Chapter-Specific System Prompt Prompt</Label>
                                         <Card className="bg-amber-950/10 border-amber-900/30">
                                             <CardContent className="p-4">

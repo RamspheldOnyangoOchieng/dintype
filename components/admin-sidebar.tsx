@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart, CreditCard, Home, Settings, Users, Image, MessageSquare, DollarSign, FileText, Package, Gem, Activity, Search, FileEdit, Upload, Shield } from "lucide-react"
+import { BarChart, CreditCard, Home, Settings, Users, Image, MessageSquare, DollarSign, FileText, Package, Gem, Activity, Search, FileEdit, Upload, Shield, PanelLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // Make sure the Settings link is pointing to the correct path
@@ -26,23 +26,57 @@ const navigation = [
   { name: "Legal", href: "/admin/dashboard/documents", icon: FileText },
 ]
 
-export default function AdminSidebar({ onNavigate }: { onNavigate?: () => void }) {
+export default function AdminSidebar({
+  onNavigate,
+  isCollapsed,
+  onToggle
+}: {
+  onNavigate?: () => void,
+  isCollapsed?: boolean,
+  onToggle?: () => void
+}) {
   const pathname = usePathname()
 
   return (
-    <div className="flex h-full flex-col bg-[#0a0a0a] border-r border-white/10 text-white shadow-2xl">
-      <div className="flex h-16 items-center px-6 border-b border-white/5 bg-gradient-to-r from-purple-900/20 to-transparent">
+    <div className={cn(
+      "flex h-full flex-col bg-card border-r border-border text-foreground shadow-2xl transition-all duration-300",
+      isCollapsed ? "w-20" : "w-[280px]"
+    )}>
+      <div className="flex h-16 items-center px-6 border-b border-border bg-gradient-to-r from-primary/5 to-transparent relative">
         <Link href="/admin/dashboard" className="flex items-center gap-3" onClick={onNavigate}>
-          <div className="p-1.5 rounded-lg bg-primary/20 text-primary">
+          <div className="p-1.5 rounded-lg bg-primary/10 text-primary shrink-0">
             <Shield className="h-5 w-5" />
           </div>
-          <span className="font-bold text-lg tracking-tight">Admin<span className="text-primary font-light">Panel</span></span>
+          <span className={cn(
+            "font-bold text-lg tracking-tight transition-all duration-300",
+            isCollapsed ? "opacity-0 w-0" : "opacity-100"
+          )}>
+            Admin<span className="text-primary font-light">Panel</span>
+          </span>
         </Link>
+
+        {/* The single, clear Sidebar Toggle */}
+        <button
+          onClick={onToggle}
+          className={cn(
+            "absolute -right-4 top-1/2 -translate-y-1/2 z-50 rounded-full p-2.5 transition-all duration-300 lg:flex hidden items-center justify-center",
+            isCollapsed
+              ? "bg-primary text-primary-foreground scale-110 shadow-xl shadow-primary/40 ring-4 ring-primary/20 border border-primary"
+              : "bg-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50 border-transparent shadow-none"
+          )}
+          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        >
+          <PanelLeft className={cn(
+            "h-4 w-4 transition-transform duration-500",
+            isCollapsed ? "rotate-180" : ""
+          )} />
+        </button>
       </div>
-      <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
-        <div className="mb-2 px-3 text-xs font-semibold text-white/30 uppercase tracking-widest">
-          Overview
+      <div className="flex-1 space-y-1 px-3 py-4 overflow-y-auto no-scrollbar relative">
+        <div className="mb-2 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-widest h-4 overflow-hidden">
+          {!isCollapsed && "Overview"}
         </div>
+
         {navigation.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`)
           return (
@@ -50,33 +84,39 @@ export default function AdminSidebar({ onNavigate }: { onNavigate?: () => void }
               key={item.name}
               href={item.href}
               onClick={onNavigate}
+              title={isCollapsed ? item.name : ""}
               className={cn(
-                "group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
+                "group flex items-center py-2.5 text-sm font-medium rounded-lg transition-all duration-200",
+                isCollapsed ? "px-0 justify-center" : "px-3",
                 isActive
-                  ? "bg-primary/20 text-primary border-l-2 border-primary"
-                  : "text-gray-400 hover:bg-white/5 hover:text-white border-l-2 border-transparent",
+                  ? "bg-primary/10 text-primary border-l-2 border-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground border-l-2 border-transparent",
               )}
             >
               <item.icon
                 className={cn(
-                  "mr-3 h-5 w-5 flex-shrink-0 transition-colors",
-                  isActive ? "text-primary" : "text-gray-500 group-hover:text-white",
+                  "h-5 w-5 flex-shrink-0 transition-colors",
+                  isCollapsed ? "" : "mr-3",
+                  isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground",
                 )}
                 aria-hidden="true"
               />
-              {item.name}
+              {!isCollapsed && <span>{item.name}</span>}
             </Link>
           )
         })}
-      </nav>
-      <div className="border-t border-white/5 p-4 bg-black/20">
+      </div>
+      <div className="border-t border-border p-4 bg-muted/20">
         <Link
           href="/"
-          className="flex items-center gap-3 text-sm text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-white/5"
+          className={cn(
+            "flex items-center gap-3 text-sm text-muted-foreground hover:text-foreground transition-colors p-2 rounded-lg hover:bg-muted",
+            isCollapsed ? "justify-center" : ""
+          )}
           onClick={onNavigate}
         >
-          <Home className="h-4 w-4" />
-          Back to Main Site
+          <Home className="h-4 w-4 shrink-0" />
+          {!isCollapsed && <span>Main Site</span>}
         </Link>
       </div>
     </div>

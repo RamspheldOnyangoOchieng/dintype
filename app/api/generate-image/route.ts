@@ -91,8 +91,9 @@ const DEFAULT_NEGATIVE_PROMPT_PARTS = [
   // Aesthetic-related (prevents gloomy/dull outputs)
   "gloomy", "gray", "depressing", "monochrome", "dull colors", "low contrast",
   "bad lighting", "backlit", "dimly lit",
-  // Expression-related (prevents distorted/surprised looks)
-  "surprised", "shocked", "scared", "mouth agape", "open mouth", "wide eyes", "staring", "blank stare"
+  // Expression-related (prevents distorted/surprised/sad looks)
+  "surprised", "shocked", "scared", "mouth agape", "open mouth", "wide eyes", "staring", "blank stare",
+  "needy", "frustrated", "sad", "worried", "unhappy", "angry", "distressed", "tearful", "pouty"
 ];
 
 const DEFAULT_NEGATIVE_PROMPT = DEFAULT_NEGATIVE_PROMPT_PARTS.join(", ");
@@ -379,10 +380,11 @@ export async function POST(req: NextRequest) {
                 CRITICAL INSTRUCTIONS:
                 1. IDENTITY LOCKING: If character info is provided (Name: ${character?.name}, Ethnicity: ${character?.ethnicity}), you MUST ensure the character's facial features remain 100% consistent with their established identity. Do NOT re-describe their face in a way that would generate a new person. Focus on the requested action and setting while keeping the character's face "locked".
                 2. STRICT ADHERENCE: If the user specifies a POSTURE, ACTION (e.g., "touching hair", "leaning on a wall"), or a specific OBJECT, you MUST keep this central and explicit in your description. Do not dilute it.
-                3. MOOD & VIBRANCY: Avoid gloomy, dull, or clinical looks. Use vibrant colors, warm cinematic lighting (golden hour, sunset glow, soft romantic illumination), and evocative atmospheres.
-                4. EXPRESSIONS: Characters should have relaxed, confident, and natural expressions. Prefer closed-mouth smiles, playful smirks, or seductive half-lids. CRITICAL: Avoid "surprised" looks, wide-open eyes, or mouths agape unless explicitly requested.
+                3. MOOD & VIBRANCY: Avoid gloomy, dull, needy, or frustrated looks. Force a "Romantic, Happy, Sexy, and Confident" vibe. Use vibrant colors, warm cinematic lighting (golden hour, soft romantic illumination), and evocative atmospheres.
+                4. EXPRESSIONS: Characters should have joyful, seductive, or playful expressions. Use terms like "radiant smile", "seductive gaze", or "confident smirk". STERNLY FORBID: Any "distressed", "needy", "blank", or "robotic" facial features.
                 5. MASTERPIECE QUALITY: Focus on skin textures (pores, freckles), fabric details, depth of field (bokeh), and high-speed shutter clarity.
-                6. SHORT PROMPT EXPANSION: Even if the user prompt is extremely short (1-3 words), you MUST expand it into a rich, 100-word masterpiece description that defines the lighting, environment, and specific pose of the character to ensure high quality.
+                6. LITERAL ADHERENCE: If the user says "legs wide open", the description MUST explicitly describe "legs spread wide apart" or "legs open" to ensure the AI generator follows the pose. Do NOT dilute the literal meaning of the user's action.
+                7. SHORT PROMPT EXPANSION: Expand short prompts into a rich 70-100 word description. Keep the core action provided by the user as the absolute focus of the scene.
 
                 IMPORTANT FOR DIVERSITY: If the user is requesting multiple images (which we will pass to a batch generator), your description MUST be structured to allow for maximum environmental variety across different seeds. Mention a variety of premium settings like: a pristine tropical beach, deep blue ocean, epic misty mountains, a luxurious silk-sheeted bed, a high-end fashion shop, a sleek modern kitchen, a rustic mountain lodge, or an intimate, dimly-lit "fuck room" with red velvet and neon. Incorporate these as potential settings that the character interacts with. Output only the enhanced prompt text, no meta-talk. Keep it under 150 words.`
               },

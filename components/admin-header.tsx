@@ -3,10 +3,10 @@ import { UserNav } from "@/components/user-nav"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
-import { Menu } from "lucide-react"
+import { Menu, PanelLeft } from "lucide-react"
 import AdminSidebar from "@/components/admin-sidebar"
 
-export function AdminHeader() {
+export function AdminHeader({ onToggleSidebar }: { onToggleSidebar?: () => void }) {
     const [open, setOpen] = useState(false)
 
     return (
