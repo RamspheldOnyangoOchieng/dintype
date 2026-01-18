@@ -88,6 +88,11 @@ const DEFAULT_NEGATIVE_PROMPT_PARTS = [
   "duplicate", "morbid", "mutilated", "poorly drawn", "cloned",
   "gross proportions", "malformed", "missing", "error", "cropped",
   "lowres quality", "normal quality", "username", "text", "logo",
+  // Aesthetic-related (prevents gloomy/dull outputs)
+  "gloomy", "gray", "depressing", "monochrome", "dull colors", "low contrast",
+  "bad lighting", "backlit", "dimly lit",
+  // Expression-related (prevents distorted/surprised looks)
+  "surprised", "shocked", "scared", "mouth agape", "open mouth", "wide eyes", "staring", "blank stare"
 ];
 
 const DEFAULT_NEGATIVE_PROMPT = DEFAULT_NEGATIVE_PROMPT_PARTS.join(", ");
@@ -142,6 +147,7 @@ export async function POST(req: NextRequest) {
       selectedModel, // Frontend sends this for model type
       characterId, // extracted from body
       imageBase64, // Character reference image
+      character, // Character context for identity locking
     } = body;
 
     // Use frontend parameters if available, otherwise fall back to defaults
@@ -368,11 +374,21 @@ export async function POST(req: NextRequest) {
             messages: [
               {
                 role: 'system',
-                content: 'You are a master of visual arts and prompt engineering for AI image generation. Your goal is to take a simple prompt and expand it into a "very fine", masterpiece-quality description. Focus on: Cinematic lighting (rim light, volumetric rays), intricate textures (skin pores, fabric weaves), professional photography standards (depth of field, high-speed shutter), and atmosphere. If the prompt describes a character, make them lifelike and evocative. Keep the core subject but surround it with artistic richness. Output only the enhanced prompt text, no meta-talk. Keep it under 150 words.'
+                content: `You are a master of visual arts and prompt engineering for AI image generation. Your goal is to take a simple prompt and expand it into a "very fine", masterpiece-quality description. 
+
+                CRITICAL INSTRUCTIONS:
+                1. IDENTITY LOCKING: If character info is provided (Name: ${character?.name}, Ethnicity: ${character?.ethnicity}), you MUST ensure the character's facial features remain 100% consistent with their established identity. Do NOT re-describe their face in a way that would generate a new person. Focus on the requested action and setting while keeping the character's face "locked".
+                2. STRICT ADHERENCE: If the user specifies a POSTURE, ACTION (e.g., "touching hair", "leaning on a wall"), or a specific OBJECT, you MUST keep this central and explicit in your description. Do not dilute it.
+                3. MOOD & VIBRANCY: Avoid gloomy, dull, or clinical looks. Use vibrant colors, warm cinematic lighting (golden hour, sunset glow, soft romantic illumination), and evocative atmospheres.
+                4. EXPRESSIONS: Characters should have relaxed, confident, and natural expressions. Prefer closed-mouth smiles, playful smirks, or seductive half-lids. CRITICAL: Avoid "surprised" looks, wide-open eyes, or mouths agape unless explicitly requested.
+                5. MASTERPIECE QUALITY: Focus on skin textures (pores, freckles), fabric details, depth of field (bokeh), and high-speed shutter clarity.
+                6. SHORT PROMPT EXPANSION: Even if the user prompt is extremely short (1-3 words), you MUST expand it into a rich, 100-word masterpiece description that defines the lighting, environment, and specific pose of the character to ensure high quality.
+
+                IMPORTANT FOR DIVERSITY: If the user is requesting multiple images (which we will pass to a batch generator), your description MUST be structured to allow for maximum environmental variety across different seeds. Mention a variety of premium settings like: a pristine tropical beach, deep blue ocean, epic misty mountains, a luxurious silk-sheeted bed, a high-end fashion shop, a sleek modern kitchen, a rustic mountain lodge, or an intimate, dimly-lit "fuck room" with red velvet and neon. Incorporate these as potential settings that the character interacts with. Output only the enhanced prompt text, no meta-talk. Keep it under 150 words.`
               },
               {
                 role: 'user',
-                content: `Masterpiece refinement for prompt: "${prompt}". Style: ${actualModel.includes('anime') || actualModel.includes('dreamshaper') ? 'High-end stylized anime/illustration' : 'Breathtaking photorealistic photography'}.`
+                content: `Masterpiece refinement for prompt: "${prompt}". Style: ${actualModel.includes('anime') || actualModel.includes('dreamshaper') ? 'High-end stylized anime/illustration' : 'Breathtaking photorealistic photography'}. ${actualImageCount > 1 ? `Generate a prompt that encourages diverse backgrounds for a batch of ${actualImageCount} images.` : ''}`
               }
             ],
             max_tokens: 300,
@@ -407,49 +423,93 @@ export async function POST(req: NextRequest) {
     const enforceSFW = !isAdmin && !isPremium && tokenCost === 0
     console.log(`🛡️  NSFW Policy: ${enforceSFW ? 'ENFORCE SFW' : 'ALLOW NSFW'} (Cost: ${tokenCost}, Admin: ${isAdmin}, Premium: ${isPremium})`)
 
-    const requestBody: any = {
-      extra: {
-        response_image_type: "jpeg",
-        // Enable NSFW detection only for free tier single-image generations
-        enable_nsfw_detection: enforceSFW,
-        nsfw_detection_level: enforceSFW ? 2 : 0,
-        // Add webhook for automatic processing
-        webhook: {
-          url: webhookUrl,
-          // Test mode configuration (optional, set to false in production)
-          test_mode: {
-            enabled: false,
-          }
+    // --- PREPARE PROMPTS FOR EACH IMAGE ---
+    const environments = [
+      'pristine tropical beach with golden hour lighting',
+      'deep blue ocean with sparkling sun rays',
+      'epic misty mountains with volumetric clouds',
+      'luxurious silk-sheeted bed in a moonlit room',
+      'high-end fashion boutique with elegant mirrors',
+      'sleek modern kitchen with warm pendant lights',
+      'rustic mountain lodge with a crackling fireplace',
+      'intimate, dimly-lit "fuck room" with red velvet and neon'
+    ];
+
+    // Shuffle environments
+    const shuffledEnvs = [...environments].sort(() => Math.random() - 0.5);
+
+    const taskIds: string[] = [];
+    const promptsForTasks: string[] = [];
+
+    for (let i = 0; i < actualImageCount; i++) {
+      const selectedEnv = shuffledEnvs[i % shuffledEnvs.length];
+      const taskPrompt = `${finalPrompt}, in a ${selectedEnv}`;
+      promptsForTasks.push(taskPrompt);
+    }
+
+    // --- SUBMIT TASKS TO NOVITA ---
+    console.log(`🚀 Submitting ${actualImageCount} tasks to Novita for diversity...`);
+
+    for (let i = 0; i < actualImageCount; i++) {
+      const requestBody: any = {
+        extra: {
+          response_image_type: "jpeg",
+          enable_nsfw_detection: enforceSFW,
+          nsfw_detection_level: enforceSFW ? 2 : 0,
+          webhook: {
+            url: webhookUrl,
+            test_mode: { enabled: false }
+          },
         },
-      },
-      request: {
-        prompt: finalPrompt,
-        model_name: apiModelName,
-        negative_prompt: negativePrompt,
-        width,
-        height,
-        image_num: actualImageCount,
-        steps: 50,
-        seed: -1,
-        sampler_name: "DPM++ 2M Karras",
-        guidance_scale,
-      },
+        request: {
+          prompt: promptsForTasks[i],
+          model_name: apiModelName,
+          negative_prompt: negativePrompt,
+          width,
+          height,
+          image_num: 1, // One image per task for maximum diversity
+          steps: 50,
+          seed: -1,
+          sampler_name: "DPM++ 2M Karras",
+          guidance_scale,
+          controlnet_units: imageBase64 ? [
+            {
+              model_name: "ip-adapter_sd15",
+              weight: 0.95, // Increased weight for much stronger identity lock
+              control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
+              module_name: "none"
+            }
+          ] : []
+        },
+      }
+
+      const response = await fetch("https://api.novita.ai/v3/async/txt2img", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        taskIds.push(data.task_id);
+        console.log(`✅ Task ${i + 1}/${actualImageCount} submitted: ${data.task_id}`);
+      } else {
+        console.error(`❌ Task ${i + 1} failed:`, await response.text());
+      }
     }
 
-    // Apply IP-Adapter for character consistency if reference image is provided
-    if (imageBase64) {
-      console.log("🧬 Applying IP-Adapter for character consistency")
-      const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-
-      requestBody.request.controlnet_units = [
-        {
-          model_name: "ip-adapter_sd15",
-          weight: 0.8,
-          control_image: cleanBase64,
-          module_name: "none"
-        }
-      ];
+    if (taskIds.length === 0) {
+      // Refund if ALL failed
+      if (tokenCost > 0 && !isAdmin) {
+        await refundTokens(userId, tokenCost, "Refund for failed generation (all batch tasks failed)");
+      }
+      return NextResponse.json({ error: "Failed to generate any images" }, { status: 500 });
     }
+
+    const combinedTaskId = taskIds.join(',');
 
     // Create database task record BEFORE API call for webhook tracking (Use Admin Client)
     console.log('💾 Creating task record in database...')
@@ -485,80 +545,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    let response;
-    try {
-      response = await fetch("https://api.novita.ai/v3/async/txt2img", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
-    } catch (fetchErr) {
-      console.error("❌ Network error calling Novita API:", fetchErr);
-      // Refund if network error
-      if (tokenCost > 0 && !isAdmin) {
-        await refundTokens(userId, tokenCost, "Refund for network error during generation")
-      }
-      throw fetchErr;
-    }
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error("❌ NOVITA API error:", errorData);
-
-      // Refund tokens since image generation failed
-      if (tokenCost > 0 && !isAdmin) {
-        console.log(`🔄 Image generation failed after deducting ${tokenCost} tokens. Attempting refund...`)
-
-        const refundReason = `Refund for failed image generation: ${errorData.substring(0, 100)}`;
-        try {
-          const refundResult = await refundTokens(
-            userId,
-            tokenCost,
-            refundReason,
-            {
-              original_request: { prompt, model: actualModel, image_count: actualImageCount },
-              api_error: errorData,
-              refund_reason: "API generation failure"
-            }
-          )
-
-          if (refundResult) {
-            console.log(`✅ Successfully refunded ${tokenCost} tokens to user`)
-          } else {
-            console.error(`❌ Failed to refund ${tokenCost} tokens to user`)
-          }
-        } catch (refundError) {
-          console.error("❌ Error during token refund:", refundError)
-        }
-      }
-
-      return NextResponse.json({
-        error: "Failed to generate image",
-        details: "Image generation service is currently unavailable. Your tokens have been refunded.",
-        refunded: true
-      }, { status: response.status || 500 });
-    }
-
-    let data;
-    try {
-      data = await response.json();
-    } catch (jsonErr) {
-      console.error("❌ Failed to parse Novita response as JSON:", jsonErr);
-      if (tokenCost > 0 && !isAdmin) {
-        await refundTokens(userId, tokenCost, "Refund for invalid API response")
-      }
-      throw new Error("Invalid response format from image generation service");
-    }
-
-    console.log(`✅ Task submitted successfully, task ID: ${data.task_id}`)
-
-    // Log API cost for monitoring
+    // Log total API cost for monitoring based on actual successful tasks
     const perImageCost = actualModel === 'flux' ? 0.04 : 0.02
-    const totalApiCost = perImageCost * actualImageCount
-    await logApiCost(`Image generation (${actualModel})`, 0, totalApiCost, userId).catch(err =>
+    const totalApiCost = perImageCost * taskIds.length
+    await logApiCost(`Image generation (${actualModel} - Batch)`, 0, totalApiCost, userId).catch(err =>
       console.error('Failed to log API cost:', err)
     )
 
@@ -575,7 +565,7 @@ export async function POST(req: NextRequest) {
       const { error: updateError } = await supabaseAdminForTask
         .from('generation_tasks')
         .update({
-          task_id: data.task_id,
+          task_id: combinedTaskId,
           status: 'processing'
         })
         .eq('id', createdTask.id)
@@ -587,13 +577,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Return the task ID to the frontend
-    // Note: Images will be automatically processed by webhook and stored to Cloudinary
+    // Return the combined task ID to the frontend
     return NextResponse.json({
-      task_id: data.task_id,
+      task_id: combinedTaskId,
       tokens_used: isAdmin ? 0 : tokenCost,
       webhook_enabled: true,
-      message: 'Task submitted successfully. Images will be automatically processed and stored to Cloudinary via webhook.',
+      message: `${taskIds.length} tasks submitted successfully for diverse environments.`,
     })
   } catch (error) {
     console.error("❌ Error generating image:", error);

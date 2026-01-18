@@ -147,7 +147,7 @@ export default function TelegramCharactersPage() {
     }
 
     return (
-        <div className="bg-[#0b0b0b] text-white select-none h-screen flex flex-col overflow-hidden">
+        <div className="bg-[#0b0b0b] text-white min-h-screen flex flex-col overflow-y-auto overflow-x-hidden">
             {/* Drag Handle */}
             <div className="flex justify-center pt-4 pb-2">
                 <div className="w-12 h-1 bg-white/20 rounded-full" />
@@ -257,7 +257,7 @@ export default function TelegramCharactersPage() {
             </div>
 
             {/* Character Grid - ALL CHARACTERS with proper scrolling */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 pb-24 -webkit-overflow-scrolling-touch">
+            <div className="px-6 pb-24">
                 {filteredCharacters.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20">
                         <p className="text-white/30 text-sm">No characters found</p>

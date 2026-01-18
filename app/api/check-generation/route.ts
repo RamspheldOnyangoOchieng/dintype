@@ -48,81 +48,80 @@ export async function GET(request: NextRequest) {
       }, { status: 500 })
     }
 
-    console.log(`Checking task status for task ID: ${taskId}`)
+    const taskIds = taskId.split(',')
+    const results = await Promise.all(taskIds.map(async (id) => {
+      try {
+        const response = await fetch(`https://api.novita.ai/v3/async/task-result?task_id=${id}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+        })
 
-    // Use the correct endpoint for checking task results
-    const response = await fetch(`https://api.novita.ai/v3/async/task-result?task_id=${taskId}`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-    })
+        if (!response.ok) return { id, status: 'FAILED', error: response.statusText } as any
+        const data = await response.json() as NovitaTaskResultResponse
+        return { id, ...data }
+      } catch (err) {
+        return { id, status: 'FAILED', error: String(err) } as any
+      }
+    }))
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error(`NOVITA API error (${response.status}):`, errorText)
-      return NextResponse.json(
-        {
-          error: `Failed to check generation status: ${response.status} ${response.statusText}`,
-          details: errorText,
-        },
-        { status: response.status },
-      )
-    }
+    const allSucceeded = results.every(r => r.task?.status === "TASK_STATUS_SUCCEED")
+    const anyFailed = results.some(r => r.task?.status === "TASK_STATUS_FAILED" || (r as any).status === 'FAILED')
+    const anyProcessing = results.some(r => r.task?.status === "TASK_STATUS_QUEUED" || r.task?.status === "TASK_STATUS_EXECUTING" || r.task?.status === "TASK_STATUS_PROCESSING")
 
-    const data = (await response.json()) as NovitaTaskResultResponse
-    console.log(`Task status: ${data.task.status}`)
+    // Aggregate images
+    const allImages = results.flatMap(r => r.images || []).map(img => img.image_url)
 
-    // Initialize admin client to update task status/refund if needed
+    // Calculate average progress
+    const totalProgress = results.reduce((acc, r) => acc + (r.task?.progress_percent || 0), 0)
+    const avgProgress = Math.round(totalProgress / taskIds.length)
+
     const supabaseAdmin = await createAdminClient()
 
-    // Return appropriate response based on task status
-    if (data.task.status === "TASK_STATUS_SUCCEED") {
-      // Task completed successfully
-      console.log(`Task succeeded, found ${data.images.length} images`)
-      
-      // Update local task status if admin client is available
+    if (allSucceeded) {
       if (supabaseAdmin) {
         await supabaseAdmin
           .from("generation_tasks")
           .update({ status: "succeeded" })
           .eq("task_id", taskId)
-          .eq("status", "processing")
       }
 
       return NextResponse.json({
         status: "TASK_STATUS_SUCCEED",
-        images: data.images.map((img) => img.image_url),
+        images: allImages,
       })
-    } else if (data.task.status === "TASK_STATUS_FAILED") {
-      // Task failed
-      console.log(`Task failed: ${data.task.reason}`)
-      
-      // Handle refund and status update
+    } else if (anyFailed && !anyProcessing) {
+      // If some failed and none are processing anymore, it's a failure (or partial success)
+      // For simplicity, we return the images that DID succeed if any, but mark as failed if NONE succeeded
+      if (allImages.length > 0) {
+        return NextResponse.json({
+          status: "TASK_STATUS_SUCCEED",
+          images: allImages,
+          partial: true
+        })
+      }
+
+      // Handle refund for total failure
       if (supabaseAdmin) {
-        // Find the task to get user ID and token cost
-        const { data: taskRecord, error: fetchError } = await supabaseAdmin
+        const { data: taskRecord } = await supabaseAdmin
           .from("generation_tasks")
           .select("id, user_id, tokens_deducted, status")
           .eq("task_id", taskId)
           .single()
 
         if (taskRecord && (taskRecord.status === "processing" || taskRecord.status === "pending")) {
-          // Update status first to prevent race condition refunds
           await supabaseAdmin
             .from("generation_tasks")
-            .update({ status: "failed", error_message: data.task.reason })
+            .update({ status: "failed", error_message: "One or more batch tasks failed" })
             .eq("id", taskRecord.id)
 
-          // Refund tokens if any were deducted
           if (taskRecord.tokens_deducted > 0) {
-            console.log(`🔄 Refunding ${taskRecord.tokens_deducted} tokens for failed task ${taskId}`)
             await refundTokens(
               taskRecord.user_id,
               taskRecord.tokens_deducted,
-              `Refund for failed image generation (Task: ${taskId})`,
-              { taskId, reason: data.task.reason }
+              `Refund for failed batch image generation (Tasks: ${taskId})`
             )
           }
         }
@@ -130,29 +129,23 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json({
         status: "TASK_STATUS_FAILED",
-        reason: data.task.reason || "Unknown error",
+        reason: "One or more images in the batch failed to generate.",
         refunded: true
       })
     } else {
-      // Task still in progress
-      console.log(`Task in progress: ${data.task.status}, progress: ${data.task.progress_percent}%`)
-      
-      // Update progress in DB (optional, but good for tracking)
-      if (supabaseAdmin && data.task.progress_percent > 0) {
+      // Still in progress
+      if (supabaseAdmin && avgProgress > 0) {
         await supabaseAdmin
           .from("generation_tasks")
-          .update({ 
-            progress: data.task.progress_percent,
-            status: "processing" 
-          })
+          .update({ progress: avgProgress, status: "processing" })
           .eq("task_id", taskId)
-          .neq("status", "succeeded") // Don't overwrite if already done
       }
 
       return NextResponse.json({
-        status: data.task.status,
-        progress: data.task.progress_percent,
-        eta: data.task.eta,
+        status: "TASK_STATUS_PROCESSING",
+        progress: avgProgress,
+        completed_count: results.filter(r => r.task?.status === "TASK_STATUS_SUCCEED").length,
+        total_count: taskIds.length
       })
     }
   } catch (error) {

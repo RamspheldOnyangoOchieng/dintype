@@ -166,12 +166,18 @@ export function ImageGenerationModal({ isOpen, onClose, onImageSelect, trigger }
     { value: "simple", label: "Enkel" },
     { value: "white", label: "Vit bakgrund" },
     { value: "transparent", label: "Transparent" },
+    { value: "beach", label: "Tropisk strand" },
+    { value: "ocean", label: "Djupt hav" },
+    { value: "mountains", label: "Mäktiga berg" },
     { value: "bedroom", label: "Sovrum" },
+    { value: "shop", label: "Lyxig butik" },
+    { value: "kitchen", label: "Modernt kök" },
+    { value: "lodge", label: "Rustik stuga" },
+    { value: "fuck_room", label: "Intimt rum" },
     { value: "office", label: "Kontor" },
     { value: "school", label: "Skola" },
     { value: "outdoor", label: "Utomhus" },
     { value: "fantasy", label: "Fantasy" },
-    { value: "cyberpunk", label: "Cyberpunk" },
     { value: "nature", label: "Natur" },
   ]
 
@@ -539,11 +545,10 @@ export function ImageGenerationModal({ isOpen, onClose, onImageSelect, trigger }
                       {loraOptions.map((lora) => (
                         <div
                           key={lora.value}
-                          className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                            selectedLora === lora.value
+                          className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedLora === lora.value
                               ? "border-primary bg-primary/10"
                               : "border-[#333] hover:border-[#555] bg-[#1A1A1A]"
-                          }`}
+                            }`}
                           onClick={() => setSelectedLora(lora.value)}
                         >
                           <div className="flex items-start justify-between">
