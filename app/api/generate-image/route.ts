@@ -68,38 +68,10 @@ const DEFAULT_MODEL = "epicrealism_naturalSinRC1VAE_106430.safetensors";
 // Enhanced negative prompts for maximum NSFW undetectability and quality
 // These prompts help bypass content filters while maintaining high image quality
 const DEFAULT_NEGATIVE_PROMPT_PARTS = [
-  // Quality-related (keeps filters from flagging low-quality generation)
-  "ugly", "deformed", "bad anatomy", "disfigured", "mutated", "extra limbs",
-  "missing limbs", "fused fingers", "extra fingers", "bad hands", "malformed hands",
-  "poorly drawn hands", "poorly drawn face", "blurry", "jpeg artifacts",
-  "worst quality", "low quality", "lowres", "pixelated", "out of frame",
-  "tiling", "watermarks", "signature", "censored", "distortion", "grain",
-  "long neck", "unnatural pose", "asymmetrical face", "cross-eyed", "lazy eye",
-  "bad feet", "extra arms", "extra legs", "disjointed limbs",
-  "incorrect limb proportions", "unrealistic body", "unrealistic face",
-  "unnatural skin", "disconnected limbs", "lopsided", "cloned face", "glitch",
-  "double torso", "bad posture", "wrong perspective", "overexposed",
-  "underexposed", "low detail", "plastic skin", "unnatural skin texture",
-  "plastic clothing", "fused clothing", "unreal fabric", "badly fitted bikini",
-  "fused body and clothes", "floating clothes", "distorted bikini", "missing nipples",
-  "extra nipples", "fused nipples", "bad anatomy genitals",
-
-  // Enhanced undetectability markers
-  "unrealistic proportions", "cartoon", "anime style", "3d render",
-  "illustration", "painting", "sketch", "drawing", "digital art",
-  "compressed", "noisy", "artifacts", "chromatic aberration",
-  "duplicate", "morbid", "mutilated", "poorly drawn", "cloned",
-  "gross proportions", "malformed", "missing", "error", "cropped",
-  "lowres quality", "normal quality", "username", "text", "logo",
-  "low quality clothing", "cartoonish clothes", "3d clothes",
-
-  // Aesthetic-related (prevents gloomy/dull outputs)
-  "gloomy", "gray", "depressing", "monochrome", "dull colors", "low contrast",
-  "bad lighting", "backlit", "dimly lit",
-
-  // Expression-related (prevents distorted/surprised/sad looks)
-  "surprised", "shocked", "scared", "mouth agape", "open mouth", "wide eyes", "staring", "blank stare",
-  "needy", "frustrated", "sad", "worried", "unhappy", "angry", "distressed", "tearful", "pouty"
+  "ugly, deformed, disfigured, mutated, extra limbs, fused fingers, bad anatomy, malformed, blurry, jpeg artifacts, lowres, pixelated, out of frame, watermarks, signature, censored, distortion, grain",
+  "long neck, unnatural pose, asymmetrical face, bad feet, extra arms, extra legs, distorted body, unrealistic, unnatural skin, glitch, double torso, bad posture",
+  "plastic skin, plastic clothing, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clouds, distorted bikini, missing nipples, bad anatomy genitals",
+  "cartoon, anime style, 3d render, illustration, painting, sketch, drawing, digital art, gloomy, depressed, sad, mouth agape"
 ];
 
 const DEFAULT_NEGATIVE_PROMPT = DEFAULT_NEGATIVE_PROMPT_PARTS.join(", ");
@@ -467,6 +439,15 @@ export async function POST(req: NextRequest) {
     // --- SUBMIT TASKS TO NOVITA ---
     console.log(`🚀 Submitting ${actualImageCount} tasks to Novita for diversity...`);
 
+    let finalNegativePrompt = negativePrompt === DEFAULT_NEGATIVE_PROMPT
+      ? DEFAULT_NEGATIVE_PROMPT
+      : `${DEFAULT_NEGATIVE_PROMPT}, ${negativePrompt}`;
+
+    // Strict truncation for Novita 1024 char limit
+    if (finalNegativePrompt.length > 1000) {
+      finalNegativePrompt = finalNegativePrompt.substring(0, 1000);
+    }
+
     for (let i = 0; i < actualImageCount; i++) {
       const requestBody: any = {
         extra: {
@@ -480,9 +461,7 @@ export async function POST(req: NextRequest) {
         request: {
           prompt: promptsForTasks[i],
           model_name: apiModelName,
-          negative_prompt: negativePrompt === DEFAULT_NEGATIVE_PROMPT
-            ? DEFAULT_NEGATIVE_PROMPT
-            : `${DEFAULT_NEGATIVE_PROMPT}, ${negativePrompt}`,
+          negative_prompt: finalNegativePrompt,
           width,
           height,
           image_num: 1, // One image per task for maximum diversity

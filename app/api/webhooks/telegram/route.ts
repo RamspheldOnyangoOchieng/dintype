@@ -906,34 +906,38 @@ export async function POST(request: NextRequest) {
                     const apiKey = await getNovitaApiKey();
 
                     if (apiKey) {
-                        // Deduct tokens first
-                        const tokensToDeduct = isPremium ? 5 : 0; // Free usage uses weekly limit, premium uses tokens
-                        if (isPremium) {
-                            await deductTokens(linkedAccount.user_id, tokensToDeduct, 'telegram_image_gen');
-                        }
-
-                        // Get character reference image for IP-Adapter
-                        const characterImageUrl = character?.image_url || character?.image;
-                        let base64Image = null;
-                        if (characterImageUrl) {
-                            try {
-                                const imgRes = await fetch(characterImageUrl);
-                                if (imgRes.ok) {
-                                    const buffer = await imgRes.arrayBuffer();
-                                    base64Image = Buffer.from(buffer).toString('base64');
-                                }
-                            } catch (e) {
-                                console.error("Telegram: Failed to convert image to base64", e);
-                            }
-                        }
-
                         try {
+                            // Deduct tokens first
+                            const tokensToDeduct = isPremium ? 5 : 0; // Free usage uses weekly limit, premium uses tokens
+                            if (isPremium) {
+                                await deductTokens(linkedAccount.user_id, tokensToDeduct, 'telegram_image_gen');
+                            }
+
+                            // Get character reference image for IP-Adapter
+                            const characterImageUrl = character?.image_url || character?.image;
+                            let base64Image = null;
+                            if (characterImageUrl) {
+                                try {
+                                    const imgRes = await fetch(characterImageUrl);
+                                    if (imgRes.ok) {
+                                        const buffer = await imgRes.arrayBuffer();
+                                        base64Image = Buffer.from(buffer).toString('base64');
+                                    }
+                                } catch (e) {
+                                    console.error("Telegram: Failed to convert image to base64", e);
+                                }
+                            }
+
+                            const baseNegative = "ugly, deformed, disfigured, mutated, extra limbs, fused fingers, bad anatomy, malformed, blurry, jpeg artifacts, lowres, pixelated, out of frame, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, bad feet, extra arms, extra legs, distorted body, unrealistic, unnatural skin, glitch, double torso, bad posture, plastic skin, plastic clothing, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clouds, distorted bikini, missing nipples, bad anatomy genitals";
+                            let finalNegative = baseNegative;
+                            if (finalNegative.length > 1000) finalNegative = finalNegative.substring(0, 1000);
+
                             const requestBody: any = {
                                 extra: { response_image_type: "jpeg" },
                                 request: {
                                     prompt: enhancedPrompt,
                                     model_name: "epicrealism_naturalSinRC1VAE_106430.safetensors",
-                                    negative_prompt: "ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, cross-eyed, lazy eye, bad feet, extra arms, extra legs, disjointed limbs, incorrect limb proportions, unrealistic body, unrealistic face, unnatural skin, disconnected limbs, lopsided, cloned face, glitch, double torso, bad posture, wrong perspective, overexposed, underexposed, low detail, plastic skin, unnatural skin texture, plastic clothing, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clothes, distorted bikini, missing nipples, extra nipples, fused nipples, bad anatomy genitals",
+                                    negative_prompt: finalNegative,
                                     width: 512,
                                     height: 768,
                                     image_num: 1,

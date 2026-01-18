@@ -129,10 +129,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Define prompts for each style
+    const baseNegative = 'ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, cross-eyed, lazy eye, bad feet, extra arms, extra legs, disjointed limbs, incorrect limb proportions, unrealistic body, unrealistic face, unnatural skin, disconnected limbs, lopsided, cloned face, glitch, double torso, bad posture, wrong perspective, overexposed, underexposed, low detail, plastic skin, unnatural skin texture, plastic clothing, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clouds, distorted bikini, missing nipples, extra nipples, fused nipples, bad anatomy genitals';
+
     const prompts = {
       realistic: {
         prompt: 'masterpiece, professional portrait photography, beautiful woman, sophisticated fashion, warm cinematic lighting, photorealistic, 8k resolution, Kodak Portra 400 aesthetic, shot on 35mm lens, sharp focus, natural skin texture, visible pores, elegant pose, confident expression, vibrant colors',
-        negative: 'ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, cross-eyed, lazy eye, bad feet, extra arms, extra legs, disjointed limbs, incorrect limb proportions, unrealistic body, unrealistic face, unnatural skin, disconnected limbs, lopsided, cloned face, glitch, double torso, bad posture, wrong perspective, overexposed, underexposed, low detail, plastic skin, unnatural skin texture, plastic clothing, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clothes, distorted bikini, missing nipples, extra nipples, fused nipples, bad anatomy genitals'
+        negative: baseNegative
       },
       anime: {
         prompt: 'masterpiece, high-quality anime style, vibrant colors, detailed anime illustration, manga aesthetic, sharp lines, cel-shaded, professional anime art, expressive features, elegant pose, beautiful anime girl, background blur',
@@ -140,7 +142,9 @@ export async function POST(request: NextRequest) {
       }
     };
 
-    const { prompt, negative } = prompts[style];
+    let { prompt, negative } = prompts[style];
+    if (prompt.length > 1000) prompt = prompt.substring(0, 1000);
+    if (negative.length > 1000) negative = negative.substring(0, 1000);
 
     console.log(`Generating ${style} style image...`);
 

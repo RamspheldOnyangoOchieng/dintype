@@ -81,6 +81,10 @@ export async function POST(req: NextRequest) {
 
     // Prepare request body for Novita API
     // If we have an imageBase64, we use IP-Adapter for consistency
+    const baseNegative = "ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, cross-eyed, lazy eye, bad feet, extra arms, extra legs, disjointed limbs, incorrect limb proportions, unrealistic body, unrealistic face, unnatural skin, disconnected limbs, lopsided, cloned face, glitch, double torso, bad posture, wrong perspective, overexposed, underexposed, low detail, plastic skin, unnatural skin texture, plastic clothing, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clouds, distorted bikini, missing nipples, extra nipples, fused nipples, bad anatomy genitals";
+    let finalNegative = negativePrompt ? `${baseNegative}, ${negativePrompt}` : baseNegative;
+    if (finalNegative.length > 1000) finalNegative = finalNegative.substring(0, 1000);
+
     const requestBody: any = {
       extra: {
         response_image_type: "jpeg",
@@ -88,7 +92,7 @@ export async function POST(req: NextRequest) {
       request: {
         prompt: enhancedPrompt,
         model_name: "epicrealism_naturalSinRC1VAE_106430.safetensors",
-        negative_prompt: `ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, cross-eyed, lazy eye, bad feet, extra arms, extra legs, disjointed limbs, incorrect limb proportions, unrealistic body, unrealistic face, unnatural skin, disconnected limbs, lopsided, cloned face, glitch, double torso, bad posture, wrong perspective, overexposed, underexposed, low detail, plastic skin, unnatural skin texture, plastic clothing, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clothes, distorted bikini, missing nipples, extra nipples, fused nipples, bad anatomy genitals, ${negativePrompt || ""}`,
+        negative_prompt: finalNegative,
         width: 512,
         height: 768,
         image_num: 1,

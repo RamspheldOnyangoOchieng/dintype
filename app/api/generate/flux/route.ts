@@ -59,11 +59,13 @@ export async function POST(request: NextRequest) {
         const enhancementData = await enhancementResponse.json();
         let enhancedText = enhancementData.choices?.[0]?.message?.content || prompt;
         // Clean deepseek tags if present
-        enhancedPrompt = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+        let cleaned = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+        // Truncate for safety
+        enhancedPrompt = cleaned.length > 1000 ? cleaned.substring(0, 1000) : cleaned;
       }
     } catch (e) {
       console.error("Failed to enhance flux prompt:", e);
-      enhancedPrompt = prompt;
+      enhancedPrompt = prompt.length > 1000 ? prompt.substring(0, 1000) : prompt;
     }
 
     // Build the final prompt with LoRA if specified
