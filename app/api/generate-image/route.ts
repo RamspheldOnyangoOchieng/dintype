@@ -128,6 +128,7 @@ export async function POST(req: NextRequest) {
       characterId, // extracted from body
       imageBase64, // Character reference image
       character, // Character context for identity locking
+      autoSave = false, // Default false to prevent unwanted saving elsewhere
     } = body;
 
     // Use frontend parameters if available, otherwise fall back to defaults
@@ -599,7 +600,25 @@ export async function POST(req: NextRequest) {
       if (updateError) {
         console.error('⚠️  Warning: Failed to update task with task_id:', updateError)
       } else {
-        console.log('✅ Task record updated with task_id')
+        // Also create initial 'generated_images' records ONLY if autoSave is requested
+        if (autoSave) {
+          // We create one record per task ID
+          for (const tid of taskIds) {
+            await supabaseAdminForTask
+              .from('generated_images')
+              .insert({
+                user_id: userId,
+                character_id: characterId && !characterId.startsWith("custom-") ? characterId : null,
+                prompt: prompt,
+                image_url: null, // Pending
+                status: 'processing', // New status we should handle
+                task_id: tid,
+                model: actualModel,
+                is_private: true
+              })
+              .catch(e => console.error("Error creating initial image record:", e));
+          }
+        }
       }
     }
 

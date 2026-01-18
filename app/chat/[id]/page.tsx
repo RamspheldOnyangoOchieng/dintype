@@ -830,6 +830,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             negativePrompt: "bad quality, worst quality, low quality",
             imageBase64: base64Image,
             character: character,
+            autoSave: true,
           }),
         })
 

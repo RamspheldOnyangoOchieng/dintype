@@ -223,8 +223,25 @@ export async function POST(req: NextRequest) {
     if (taskId) {
       console.log("Found task ID:", taskId)
 
-      // Try to get user ID from some source (img2img usually doesn't have it easily in current structure, but let's try)
-      // For now, log as system or try to extract from character/request if possible
+      // Auto-save logic if requested (e.g. from chat page)
+      // We need a userId for this to work
+      try {
+        if (req.headers.get("Authorization") || req.cookies.get("sb-access-token")) {
+          // Basic attempt to get user if autoSave is true
+          if (taskId) { // Just re-confirming for TS
+            // We'd need to parse the user from headers/cookies properly to save
+            // For now, if the client passed `userId` in the body we could use it, 
+            // but standard practice is to trust the auth header.
+            // Let's assume the client might pass userId optionally if trusted, or we rely on the check logic.
+            // IF we want to strictly support autoSave here like in generate-image:
+            /*
+            const supabase = createAdminClient();
+            // Insert record...
+            */
+          }
+        }
+      } catch (e) { }
+
       await logApiCost("Image generation (img2img)", 0, 0.05, "").catch(e => { })
 
       return NextResponse.json({ taskId })
