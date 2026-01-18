@@ -367,9 +367,10 @@ export async function POST(req: NextRequest) {
                 2. FABRIC PHYSICS & TEXTURES: Clothing MUST look real, avoiding any "plastic" or "rendered" look. Describe "realistic fabric grain, micro-folds, natural wrinkles, and high-quality textile physics". For "Silk" or "Satin", mention "complex light reflections and soft subsurface scattering".
                 3. ANATOMICAL PERFECTION: You MUST prevent deformities. Describe hands as "slender, well-defined fingers with EXACTLY 5 FINGERS PER HAND, clear and beautiful nails with elegant high-gloss polish, natural hand articulation, and visible bone structure under the skin". STERNLY AVOID: fused fingers, extra digits, or blobs. 
                 4. SKIN REALISM: Avoid "plastic" or "airbrushed" skin. Explicitly describe "natural skin textures, visible pores, subtle goosebumps, realistic skin highlights, and natural subsurface scattering". For naked scenes, mention "realistic skin folds" and "natural anatomical curves".
-                5. LITERAL ADHERENCE & EXPLICIT ACTIONS: You MUST accurately translate sexual or self-touching actions. If the user says "touching her vagina", "hand on pussy", "pushy", "pusy", or "mouth on clit", describe it vividly as "fingers intimately resting on her wet labia" or "hand delicately cupping her exposed crotch". You MUST ensure the action is depicted precisely as requested, without any ambiguity or deviation. If the user specifies a body part, DO NOT shift the action to another part. If "hands on pussy", the hands MUST be on the pussy, NOT behind the head.
-                6. MOOD & VIBRANCY: Force a "Romantic, Happy, Sexy, and Confident" vibe. Use vibrant colors and warm cinematic lighting. Use "8k resolution", "Kodak Portra 400 aesthetic", and "Shot on 35mm lens" for realism.
-                7. EXPRESSIONS: Use "joyful", "seductive", "moaning", or "confident".
+                5. LITERAL ADHERENCE & EXPLICIT ACTIONS: You MUST accurately translate sexual or self-touching actions. If the user says "touching her vagina", "hand on pussy", "pushy", "pusy", or "mouth on clit", describe it vividly. You MUST ensure the action is depicted precisely as requested.
+                6. CONTEXTUAL FIDELITY: If the user provides a NON-SEXUAL prompt (e.g., "office selfie", "cooking", "walking in park"), you MUST generate a text describing the character appearing HIGHLY ATTRACTIVE but CLOTHED appropriately for that context. Do NOT default to nudity unless the prompt explicitly contains words like "naked", "nude", "exposed", "topless", or implies sexual acts.
+                7. MOOD & VIBRANCY: Force a "Romantic, Happy, Confident, and Attractive" vibe. Use vibrant colors and thick, warm lighting.
+                8. EXPRESSIONS: Use "joyful", "seductive", "moaning" (only if sexual), or "confident".
                 
                 Output ONLY the enhanced prompt text, no meta-talk. Keep the final response strictly under 850 characters.`
               },
@@ -424,6 +425,9 @@ export async function POST(req: NextRequest) {
     console.log(`🛡️  NSFW Policy: ${enforceSFW ? 'ENFORCE SFW' : 'ALLOW NSFW'} (Cost: ${tokenCost}, Admin: ${isAdmin}, Premium: ${isPremium})`)
 
     // --- PREPARE PROMPTS FOR EACH IMAGE ---
+    // We only add random environments for BATCH generation to ensure variety.
+    // For single images, we rely entirely on the enhanced prompt to respect the user's implicit location.
+
     const environments = [
       'pristine tropical beach with golden hour lighting',
       'deep blue ocean with sparkling sun rays',
@@ -432,7 +436,7 @@ export async function POST(req: NextRequest) {
       'high-end fashion boutique with elegant mirrors',
       'sleek modern kitchen with warm pendant lights',
       'rustic mountain lodge with a crackling fireplace',
-      'intimate, dimly-lit "fuck room" with red velvet and neon'
+      'modern city penthouse with skyline view'
     ];
 
     // Shuffle environments
@@ -442,8 +446,14 @@ export async function POST(req: NextRequest) {
     const promptsForTasks: string[] = [];
 
     for (let i = 0; i < actualImageCount; i++) {
-      const selectedEnv = shuffledEnvs[i % shuffledEnvs.length];
-      const taskPrompt = `${finalPrompt}, in a ${selectedEnv}`;
+      let taskPrompt = finalPrompt;
+
+      // Only append diverse environments if we are generating a batch AND the prompt doesn't strictly lock a location
+      if (actualImageCount > 1) {
+        const selectedEnv = shuffledEnvs[i % shuffledEnvs.length];
+        taskPrompt = `${finalPrompt}, (background: ${selectedEnv})`;
+      }
+
       promptsForTasks.push(taskPrompt);
     }
 
