@@ -62,13 +62,13 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
       suppressHydrationWarning
     >
       <AppSidebar />
-      <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${isAdminPage ? "ml-0" : (isOpen ? "md:ml-64" : "md:ml-20")}`}>
-        <div key="layout-main-content" className="flex-1 flex flex-col">
+      <div className={`flex-1 h-screen overflow-y-auto sticky top-0 transition-all duration-300 ease-in-out ${isAdminPage ? "ml-0" : (isOpen ? "md:ml-64" : "md:ml-20")}`}>
+        <div key="layout-main-content" className="flex flex-col min-h-full">
           <div className="flex-none">
             {showHeader ? <SiteHeader /> : null}
           </div>
           <main className="flex-1 relative">
-            <div key={`route-wrapper-${pathname.split('/')[1] || 'home'}`} className="h-full" suppressHydrationWarning>
+            <div key={`route-wrapper-${pathname.split('/')[1] || 'home'}`} suppressHydrationWarning>
               <ErrorBoundary>{children}</ErrorBoundary>
             </div>
           </main>
