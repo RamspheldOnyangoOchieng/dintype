@@ -91,14 +91,14 @@ async function generateImageWithNovita(prompt: string, negativePrompt: string): 
 }
 
 function buildPromptFromCustomization(customization: CustomizationData): { prompt: string; negativePrompt: string } {
-    const styleDescriptor = customization.style === 'anime' 
-        ? 'anime character, illustrated, cel-shaded' 
+    const styleDescriptor = customization.style === 'anime'
+        ? 'anime character, illustrated, cel-shaded'
         : 'photorealistic, beautiful woman, professional portrait photography';
 
     const ageDescriptor = customization.age ? `${customization.age} years old` : '';
     const bodyDescriptor = customization.body || '';
     const ethnicityDescriptor = customization.ethnicity ? `${customization.ethnicity} ethnicity` : '';
-    
+
     const hairDescriptor = [
         customization.hair_style && `${customization.hair_style.toLowerCase()} hair style`,
         customization.hair_length && `${customization.hair_length.toLowerCase()} hair`,
@@ -127,9 +127,9 @@ function buildPromptFromCustomization(customization: CustomizationData): { promp
         bodyDetailsDescriptor,
     ].filter(Boolean);
 
-    const prompt = allDescriptors.join(', ') + ', high quality, detailed, centered, frontal view, beautiful lighting';
+    const prompt = allDescriptors.join(', ') + ', high quality, detailed, centered, frontal view, beautiful lighting, 8k resolution, cinematic lighting, masterpiece, ultra-realistic, shot on 35mm lens, kodak portra 400 aesthetic, natural skin texture, sharp focus';
 
-    const negativePrompt = 'blurry, low quality, distorted, ugly, bad anatomy, missing features, extra fingers, mutation, deformed, duplicate, watermark, signature, text, cropped';
+    const negativePrompt = 'ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, cross-eyed, lazy eye, bad feet, extra arms, extra legs, disjointed limbs, incorrect limb proportions, unrealistic body, unrealistic face, unnatural skin, disconnected limbs, lopsided, cloned face, glitch, double torso, bad posture, wrong perspective, overexposed, underexposed, low detail, plastic skin, unnatural skin texture, plastic clothing, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clothes, distorted bikini, missing nipples, extra nipples, fused nipples, bad anatomy genitals';
 
     return { prompt, negativePrompt };
 }
@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error('❌ Error generating custom character:', error);
         return NextResponse.json(
-            { 
+            {
                 error: error instanceof Error ? error.message : 'Failed to generate character image',
                 success: false,
             },

@@ -265,51 +265,182 @@ export default function CharacterStorylinePage() {
         }
     }
 
-    const handleGenerateImage = async (index: number) => {
-        if (!formData.description && !formData.title) {
-            toast.error("Please provide a chapter title or description for the prompt")
+    // State for Image Generation Dialog
+    const [generateDialogOpen, setGenerateDialogOpen] = useState(false)
+    const [generateImageIndex, setGenerateImageIndex] = useState<number>(0)
+    const [generatePrompt, setGeneratePrompt] = useState("")
+
+    const openGenerateDialog = (index: number) => {
+        // Pre-fill with existing metadata if available
+        try {
+            const parsed = JSON.parse(formData.content)
+            const existingMeta = parsed.chapter_image_metadata?.[index] || ""
+            setGeneratePrompt(existingMeta || `${character?.name || 'Character'} - ${formData.title || 'Storyline image'}`)
+        } catch {
+            setGeneratePrompt(`${character?.name || 'Character'} - ${formData.title || 'Storyline image'}`)
+        }
+        setGenerateImageIndex(index)
+        setGenerateDialogOpen(true)
+    }
+
+    const handleGenerateImage = async () => {
+        if (!generatePrompt.trim()) {
+            toast.error("Please enter a description for the image")
             return
         }
 
+        setGenerateDialogOpen(false)
         setIsGenerating(true)
+
         try {
-            // 1. Convert character image to base64 if available for IP-Adapter
-            let imageBase64 = null
-            if (character?.image_url || character?.image) {
-                const { imageUrlToBase64 } = await import("@/lib/image-utils")
-                imageBase64 = await imageUrlToBase64(character.image_url || character.image)
+            // 1. Get the session for authentication
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session?.access_token) {
+                toast.error("You must be logged in to generate images")
+                setIsGenerating(false)
+                return
             }
 
-            const prompt = `${character?.category === 'anime' ? 'Anime style' : 'Realistic portrait'}, ${formData.title}. ${formData.description}. Cinematic lighting, high detail, masterpiece.`
+            // 2. Convert character image to base64 for IP-Adapter (face consistency)
+            let imageBase64 = null
+            const charImageUrl = character?.image_url || character?.image
+            if (charImageUrl) {
+                try {
+                    const { imageUrlToBase64 } = await import("@/lib/image-utils")
+                    imageBase64 = await imageUrlToBase64(charImageUrl)
+                    console.log("Character image converted for IP-Adapter")
+                } catch (e) {
+                    console.warn("Could not convert character image to base64:", e)
+                }
+            }
 
+            // 3. Build the prompt with character context
+            const style = character?.category === 'anime' ? 'Anime style' : 'Photorealistic, cinematic'
+            const fullPrompt = `${style} portrait of ${character?.name || 'a person'}, ${generatePrompt}. High detail, masterpiece quality.`
+
+            // 4. Call the generate API with proper auth
             const res = await fetch("/api/generate-image", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${session.access_token}`,
+                    "x-user-id": session.user.id
+                },
                 body: JSON.stringify({
-                    prompt,
-                    negativePrompt: "low quality, blurry, distorted, deformed",
+                    prompt: fullPrompt,
+                    negativePrompt: "low quality, blurry, distorted, deformed, bad anatomy, ugly",
                     selectedCount: 1,
                     size: "512x1024",
-                    imageBase64 // This enables IP-Adapter for character consistency
+                    imageBase64, // IP-Adapter for character face consistency
+                    character: {
+                        name: character?.name,
+                        ethnicity: character?.ethnicity,
+                        category: character?.category
+                    }
                 }),
             })
 
-            if (!res.ok) throw new Error("Generation failed")
             const data = await res.json()
 
-            if (data.imageUrl || (data.images && data.images.length > 0)) {
+            if (!res.ok) {
+                throw new Error(data.error || data.details || "Generation failed")
+            }
+
+            // 5. The API returns task_id(s) - we need to poll for result
+            if (data.task_id) {
+                toast.info("Image generation started. Polling for result...")
+
+                // Poll for the result
+                const taskIds = data.task_id.split(',')
+                const firstTaskId = taskIds[0]
+
+                let attempts = 0
+                const maxAttempts = 60 // ~2 minutes with 2s interval
+
+                const pollForResult = async (): Promise<string | null> => {
+                    while (attempts < maxAttempts) {
+                        attempts++
+                        await new Promise(resolve => setTimeout(resolve, 2000))
+
+                        const statusRes = await fetch(`/api/check-generation?taskId=${firstTaskId}`, {
+                            headers: {
+                                "Authorization": `Bearer ${session.access_token}`
+                            }
+                        })
+
+                        if (statusRes.ok) {
+                            const statusData = await statusRes.json()
+
+                            if (statusData.status === 'TASK_STATUS_SUCCEED' && statusData.images?.length > 0) {
+                                return statusData.images[0].image_url || statusData.images[0]
+                            } else if (statusData.status === 'TASK_STATUS_FAILED') {
+                                throw new Error(statusData.reason || "Generation failed")
+                            }
+                            // Still processing, continue polling
+                        }
+                    }
+                    return null
+                }
+
+                const resultImageUrl = await pollForResult()
+
+                if (resultImageUrl) {
+                    // Upload to Cloudinary for permanent storage
+                    const uploadRes = await fetch("/api/upload", {
+                        method: "POST",
+                        body: (() => {
+                            const fd = new FormData()
+                            fd.append("file", resultImageUrl)
+                            fd.append("folder", "storylines")
+                            return fd
+                        })()
+                    })
+
+                    let finalUrl = resultImageUrl
+                    if (uploadRes.ok) {
+                        const uploadData = await uploadRes.json()
+                        finalUrl = uploadData.secure_url || resultImageUrl
+                    }
+
+                    // Update the chapter content
+                    const parsed = (() => {
+                        try { return JSON.parse(formData.content) }
+                        catch { return {} }
+                    })()
+
+                    if (!parsed.chapter_images) parsed.chapter_images = []
+                    parsed.chapter_images[generateImageIndex] = finalUrl
+
+                    // Also save the prompt as metadata
+                    if (!parsed.chapter_image_metadata) parsed.chapter_image_metadata = []
+                    parsed.chapter_image_metadata[generateImageIndex] = generatePrompt
+
+                    setFormData({ ...formData, content: JSON.stringify(parsed, null, 2) })
+                    setIsDirty(true)
+                    toast.success(`Image ${generateImageIndex + 1} generated successfully!`)
+                } else {
+                    throw new Error("Image generation timed out")
+                }
+            } else if (data.imageUrl || (data.images && data.images.length > 0)) {
+                // Direct URL response (fallback)
                 const url = data.imageUrl || data.images[0]
-                const parsed = JSON.parse(formData.content)
+                const parsed = (() => {
+                    try { return JSON.parse(formData.content) }
+                    catch { return {} }
+                })()
+
                 if (!parsed.chapter_images) parsed.chapter_images = []
-                parsed.chapter_images[index] = url
+                parsed.chapter_images[generateImageIndex] = url
 
                 setFormData({ ...formData, content: JSON.stringify(parsed, null, 2) })
                 setIsDirty(true)
-                toast.success(`Image ${index + 1} generated`)
+                toast.success(`Image ${generateImageIndex + 1} generated!`)
+            } else {
+                throw new Error("No image returned from generation")
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("Generation error:", err)
-            toast.error("Failed to generate image")
+            toast.error(err.message || "Failed to generate image")
         } finally {
             setIsGenerating(false)
         }
@@ -485,7 +616,7 @@ export default function CharacterStorylinePage() {
                                                                     variant="secondary"
                                                                     size="sm"
                                                                     className="w-full text-[10px] h-8 gap-1 bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20"
-                                                                    onClick={() => handleGenerateImage(idx)}
+                                                                    onClick={() => openGenerateDialog(idx)}
                                                                     disabled={isUploading || isGenerating}
                                                                 >
                                                                     <Wand2 className="h-3 w-3" /> AI Gen
@@ -783,6 +914,68 @@ export default function CharacterStorylinePage() {
                     )}
                 </div>
             </div>
+
+            {/* Image Generation Prompt Dialog */}
+            <Dialog open={generateDialogOpen} onOpenChange={setGenerateDialogOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Wand2 className="h-5 w-5 text-primary" />
+                            Generate Image for Slot {generateImageIndex + 1}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="generate-prompt">Image Description</Label>
+                            <Textarea
+                                id="generate-prompt"
+                                placeholder="Describe the image you want to generate... (e.g., 'wearing a red dress at sunset, romantic mood, smiling')"
+                                value={generatePrompt}
+                                onChange={(e) => setGeneratePrompt(e.target.value)}
+                                className="min-h-[100px]"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                The character's face will be preserved using IP-Adapter technology for consistency.
+                            </p>
+                        </div>
+                        {character && (
+                            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                                <img
+                                    src={character.image_url || character.image || "/placeholder.svg"}
+                                    alt={character.name}
+                                    className="w-12 h-12 rounded-full object-cover border-2 border-primary/30"
+                                />
+                                <div>
+                                    <p className="text-sm font-medium">{character.name}</p>
+                                    <p className="text-xs text-muted-foreground">Face reference for generation</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setGenerateDialogOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleGenerateImage}
+                            disabled={!generatePrompt.trim() || isGenerating}
+                            className="gap-2"
+                        >
+                            {isGenerating ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Generating...
+                                </>
+                            ) : (
+                                <>
+                                    <Sparkles className="h-4 w-4" />
+                                    Generate Image
+                                </>
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

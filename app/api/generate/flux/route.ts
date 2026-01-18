@@ -15,19 +15,64 @@ export async function POST(request: NextRequest) {
     const apiKey = await getNovitaApiKey()
     if (!apiKey) {
       console.error("No Novita API key configured in database or .env")
-      return NextResponse.json({ 
-        error: "No Novita API key configured. Please add it in Admin Dashboard or .env file" 
+      return NextResponse.json({
+        error: "No Novita API key configured. Please add it in Admin Dashboard or .env file"
       }, { status: 500 })
+    }
+
+    // --- NEW: Masterpiece Prompt Enhancement ---
+    let enhancedPrompt = prompt;
+    try {
+      const enhancementResponse = await fetch("https://api.novita.ai/v3/openai/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "deepseek/deepseek-r1-turbo",
+          messages: [
+            {
+              role: "system",
+              content: `You are a master of visual arts and prompt engineering for AI image generation, specializing in ultra-realistic "Hyper-Photography". Your goal is to take the user's input to create a "very fine", masterpiece-quality description that follows strict anatomical and physics laws.
+
+              CRITICAL INSTRUCTIONS FOR REALISM:
+              1. FABRIC PHYSICS & TEXTURES: Clothing MUST look real. If the user mentions "Silk", specify "shimmering, fluid silk that clings naturally to the curves". If "Lace", specify "intricate, delicate see-through lace patterns with high-resolution fiber details". If "Bikini" or "Dress", describe how it sits on the skin, the weight of the fabric, and the realistic seams and stitching. 
+              2. ANATOMICAL PERFECTION: Describe hands as "slender, well-defined fingers with realistic nails". Ensure limbs are connected naturally. Mention "sharp focus on joints and proportions".
+              3. SKIN REALISM: Avoid "plastic" or "airbrushed" skin. Explicitly describe "natural skin textures, visible pores, subtle goosebumps, realistic skin highlights, and natural subsurface scattering".
+              4. MOOD & VIBRANCY: Force a "Romantic, Happy, Sexy, and Confident" vibe. Use vibrant colors, warm cinematic lighting, and evocative atmospheres. Use "8k resolution", "Kodak Portra 400 aesthetic", and "Shot on 35mm lens" for realism.
+              5. LITERAL ADHERENCE: Directly translate user actions into high-fidelity descriptions.
+              
+              Output ONLY the enhanced prompt text, no meta-talk. Keep it under 150 words.`
+            },
+            {
+              role: "user",
+              content: `Masterpiece refinement for prompt: "${prompt}"`,
+            },
+          ],
+          max_tokens: 300,
+          temperature: 0.7,
+        }),
+      });
+
+      if (enhancementResponse.ok) {
+        const enhancementData = await enhancementResponse.json();
+        let enhancedText = enhancementData.choices?.[0]?.message?.content || prompt;
+        // Clean deepseek tags if present
+        enhancedPrompt = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+      }
+    } catch (e) {
+      console.error("Failed to enhance flux prompt:", e);
+      enhancedPrompt = prompt;
+    }
+
+    // Build the final prompt with LoRA if specified
+    if (lora && loraStrength) {
+      enhancedPrompt = `${enhancedPrompt}, <lora:${lora}:${loraStrength}>`
     }
 
     // Generate random seed
     const seed = Math.floor(Math.random() * 4294967295)
-
-    // Build the prompt with LoRA if specified
-    let enhancedPrompt = prompt
-    if (lora && loraStrength) {
-      enhancedPrompt = `${prompt}, <lora:${lora}:${loraStrength}>`
-    }
 
     const requestBody = {
       prompt: enhancedPrompt,

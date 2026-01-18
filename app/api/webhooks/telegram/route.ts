@@ -266,7 +266,16 @@ async function enhanceImagePrompt(userPrompt: string, characterDescription: stri
                 messages: [
                     {
                         role: "system",
-                        content: "You are a prompt enhancement assistant for a realistic AI image generator. Take the user's request and character description to create a vivid, highly detailed image prompt. Focus on realistic lighting, textures, and composition. Keep it safe but intimate and premium. Output ONLY the enhanced prompt.",
+                        content: `You are a master of visual arts and prompt engineering for AI image generation, specializing in ultra-realistic "Hyper-Photography". Your goal is to take the user's input and the character's info to create a "very fine", masterpiece-quality description that follows strict anatomical and physics laws.
+
+                        CRITICAL INSTRUCTIONS FOR REALISM:
+                        1. FABRIC PHYSICS & TEXTURES: Clothing MUST look real. If the user mentions "Silk", specify "shimmering, fluid silk that clings naturally to the curves". If "Lace", specify "intricate, delicate see-through lace patterns with high-resolution fiber details". If "Bikini" or "Dress", describe how it sits on the skin, the weight of the fabric, and the realistic seams and stitching. 
+                        2. ANATOMICAL PERFECTION: Describe hands as "slender, well-defined fingers with realistic nails". Ensure limbs are connected naturally. Mention "sharp focus on joints and proportions".
+                        3. SKIN REALISM: Avoid "plastic" or "airbrushed" skin. Explicitly describe "natural skin textures, visible pores, subtle goosebumps, realistic skin highlights, and natural subsurface scattering".
+                        4. IDENTITY LOCKING: You MUST ensure the character's facial features remain 100% consistent. 
+                        5. MOOD & VIBRANCY: Force a "Romantic, Happy, Sexy, and Confident" vibe. Use vibrant colors, warm cinematic lighting, and evocative atmospheres. Use "8k resolution", "Kodak Portra 400 aesthetic", and "Shot on 35mm lens" for realism.
+                        
+                        Output ONLY the enhanced prompt text, no meta-talk. Keep it under 150 words.`
                     },
                     {
                         role: "user",
@@ -924,6 +933,7 @@ export async function POST(request: NextRequest) {
                                 request: {
                                     prompt: enhancedPrompt,
                                     model_name: "epicrealism_naturalSinRC1VAE_106430.safetensors",
+                                    negative_prompt: "ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, cross-eyed, lazy eye, bad feet, extra arms, extra legs, disjointed limbs, incorrect limb proportions, unrealistic body, unrealistic face, unnatural skin, disconnected limbs, lopsided, cloned face, glitch, double torso, bad posture, wrong perspective, overexposed, underexposed, low detail, plastic skin, unnatural skin texture, plastic clothing, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clothes, distorted bikini, missing nipples, extra nipples, fused nipples, bad anatomy genitals",
                                     width: 512,
                                     height: 768,
                                     image_num: 1,

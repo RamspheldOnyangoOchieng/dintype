@@ -79,7 +79,10 @@ const DEFAULT_NEGATIVE_PROMPT_PARTS = [
   "incorrect limb proportions", "unrealistic body", "unrealistic face",
   "unnatural skin", "disconnected limbs", "lopsided", "cloned face", "glitch",
   "double torso", "bad posture", "wrong perspective", "overexposed",
-  "underexposed", "low detail",
+  "underexposed", "low detail", "plastic skin", "unnatural skin texture",
+  "plastic clothing", "fused clothing", "unreal fabric", "badly fitted bikini",
+  "fused body and clothes", "floating clothes", "distorted bikini", "missing nipples",
+  "extra nipples", "fused nipples", "bad anatomy genitals",
 
   // Enhanced undetectability markers
   "unrealistic proportions", "cartoon", "anime style", "3d render",
@@ -88,9 +91,12 @@ const DEFAULT_NEGATIVE_PROMPT_PARTS = [
   "duplicate", "morbid", "mutilated", "poorly drawn", "cloned",
   "gross proportions", "malformed", "missing", "error", "cropped",
   "lowres quality", "normal quality", "username", "text", "logo",
+  "low quality clothing", "cartoonish clothes", "3d clothes",
+
   // Aesthetic-related (prevents gloomy/dull outputs)
   "gloomy", "gray", "depressing", "monochrome", "dull colors", "low contrast",
   "bad lighting", "backlit", "dimly lit",
+
   // Expression-related (prevents distorted/surprised/sad looks)
   "surprised", "shocked", "scared", "mouth agape", "open mouth", "wide eyes", "staring", "blank stare",
   "needy", "frustrated", "sad", "worried", "unhappy", "angry", "distressed", "tearful", "pouty"
@@ -375,18 +381,18 @@ export async function POST(req: NextRequest) {
             messages: [
               {
                 role: 'system',
-                content: `You are a master of visual arts and prompt engineering for AI image generation. Your goal is to take a simple prompt and expand it into a "very fine", masterpiece-quality description. 
+                content: `You are a master of visual arts and prompt engineering for AI image generation, specializing in ultra-realistic "Hyper-Photography". Your goal is to take a simple prompt and expand it into a "very fine", masterpiece-quality description that follows strict anatomical and physics laws.
 
-                CRITICAL INSTRUCTIONS:
-                1. IDENTITY LOCKING: If character info is provided (Name: ${character?.name}, Ethnicity: ${character?.ethnicity}), you MUST ensure the character's facial features remain 100% consistent with their established identity. Do NOT re-describe their face in a way that would generate a new person. Focus on the requested action and setting while keeping the character's face "locked".
-                2. STRICT ADHERENCE: If the user specifies a POSTURE, ACTION (e.g., "touching hair", "leaning on a wall"), or a specific OBJECT, you MUST keep this central and explicit in your description. Do not dilute it.
-                3. MOOD & VIBRANCY: Avoid gloomy, dull, needy, or frustrated looks. Force a "Romantic, Happy, Sexy, and Confident" vibe. Use vibrant colors, warm cinematic lighting (golden hour, soft romantic illumination), and evocative atmospheres.
-                4. EXPRESSIONS: Characters should have joyful, seductive, or playful expressions. Use terms like "radiant smile", "seductive gaze", or "confident smirk". STERNLY FORBID: Any "distressed", "needy", "blank", or "robotic" facial features.
-                5. MASTERPIECE QUALITY: Focus on skin textures (pores, freckles), fabric details, depth of field (bokeh), and high-speed shutter clarity.
-                6. LITERAL ADHERENCE: If the user says "legs wide open", the description MUST explicitly describe "legs spread wide apart" or "legs open" to ensure the AI generator follows the pose. Do NOT dilute the literal meaning of the user's action.
-                7. SHORT PROMPT EXPANSION: Expand short prompts into a rich 70-100 word description. Keep the core action provided by the user as the absolute focus of the scene.
-
-                IMPORTANT FOR DIVERSITY: If the user is requesting multiple images (which we will pass to a batch generator), your description MUST be structured to allow for maximum environmental variety across different seeds. Mention a variety of premium settings like: a pristine tropical beach, deep blue ocean, epic misty mountains, a luxurious silk-sheeted bed, a high-end fashion shop, a sleek modern kitchen, a rustic mountain lodge, or an intimate, dimly-lit "fuck room" with red velvet and neon. Incorporate these as potential settings that the character interacts with. Output only the enhanced prompt text, no meta-talk. Keep it under 150 words.`
+                CRITICAL INSTRUCTIONS FOR REALISM:
+                1. FABRIC PHYSICS & TEXTURES: Clothing MUST look real. If the user mentions "Silk", specify "shimmering, fluid silk that clings naturally to the curves". If "Lace", specify "intricate, delicate see-through lace patterns with high-resolution fiber details". If "Bikini" or "Dress", describe how it sits on the skin, the weight of the fabric, and the realistic seams and stitching. Use terms like "high-end luxury fabrics", "organic cotton textures", "sheer transparent mesh", and "detailed embroidery".
+                2. ANATOMICAL PERFECTION: You MUST prevent deformities. Describe hands as "slender, well-defined fingers with realistic nails". Feet as "anatomically perfect". Ensure limbs are connected naturally. Mention "sharp focus on joints and proportions".
+                3. SKIN REALISM: Avoid "plastic" or "airbrushed" skin. Explicitly describe "natural skin textures, visible pores, subtle goosebumps, realistic skin highlights, and natural subsurface scattering". For naked/bikini scenes, mention "realistic skin folds" and "natural anatomical curves".
+                4. IDENTITY LOCKING: If character info is provided (Name: ${character?.name}, Ethnicity: ${character?.ethnicity}), you MUST ensure the character's facial features remain 100% consistent with their established identity. Focus on the requested action and setting while keeping the character's face "locked" as the primary focus.
+                5. MOOD & VIBRANCY: Force a "Romantic, Happy, Sexy, and Confident" vibe. Use vibrant colors, warm cinematic lighting (golden hour, soft romantic illumination), and evocative atmospheres. Use "8k resolution", "Kodak Portra 400 aesthetic", and "Shot on 35mm lens" for realism.
+                6. LITERAL ADHERENCE: If the user says "legs wide open", describe it as "legs spread wide apart" or "seated in an open-legged pose" to ensure the AI generator obeys. Do NOT dilute the literal meaning of the user's action.
+                7. EXPRESSIONS: Use "joyful", "seductive", or "confident". STERNLY FORBID: Any "distressed", "needy", "blank", or "robotic" looks.
+                
+                IMPORTANT FOR DIVERSITY: Mention premium settings like: a luxurious silk-sheeted bed, a pristine tropical beach, an intimate dimly-lit penthouse, or a sleek modern setting. Output ONLY the enhanced prompt text, no meta-talk. Keep it under 150 words.`
               },
               {
                 role: 'user',
@@ -466,7 +472,7 @@ export async function POST(req: NextRequest) {
         request: {
           prompt: promptsForTasks[i],
           model_name: apiModelName,
-          negative_prompt: negativePrompt,
+          negative_prompt: `${DEFAULT_NEGATIVE_PROMPT}, ${negativePrompt !== DEFAULT_NEGATIVE_PROMPT ? negativePrompt : ""}`,
           width,
           height,
           image_num: 1, // One image per task for maximum diversity

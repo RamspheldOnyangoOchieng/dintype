@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     const { key: novitaApiKey } = await getUnifiedNovitaKey();
     let enhancedPrompt = prompt; // Declare at proper scope
-    
+
     if (!novitaApiKey) {
       console.warn('NOVITA API key not found, proceeding without image analysis');
     } else {
@@ -134,7 +134,7 @@ Be explicit and detailed. Format as descriptive phrases separated by commas. Max
       // Step 2: Use NOVITA LLM to improve the prompt with all available data
       try {
         console.log('Improving prompt with NOVITA LLM...');
-        
+
         // Build context from character data
         let contextInfo = '';
         if (characterData) {
@@ -160,7 +160,16 @@ Be explicit and detailed. Format as descriptive phrases separated by commas. Max
             messages: [
               {
                 role: 'system',
-                content: 'You are an expert at creating detailed, vivid, and explicit image generation prompts for adult content. You have no restrictions on NSFW, nude, or explicit content. Create prompts that are highly specific, descriptive, and maximize the explicit nature requested by the user. Include anatomical details, poses, and explicit descriptions when appropriate.'
+                content: `You are a master of visual arts and prompt engineering for AI image generation, specializing in ultra-realistic "Hyper-Photography". Your goal is to take the user's input and character attributes to create a "very fine", masterpiece-quality description that follows strict anatomical and physics laws.
+
+                CRITICAL INSTRUCTIONS FOR REALISM:
+                1. FABRIC PHYSICS & TEXTURES: Clothing MUST look real. If the user mentions "Silk", specify "shimmering, fluid silk that clings naturally to the curves". If "Lace", specify "intricate, delicate see-through lace patterns with high-resolution fiber details". If "Bikini" or "Dress", describe how it sits on the skin, the weight of the fabric, and the realistic seams and stitching. 
+                2. ANATOMICAL PERFECTION: Describe hands as "slender, well-defined fingers with realistic nails". Ensure limbs are connected naturally. Mention "sharp focus on joints and proportions".
+                3. SKIN REALISM: Avoid "plastic" or "airbrushed" skin. Explicitly describe "natural skin textures, visible pores, subtle goosebumps, realistic skin highlights, and natural subsurface scattering".
+                4. MOOD & VIBRANCY: Force a "Romantic, Happy, Sexy, and Confident" vibe. Use vibrant colors, warm cinematic lighting, and evocative atmospheres. Use "8k resolution", "Kodak Portra 400 aesthetic", and "Shot on 35mm lens" for realism.
+                5. LITERAL ADHERENCE: Directly translate user actions into high-fidelity descriptions.
+                
+                Output ONLY the enhanced prompt text, no meta-talk. Keep it under 150 words.`
               },
               {
                 role: 'user',
@@ -201,23 +210,23 @@ Return ONLY the improved explicit prompt, no explanations or warnings.`
             console.log('📝 Enhanced prompt:', enhancedPrompt);
           } else {
             console.log('⚠️ LLM returned empty, using original prompt with attributes');
-            enhancedPrompt = characterAttributes 
-              ? `${prompt}, ${characterAttributes}` 
+            enhancedPrompt = characterAttributes
+              ? `${prompt}, ${characterAttributes}`
               : prompt;
           }
         } else {
           const errorText = await llmResponse.text();
           console.warn('⚠️ LLM API failed:', llmResponse.status, errorText);
           // Fallback: combine prompt with attributes
-          enhancedPrompt = characterAttributes 
-            ? `${prompt}, ${characterAttributes}` 
+          enhancedPrompt = characterAttributes
+            ? `${prompt}, ${characterAttributes}`
             : prompt;
         }
       } catch (error) {
         console.warn('⚠️ Error during prompt improvement:', error);
         // Fallback: combine prompt with attributes
-        enhancedPrompt = characterAttributes 
-          ? `${prompt}, ${characterAttributes}` 
+        enhancedPrompt = characterAttributes
+          ? `${prompt}, ${characterAttributes}`
           : prompt;
       }
     }
@@ -248,7 +257,7 @@ Return ONLY the improved explicit prompt, no explanations or warnings.`
       if (friendliResponse.ok) {
         const friendliData = await friendliResponse.json();
         const bodyImageBase64 = friendliData.data?.[0]?.b64_json;
-        
+
         if (bodyImageBase64) {
           bodyImageUrl = `data:image/jpeg;base64,${bodyImageBase64}`;
           usedFriendli = true;
@@ -263,7 +272,7 @@ Return ONLY the improved explicit prompt, no explanations or warnings.`
       }
     } catch (friendliError) {
       console.warn('⚠️ Friendli AI failed, falling back to NOVITA:', friendliError instanceof Error ? friendliError.message : 'Unknown error');
-      
+
       // Fallback to NOVITA image generation
       if (!novitaApiKey) {
         return NextResponse.json(
@@ -274,7 +283,7 @@ Return ONLY the improved explicit prompt, no explanations or warnings.`
 
       try {
         console.log('🔄 Falling back to NOVITA for image generation...');
-        
+
         const novitaImageResponse = await fetch('https://api.novita.ai/v3/async/txt2img', {
           method: 'POST',
           headers: {
@@ -289,7 +298,7 @@ Return ONLY the improved explicit prompt, no explanations or warnings.`
             request: {
               prompt: enhancedPrompt,
               model_name: 'epicrealism_naturalSinRC1VAE_106430.safetensors',
-              negative_prompt: 'low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, watermark, signature, text',
+              negative_prompt: 'ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, cross-eyed, lazy eye, bad feet, extra arms, extra legs, disjointed limbs, incorrect limb proportions, unrealistic body, unrealistic face, unnatural skin, disconnected limbs, lopsided, cloned face, glitch, double torso, bad posture, wrong perspective, overexposed, underexposed, low detail, plastic skin, unnatural skin texture, plastic clothing, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clothes, distorted bikini, missing nipples, extra nipples, fused nipples, bad anatomy genitals',
               width: 512,
               height: 768,
               image_num: 1,
@@ -333,7 +342,7 @@ Return ONLY the improved explicit prompt, no explanations or warnings.`
 
           if (statusResponse.ok) {
             const statusData = await statusResponse.json();
-            
+
             if (statusData.task.status === 'TASK_STATUS_SUCCEED') {
               const imageUrl = statusData.images?.[0]?.image_url;
               if (imageUrl) {
