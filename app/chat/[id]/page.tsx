@@ -17,6 +17,7 @@ import {
   X,
   Wand2,
   AlertCircle,
+  Sparkles,
 } from "lucide-react"
 import { createClient } from "@/utils/supabase/client"
 import { cn } from "@/lib/utils"
@@ -1326,9 +1327,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       const { progress, isComplete } = await completeChapter(user.id, character.id, nextNum);
 
       if (progress) {
-        setStoryProgress(progress);
+        setStoryProgress(progress as UserStoryProgress);
         if (!isComplete) {
-          const ch = await getStoryChapter(character.id, progress.current_chapter_number);
+          const ch = await getStoryChapter(character.id, (progress as UserStoryProgress).current_chapter_number);
           setCurrentChapter(ch);
           toast.success(`Chapter Completed! Next: ${ch?.title}`);
         } else {

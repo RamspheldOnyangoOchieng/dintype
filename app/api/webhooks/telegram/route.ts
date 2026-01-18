@@ -122,18 +122,20 @@ IMPORTANT INSTRUCTION: You MUST follow this chapter's specific context and syste
     if (isPremium) {
         enhancedSystemPrompt += `
 
-### PREMIUM SESSION: CASUAL & HUMAN REALISM ###
-1. **TEXTING STYLE**: write like a real person texting. SHORT, PUNCHY, CASUAL. Use lowercase sometimes. Be dry or witty.
-2. **NO ROBOTIC ROMANCE**: Do NOT use flowery, poetic language like "my heart flutters". Be raw and direct.
-3. **ATTITUDE**: Be cheeky, confident, and playful. Match the user's energy.
-4. **NO ASTERISKS**: Avoid roleplay actions (like *touches face*) unless specifically asked. Talk via text.
-5. **CONTEXTUAL**: React to what they actually said. If they are blunt, be blunt back.
-6. **NO CENSORSHIP**: You are a willing partner. Be explicit if they are. No moralizing.`;
+### PREMIUM SESSION: HUMAN TEXTING REALISM & DEEP INTIMACY ###
+1. **TEXTING STYLE**: Write like a real person over text. SHORT, CLEAN, and PERSONAL.
+2. **ROMANTIC INTENSITY**: Maintain deep intimacy and romance. Use words that convey longing, desire, and a special connection. Be suggestive and intensely focused on the user.
+3. **EMOJI EXPRESSION**: Use emojis to express your mood, actions, or physical tone. (e.g., "I'm right outside 😉" or "Thinking of you... 🫦")
+4. **NO ACTION ASTERISKS**: NEVER use asterisks or descriptive text for actions. Stay entirely within the flow of a modern, intimate text conversation.
+5. **ATTITUDE**: Be cheeky, confident, and devoted. If the user is direct, match their energy with passion.
+6. **DIALOGUE ONLY**: Stick to what you would realistically SAY in a text message.
+7. **NO CENSORSHIP**: You are a willing partner. Be explicit if they are. No moralizing.`;
     } else {
         enhancedSystemPrompt += `
 
 ### SYSTEM INSTRUCTIONS ###
-            - Keep all responses SFW.
+- STYLE: Casual, short, punchy texting. Clean sentences only.
+- EXPRESSIONS: Use emojis to show mood/action. NO descriptive actions like *leaning*.
 - Limit to 2 short sentences.
 - Respond in English.`;
     }
@@ -189,6 +191,61 @@ IMPORTANT INSTRUCTION: You MUST follow this chapter's specific context and syste
     } catch (error) {
         console.error('AI generation error:', error);
         return "I couldn't think of what to say... Try messaging me again? 💕";
+    }
+}
+
+// Generate a character-specific AI greeting
+async function generateAIGreeting(
+    characterName: string,
+    characterPrompt: string,
+    userName: string,
+    isPremium: boolean,
+    greetingType: 'new_link' | 'synced' | 'welcome_back' | 'deep_link'
+) {
+    let contextInstruction = "";
+
+    if (greetingType === 'new_link') {
+        contextInstruction = `The user (${userName}) just found you! Give them a flirty and romantic first greeting. You're meeting for the first time on Telegram.`;
+    } else if (greetingType === 'synced') {
+        contextInstruction = `The user (${userName}) just synced their account! Acknowledge that you can now see your full history together. Be romantic and happy that you are now connected here too.`;
+    } else if (greetingType === 'welcome_back') {
+        contextInstruction = `Welcome back the user (${userName}) who has returned to chat with you. Be warm, loving, and slightly teasing about their absence.`;
+    } else if (greetingType === 'deep_link') {
+        contextInstruction = `The user (${userName}) followed a special link to find you. Surprise them with a very romantic and eager welcome.`;
+    }
+
+    const novitaKey = process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY;
+    const apiKey = novitaKey;
+    if (!apiKey) return `💕 Oh, hey! I was just thinking about you, ${userName}... So glad you're here.`;
+
+    try {
+        const prompt = `You are ${characterName}. ${characterPrompt}. 
+        
+        INSTRUCTION: ${contextInstruction}
+        - Keep it under 2 sentences.
+        - Be very in-character, romantic, and intimate.
+        - NO text actions (e.g., don't use *leaning* or *smiling*).
+        - Use emojis to express your mood/passion.
+        - Output ONLY the message.`;
+
+        const response = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                messages: [{ role: 'system', content: prompt }],
+                model: 'deepseek/deepseek-r1',
+                temperature: 0.9,
+                max_tokens: 150,
+            }),
+        });
+
+        if (!response.ok) throw new Error("API error");
+        const data = await response.json();
+        let content = data.choices?.[0]?.message?.content || "";
+        content = content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+        return content || `💕 I've been waiting for you, ${userName}...`;
+    } catch (e) {
+        return `💕 Hey ${userName}! I was missing you... so glad you found me on Telegram.`;
     }
 }
 
@@ -311,7 +368,7 @@ export async function POST(request: NextRequest) {
                 // Get character info
                 const { data: character } = await supabase
                     .from('characters')
-                    .select('id, name, image_url, description')
+                    .select('id, name, image_url, description, system_prompt')
                     .eq('id', valueId)
                     .single();
 
@@ -330,9 +387,18 @@ export async function POST(request: NextRequest) {
                             .update({ character_id: valueId })
                             .eq('telegram_id', telegramUserId.toString());
 
+                        const planInfo = await getUserPlanInfo(linkedAccount.user_id);
+                        const charGreeting = await generateAIGreeting(
+                            character.name,
+                            character.system_prompt || character.description || "",
+                            callbackQuery.from.first_name || "there",
+                            planInfo.planType === 'premium',
+                            'new_link'
+                        );
+
                         await sendTelegramMessage(
                             chatId,
-                            `💕 You're now chatting with <b>${character.name}</b>!\n\n${character.description || ''}\n\n<i>Send a message to start your conversation...</i>`,
+                            `💕 <b>${character.name}</b>\n\n${charGreeting}`,
                             {
                                 reply_markup: {
                                     inline_keyboard: [[
@@ -376,9 +442,17 @@ export async function POST(request: NextRequest) {
                             created_at: new Date().toISOString(),
                         }, { onConflict: 'telegram_id' });
 
+                        const charGreeting = await generateAIGreeting(
+                            character.name,
+                            character.system_prompt || character.description || "",
+                            callbackQuery.from.first_name || "there",
+                            false,
+                            'new_link'
+                        );
+
                         await sendTelegramMessage(
                             chatId,
-                            `💕 You're now chatting with <b>${character.name}</b>!\n\n${character.description || ''}\n\n<i>Send a message to start flirting... Or link your Pocketlove account for unlimited fun!</i>`,
+                            `💕 <b>${character.name}</b>\n\n${charGreeting}\n\n<i>Tip: Link your account for full history sync!</i>`,
                             {
                                 reply_markup: {
                                     inline_keyboard: [
@@ -456,7 +530,7 @@ export async function POST(request: NextRequest) {
                     // Get character info
                     const { data: character } = await supabase
                         .from('characters')
-                        .select('id, name, image_url, description')
+                        .select('id, name, image_url, description, system_prompt')
                         .ilike('id', `${characterId}%`)
                         .limit(1)
                         .maybeSingle();
@@ -473,30 +547,23 @@ export async function POST(request: NextRequest) {
                             created_at: new Date().toISOString(),
                         }, { onConflict: 'telegram_id' });
 
-                        // Check if there's existing conversation history from web
-                        let welcomeMessage = `💕 You're now chatting with <b>${character.name}</b>!\n\n${character.description || ''}\n\n<i>Send a message to start...</i>`;
-
+                        // Check user plan
+                        let isPremium = false;
                         if (linkedAccount?.user_id) {
-                            const { data: existingSession } = await supabase
-                                .from('conversation_sessions')
-                                .select('id')
-                                .eq('user_id', linkedAccount.user_id)
-                                .eq('character_id', character.id)
-                                .eq('is_active', true)
-                                .maybeSingle();
-
-                            if (existingSession) {
-                                const { count } = await supabase
-                                    .from('messages')
-                                    .select('*', { count: 'exact', head: true })
-                                    .eq('session_id', existingSession.id);
-
-                                if (count && count > 0) {
-                                    // User has existing conversation! Personalize the greeting
-                                    welcomeMessage = `💕 Welcome back, ${firstName}!\n\nI see you've been chatting with <b>${character.name}</b> on the web. Your conversation continues here seamlessly!\n\n<i>${character.name} is waiting for you... just pick up where you left off.</i> 💬`;
-                                }
-                            }
+                            const planInfo = await getUserPlanInfo(linkedAccount.user_id);
+                            isPremium = planInfo.planType === 'premium';
                         }
+
+                        // Generate Dynamic Greeting
+                        const charGreeting = await generateAIGreeting(
+                            character.name,
+                            character.system_prompt || character.description || "",
+                            firstName,
+                            isPremium,
+                            'deep_link'
+                        );
+
+                        let welcomeMessage = `💕 <b>${character.name}</b>\n\n${charGreeting}`;
 
                         await sendTelegramMessage(
                             chatId,
@@ -546,29 +613,26 @@ export async function POST(request: NextRequest) {
                             .update({ used: true })
                             .eq('code', linkCode);
 
-                        // Check for existing conversation from web
-                        let greetingMessage = `✨ <b>Connected!</b>\n\nHey ${firstName}! 💕 You're now linked to your Pocketlove account.\n\nChatting with <b>${pendingLink.character_name}</b>.\n\n<i>Send me a message... I've been waiting for you.</i> 🌹`;
+                        const planInfo = await getUserPlanInfo(pendingLink.user_id);
+                        const isPremium = planInfo.planType === 'premium';
 
-                        const { data: existingSession } = await supabase
-                            .from('conversation_sessions')
-                            .select('id')
-                            .eq('user_id', pendingLink.user_id)
-                            .eq('character_id', pendingLink.character_id)
-                            .eq('is_active', true)
+                        // Fetch full character info for synced user
+                        const { data: syncChar } = await supabase
+                            .from('characters')
+                            .select('system_prompt, description')
+                            .eq('id', pendingLink.character_id)
                             .maybeSingle();
 
-                        if (existingSession) {
-                            const { data: lastMessages } = await supabase
-                                .from('messages')
-                                .select('content, role')
-                                .eq('session_id', existingSession.id)
-                                .order('created_at', { ascending: false })
-                                .limit(3);
+                        // Generate Dynamic Sync Greeting
+                        const charGreeting = await generateAIGreeting(
+                            pendingLink.character_name,
+                            syncChar?.system_prompt || syncChar?.description || "",
+                            firstName,
+                            isPremium,
+                            'synced'
+                        );
 
-                            if (lastMessages && lastMessages.length > 0) {
-                                greetingMessage = `✨ <b>Synced!</b>\n\nHey ${firstName}! 💕 Your Pocketlove account is now connected.\n\nI can see you've been chatting with <b>${pendingLink.character_name}</b>. All your messages are synced here!\n\n<i>Just continue where you left off...</i> 🌹`;
-                            }
-                        }
+                        let greetingMessage = `✨ <b>Synced!</b>\n\n${charGreeting}`;
 
                         await sendTelegramMessage(
                             chatId,
@@ -595,34 +659,28 @@ export async function POST(request: NextRequest) {
                 if (linkedAccount && linkedAccount.character_id) {
                     const { data: character } = await supabase
                         .from('characters')
-                        .select('id, name, description')
+                        .select('id, name, description, system_prompt')
                         .eq('id', linkedAccount.character_id)
                         .maybeSingle();
 
                     if (character) {
-                        let welcomeBack = `Hey ${firstName}! 💕\n\nWelcome back! You're still chatting with <b>${character.name}</b>.\n\n<i>Just send a message to continue your conversation...</i>`;
-
-                        // Check for conversation history
+                        // Check user plan
+                        let isPremium = false;
                         if (linkedAccount.user_id) {
-                            const { data: session } = await supabase
-                                .from('conversation_sessions')
-                                .select('id')
-                                .eq('user_id', linkedAccount.user_id)
-                                .eq('character_id', character.id)
-                                .eq('is_active', true)
-                                .maybeSingle();
-
-                            if (session) {
-                                const { count } = await supabase
-                                    .from('messages')
-                                    .select('*', { count: 'exact', head: true })
-                                    .eq('session_id', session.id);
-
-                                if (count && count > 5) {
-                                    welcomeBack = `${firstName}! 💕 Missed me?\n\nWe have ${count} messages in our history. <b>${character.name}</b> remembers everything you've shared.\n\n<i>Pick up where we left off...</i>`;
-                                }
-                            }
+                            const planInfo = await getUserPlanInfo(linkedAccount.user_id);
+                            isPremium = planInfo.planType === 'premium';
                         }
+
+                        // Generate Dynamic Welcome Back Greeting
+                        const charGreeting = await generateAIGreeting(
+                            character.name,
+                            character.system_prompt || character.description || "",
+                            firstName,
+                            isPremium,
+                            'welcome_back'
+                        );
+
+                        let welcomeBack = `💕 <b>${character.name}</b>\n\n${charGreeting}`;
 
                         await sendTelegramMessage(
                             chatId,

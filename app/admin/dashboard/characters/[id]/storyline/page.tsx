@@ -178,9 +178,9 @@ export default function CharacterStorylinePage() {
             }
 
             // @ts-ignore
-            const { error } = await (supabase
+            const { error } = await (supabase as any)
                 .from("story_chapters")
-                .update(updates as any) as any)
+                .update(updates)
                 .eq("id", selectedChapterId)
 
             if (error) throw error
