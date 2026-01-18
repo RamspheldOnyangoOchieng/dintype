@@ -188,13 +188,33 @@ export async function sendChatMessageDB(
 
         if (currentChapter) {
           console.log(`📖 Story Mode Active: Chapter ${currentChapter.chapter_number} - ${currentChapter.title}`);
+          const branchesContext = currentChapter.content?.branches
+            ? currentChapter.content.branches.map((b: any) => {
+              let context = `- IF user says something like: "${b.label}", RESPONSE should be close to: "${b.response_message}"`;
+              if (b.follow_up) {
+                const followUps = b.follow_up.map((f: any) => `  - IF then user says: "${f.user_prompt}", RESPONSE: "${f.response}"`).join("\n");
+                context += `\n${followUps}`;
+              }
+              return context;
+            }).join("\n")
+            : "";
+
           storyContext = `
 ### CURRENT STORYLINE CONTEXT ###
 Chapter: ${currentChapter.chapter_number} - ${currentChapter.title}
 Chapter Description: ${currentChapter.description}
 Chapter Tone: ${currentChapter.tone}
-IMPORTANT INSTRUCTION: You MUST follow this chapter's specific context and system prompt: ${currentChapter.system_prompt || ""}
-          `;
+
+### PREDEFINED NARRATIVE RESPONSES ###
+You MUST try to steer the conversation towards these points and use these responses (or refined versions of them) when relevant:
+${branchesContext}
+
+IMPORTANT INSTRUCTION: 
+1. You MUST follow this chapter's specific context and tone.
+2. If the user's input matches any of the "IF user says" points above, use the corresponding response.
+3. As the conversation progresses, you SHOULD naturally suggest sending the user a photo or mention that you have something to show them.
+4. Keep the story moving forward.
+`;
         }
       }
     } catch (e) {

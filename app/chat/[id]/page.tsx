@@ -60,7 +60,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
 import { Trash2, UserCircle, Settings, Info, Share2, MessageCircle, Lock } from "lucide-react"
-import { getStoryProgress, getChapter, initializeStoryProgress, type StoryChapter, type UserStoryProgress } from "@/lib/story-mode"
+import { getStoryProgress, getChapter, initializeStoryProgress, completeChapter, type StoryChapter, type UserStoryProgress } from "@/lib/story-mode"
 import { Progress } from "@/components/ui/progress"
 
 export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
@@ -92,6 +92,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const { t } = useTranslations()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // Check authentication and show login modal if needed
   useEffect(() => {
@@ -139,8 +140,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   // Story Mode State
   const [storyProgress, setStoryProgress] = useState<UserStoryProgress | null>(null)
   const [currentChapter, setCurrentChapter] = useState<StoryChapter | null>(null)
-  const [chapterSubProgress, setChapterSubProgress] = useState(0) // Visual progress based on messages
-  const [chapterImageIndex, setChapterImageIndex] = useState(0) // Index for image requests
+  const [chapterSubProgress, setChapterSubProgress] = useState(0) // Visual progress based on unique chapter images sent
+  const [sentChapterImages, setSentChapterImages] = useState<string[]>([]) // Track unique images sent in THIS chapter
+  const [chapterMessageCount, setChapterMessageCount] = useState(0) // Track how many messages sent in THIS chapter
+  const [chapterImageIndex, setChapterImageIndex] = useState(0)
   const [isLoadingStory, setIsLoadingStory] = useState(false)
 
   // Use a ref for the interval to ensure we always have the latest reference
@@ -164,6 +167,17 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   // Gallery state
   const [galleryItems, setGalleryItems] = useState<any[]>([])
   const [isGalleryLoading, setIsGalleryLoading] = useState(false)
+
+  // Auto-focus input when AI finish responding
+  useEffect(() => {
+    if (!isSendingMessage && !isGeneratingImage && isMounted) {
+      // Small delay to ensure the disabled state has been updated in the DOM
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isSendingMessage, isGeneratingImage, isMounted]);
 
   const fetchGallery = useCallback(async () => {
     if (!characterId) return
@@ -1111,22 +1125,22 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           if (storyProgress && !storyProgress.is_completed) {
             const chImages = currentChapter?.content?.chapter_images || []
             if (chImages.length > 0) {
-              // Select an image based on the manual request index to ensure they see everything sequentially
-              const imgToUse = chImages[chapterImageIndex % chImages.length]
+              // Find the next image that hasn't been sent in this session yet
+              const nextImg = chImages.find(img => !sentChapterImages.includes(img)) || chImages[0];
 
               const storyImgMsg: Message = {
                 id: `story-img-${Date.now()}`,
                 role: "assistant",
-                content: `${character?.name || 'I'} is sending a photo for you. It'll be ready in a moment...`,
+                content: `${character?.name || 'I'} is sending a photo for you...`,
                 isImage: true,
-                imageUrl: imgToUse,
+                imageUrl: nextImg,
                 timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
               }
 
               setTimeout(() => {
                 setMessages(prev => [...prev, storyImgMsg])
                 saveMessageToLocalStorage(character.id, storyImgMsg)
-                setChapterImageIndex(prev => prev + 1)
+                setSentChapterImages(prev => [...new Set([...prev, nextImg])])
               }, 1500)
 
               setIsSendingMessage(false)
@@ -1172,37 +1186,71 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           user.id
         )
 
-        // Refresh story progress after a message to see if any chapters was triggered
-        // (Though the backend handles the prompt, the UI might need to update)
-        // For now, just a small delay then refresh
-        setTimeout(() => {
-          if (user?.id && characterId) {
-            getStoryProgress(user.id, characterId).then(p => {
-              if (p) setStoryProgress(p);
-            });
-          }
-        }, 2000);
+        // Update message count for context progression
+        const updatedMessageCount = chapterMessageCount + 1;
+        setChapterMessageCount(updatedMessageCount);
 
-        // Update chapter sub-progress
-        if (storyProgress && !storyProgress.is_completed) {
-          const newSubProgress = Math.min(6, Math.floor((messages.length + 2) / 5))
-          if (newSubProgress > chapterSubProgress) {
-            setChapterSubProgress(newSubProgress)
+        // Narrative Progression Logic (Story Mode)
+        if (storyProgress && !storyProgress.is_completed && currentChapter) {
+          const chImages = currentChapter.content?.chapter_images || [];
+          const aiText = aiResponse.message?.content?.toLowerCase() || "";
 
-            // If we hit a new milestone and have images, send one!
-            const chImages = currentChapter?.content?.chapter_images || []
-            if (chImages[newSubProgress - 1]) {
-              const milestoneImg: Message = {
-                id: `milestone-${Date.now()}`,
+          // Triggers for "Natural Photo Sending"
+          const photoTriggers = ["send you a photo", "sending you a pic", "check my feed", "show you something", "sent you a photo", "look at this"];
+          const shouldSendImage = photoTriggers.some(t => aiText.includes(t));
+
+          if (shouldSendImage && chImages.length > 0) {
+            const nextImg = chImages.find(img => !sentChapterImages.includes(img));
+            if (nextImg) {
+              const storyImgMsg: Message = {
+                id: `story-auto-img-${Date.now()}`,
                 role: "assistant",
-                content: "*sends you a special photo* 😉",
+                content: "📷 *Sent you a photo*",
                 isImage: true,
-                imageUrl: chImages[newSubProgress - 1],
+                imageUrl: nextImg,
                 timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
               }
-              setMessages(prev => [...prev, milestoneImg])
-              saveMessageToLocalStorage(character.id, milestoneImg)
+
+              setTimeout(() => {
+                setMessages(prev => [...prev, storyImgMsg]);
+                saveMessageToLocalStorage(character.id, storyImgMsg);
+                setSentChapterImages(prev => [...new Set([...prev, nextImg])]);
+              }, 1000);
             }
+          }
+
+          // Update progression bar based on images sent
+          const updatedImagesCount = sentChapterImages.length + (shouldSendImage ? 1 : 0);
+          setChapterSubProgress(updatedImagesCount);
+
+          // Auto-Chapter Completion Conditions:
+          // 1. All chapter images sent
+          // 2. OR chapter responses are "over" (Threshold of 12 messages in chapter)
+          const totalChapterImages = chImages.length;
+          const isContextOver = updatedMessageCount >= 12;
+
+          if ((totalChapterImages > 0 && updatedImagesCount >= totalChapterImages) || isContextOver) {
+            console.log(`🔥 Chapter Finish Condition Met (Images: ${updatedImagesCount}/${totalChapterImages}, Msg: ${updatedMessageCount}/12)`);
+            setTimeout(() => {
+              const nextNum = (storyProgress as UserStoryProgress).current_chapter_number + 1;
+              completeChapter(user.id, character.id, nextNum).then(({ progress, isComplete }) => {
+                if (progress) {
+                  setStoryProgress(progress as UserStoryProgress);
+                  setSentChapterImages([]); // Reset for next chapter
+                  setChapterMessageCount(0); // Reset for next chapter
+                  setChapterSubProgress(0);
+                  if (!isComplete) {
+                    getChapter(character.id, nextNum).then(ch => {
+                      setCurrentChapter(ch);
+                      toast.success(`Chapter Completed! Next: ${ch?.title}`);
+                    });
+                  } else {
+                    setCurrentChapter(null);
+                    toast.success("Storyline Completed! You've unlocked Free Roam.");
+                  }
+                }
+              });
+            }, 5000);
           }
         }
         if (!aiResponse.success) {
@@ -1321,22 +1369,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       setMessages(prev => [...prev, assistantMsg]);
       saveMessageToLocalStorage(character.id, assistantMsg);
 
-      // 3. Progress the story
-      const { completeChapter, getChapter: getStoryChapter } = await import("@/lib/story-mode");
-      const nextNum = storyProgress.current_chapter_number + (branch.next_chapter_increment || 1);
-      const { progress, isComplete } = await completeChapter(user.id, character.id, nextNum);
-
-      if (progress) {
-        setStoryProgress(progress as UserStoryProgress);
-        if (!isComplete) {
-          const ch = await getStoryChapter(character.id, (progress as UserStoryProgress).current_chapter_number);
-          setCurrentChapter(ch);
-          toast.success(`Chapter Completed! Next: ${ch?.title}`);
-        } else {
-          setCurrentChapter(null);
-          toast.success("Storyline Completed! You've unlocked Free Roam.");
-        }
-      }
+      // 3. Just send the message and let the normal progression logic handle it
+      // The storyContext in the backend will now steer the AI based on this choice.
       setIsSendingMessage(false);
     }, 1000);
   };
@@ -1487,10 +1521,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               </span>
             </div>
             <div className="flex gap-1 h-1.5">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
+              {Array.from({ length: currentChapter?.content?.chapter_images?.length || 6 }).map((_, i) => (
                 <div
                   key={i}
-                  className={`flex-1 rounded-full transition-all duration-500 ${i <= chapterSubProgress ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-secondary'}`}
+                  className={`flex-1 rounded-full transition-all duration-500 ${i < chapterSubProgress ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-secondary'}`}
                 />
               ))}
             </div>
@@ -1771,6 +1805,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         <div className="p-3 md:p-4 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
           <div className="flex items-end gap-2">
             <Input
+              ref={inputRef}
               placeholder={t("chat.inputPlaceholder")}
               className="flex-1 bg-card border-border min-h-[44px] text-base md:text-sm resize-none"
               value={inputValue}
