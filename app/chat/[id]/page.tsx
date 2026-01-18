@@ -38,6 +38,7 @@ import {
   saveMessageToLocalStorage,
   getChatHistoryFromLocalStorage,
   clearChatHistoryFromLocalStorage,
+  getRecentConversations,
 } from "@/lib/local-storage-chat"
 import { saveMessageToDatabase } from "@/lib/chat-storage"
 import { SupabaseDebug } from "@/components/supabase-debug"
@@ -459,20 +460,30 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     }
   }, [user, characterId])
 
-  // Load characters with chat history
+  // Load characters with chat history (SORTED)
   useEffect(() => {
     if (!isMounted) return
 
     try {
-      // Get all characters that have chat history
-      const characterIds = characters
+      // 1. Get explicitly ordered recent chats
+      const recentIds = getRecentConversations()
+
+      // 2. Find any other characters that have history but aren't in the recent list (migration for existing data)
+      const otherIds = characters
+        .filter((c) => !recentIds.includes(c.id))
         .filter((character) => {
           const history = getChatHistoryFromLocalStorage(character.id)
           return history && history.length > 0
         })
         .map((character) => character.id)
 
-      setChatsWithHistory(characterIds)
+      // Combine: Recent first, then others
+      const allIds = [...recentIds, ...otherIds]
+
+      // Filter out any IDs that don't exist in our characters list anymore (cleanup)
+      const validIds = allIds.filter(id => characters.some(c => c.id === id))
+
+      setChatsWithHistory(validIds)
     } catch (error) {
       console.error("Failed to load characters with history:", error)
     }
@@ -1523,42 +1534,45 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800" style={{ overscrollBehavior: 'contain' }}>
           <div className="p-2 space-y-2">
             {/* Chat List Items - Only show characters with chat history */}
-            {characters
-              .filter((char) => chatsWithHistory.includes(char.id))
-              .map((char) => (
-                <Link href={`/chat/${char.id}`} key={char.id} className="block">
-                  <div
-                    className={`flex items-center p-3 rounded-xl cursor-pointer ${characterId === char.id ? "bg-[#252525] text-white" : "hover:bg-[#252525] hover:text-white"
-                      }`}
-                  >
-                    <div className="relative w-12 h-12 mr-3">
-                      {/* Use regular img tag for Cloudinary images */}
-                      <img
-                        src={
-                          imageErrors[char.id]
-                            ? "/placeholder.svg?height=48&width=48"
-                            : (char.image_url || char.image || "/placeholder.svg?height=48&width=48")
-                        }
-                        alt={char.name}
-                        className="w-full h-full rounded-full object-cover"
-                        onError={() => handleImageError(char.id)}
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start">
-                        <h4 className="font-medium text-foreground truncate">{char.name}</h4>
-                        <span className="text-xs text-muted-foreground">
-                          {lastMessages[char.id]?.timestamp ?? t("chat.noMessagesYet")}
-                        </span>
+            {chatsWithHistory
+              .map((id) => {
+                const char = characters.find((c) => c.id === id);
+                if (!char) return null;
+                return (
+                  <Link href={`/chat/${char.id}`} key={char.id} className="block">
+                    <div
+                      className={`flex items-center p-3 rounded-xl cursor-pointer ${characterId === char.id ? "bg-[#252525] text-white" : "hover:bg-[#252525] hover:text-white"
+                        }`}
+                    >
+                      <div className="relative w-12 h-12 mr-3">
+                        {/* Use regular img tag for Cloudinary images */}
+                        <img
+                          src={
+                            imageErrors[char.id]
+                              ? "/placeholder.svg?height=48&width=48"
+                              : (char.image_url || char.image || "/placeholder.svg?height=48&width=48")
+                          }
+                          alt={char.name}
+                          className="w-full h-full rounded-full object-cover"
+                          onError={() => handleImageError(char.id)}
+                          loading="lazy"
+                        />
                       </div>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {lastMessages[char.id]?.content ?? t("chat.noMessagesYet")}
-                      </p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-medium text-foreground truncate">{char.name}</h4>
+                          <span className="text-xs text-muted-foreground">
+                            {lastMessages[char.id]?.timestamp ?? t("chat.noMessagesYet")}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {lastMessages[char.id]?.content ?? t("chat.noMessagesYet")}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             {chatsWithHistory.length === 0 && (
               <div className="text-center text-muted-foreground py-4">{t("chat.noConversationsYet")}</div>
             )}

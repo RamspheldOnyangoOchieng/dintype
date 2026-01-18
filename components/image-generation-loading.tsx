@@ -2,12 +2,31 @@
 
 import { motion } from "framer-motion"
 import { ImageIcon, Sparkles, Star } from "lucide-react"
+import { useState, useEffect } from "react"
 
 interface ImageGenerationLoadingProps {
   characterName?: string
 }
 
 export function ImageGenerationLoading({ characterName }: ImageGenerationLoadingProps) {
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0)
+
+  const messages = [
+    `My love, I am always stunning... wait and see 💋`,
+    `Capturing the perfect angle just for you... ✨`,
+    `Almost ready... I hope this makes you smile 🌹`,
+    `Sending it over now... stay close 💕`
+  ]
+
+  useEffect(() => {
+    // Change message every 3.5 seconds
+    const interval = setInterval(() => {
+      setCurrentMessageIndex((prev) => (prev + 1) % messages.length)
+    }, 3500)
+
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <div className="flex justify-start my-6 animate-in fade-in slide-in-from-left-4 duration-500 delay-150" key="image-generation-indicator">
       <div className="relative w-full max-w-[300px] aspect-square rounded-[2.5rem] overflow-hidden bg-[#111111] border border-white/5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5),0_0_20px_rgba(14,165,233,0.1)] flex flex-col items-center justify-center p-8 group">
@@ -27,7 +46,7 @@ export function ImageGenerationLoading({ characterName }: ImageGenerationLoading
         </div>
 
         {/* Main Loading Stage */}
-        <div className="relative flex items-center justify-center mb-8">
+        <div className="relative flex items-center justify-center mb-6">
           {/* Outer Rotating Halo */}
           <motion.div
             className="absolute w-24 h-24 rounded-full border-[1px] border-primary/20 border-dashed"
@@ -68,26 +87,37 @@ export function ImageGenerationLoading({ characterName }: ImageGenerationLoading
         </div>
 
         {/* Status Text Group */}
-        <div className="text-center z-10 space-y-2">
-          <motion.h3
-            className="text-white font-black text-xl tracking-tight"
-            animate={{ opacity: [0.8, 1, 0.8] }}
-            transition={{ duration: 2, repeat: Infinity }}
+        <div className="text-center z-10 space-y-3 w-full px-2">
+          <motion.div
+            key={currentMessageIndex}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.5 }}
+            className="h-12 flex items-center justify-center"
           >
-            {characterName ? `${characterName} is sending photo..` : 'Generating Image...'}
-          </motion.h3>
-          <p className="text-white/40 text-[11px] font-bold uppercase tracking-[0.25em] leading-none">
-            {characterName ? 'Capturing Moments' : 'Processing pixels'}
-          </p>
+            <h3 className="text-white/90 font-bold text-lg tracking-tight leading-tight">
+              {messages[currentMessageIndex]}
+            </h3>
+          </motion.div>
+
+          <div className="space-y-1">
+            <h4 className="text-primary/80 font-semibold text-xs uppercase tracking-wider">
+              {characterName ? `${characterName} is sending photo..` : 'Generating Image...'}
+            </h4>
+            <p className="text-white/30 text-[10px] font-bold uppercase tracking-[0.25em]">
+              Capturing Moments
+            </p>
+          </div>
 
           {/* Progress Indicator (Bouncing Dots) */}
-          <div className="flex justify-center gap-2 pt-4">
+          <div className="flex justify-center gap-2 pt-2">
             {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
-                className="w-2.5 h-2.5 rounded-full bg-primary/80 shadow-[0_0_8px_rgba(14,165,233,0.4)]"
+                className="w-2 h-2 rounded-full bg-primary/80 shadow-[0_0_8px_rgba(14,165,233,0.4)]"
                 animate={{
-                  y: [0, -10, 0],
+                  y: [0, -8, 0],
                   scale: [1, 1.2, 1],
                   opacity: [0.4, 1, 0.4]
                 }}
