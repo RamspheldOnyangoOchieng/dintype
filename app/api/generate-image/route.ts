@@ -131,6 +131,7 @@ export async function POST(req: NextRequest) {
   let actualModel: string
   let isAdmin: boolean = false
   let isPremium: boolean = false
+  let lastError: string | null = null
 
   try {
     const supabase = await createClient();
@@ -158,7 +159,9 @@ export async function POST(req: NextRequest) {
     } = body;
 
     // Use frontend parameters if available, otherwise fall back to defaults
-    actualImageCount = selectedCount ? parseInt(selectedCount) : image_num
+    actualImageCount = selectedCount ? parseInt(selectedCount as string) : image_num
+    if (isNaN(actualImageCount)) actualImageCount = 1
+
     actualModel = selectedModel || model
 
     const apiModelName = DEFAULT_MODEL;
@@ -166,6 +169,9 @@ export async function POST(req: NextRequest) {
     // Calculate dynamic token cost based on model and image count
     tokenCost = getTokenCost(actualModel, actualImageCount)
     console.log(`💰 Token cost calculation: ${tokenCost} tokens (model: ${actualModel}, images: ${actualImageCount})`)
+
+    // Ensure guidance_scale is a number
+    const finalGuidanceScale = typeof guidance_scale === 'number' ? guidance_scale : 7.5
 
     // Get API key with fallback (DB → .env)
     const { key: apiKey, source, error: keyError } = await getUnifiedNovitaKey()
@@ -377,7 +383,7 @@ export async function POST(req: NextRequest) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'deepseek/deepseek-v3',
+            model: 'deepseek/deepseek-r1-turbo',
             messages: [
               {
                 role: 'system',
@@ -464,7 +470,9 @@ export async function POST(req: NextRequest) {
           response_image_type: "jpeg",
           enable_nsfw_detection: enforceSFW,
           nsfw_detection_level: enforceSFW ? 2 : 0,
-          webhook_url: webhookUrl,
+          webhook: {
+            url: webhookUrl,
+          },
         },
         request: {
           prompt: promptsForTasks[i],
@@ -478,7 +486,7 @@ export async function POST(req: NextRequest) {
           steps: 50,
           seed: -1,
           sampler_name: "DPM++ 2M Karras",
-          guidance_scale,
+          guidance_scale: finalGuidanceScale,
           controlnet_units: imageBase64 ? [
             {
               model_name: "ip-adapter_sd15",
@@ -510,7 +518,10 @@ export async function POST(req: NextRequest) {
           console.error(`❌ Task ${i + 1} succeeded but no task_id returned:`, JSON.stringify(data));
         }
       } else {
-        console.error(`❌ Task ${i + 1} failed:`, await response.text());
+        const errorText = await response.text();
+        console.error(`❌ Task ${i + 1} failed:`, errorText);
+        // Store the last error to return to user if all fail
+        lastError = errorText;
       }
     }
 
@@ -519,7 +530,10 @@ export async function POST(req: NextRequest) {
       if (tokenCost > 0 && !isAdmin) {
         await refundTokens(userId, tokenCost, "Refund for failed generation (all batch tasks failed)");
       }
-      return NextResponse.json({ error: "Failed to generate any images" }, { status: 500 });
+      return NextResponse.json({
+        error: "Failed to generate any images",
+        details: lastError || "The external image provider (Novita) rejected the request. Check API usage and balance."
+      }, { status: 500 });
     }
 
     const combinedTaskId = taskIds.join(',');
