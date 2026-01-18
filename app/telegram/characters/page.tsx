@@ -147,120 +147,88 @@ export default function TelegramCharactersPage() {
     }
 
     return (
-        <div className="bg-[#0b0b0b] text-white h-screen flex flex-col overflow-hidden">
-            {/* Drag Handle */}
-            <div className="flex justify-center pt-4 pb-2">
-                <div className="w-12 h-1 bg-white/20 rounded-full" />
-            </div>
+        <div className="bg-[#050505] text-white flex flex-col h-[100dvh] overflow-hidden relative">
+            {/* Cinematic Background Glow */}
+            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#ff0080]/10 rounded-full blur-[100px] pointer-events-none" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#7928ca]/10 rounded-full blur-[100px] pointer-events-none" />
 
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-3">
-                <button
-                    onClick={() => window.Telegram?.WebApp?.close()}
-                    className="text-white text-base font-medium hover:text-white/70 transition-colors"
-                >
-                    Close
-                </button>
-                <div className="text-center">
-                    <h2 className="text-white font-bold text-base leading-tight">PocketLove</h2>
-                    <p className="text-white/30 text-[10px] font-medium">mini app</p>
+            {/* Top Navigation Bar - FIXED */}
+            <div className="flex-none z-30 bg-[#050505]/80 backdrop-blur-md border-b border-white/5">
+                <div className="flex justify-center pt-2 pb-1">
+                    <div className="w-10 h-1 bg-white/10 rounded-full" />
                 </div>
-                <div className="w-10 h-10 rounded-full flex items-center justify-center border border-white/10 hover:bg-white/5 transition-colors">
-                    <MoreVertical className="w-5 h-5 text-white/50" />
-                </div>
-            </div>
 
-            {/* Floating Active Character Avatar */}
-            {activeCharacterId && (() => {
-                const activeChar = characters.find(c => c.id === activeCharacterId)
-                if (!activeChar) return null
-                return (
-                    <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-right fade-in duration-500">
-                        <div className="relative group">
-                            <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-[#ff0080] shadow-lg shadow-[#ff0080]/30 ring-2 ring-black">
-                                <Image
-                                    src={activeChar.image_url || activeChar.image || "/placeholder.svg"}
-                                    alt={activeChar.name}
-                                    fill
-                                    className="object-cover"
-                                    unoptimized
-                                />
-                            </div>
-                            {/* Pulse effect */}
-                            <div className="absolute inset-0 rounded-full border-2 border-[#ff0080] animate-ping opacity-30" />
-                            {/* Active badge */}
-                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#ff0080] text-white text-[6px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide whitespace-nowrap">
-                                Active
-                            </div>
-                            {/* Tooltip on hover/tap */}
-                            <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 bg-black/90 text-white text-xs font-medium px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap border border-white/10">
-                                {activeChar.name}
-                            </div>
+                <div className="flex items-center justify-between px-6 py-4">
+                    <button
+                        onClick={() => window.Telegram?.WebApp?.close()}
+                        className="text-white/60 text-sm font-bold hover:text-white transition-colors"
+                    >
+                        CLOSE
+                    </button>
+                    <div className="text-center">
+                        <h2 className="text-white font-black text-lg tracking-tighter uppercase leading-none">PocketLove</h2>
+                        <span className="text-primary text-[10px] font-black uppercase tracking-[0.2em]">Discovery</span>
+                    </div>
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center border border-white/10">
+                        <MoreVertical className="w-4 h-4 text-white/40" />
+                    </div>
+                </div>
+
+                {/* User Stats Bar */}
+                <div className="px-6 py-2 flex items-center justify-between border-t border-white/5 bg-white/[0.02]">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                        <span className="text-[11px] font-black text-white/50 uppercase tracking-widest">{userName}</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1.5">
+                            <Heart className="w-3.5 h-3.5 text-pink-500 fill-pink-500" />
+                            <span className="text-xs font-black">{diamonds}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                            <span className="text-xs font-black">{tokens}</span>
                         </div>
                     </div>
-                )
-            })()}
-
-            {/* User Greeting & Balance */}
-            <div className="px-6 py-4 flex items-center justify-between">
-                <div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-white font-bold text-lg">Hello,</span>
-                        <span className="text-[#ff0080] font-black text-lg">{userName}</span>
-                    </div>
-                    <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest mt-1">Start a dialogue!</p>
                 </div>
 
-                {/* Token & Diamond Display */}
-                <div className="bg-[#151515] rounded-2xl flex items-center overflow-hidden border border-white/5">
-                    <div className="flex items-center gap-2 px-4 py-2.5">
-                        <Heart className="w-4 h-4 text-cyan-400 fill-cyan-400" />
-                        <span className="text-white text-sm font-bold">{diamonds}</span>
-                    </div>
-                    <div className="flex items-center gap-2 px-4 py-2.5 border-l border-white/5">
-                        <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
-                        <span className="text-white text-sm font-bold">{tokens}</span>
-                    </div>
-                    <button className="bg-[#ff0080] py-2.5 px-3 hover:bg-[#ff0080]/90 active:scale-95 transition-all">
-                        <Plus className="w-4 h-4 text-white" strokeWidth={3} />
+                {/* Filter Tabs */}
+                <div className="px-5 py-4 flex gap-2">
+                    <button
+                        onClick={() => setFilter('female')}
+                        className={`flex-1 py-3 rounded-xl text-[10px] font-black tracking-[0.2em] transition-all duration-300 ${filter === 'female'
+                            ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]'
+                            : 'bg-white/5 text-white/30 border border-white/5'
+                            }`}
+                    >
+                        ♀ FEMALE
+                    </button>
+                    <button
+                        onClick={() => setFilter('male')}
+                        className={`flex-1 py-3 rounded-xl text-[10px] font-black tracking-[0.2em] transition-all duration-300 ${filter === 'male'
+                            ? 'bg-primary text-white shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]'
+                            : 'bg-white/5 text-white/30 border border-white/5'
+                            }`}
+                    >
+                        ♂ MALE
                     </button>
                 </div>
             </div>
 
-            {/* Section Title */}
-            <div className="px-6 py-2 flex items-center gap-3">
-                <h2 className="text-2xl font-black text-white tracking-tight">Characters</h2>
-                <Users className="w-5 h-5 text-white/30" />
-                <span className="text-white/20 text-sm">({filteredCharacters.length})</span>
-            </div>
+            {/* SCROLLABLE CONTENT AREA */}
+            <div className="flex-1 overflow-y-auto px-5 pt-2 pb-32 no-scrollbar scroll-smooth">
+                <div className="flex items-center justify-between mb-6 px-1">
+                    <h3 className="text-2xl font-black text-white italic">COMPANIONS</h3>
+                    <div className="flex items-center gap-2 text-white/20">
+                        <Users className="w-4 h-4" />
+                        <span className="text-xs font-bold font-mono">{filteredCharacters.length}</span>
+                    </div>
+                </div>
 
-            {/* Gender Filter Tabs */}
-            <div className="px-6 py-3 flex gap-3">
-                <button
-                    onClick={() => setFilter('female')}
-                    className={`flex-1 py-4 rounded-2xl text-[11px] font-black tracking-widest transition-all ${filter === 'female'
-                        ? 'bg-gradient-to-br from-[#ff0080] to-[#7928ca] text-white shadow-lg shadow-[#ff0080]/30'
-                        : 'bg-[#151515] text-white/30 hover:bg-[#1a1a1a]'
-                        }`}
-                >
-                    ♀ FEMALE
-                </button>
-                <button
-                    onClick={() => setFilter('male')}
-                    className={`flex-1 py-4 rounded-2xl text-[11px] font-black tracking-widest transition-all ${filter === 'male'
-                        ? 'bg-white/90 text-black shadow-lg'
-                        : 'bg-[#151515] text-white/30 hover:bg-[#1a1a1a]'
-                        }`}
-                >
-                    ♂ MALE
-                </button>
-            </div>
-
-            {/* Character Grid - ALL CHARACTERS with proper scrolling */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 pb-24 -webkit-overflow-scrolling-touch no-scrollbar">
                 {filteredCharacters.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20">
-                        <p className="text-white/30 text-sm">No characters found</p>
+                    <div className="flex flex-col items-center justify-center py-20 opacity-30">
+                        <Loader2 className="w-10 h-10 animate-spin mb-4" />
+                        <p className="font-bold text-sm tracking-widest">FETCHING SOULS...</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 gap-4">
@@ -268,43 +236,53 @@ export default function TelegramCharactersPage() {
                             <div
                                 key={char.id}
                                 onClick={() => handleSelect(char)}
-                                className={`group relative aspect-[3/4] rounded-[1.5rem] overflow-hidden border-2 transition-all duration-200 active:scale-95 cursor-pointer ${selectingId === char.id
-                                    ? 'border-[#ff0080] ring-4 ring-[#ff0080]/30'
+                                className={`group relative aspect-[3/4.2] rounded-[2rem] overflow-hidden border-2 transition-all duration-500 transform active:scale-[0.98] ${selectingId === char.id
+                                    ? 'border-primary shadow-[0_0_25px_rgba(var(--primary-rgb),0.5)]'
                                     : activeCharacterId === char.id
-                                        ? 'border-[#ff0080]/50'
-                                        : 'border-white/5 hover:border-white/20'
+                                        ? 'border-pink-500/50'
+                                        : 'border-white/5 bg-white/5'
                                     }`}
                             >
                                 <Image
                                     src={char.image_url || char.image || "/placeholder.svg"}
                                     alt={char.name}
                                     fill
-                                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                    className="object-cover transition-transform duration-700 group-hover:scale-110"
                                     unoptimized
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
-                                {/* Active indicator */}
+                                {/* Identity Gradient Overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90" />
+
+                                {/* Status Badge */}
                                 {activeCharacterId === char.id && (
-                                    <div className="absolute top-3 right-3 bg-[#ff0080] text-white text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-wide">
-                                        Active
+                                    <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-pink-500 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-tighter">
+                                        <div className="w-1 h-1 rounded-full bg-white animate-pulse" />
+                                        CONNECTED
                                     </div>
                                 )}
 
-                                {/* Loading overlay */}
+                                {/* Loading Overlay */}
                                 {selectingId === char.id && (
-                                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center backdrop-blur-sm">
-                                        <Loader2 className="w-8 h-8 text-[#ff0080] animate-spin" />
+                                    <div className="absolute inset-0 bg-black/80 flex items-center justify-center backdrop-blur-md">
+                                        <div className="relative">
+                                            <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                                            <div className="absolute inset-0 blur-xl bg-primary/20 animate-pulse" />
+                                        </div>
                                     </div>
                                 )}
 
-                                {/* Character info */}
-                                <div className="absolute bottom-4 left-4 right-4">
-                                    <h3 className="text-lg font-bold text-white truncate leading-tight">{char.name}</h3>
+                                {/* Character Info Block */}
+                                <div className="absolute bottom-5 left-5 right-5 space-y-1">
+                                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">{char.category || 'Companion'}</span>
+                                    <h3 className="text-xl font-black text-white truncate drop-shadow-lg leading-none">{char.name}</h3>
                                     {char.relationship && (
-                                        <p className="text-white/40 text-[10px] font-medium uppercase tracking-wider mt-0.5 truncate">
-                                            {char.relationship}
-                                        </p>
+                                        <div className="flex items-center gap-1 pb-1">
+                                            <div className="w-1 h-1 rounded-full bg-white/30" />
+                                            <p className="text-white/40 text-[9px] font-black uppercase tracking-widest truncate">
+                                                {char.relationship}
+                                            </p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -312,6 +290,9 @@ export default function TelegramCharactersPage() {
                     </div>
                 )}
             </div>
+
+            {/* Bottom Glow Fade */}
+            <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-[#050505] to-transparent pointer-events-none z-10" />
         </div>
     )
 }
