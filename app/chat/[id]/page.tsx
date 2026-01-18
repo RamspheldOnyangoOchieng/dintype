@@ -383,6 +383,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
             setMessages(prev => [...prev, morningMsg]);
             saveMessageToLocalStorage(charId, morningMsg);
+            saveMessageToDatabase(charId, morningMsg); // Sync to DB
             localStorage.setItem(`last_daily_msg_${charId}`, today);
 
             // If chapter has images, send one too
@@ -399,6 +400,19 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               };
               setMessages(prev => [...prev, imgMsg]);
               saveMessageToLocalStorage(charId, imgMsg);
+              
+              // Save image message to DB
+              fetch('/api/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  characterId: charId,
+                  content: imgMsg.content,
+                  role: "assistant",
+                  isImage: true,
+                  imageUrl: randomImg
+                })
+              });
             }
             setIsSendingMessage(false);
           }, 3000);
@@ -1196,8 +1210,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           const aiText = aiResponse.message?.content?.toLowerCase() || "";
 
           // Triggers for "Natural Photo Sending"
-          const photoTriggers = ["send you a photo", "sending you a pic", "check my feed", "show you something", "sent you a photo", "look at this"];
-          const shouldSendImage = photoTriggers.some(t => aiText.includes(t));
+          const photoTriggers = [
+            "send you a photo", "sending you a pic", "check my feed", "show you something", 
+            "sent you a photo", "look at this", "here's a photo", "here's a pic", 
+            "my new photo", "sending a photo", "sending a pic", "have a look at this", 
+            "this photo of me", "(image:", "*sends photo*", "sent a photo", "sent a pic"
+          ];
+          const shouldSendImage = photoTriggers.some(t => aiText.includes(t)) || aiResponse.message?.content?.includes("(Image:");
 
           if (shouldSendImage && chImages.length > 0) {
             const nextImg = chImages.find(img => !sentChapterImages.includes(img));

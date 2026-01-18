@@ -225,33 +225,41 @@ export default function CharacterStorylinePage() {
         setIsUploading(true)
         try {
             const base64 = await convertFileToBase64(file)
-            const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "demo"
-            const uploadPreset = "ai-characters-preset"
 
             const fd = new FormData()
             fd.append("file", base64)
-            fd.append("upload_preset", uploadPreset)
             fd.append("folder", "storylines")
 
-            const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+            const res = await fetch("/api/upload", {
                 method: "POST",
                 body: fd,
             })
 
-            if (!res.ok) throw new Error("Upload failed")
+            if (!res.ok) {
+                const errorData = await res.json()
+                throw new Error(errorData.error || "Upload failed")
+            }
             const data = await res.json()
 
             // Update content JSON
-            const parsed = JSON.parse(formData.content)
+            const currentContent = formData.content
+            let parsed = { chapter_images: [] }
+            try {
+                parsed = JSON.parse(currentContent)
+            } catch (e) {
+                console.error("Error parsing existing content, creating new")
+            }
+
             if (!parsed.chapter_images) parsed.chapter_images = []
+            // @ts-ignore
             parsed.chapter_images[index] = data.secure_url
 
             setFormData({ ...formData, content: JSON.stringify(parsed, null, 2) })
             setIsDirty(true)
             toast.success(`Image ${index + 1} uploaded`)
-        } catch (err) {
+        } catch (err: any) {
             console.error("Upload error:", err)
-            toast.error("Failed to upload image")
+            toast.error(err.message || "Failed to upload image")
         } finally {
             setIsUploading(false)
         }
@@ -480,8 +488,25 @@ export default function CharacterStorylinePage() {
                                                                     onClick={() => handleGenerateImage(idx)}
                                                                     disabled={isUploading || isGenerating}
                                                                 >
-                                                                    <Sparkles className="h-3 w-3" /> AI Gen
+                                                                    <Wand2 className="h-3 w-3" /> AI Gen
                                                                 </Button>
+                                                            </div>
+
+                                                            <div className="space-y-1">
+                                                                <label className="text-[10px] uppercase font-bold text-muted-foreground ml-1">AI Context / Meta Data</label>
+                                                                <textarea
+                                                                    className="w-full text-xs min-h-[60px] bg-muted/30 border border-border rounded p-2 focus:outline-none focus:ring-1 focus:ring-primary/30"
+                                                                    placeholder="Describe this photo (e.g. 'me at the beach', 'wearing a red dress')..."
+                                                                    value={parsed.chapter_image_metadata?.[idx] || ""}
+                                                                    onChange={(e) => {
+                                                                        const val = e.target.value
+                                                                        const newParsed = { ...parsed }
+                                                                        if (!newParsed.chapter_image_metadata) newParsed.chapter_image_metadata = []
+                                                                        newParsed.chapter_image_metadata[idx] = val
+                                                                        setFormData({ ...formData, content: JSON.stringify(newParsed, null, 2) })
+                                                                        setIsDirty(true)
+                                                                    }}
+                                                                />
                                                             </div>
                                                         </CardContent>
                                                     </Card>

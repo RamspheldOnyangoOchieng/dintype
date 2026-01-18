@@ -199,11 +199,31 @@ export async function sendChatMessageDB(
             }).join("\n")
             : "";
 
+          const chapterImages = currentChapter.content?.chapter_images || [];
+          const chapterImageMetadata = currentChapter.content?.chapter_image_metadata || [];
+
+          let imageInfo = "";
+          if (chapterImages.length > 0) {
+            const availablePhotos = chapterImages
+              .map((_: string, i: number) => `- Photo ${i + 1}: ${chapterImageMetadata[i] || "A photo of me"}`)
+              .join("\n");
+
+            imageInfo = `
+### AVAILABLE PHOTOS TO SEND ###
+You have ${chapterImages.length} exclusive photos ready for this chapter:
+${availablePhotos}
+
+INSTRUCTION: Mention these photos naturally based on their described contents when it feels right in the conversation. For example, if you have a "me at the beach" photo, you could say "I'm at the beach right now, want to see?". When you mention sending a photo, the system will automatically deliver the next logical image to the user.`;
+          } else {
+            imageInfo = "No specific chapter images are set for this chapter yet.";
+          }
+
           storyContext = `
 ### CURRENT STORYLINE CONTEXT ###
 Chapter: ${currentChapter.chapter_number} - ${currentChapter.title}
 Chapter Description: ${currentChapter.description}
 Chapter Tone: ${currentChapter.tone}
+${imageInfo}
 
 ### PREDEFINED NARRATIVE RESPONSES ###
 You MUST try to steer the conversation towards these points and use these responses (or refined versions of them) when relevant:
@@ -212,7 +232,7 @@ ${branchesContext}
 IMPORTANT INSTRUCTION: 
 1. You MUST follow this chapter's specific context and tone.
 2. If the user's input matches any of the "IF user says" points above, use the corresponding response.
-3. As the conversation progresses, you SHOULD naturally suggest sending the user a photo or mention that you have something to show them.
+3. As the conversation progresses, you SHOULD naturally suggest sending the user a photo or mention that you have something to show them to keep them engaged.
 4. Keep the story moving forward.
 `;
         }
