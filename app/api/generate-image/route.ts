@@ -377,7 +377,7 @@ export async function POST(req: NextRequest) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'deepseek/deepseek-v3.1',
+            model: 'deepseek/deepseek-v3',
             messages: [
               {
                 role: 'system',
@@ -464,15 +464,14 @@ export async function POST(req: NextRequest) {
           response_image_type: "jpeg",
           enable_nsfw_detection: enforceSFW,
           nsfw_detection_level: enforceSFW ? 2 : 0,
-          webhook: {
-            url: webhookUrl,
-            test_mode: { enabled: false }
-          },
+          webhook_url: webhookUrl,
         },
         request: {
           prompt: promptsForTasks[i],
           model_name: apiModelName,
-          negative_prompt: `${DEFAULT_NEGATIVE_PROMPT}, ${negativePrompt !== DEFAULT_NEGATIVE_PROMPT ? negativePrompt : ""}`,
+          negative_prompt: negativePrompt === DEFAULT_NEGATIVE_PROMPT
+            ? DEFAULT_NEGATIVE_PROMPT
+            : `${DEFAULT_NEGATIVE_PROMPT}, ${negativePrompt}`,
           width,
           height,
           image_num: 1, // One image per task for maximum diversity
@@ -502,8 +501,14 @@ export async function POST(req: NextRequest) {
 
       if (response.ok) {
         const data = await response.json();
-        taskIds.push(data.task_id);
-        console.log(`✅ Task ${i + 1}/${actualImageCount} submitted: ${data.task_id}`);
+        const taskId = data.data?.task_id || data.task_id;
+
+        if (taskId) {
+          taskIds.push(taskId);
+          console.log(`✅ Task ${i + 1}/${actualImageCount} submitted: ${taskId}`);
+        } else {
+          console.error(`❌ Task ${i + 1} succeeded but no task_id returned:`, JSON.stringify(data));
+        }
       } else {
         console.error(`❌ Task ${i + 1} failed:`, await response.text());
       }
