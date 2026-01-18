@@ -398,7 +398,7 @@ export async function POST(req: NextRequest) {
                 6. LITERAL ADHERENCE: If the user says "legs wide open", describe it as "legs spread wide apart" or "seated in an open-legged pose" to ensure the AI generator obeys. Do NOT dilute the literal meaning of the user's action.
                 7. EXPRESSIONS: Use "joyful", "seductive", or "confident". STERNLY FORBID: Any "distressed", "needy", "blank", or "robotic" looks.
                 
-                IMPORTANT FOR DIVERSITY: Mention premium settings like: a luxurious silk-sheeted bed, a pristine tropical beach, an intimate dimly-lit penthouse, or a sleek modern setting. Output ONLY the enhanced prompt text, no meta-talk. Keep it under 150 words.`
+                IMPORTANT FOR DIVERSITY: Mention premium settings like: a luxurious silk-sheeted bed, a pristine tropical beach, an intimate dimly-lit penthouse, or a sleek modern setting. Output ONLY the enhanced prompt text, no meta-talk. Keep the final response strictly under 850 characters to ensure it fits within API limits.`
               },
               {
                 role: 'user',
@@ -415,7 +415,10 @@ export async function POST(req: NextRequest) {
           const enhancedText = enhancementData.choices?.[0]?.message?.content;
           if (enhancedText) {
             console.log("✅ Prompt enhanced successfully");
-            finalPrompt = enhancedText;
+            // Remove thinking process or common AI noise if present
+            let cleanedPrompt = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+            // Truncate to 900 characters to leave room for environment additions
+            finalPrompt = cleanedPrompt.length > 900 ? cleanedPrompt.substring(0, 900) : cleanedPrompt;
           }
         } else {
           console.warn("⚠️ Prompt enhancement failed (response not ok), using original prompt");
