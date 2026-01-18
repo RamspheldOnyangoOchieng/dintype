@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import { useCharacters } from "@/components/character-context"
-import { getChatHistoryFromLocalStorage } from "@/lib/local-storage-chat"
+import { getChatHistoryFromLocalStorage, getRecentConversations } from "@/lib/local-storage-chat"
 
 export function ClientChatList() {
   const { characters } = useCharacters()
@@ -15,15 +15,25 @@ export function ClientChatList() {
   // Load characters with chat history
   useEffect(() => {
     try {
-      // Get all characters that have chat history
-      const characterIds = characters
+      // 1. Get explicitly ordered recent chats
+      const recentIds = getRecentConversations()
+
+      // 2. Find any other characters that have history but aren't in the recent list (migration for existing data)
+      const otherIds = characters
+        .filter((c) => !recentIds.includes(c.id))
         .filter((character) => {
           const history = getChatHistoryFromLocalStorage(character.id)
           return history && history.length > 0
         })
         .map((character) => character.id)
 
-      setChatsWithHistory(characterIds)
+      // Combine: Recent first, then others
+      const allIds = [...recentIds, ...otherIds]
+
+      // Filter out any IDs that don't exist in our characters list anymore (cleanup)
+      const validIds = allIds.filter(id => characters.some(c => c.id === id))
+
+      setChatsWithHistory(validIds)
     } catch (error) {
       console.error("Failed to load characters with history:", error)
     } finally {
@@ -53,9 +63,11 @@ export function ClientChatList() {
         <div className="grid gap-4">
           <h2 className="text-xl font-semibold">Recent Conversations</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {characters
-              .filter((char) => chatsWithHistory.includes(char.id))
-              .map((char) => (
+            {chatsWithHistory.map((id) => {
+              const char = characters.find((c) => c.id === id)
+              if (!char) return null
+
+              return (
                 <Link href={`/chat/${char.id}`} key={char.id} className="block">
                   <div className="flex items-center p-4 rounded-xl border hover:bg-accent transition-colors">
                     <div className="relative w-12 h-12 mr-3">
@@ -90,7 +102,8 @@ export function ClientChatList() {
                     </div>
                   </div>
                 </Link>
-              ))}
+              )
+            })}
           </div>
         </div>
       ) : (

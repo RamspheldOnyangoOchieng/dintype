@@ -1020,33 +1020,7 @@ export async function POST(request: NextRequest) {
                     linkedAccount.character_id
                 );
 
-                // Fetch story branches for reply markup
-                try {
-                    const { data: storyProgress } = await supabase
-                        .from("user_story_progress")
-                        .select("*")
-                        .eq("user_id", linkedAccount.user_id)
-                        .eq("character_id", linkedAccount.character_id)
-                        .maybeSingle();
-
-                    if (storyProgress && !storyProgress.is_completed) {
-                        const { data: currentChapter } = await supabase
-                            .from("story_chapters")
-                            .select("*")
-                            .eq("character_id", linkedAccount.character_id)
-                            .eq("chapter_number", storyProgress.current_chapter_number)
-                            .maybeSingle();
-
-                        if (currentChapter?.content?.branches?.length > 0) {
-                            const buttons = currentChapter.content.branches.map((b: any, idx: number) => ([
-                                { text: b.label, callback_data: `select_branch:${idx}` }
-                            ]));
-                            replyMarkup = { inline_keyboard: buttons };
-                        }
-                    }
-                } catch (e) {
-                    console.error("Telegram: Error fetching branches for keyboard", e);
-                }
+                // Story branch buttons removed as requested by user to keep chat clean
 
                 // Save AI response
                 if (sessionId) {

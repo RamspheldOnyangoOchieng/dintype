@@ -374,7 +374,17 @@ export async function POST(req: NextRequest) {
               },
               {
                 role: 'user',
-                content: `Masterpiece refinement for prompt: "${prompt}". Style: ${actualModel.includes('anime') || actualModel.includes('dreamshaper') ? 'High-end stylized anime/illustration' : 'Breathtaking photorealistic photography'}. ${actualImageCount > 1 ? `Generate a prompt that encourages diverse backgrounds for a batch of ${actualImageCount} images.` : ''}`
+                content: `Masterpiece refinement for prompt: "${prompt}".
+                
+                ${character ? `
+                IMPORTANT - CHARACTER CONTEXT (YOU MUST DESCRIBE THIS CHARACTER):
+                Name: ${character.name}
+                Description: ${character.description}
+                Visual Traits: ${character.hairColor} hair, ${character.eyeColor} eyes, ${character.bodyType} body, ${character.ethnicity}, ${character.style} style.
+                Appearance Prompt: ${character.systemPrompt || character.imagePrompt}
+                ` : ''}
+
+                Style: ${actualModel.includes('anime') || actualModel.includes('dreamshaper') ? 'High-end stylized anime/illustration' : 'Breathtaking photorealistic photography'}. ${actualImageCount > 1 ? `Generate a prompt that encourages diverse backgrounds for a batch of ${actualImageCount} images.` : ''}`
               }
             ],
             max_tokens: 300,
@@ -475,11 +485,12 @@ export async function POST(req: NextRequest) {
           seed: -1,
           sampler_name: "DPM++ 2M Karras",
           guidance_scale: finalGuidanceScale,
-          controlnet_units: imageBase64 ? [
+          controlnet_units: (imageBase64 || character?.image) ? [
             {
               model_name: "ip-adapter_sd15",
-              weight: 0.95, // Increased weight for much stronger identity lock
-              control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
+              weight: 0.95, // High weight for strong identity preservation
+              // Use provided base64 or character image URL
+              control_image: imageBase64 ? imageBase64.replace(/^data:image\/\w+;base64,/, "") : character?.image,
               module_name: "none"
             }
           ] : []

@@ -3,6 +3,9 @@ import type { Message } from "@/lib/chat-actions"
 // Key format for localStorage
 const getChatKey = (characterId: string) => `chat_history_${characterId}`
 
+// Key for recent conversations list
+const RECENT_CONVERSATIONS_KEY = "recent_conversations"
+
 // Save a message to localStorage
 export function saveMessageToLocalStorage(characterId: string, message: Message): boolean {
   if (typeof window === "undefined") {
@@ -26,11 +29,44 @@ export function saveMessageToLocalStorage(characterId: string, message: Message)
     // Save back to localStorage
     localStorage.setItem(key, JSON.stringify(existingMessages))
 
+    // Update recent conversations list
+    updateRecentConversations(characterId)
+
     console.log(`Message saved to localStorage for character ${characterId}`)
     return true
   } catch (error) {
     console.error("Error saving message to localStorage:", error)
     return false
+  }
+}
+
+// Helper to update recent conversations order
+function updateRecentConversations(characterId: string) {
+  try {
+    const recentJson = localStorage.getItem(RECENT_CONVERSATIONS_KEY)
+    let recent: string[] = recentJson ? JSON.parse(recentJson) : []
+
+    // Remove if already exists (to move to top)
+    recent = recent.filter(id => id !== characterId)
+
+    // Add to front
+    recent.unshift(characterId)
+
+    localStorage.setItem(RECENT_CONVERSATIONS_KEY, JSON.stringify(recent))
+  } catch (e) {
+    console.error("Error updating recent conversations:", e)
+  }
+}
+
+// Get ordered recent conversation IDs
+export function getRecentConversations(): string[] {
+  if (typeof window === "undefined") return []
+  try {
+    const recentJson = localStorage.getItem(RECENT_CONVERSATIONS_KEY)
+    return recentJson ? JSON.parse(recentJson) : []
+  } catch (error) {
+    console.error("Error getting recent conversations:", error)
+    return []
   }
 }
 
