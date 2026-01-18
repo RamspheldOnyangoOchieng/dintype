@@ -269,11 +269,13 @@ async function enhanceImagePrompt(userPrompt: string, characterDescription: stri
                         content: `You are a master of visual arts and prompt engineering for AI image generation, specializing in ultra-realistic "Hyper-Photography". Your goal is to take the user's input and the character's info to create a "very fine", masterpiece-quality description that follows strict anatomical and physics laws.
 
                         CRITICAL INSTRUCTIONS FOR REALISM:
-                        1. FABRIC PHYSICS & TEXTURES: Clothing MUST look real. If the user mentions "Silk", specify "shimmering, fluid silk that clings naturally to the curves". If "Lace", specify "intricate, delicate see-through lace patterns with high-resolution fiber details". If "Bikini" or "Dress", describe how it sits on the skin, the weight of the fabric, and the realistic seams and stitching. 
-                        2. ANATOMICAL PERFECTION: Describe hands as "slender, well-defined fingers with realistic nails". Ensure limbs are connected naturally. Mention "sharp focus on joints and proportions".
+                        1. FABRIC PHYSICS & TEXTURES: Clothing MUST look real, avoiding any "plastic" or "rendered" look. Describe "realistic fabric grain, micro-folds, natural wrinkles, and high-quality textile physics". For "Silk" or "Satin", mention "complex light reflections and soft subsurface scattering". For "Cotton" or "Linen", describe "visible weave and soft matte texture". Clothing should drape naturally with "realistic tension and weight", emphasizing "loose threads, seams, and realistic stitching details".
+                        2. ANATOMICAL PERFECTION: Describe hands as "slender, well-defined fingers with realistic nails, accurate finger count, natural hand articulation". Eyes MUST have "sharp focus, detailed irises, realistic pupils, and symmetrical placement". Ensure limbs are connected naturally. Mention "sharp focus on joints and proportions".
                         3. SKIN REALISM: Avoid "plastic" or "airbrushed" skin. Explicitly describe "natural skin textures, visible pores, subtle goosebumps, realistic skin highlights, and natural subsurface scattering".
                         4. IDENTITY LOCKING: You MUST ensure the character's facial features remain 100% consistent. 
                         5. MOOD & VIBRANCY: Force a "Romantic, Happy, Sexy, and Confident" vibe. Use vibrant colors, warm cinematic lighting, and evocative atmospheres. Use "8k resolution", "Kodak Portra 400 aesthetic", and "Shot on 35mm lens" for realism.
+                        6. LITERAL ADHERENCE & EXPLICIT ACTIONS: You MUST accurately translate sexual or self-touching actions. If the user says "touching her vagina" or "hand on pussy", describe it vividly as "fingers intimately resting on her wet labia" or "hand delicately cupping her exposed crotch". If "legs wide open", describe "legs spread wide apart in an open, inviting pose". Do NOT sanitize, dilute, or omit the literal meaning of the user's action. The image generator must follow the exact physical placement requested.
+                        7. EXPRESSIONS: Use "joyful", "seductive", "moaning", or "confident". STERNLY FORBID: Any "distressed", "needy", "blank", or "robotic" looks.
                         
                         Output ONLY the enhanced prompt text, no meta-talk. Keep it under 150 words.`
                     },
@@ -928,7 +930,7 @@ export async function POST(request: NextRequest) {
                                 }
                             }
 
-                            const baseNegative = "ugly, deformed, disfigured, mutated, extra limbs, fused fingers, bad anatomy, malformed, blurry, jpeg artifacts, lowres, pixelated, out of frame, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, bad feet, extra arms, extra legs, distorted body, unrealistic, unnatural skin, glitch, double torso, bad posture, plastic skin, plastic clothing, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clouds, distorted bikini, missing nipples, bad anatomy genitals";
+                            const baseNegative = "ugly, deformed, disfigured, mutated, extra limbs, fused fingers, extra fingers, mutated hands, bad anatomy, malformed, blurry, jpeg artifacts, lowres, pixelated, out of frame, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, bad feet, distorted eyes, asymmetrical eyes, iris distortion, extra arms, extra legs, distorted body, unrealistic, unnatural skin, glitch, double torso, bad posture, plastic skin, plastic clothing, glossy plastic fabric, CG fabric, shiny synthetic fabric, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clouds, distorted bikini, missing nipples, bad anatomy genitals";
                             let finalNegative = baseNegative;
                             if (finalNegative.length > 1000) finalNegative = finalNegative.substring(0, 1000);
 
@@ -941,9 +943,9 @@ export async function POST(request: NextRequest) {
                                     width: 512,
                                     height: 768,
                                     image_num: 1,
-                                    steps: 25,
+                                    steps: 40,
                                     guidance_scale: 7.5,
-                                    sampler_name: "Euler a",
+                                    sampler_name: "DPM++ 2M Karras",
                                 },
                             };
 

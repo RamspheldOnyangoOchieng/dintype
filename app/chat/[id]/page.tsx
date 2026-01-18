@@ -155,6 +155,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   // Use a ref to store the current task ID
   const currentTaskIdRef = useRef<string | null>(null)
 
+  // Message aggregation buffer for debouncing (respond once to multiple messages)
+  const messageBufferRef = useRef<string[]>([])
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+
   // Add debug state
   const [debugInfo, setDebugInfo] = useState({
     characterId: characterId,
@@ -400,7 +404,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               };
               setMessages(prev => [...prev, imgMsg]);
               saveMessageToLocalStorage(charId, imgMsg);
-              
+
               // Save image message to DB
               fetch('/api/messages', {
                 method: 'POST',
@@ -1080,6 +1084,214 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     }
   }
 
+  // Process the accumulated messages in the buffer
+  const processMessageBuffer = async () => {
+    if (!isMounted || !character || messageBufferRef.current.length === 0) {
+      if (isMounted) setIsSendingMessage(false)
+      return
+    }
+
+    // Combine all pending messages
+    const combinedContent = messageBufferRef.current.join("\n")
+    messageBufferRef.current = []
+
+    setDebugInfo((prev) => ({ ...prev, lastAction: "processingBuffer" }))
+
+    try {
+      // 2. Check for image requests (using the combined content)
+      if (isAskingForImage(combinedContent)) {
+        // Story Mode Image Handling
+        if (storyProgress && !storyProgress.is_completed) {
+          const chImages = currentChapter?.content?.chapter_images || []
+          if (chImages.length > 0) {
+            // Find the next image that hasn't been sent in this session yet
+            const nextImg = chImages.find((img) => !sentChapterImages.includes(img)) || chImages[0]
+
+            const storyImgMsg: Message = {
+              id: `story-img-${Date.now()}`,
+              role: "assistant",
+              content: `${character?.name || "I"} is sending a photo for you...`,
+              isImage: true,
+              imageUrl: nextImg,
+              timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            }
+
+            setTimeout(() => {
+              setMessages((prev) => [...prev, storyImgMsg])
+              saveMessageToLocalStorage(character.id, storyImgMsg)
+              setSentChapterImages((prev) => [...new Set([...prev, nextImg])])
+            }, 1500)
+
+            setIsSendingMessage(false)
+            return
+          } else {
+            // Fallback if no chapter images are set yet
+            const blockedMsg: Message = {
+              id: Math.random().toString(),
+              role: "assistant",
+              content: "*blushes* I... I'm not ready to show you everything yet. Let's just talk a bit more first? 💕",
+              timestamp: new Date().toLocaleTimeString(),
+            }
+            setTimeout(() => {
+              setMessages((prev) => [...prev, blockedMsg])
+              saveMessageToLocalStorage(character.id, blockedMsg)
+            }, 1000)
+            setIsSendingMessage(false)
+            return
+          }
+        }
+
+        // Normal image generation (outside Story Mode)
+        const imagePrompt = extractImagePrompt(combinedContent)
+        setIsSendingMessage(false)
+        await generateImage(imagePrompt)
+        return
+      }
+
+      // 3. Send to AI (which also saves to DB)
+      setDebugInfo((prev) => ({ ...prev, lastAction: "sendingToAI" }))
+
+      if (!user?.id) {
+        toast.error("Please login to continue chatting.")
+        openLoginModal()
+        setIsSendingMessage(false)
+        return
+      }
+
+      const aiResponse = await sendChatMessageDB(
+        character.id,
+        combinedContent,
+        character.system_prompt || character.systemPrompt || "",
+        user.id,
+      )
+
+      // Update message count for context progression
+      const updatedMessageCount = chapterMessageCount + 1
+      setChapterMessageCount(updatedMessageCount)
+
+      // Narrative Progression Logic (Story Mode)
+      if (storyProgress && !storyProgress.is_completed && currentChapter) {
+        const chImages = currentChapter.content?.chapter_images || []
+        const aiText = aiResponse.message?.content?.toLowerCase() || ""
+
+        // Triggers for "Natural Photo Sending"
+        const photoTriggers = [
+          "send you a photo",
+          "sending you a pic",
+          "check my feed",
+          "show you something",
+          "sent you a photo",
+          "look at this",
+          "here's a photo",
+          "here's a pic",
+          "my new photo",
+          "sending a photo",
+          "sending a pic",
+          "have a look at this",
+          "this photo of me",
+          "(image:",
+          "*sends photo*",
+          "sent a photo",
+          "sent a pic",
+        ]
+        const shouldSendImage =
+          photoTriggers.some((t) => aiText.includes(t)) || aiResponse.message?.content?.includes("(Image:")
+
+        if (shouldSendImage && chImages.length > 0) {
+          const nextImg = chImages.find((img) => !sentChapterImages.includes(img))
+          if (nextImg) {
+            const storyImgMsg: Message = {
+              id: `story-auto-img-${Date.now()}`,
+              role: "assistant",
+              content: "📷 *Sent you a photo*",
+              isImage: true,
+              imageUrl: nextImg,
+              timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            }
+
+            setTimeout(() => {
+              setMessages((prev) => [...prev, storyImgMsg])
+              saveMessageToLocalStorage(character.id, storyImgMsg)
+              setSentChapterImages((prev) => [...new Set([...prev, nextImg])])
+            }, 1000)
+          }
+        }
+
+        // Update progression bar based on images sent
+        const updatedImagesCount = sentChapterImages.length + (shouldSendImage ? 1 : 0)
+        setChapterSubProgress(updatedImagesCount)
+
+        // Auto-Chapter Completion Conditions:
+        // 1. All chapter images sent
+        // 2. OR chapter responses are "over" (Threshold of 12 messages in chapter)
+        const totalChapterImages = chImages.length
+        const isContextOver = updatedMessageCount >= 12
+
+        if ((totalChapterImages > 0 && updatedImagesCount >= totalChapterImages) || isContextOver) {
+          console.log(
+            `🔥 Chapter Finish Condition Met (Images: ${updatedImagesCount}/${totalChapterImages}, Msg: ${updatedMessageCount}/12)`,
+          )
+          setTimeout(() => {
+            const nextNum = (storyProgress as UserStoryProgress).current_chapter_number + 1
+            completeChapter(user.id, character.id, nextNum).then(({ progress, isComplete }) => {
+              if (progress) {
+                setStoryProgress(progress as UserStoryProgress)
+                setSentChapterImages([]) // Reset for next chapter
+                setChapterMessageCount(0) // Reset for next chapter
+                setChapterSubProgress(0)
+                if (!isComplete) {
+                  getChapter(character.id, nextNum).then((ch) => {
+                    setCurrentChapter(ch)
+                    toast.success(`Chapter Completed! Next: ${ch?.title}`)
+                  })
+                } else {
+                  setCurrentChapter(null)
+                  toast.success("Storyline Completed! You've unlocked Free Roam.")
+                }
+              }
+            })
+          }, 5000)
+        }
+      }
+      if (!aiResponse.success) {
+        if (aiResponse.limitReached || aiResponse.upgradeRequired) {
+          setPremiumModalFeature(aiResponse.limitReached ? "Message Limit" : "Token Balance")
+          setPremiumModalDescription(aiResponse.error || "Upgrade to premium to continue.")
+          setPremiumModalMode(aiResponse.limitReached ? "message-limit" : "upgrade")
+          setIsPremiumModalOpen(true)
+        } else {
+          toast.error(aiResponse.error || "Failed to get AI response")
+        }
+        setIsSendingMessage(false)
+        return
+      }
+
+      if (aiResponse.message) {
+        // AI response received and saved to DB
+        const assistantMessage: Message = {
+          id: aiResponse.message.id,
+          role: "assistant",
+          content: aiResponse.message.content,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          isImage: aiResponse.message.isImage,
+          imageUrl: aiResponse.message.imageUrl,
+        }
+
+        setMessages((prev) => [...prev, assistantMessage])
+        saveMessageToLocalStorage(character.id, assistantMessage)
+      }
+    } catch (error) {
+      console.error("Error processing buffered messages:", error)
+      if (!isMounted) return
+      setDebugInfo((prev) => ({ ...prev, lastError: error, lastAction: "sendMessageError" }))
+      toast.error("An error occurred while sending your message.")
+    } finally {
+      if (isMounted) {
+        setIsSendingMessage(false)
+      }
+    }
+  }
+
   // Handle sending a message
   const handleSendMessage = async () => {
     if (!isMounted) return
@@ -1097,10 +1309,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           const messageCheck = await checkMessageLimit(user.id)
           if (!messageCheck.allowed) {
             setPremiumModalFeature("Message Limit")
-            setPremiumModalDescription("Daily message limit reached. Upgrade to premium to continue chatting unlimited.")
-            setPremiumModalMode('message-limit')
+            setPremiumModalDescription(
+              "Daily message limit reached. Upgrade to premium to continue chatting unlimited.",
+            )
+            setPremiumModalMode("message-limit")
             setIsPremiumModalOpen(true)
-            setDebugInfo(prev => ({ ...prev, lastAction: "messageLimitReached" }))
+            setDebugInfo((prev) => ({ ...prev, lastAction: "messageLimitReached" }))
             return
           }
         } catch (error) {
@@ -1109,12 +1323,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       }
 
       if (!character) {
-        console.error("Cannot send message: Character is null");
-        return;
+        console.error("Cannot send message: Character is null")
+        return
       }
-
-      // Note: NSFW check and message limits are now handled server-side within sendChatMessageDB
-      // based on the user's real-time plan status from the database.
 
       // Create new user message
       const newMessage: Message = {
@@ -1124,191 +1335,23 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }
 
-      // Add user message to chat
+      // Add user message to chat UI immediately
       setMessages((prev) => [...prev, newMessage])
+
+      // Push content to buffer for AI processing
+      messageBufferRef.current.push(inputValue.trim())
+
       setInputValue("")
-      setIsSendingMessage(true)
+      setIsSendingMessage(true) // Show typing indicator
 
-      try {
-        // 1. Save user message locally (for instant UI feedback)
-        saveMessageToLocalStorage(character.id, newMessage)
+      // Save user message locally (for persistence)
+      saveMessageToLocalStorage(character.id, newMessage)
 
-        // 2. Check for image requests
-        if (isAskingForImage(newMessage.content)) {
-          // Story Mode Image Handling
-          if (storyProgress && !storyProgress.is_completed) {
-            const chImages = currentChapter?.content?.chapter_images || []
-            if (chImages.length > 0) {
-              // Find the next image that hasn't been sent in this session yet
-              const nextImg = chImages.find(img => !sentChapterImages.includes(img)) || chImages[0];
-
-              const storyImgMsg: Message = {
-                id: `story-img-${Date.now()}`,
-                role: "assistant",
-                content: `${character?.name || 'I'} is sending a photo for you...`,
-                isImage: true,
-                imageUrl: nextImg,
-                timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-              }
-
-              setTimeout(() => {
-                setMessages(prev => [...prev, storyImgMsg])
-                saveMessageToLocalStorage(character.id, storyImgMsg)
-                setSentChapterImages(prev => [...new Set([...prev, nextImg])])
-              }, 1500)
-
-              setIsSendingMessage(false)
-              return
-            } else {
-              // Fallback if no chapter images are set yet
-              const blockedMsg: Message = {
-                id: Math.random().toString(),
-                role: "assistant",
-                content: "*blushes* I... I'm not ready to show you everything yet. Let's just talk a bit more first? 💕",
-                timestamp: new Date().toLocaleTimeString()
-              }
-              setTimeout(() => {
-                setMessages(prev => [...prev, blockedMsg])
-                saveMessageToLocalStorage(character.id, blockedMsg)
-              }, 1000)
-              setIsSendingMessage(false)
-              return
-            }
-          }
-
-          // Normal image generation (outside Story Mode)
-          const imagePrompt = extractImagePrompt(newMessage.content)
-          setIsSendingMessage(false)
-          await generateImage(imagePrompt)
-          return
-        }
-
-        // 3. Send to AI (which also saves to DB)
-        setDebugInfo((prev) => ({ ...prev, lastAction: "sendingToAI" }))
-
-        if (!user?.id) {
-          toast.error("Please login to continue chatting.")
-          openLoginModal()
-          setIsSendingMessage(false)
-          return
-        }
-
-        const aiResponse = await sendChatMessageDB(
-          character.id,
-          newMessage.content,
-          character.system_prompt || character.systemPrompt || "",
-          user.id
-        )
-
-        // Update message count for context progression
-        const updatedMessageCount = chapterMessageCount + 1;
-        setChapterMessageCount(updatedMessageCount);
-
-        // Narrative Progression Logic (Story Mode)
-        if (storyProgress && !storyProgress.is_completed && currentChapter) {
-          const chImages = currentChapter.content?.chapter_images || [];
-          const aiText = aiResponse.message?.content?.toLowerCase() || "";
-
-          // Triggers for "Natural Photo Sending"
-          const photoTriggers = [
-            "send you a photo", "sending you a pic", "check my feed", "show you something", 
-            "sent you a photo", "look at this", "here's a photo", "here's a pic", 
-            "my new photo", "sending a photo", "sending a pic", "have a look at this", 
-            "this photo of me", "(image:", "*sends photo*", "sent a photo", "sent a pic"
-          ];
-          const shouldSendImage = photoTriggers.some(t => aiText.includes(t)) || aiResponse.message?.content?.includes("(Image:");
-
-          if (shouldSendImage && chImages.length > 0) {
-            const nextImg = chImages.find(img => !sentChapterImages.includes(img));
-            if (nextImg) {
-              const storyImgMsg: Message = {
-                id: `story-auto-img-${Date.now()}`,
-                role: "assistant",
-                content: "📷 *Sent you a photo*",
-                isImage: true,
-                imageUrl: nextImg,
-                timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-              }
-
-              setTimeout(() => {
-                setMessages(prev => [...prev, storyImgMsg]);
-                saveMessageToLocalStorage(character.id, storyImgMsg);
-                setSentChapterImages(prev => [...new Set([...prev, nextImg])]);
-              }, 1000);
-            }
-          }
-
-          // Update progression bar based on images sent
-          const updatedImagesCount = sentChapterImages.length + (shouldSendImage ? 1 : 0);
-          setChapterSubProgress(updatedImagesCount);
-
-          // Auto-Chapter Completion Conditions:
-          // 1. All chapter images sent
-          // 2. OR chapter responses are "over" (Threshold of 12 messages in chapter)
-          const totalChapterImages = chImages.length;
-          const isContextOver = updatedMessageCount >= 12;
-
-          if ((totalChapterImages > 0 && updatedImagesCount >= totalChapterImages) || isContextOver) {
-            console.log(`🔥 Chapter Finish Condition Met (Images: ${updatedImagesCount}/${totalChapterImages}, Msg: ${updatedMessageCount}/12)`);
-            setTimeout(() => {
-              const nextNum = (storyProgress as UserStoryProgress).current_chapter_number + 1;
-              completeChapter(user.id, character.id, nextNum).then(({ progress, isComplete }) => {
-                if (progress) {
-                  setStoryProgress(progress as UserStoryProgress);
-                  setSentChapterImages([]); // Reset for next chapter
-                  setChapterMessageCount(0); // Reset for next chapter
-                  setChapterSubProgress(0);
-                  if (!isComplete) {
-                    getChapter(character.id, nextNum).then(ch => {
-                      setCurrentChapter(ch);
-                      toast.success(`Chapter Completed! Next: ${ch?.title}`);
-                    });
-                  } else {
-                    setCurrentChapter(null);
-                    toast.success("Storyline Completed! You've unlocked Free Roam.");
-                  }
-                }
-              });
-            }, 5000);
-          }
-        }
-        if (!aiResponse.success) {
-          if (aiResponse.limitReached || aiResponse.upgradeRequired) {
-            setPremiumModalFeature(aiResponse.limitReached ? "Message Limit" : "Token Balance")
-            setPremiumModalDescription(aiResponse.error || "Upgrade to premium to continue.")
-            setPremiumModalMode(aiResponse.limitReached ? 'message-limit' : 'upgrade')
-            setIsPremiumModalOpen(true)
-          } else {
-            toast.error(aiResponse.error || "Failed to get AI response")
-          }
-          setIsSendingMessage(false)
-          return
-        }
-
-        if (aiResponse.message) {
-          // AI response received and saved to DB
-          const assistantMessage: Message = {
-            id: aiResponse.message.id,
-            role: "assistant",
-            content: aiResponse.message.content,
-            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            isImage: aiResponse.message.isImage,
-            imageUrl: aiResponse.message.imageUrl,
-          }
-
-          setMessages(prev => [...prev, assistantMessage])
-          saveMessageToLocalStorage(character.id, assistantMessage)
-        }
-      } catch (error) {
-        console.error("Error sending message:", error)
-        if (!isMounted) return
-        setDebugInfo((prev) => ({ ...prev, lastError: error, lastAction: "sendMessageError" }))
-        toast.error("An error occurred while sending your message.")
-      } finally {
-        if (isMounted) {
-          setIsSendingMessage(false)
-        }
+      // Debounce the AI processing call (Wait 2s for more messages)
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
       }
+      debounceTimerRef.current = setTimeout(processMessageBuffer, 2000)
     }
   }
 

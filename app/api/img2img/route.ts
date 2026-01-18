@@ -53,13 +53,13 @@ export async function POST(req: NextRequest) {
             content: `You are a master of visual arts and prompt engineering for AI image generation, specializing in ultra-realistic "Hyper-Photography". Your goal is to take the user's input and the character's info to create a "very fine", masterpiece-quality description that follows strict anatomical and physics laws.
 
             CRITICAL INSTRUCTIONS FOR REALISM:
-            1. FABRIC PHYSICS & TEXTURES: Clothing MUST look real. If the user mentions "Silk", specify "shimmering, fluid silk that clings naturally to the curves". If "Lace", specify "intricate, delicate see-through lace patterns with high-resolution fiber details". If "Bikini" or "Dress", describe how it sits on the skin, the weight of the fabric, and the realistic seams and stitching. Use terms like "high-end luxury fabrics", "organic cotton textures", "sheer transparent mesh", and "detailed embroidery".
-            2. ANATOMICAL PERFECTION: You MUST prevent deformities. Describe hands as "slender, well-defined fingers with realistic nails". Feet as "anatomically perfect". Ensure limbs are connected naturally. Mention "sharp focus on joints and proportions".
+            1. FABRIC PHYSICS & TEXTURES: Clothing MUST look real, avoiding any "plastic" or "rendered" look. Describe "realistic fabric grain, micro-folds, natural wrinkles, and high-quality textile physics". For "Silk" or "Satin", mention "complex light reflections and soft subsurface scattering". For "Cotton" or "Linen", describe "visible weave and soft matte texture". Clothing should drape naturally with "realistic tension and weight", emphasizing "loose threads, seams, and realistic stitching details". Use terms like "high-end luxury fabrics", "organic cotton textures", "sheer transparent mesh", and "detailed embroidery".
+            2. ANATOMICAL PERFECTION: You MUST prevent deformities. Describe hands as "slender, well-defined fingers with realistic nails, accurate finger count, natural hand articulation". Eyes MUST have "sharp focus, detailed irises, realistic pupils, and symmetrical placement". Feet as "anatomically perfect". Ensure limbs are connected naturally. Mention "sharp focus on joints and proportions".
             3. SKIN REALISM: Avoid "plastic" or "airbrushed" skin. Explicitly describe "natural skin textures, visible pores, subtle goosebumps, realistic skin highlights, and natural subsurface scattering". For naked/bikini scenes, mention "realistic skin folds" and "natural anatomical curves".
             4. IDENTITY LOCKING: You MUST ensure the character's facial features remain 100% consistent with their established identity. Focus on the requested action and setting while keeping the character's face "locked" as the primary focus.
             5. MOOD & VIBRANCY: Force a "Romantic, Happy, Sexy, and Confident" vibe. Use vibrant colors, warm cinematic lighting (golden hour, soft romantic illumination), and evocative atmospheres. Use "8k resolution", "Kodak Portra 400 aesthetic", and "Shot on 35mm lens" for realism.
-            6. LITERAL ADHERENCE: If the user says "legs wide open", describe it as "legs spread wide apart" or "seated in an open-legged pose" to ensure the AI generator obeys. Do NOT dilute the literal meaning of the user's action.
-            7. EXPRESSIONS: Use "joyful", "seductive", or "confident". STERNLY FORBID: Any "distressed", "needy", "blank", or "robotic" looks.
+            6. LITERAL ADHERENCE & EXPLICIT ACTIONS: You MUST accurately translate sexual or self-touching actions. If the user says "touching her vagina" or "hand on pussy", describe it vividly as "fingers intimately resting on her wet labia" or "hand delicately cupping her exposed crotch". If "legs wide open", describe "legs spread wide apart in an open, inviting pose". Do NOT sanitize, dilute, or omit the literal meaning of the user's action. The image generator must follow the exact physical placement requested.
+            7. EXPRESSIONS: Use "joyful", "seductive", "moaning", or "confident". STERNLY FORBID: Any "distressed", "needy", "blank", or "robotic" looks.
             
             Output ONLY the enhanced prompt text, no meta-talk. Keep it under 150 words.`
           },
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 
     // Prepare request body for Novita API
     // If we have an imageBase64, we use IP-Adapter for consistency
-    const baseNegative = "ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, cross-eyed, lazy eye, bad feet, extra arms, extra legs, disjointed limbs, incorrect limb proportions, unrealistic body, unrealistic face, unnatural skin, disconnected limbs, lopsided, cloned face, glitch, double torso, bad posture, wrong perspective, overexposed, underexposed, low detail, plastic skin, unnatural skin texture, plastic clothing, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clouds, distorted bikini, missing nipples, extra nipples, fused nipples, bad anatomy genitals";
+    const baseNegative = "ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, cross-eyed, lazy eye, bad feet, extra arms, extra legs, disjointed limbs, incorrect limb proportions, unrealistic body, unrealistic face, unnatural skin, disconnected limbs, lopsided, cloned face, glitch, double torso, bad posture, wrong perspective, overexposed, underexposed, low detail, plastic skin, unnatural skin texture, plastic clothing, glossy plastic fabric, CG fabric, shiny synthetic fabric, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clouds, distorted bikini, missing nipples, extra nipples, fused nipples, bad anatomy genitals";
     let finalNegative = negativePrompt ? `${baseNegative}, ${negativePrompt}` : baseNegative;
     if (finalNegative.length > 1000) finalNegative = finalNegative.substring(0, 1000);
 
@@ -96,10 +96,10 @@ export async function POST(req: NextRequest) {
         width: 512,
         height: 768,
         image_num: 1,
-        steps: 30,
+        steps: 40,
         seed: -1,
         guidance_scale: 7.5,
-        sampler_name: "Euler a",
+        sampler_name: "DPM++ 2M Karras",
       },
     }
 
