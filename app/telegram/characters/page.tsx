@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { createClient } from "@/utils/supabase/client"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Loader2, Zap, Heart, Plus, MoreVertical, Users } from "lucide-react"
 
@@ -37,15 +38,37 @@ export default function TelegramCharactersPage() {
     const [activeCharacterId, setActiveCharacterId] = useState<string | null>(null)
 
     const supabase = createClient()
+    const router = useRouter()
 
     useEffect(() => {
-        // Initialize Telegram WebApp IMMEDIATELY
+        // 1. Initial State Recovery (Warm Start)
+        // This prevents the "0" flickering when reopening the app
+        const cachedData = localStorage.getItem('tg_user_cache')
+        if (cachedData) {
+            try {
+                const parsed = JSON.parse(cachedData)
+                setUserName(parsed.userName || "Player")
+                setTokens(parsed.tokens || 0)
+                setTotalLikes(parsed.totalLikes || 0)
+                setActiveCharacterId(parsed.activeCharacterId || null)
+                setLikedCharacters(parsed.likedCharacters || [])
+            } catch (e) {
+                console.error("Cache recovery error:", e)
+            }
+        }
+
+        // 2. Initialize Telegram WebApp IMMEDIATELY
         if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
             const tg = window.Telegram.WebApp
             tg.ready()
             tg.expand()
             tg.setHeaderColor('#000000')
             tg.setBackgroundColor('#0b0b0b')
+
+            // Cache initData in sessionStorage for session recovery across internal navigations
+            if (tg.initData) {
+                sessionStorage.setItem('tg_init_data', tg.initData)
+            }
         }
 
         const fetchInitialData = async () => {
@@ -63,7 +86,7 @@ export default function TelegramCharactersPage() {
                     setCharacters(charData as Character[])
                 }
 
-                // 2. Fetch user data via Telegram initData
+                // 2. Fetch user data via Telegram
                 if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
                     const tg = window.Telegram.WebApp
 
@@ -73,12 +96,14 @@ export default function TelegramCharactersPage() {
                         setUserName(user.first_name || "Player")
                     }
 
-                    // Fetch user's tokens, likes, and active character from our backend
-                    if (tg.initData) {
+                    // Try to get initData from either the TG object or our session cache
+                    const initData = tg.initData || sessionStorage.getItem('tg_init_data')
+
+                    if (initData) {
                         const response = await fetch('/api/telegram/user-data', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ initData: tg.initData })
+                            body: JSON.stringify({ initData })
                         })
 
                         if (response.ok) {
@@ -88,10 +113,21 @@ export default function TelegramCharactersPage() {
                                 setTotalLikes(data.user.totalLikes || 0)
                                 setLikedCharacters(data.user.likedCharacters || [])
                                 setActiveCharacterId(data.user.activeCharacterId || null)
+
+                                // Update Warm Start Cache
+                                localStorage.setItem('tg_user_cache', JSON.stringify({
+                                    userName: user?.first_name || "Player",
+                                    tokens: data.user.tokens,
+                                    totalLikes: data.user.totalLikes,
+                                    activeCharacterId: data.user.activeCharacterId,
+                                    likedCharacters: data.user.likedCharacters
+                                }))
                             }
                         } else {
                             console.error("Failed to fetch user data:", response.status)
                         }
+                    } else {
+                        console.warn("No Telegram initData found, skipping user data fetch")
                     }
                 }
             } catch (err) {
@@ -222,7 +258,7 @@ export default function TelegramCharactersPage() {
                     <button
                         onClick={() => {
                             if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light')
-                            window.location.href = '/settings'
+                            router.push('/settings')
                         }}
                         className="w-8 h-8 rounded-full flex items-center justify-center border border-white/10 active:bg-white/5 transition-all"
                     >
@@ -250,7 +286,7 @@ export default function TelegramCharactersPage() {
                             <button
                                 onClick={() => {
                                     if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('medium')
-                                    window.location.href = '/premium'
+                                    router.push('/premium')
                                 }}
                                 className="w-9 h-9 bg-[#ff0080] rounded-xl flex items-center justify-center active:scale-95 transition-transform"
                             >
