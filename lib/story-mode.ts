@@ -11,6 +11,7 @@ export interface StoryChapter {
     content: {
         opening_message: string
         branches: StoryBranch[]
+        chapter_images?: string[]
     }
     system_prompt: string
 }

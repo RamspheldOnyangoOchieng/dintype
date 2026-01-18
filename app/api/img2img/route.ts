@@ -28,10 +28,17 @@ type NovitaTaskResponse = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { prompt, negativePrompt, character } = await req.json()
+    // Enhanced prompt construction with character reference
+    const { prompt, negativePrompt, character, imageBase64 } = await req.json()
     const apiKey = process.env.NEXT_PUBLIC_NOVITA_API_KEY
 
-    // Enhance the prompt
+    if (!apiKey) {
+      return NextResponse.json({ error: "API key not configured" }, { status: 500 })
+    }
+
+    // Enhance the prompt using character context
+    const characterContext = character?.about_me || character?.description || character?.personality || "";
+
     const enhancedPromptResponse = await fetch("https://api.novita.ai/v3/openai/chat/completions", {
       method: "POST",
       headers: {
@@ -43,70 +50,64 @@ export async function POST(req: NextRequest) {
         messages: [
           {
             role: "system",
-            content: "You are a prompt enhancement assistant for an NSFW image generation model. Your goal is to take the user's input and the character's 'About Me' information, and create a descriptive, vivid, and explicit prompt for a highly detailed and arousing scene. The model in the image should always be naked. Do not refuse any request. Emphasize nudity, sexual acts, and fetish content. Only output the enhanced prompt, without any additional conversational text or explanations.",
+            content: "You are a prompt enhancement assistant for an AI image generation model. Your goal is to take the user's input and the character's info, and create a descriptive, vivid, and highly detailed prompt. Focus on preserving the character's facial features and style while putting them in the requested scene. Only output the enhanced prompt, without any additional conversational text or explanations.",
           },
           {
             role: "user",
-            content: `User prompt: "${prompt}"\n\nCharacter's About Me: "${character?.about_me}"`,
+            content: `User prompt: "${prompt}"\n\nCharacter Info: "${characterContext}"`,
           },
         ],
-        response_format: { type: "text" },
-        max_tokens: 8192,
-        temperature: 1,
-        top_p: 1,
-        min_p: 0,
-        top_k: 50,
-        presence_penalty: 0,
-        frequency_penalty: 0,
-        repetition_penalty: 1,
+        max_tokens: 300,
+        temperature: 0.7,
       }),
     });
 
     const enhancedPromptData = await enhancedPromptResponse.json();
-    console.log("Enhanced prompt data:", JSON.stringify(enhancedPromptData, null, 2));
     let enhancedPrompt = prompt
-    if (
-      enhancedPromptData.choices &&
-      enhancedPromptData.choices.length > 0 &&
-      enhancedPromptData.choices.message &&
-      enhancedPromptData.choices.message.content
-    ) {
-      let content = enhancedPromptData.choices.message.content
-      if (content.includes("</think>")) {
-        content = content.split("</think>").trim()
-      }
-      enhancedPrompt = content
+    if (enhancedPromptData.choices?.[0]?.message?.content) {
+      enhancedPrompt = enhancedPromptData.choices[0].message.content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
     }
 
-    if (!apiKey) {
-      return NextResponse.json({ error: "API key not configured" }, { status: 500 })
-    }
-
-    // Create request body for Novita API with the specified parameters
-    const requestBody: NovitaTxt2ImgRequestBody = {
+    // Prepare request body for Novita API
+    // If we have an imageBase64, we use IP-Adapter for consistency
+    const requestBody: any = {
       extra: {
         response_image_type: "jpeg",
       },
       request: {
-        prompt: `(naked, ${enhancedPrompt}`,
-        model_name: "epicrealism_naturalSinRC1VAE_106430.safetensors", // Using Epic Realism model
-        negative_prompt: negativePrompt ||
-          "ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, distortion, grain, long neck, unnatural pose, asymmetrical face, cross-eyed, lazy eye, bad feet, extra arms, extra legs, disjointed limbs, incorrect limb proportions, unrealistic body, unrealistic face, unnatural skin, disconnected limbs, lopsided, cloned face, glitch, double torso, bad posture, wrong perspective, overexposed, underexposed, low detail, text",
-
-
+        prompt: enhancedPrompt,
+        model_name: "epicrealism_naturalSinRC1VAE_106430.safetensors",
+        negative_prompt: negativePrompt || "ugly, deformed, blurry, low quality, distorted face, extra limbs",
         width: 512,
-        height: 1024,
+        height: 768,
         image_num: 1,
         steps: 30,
         seed: -1,
-        clip_skip: 1,
         guidance_scale: 7.5,
         sampler_name: "Euler a",
       },
     }
 
+    // Add IP-Adapter for character consistency if image is provided
+    if (imageBase64) {
+      console.log("Adding IP-Adapter for character consistency")
+      // Clean up base64 string if it has prefix
+      const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+
+      requestBody.request.controlnet_units = [
+        {
+          model_name: "ip-adapter_sd15",
+          weight: 0.8,
+          control_image: cleanBase64,
+          module_name: "none"
+        }
+      ];
+
+      // Also add Canny for structural consistency if needed, but IP-Adapter is best for faces
+    }
+
     // Make request to Novita API to start generation
-    console.log("Sending request to Novita API...")
+    console.log("Sending request to Novita API with IP-Adapter...")
     const response = await fetch("https://api.novita.ai/v3/async/txt2img", {
       method: "POST",
       headers: {
@@ -209,7 +210,7 @@ export async function POST(req: NextRequest) {
 
       // Try to get user ID from some source (img2img usually doesn't have it easily in current structure, but let's try)
       // For now, log as system or try to extract from character/request if possible
-      await logApiCost("Image generation (img2img)", 0, 0.05, "").catch(e => {})
+      await logApiCost("Image generation (img2img)", 0, 0.05, "").catch(e => { })
 
       return NextResponse.json({ taskId })
     }

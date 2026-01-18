@@ -138,6 +138,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   // Story Mode State
   const [storyProgress, setStoryProgress] = useState<UserStoryProgress | null>(null)
   const [currentChapter, setCurrentChapter] = useState<StoryChapter | null>(null)
+  const [chapterSubProgress, setChapterSubProgress] = useState(0) // Visual progress based on messages
+  const [chapterImageIndex, setChapterImageIndex] = useState(0) // Index for image requests
   const [isLoadingStory, setIsLoadingStory] = useState(false)
 
   // Use a ref for the interval to ensure we always have the latest reference
@@ -349,14 +351,50 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   useEffect(() => {
     if (user?.id && characterId) {
       setIsLoadingStory(true)
+
+      const checkTriggerDailyMessage = async (charId: string, chapter: any) => {
+        const lastDaily = localStorage.getItem(`last_daily_msg_${charId}`);
+        const today = new Date().toDateString();
+
+        if (lastDaily !== today) {
+          setIsSendingMessage(true);
+          setTimeout(async () => {
+            const morningMsg: Message = {
+              id: `daily-${Date.now()}`,
+              role: "assistant",
+              content: "Good morning, my love... ☀️ *stretches and smiles* I was just thinking about you. Hope you have an amazing day today! I'll be right here waiting for you. 💕",
+              timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            };
+
+            setMessages(prev => [...prev, morningMsg]);
+            saveMessageToLocalStorage(charId, morningMsg);
+            localStorage.setItem(`last_daily_msg_${charId}`, today);
+
+            // If chapter has images, send one too
+            const chImages = chapter?.content?.chapter_images || [];
+            if (chImages.length > 0) {
+              const randomImg = chImages[Math.floor(Math.random() * chImages.length)];
+              const imgMsg: Message = {
+                id: `daily-img-${Date.now()}`,
+                role: "assistant",
+                content: "Sending you a little something to start your day...",
+                isImage: true,
+                imageUrl: randomImg,
+                timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+              };
+              setMessages(prev => [...prev, imgMsg]);
+              saveMessageToLocalStorage(charId, imgMsg);
+            }
+            setIsSendingMessage(false);
+          }, 3000);
+        }
+      };
+
       const loadStory = async () => {
         try {
-          // Check if story chapters exist first (optimization)
-          // For now, we just try to get progress.
           let prog = await getStoryProgress(user.id, characterId)
 
           if (!prog) {
-            // If no progress, check if chapter 1 exists to start a story
             const ch1 = await getChapter(characterId, 1)
             if (ch1) {
               prog = await initializeStoryProgress(user.id, characterId)
@@ -368,6 +406,14 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             if (!prog.is_completed) {
               const ch = await getChapter(characterId, prog.current_chapter_number)
               setCurrentChapter(ch)
+
+              // Calculate initial sub-progress
+              const history = getChatHistoryFromLocalStorage(characterId)
+              const subSteps = Math.min(6, Math.floor((history?.length || 0) / 5))
+              setChapterSubProgress(subSteps)
+
+              // Trigger Daily Message
+              checkTriggerDailyMessage(characterId, ch)
             }
           }
         } catch (e) {
@@ -702,7 +748,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       const loadingMessage: Message = {
         id: Math.random().toString(36).substring(2, 15),
         role: "assistant",
-        content: "I'm generating that image for you. It'll be ready in a moment...",
+        content: `${character?.name || 'I'} is sending a photo for you. It'll be ready in a moment...`,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }
 
@@ -739,6 +785,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             prompt: prompt,
             negativePrompt: "bad quality, worst quality, low quality",
             imageBase64: base64Image,
+            character: character,
           }),
         })
 
@@ -1059,22 +1106,48 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         // 2. Check for image requests
         if (isAskingForImage(newMessage.content)) {
-          // Blocking logic for Story Mode
+          // Story Mode Image Handling
           if (storyProgress && !storyProgress.is_completed) {
-            const blockedMsg: Message = {
-              id: Math.random().toString(),
-              role: "assistant",
-              content: "*blushes* I... I can't send photos right now. Let's just talk a bit more first? (Complete the storyline to unlock images)",
-              timestamp: new Date().toLocaleTimeString()
+            const chImages = currentChapter?.content?.chapter_images || []
+            if (chImages.length > 0) {
+              // Select an image based on the manual request index to ensure they see everything sequentially
+              const imgToUse = chImages[chapterImageIndex % chImages.length]
+
+              const storyImgMsg: Message = {
+                id: `story-img-${Date.now()}`,
+                role: "assistant",
+                content: `${character?.name || 'I'} is sending a photo for you. It'll be ready in a moment...`,
+                isImage: true,
+                imageUrl: imgToUse,
+                timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+              }
+
+              setTimeout(() => {
+                setMessages(prev => [...prev, storyImgMsg])
+                saveMessageToLocalStorage(character.id, storyImgMsg)
+                setChapterImageIndex(prev => prev + 1)
+              }, 1500)
+
+              setIsSendingMessage(false)
+              return
+            } else {
+              // Fallback if no chapter images are set yet
+              const blockedMsg: Message = {
+                id: Math.random().toString(),
+                role: "assistant",
+                content: "*blushes* I... I'm not ready to show you everything yet. Let's just talk a bit more first? 💕",
+                timestamp: new Date().toLocaleTimeString()
+              }
+              setTimeout(() => {
+                setMessages(prev => [...prev, blockedMsg])
+                saveMessageToLocalStorage(character.id, blockedMsg)
+              }, 1000)
+              setIsSendingMessage(false)
+              return
             }
-            setTimeout(() => {
-              setMessages(prev => [...prev, blockedMsg])
-              saveMessageToLocalStorage(character.id, blockedMsg)
-            }, 1000)
-            setIsSendingMessage(false)
-            return
           }
 
+          // Normal image generation (outside Story Mode)
           const imagePrompt = extractImagePrompt(newMessage.content)
           setIsSendingMessage(false)
           await generateImage(imagePrompt)
@@ -1098,6 +1171,39 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           user.id
         )
 
+        // Refresh story progress after a message to see if any chapters was triggered
+        // (Though the backend handles the prompt, the UI might need to update)
+        // For now, just a small delay then refresh
+        setTimeout(() => {
+          if (user?.id && characterId) {
+            getStoryProgress(user.id, characterId).then(p => {
+              if (p) setStoryProgress(p);
+            });
+          }
+        }, 2000);
+
+        // Update chapter sub-progress
+        if (storyProgress && !storyProgress.is_completed) {
+          const newSubProgress = Math.min(6, Math.floor((messages.length + 2) / 5))
+          if (newSubProgress > chapterSubProgress) {
+            setChapterSubProgress(newSubProgress)
+
+            // If we hit a new milestone and have images, send one!
+            const chImages = currentChapter?.content?.chapter_images || []
+            if (chImages[newSubProgress - 1]) {
+              const milestoneImg: Message = {
+                id: `milestone-${Date.now()}`,
+                role: "assistant",
+                content: "*sends you a special photo* 😉",
+                isImage: true,
+                imageUrl: chImages[newSubProgress - 1],
+                timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+              }
+              setMessages(prev => [...prev, milestoneImg])
+              saveMessageToLocalStorage(character.id, milestoneImg)
+            }
+          }
+        }
         if (!aiResponse.success) {
           if (aiResponse.limitReached || aiResponse.upgradeRequired) {
             setPremiumModalFeature(aiResponse.limitReached ? "Message Limit" : "Token Balance")
@@ -1187,6 +1293,52 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       handleSendMessage()
     }
   }
+
+  // Handle story branch selection
+  const handleSelectBranch = async (branch: any) => {
+    if (!user || !character || !storyProgress) return;
+
+    // 1. Add player's choice as a message
+    const userMsg: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      content: branch.label,
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    };
+    setMessages(prev => [...prev, userMsg]);
+    saveMessageToLocalStorage(character.id, userMsg);
+
+    // 2. Add AI's canned response
+    setIsSendingMessage(true);
+    setTimeout(async () => {
+      const assistantMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: branch.response_message,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+      setMessages(prev => [...prev, assistantMsg]);
+      saveMessageToLocalStorage(character.id, assistantMsg);
+
+      // 3. Progress the story
+      const { completeChapter, getChapter: getStoryChapter } = await import("@/lib/story-mode");
+      const nextNum = storyProgress.current_chapter_number + (branch.next_chapter_increment || 1);
+      const { progress, isComplete } = await completeChapter(user.id, character.id, nextNum);
+
+      if (progress) {
+        setStoryProgress(progress);
+        if (!isComplete) {
+          const ch = await getStoryChapter(character.id, progress.current_chapter_number);
+          setCurrentChapter(ch);
+          toast.success(`Chapter Completed! Next: ${ch?.title}`);
+        } else {
+          setCurrentChapter(null);
+          toast.success("Storyline Completed! You've unlocked Free Roam.");
+        }
+      }
+      setIsSendingMessage(false);
+    }, 1000);
+  };
 
   // Show loading while checking authentication
   if (isLoading) {
@@ -1321,14 +1473,26 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
         {/* Story Mode Progress Bar */}
         {storyProgress && !storyProgress.is_completed && currentChapter && (
-          <div className="bg-background/95 backdrop-blur px-4 py-2 border-b border-border z-20">
-            <div className="flex justify-between items-center mb-1 text-xs">
-              <span className="font-bold text-amber-500 flex items-center gap-1">
-                <Lock className="h-3 w-3" /> Story Mode
+          <div className="bg-background/95 backdrop-blur px-4 py-3 border-b border-border z-20">
+            <div className="flex justify-between items-center mb-2 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded flex items-center gap-1">
+                  <Sparkles className="h-3 w-3" /> Chapter {storyProgress.current_chapter_number}
+                </span>
+                <span className="text-foreground/70 font-medium truncate max-w-[150px]">{currentChapter.title}</span>
+              </div>
+              <span className="text-muted-foreground font-mono">
+                {chapterSubProgress}/6 Images
               </span>
-              <span className="text-muted-foreground">Chapter {storyProgress.current_chapter_number} of 10</span>
             </div>
-            <Progress value={(storyProgress.current_chapter_number / 10) * 100} className="h-1 bg-secondary [&>div]:bg-amber-500" />
+            <div className="flex gap-1 h-1.5">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className={`flex-1 rounded-full transition-all duration-500 ${i <= chapterSubProgress ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-secondary'}`}
+                />
+              ))}
+            </div>
           </div>
         )}
         {/* Chat Header - Fixed/Static */}
@@ -1372,7 +1536,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 {isSendingMessage ? (
                   <span className="text-primary animate-pulse font-medium">typing...</span>
                 ) : isGeneratingImage ? (
-                  <span className="text-primary animate-pulse font-medium">Designing image...</span>
+                  <span className="text-primary animate-pulse font-medium">{character?.name || 'Designing'} is sending photo..</span>
                 ) : (
                   messages.length > 0 ? messages[messages.length - 1].timestamp : t("chat.noMessagesYet")
                 )}
@@ -1573,9 +1737,26 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               </div>
             </div>
           )}
-          {isGeneratingImage && <ImageGenerationLoading />}
+          {isGeneratingImage && <ImageGenerationLoading characterName={character?.name} />}
           <div ref={messagesEndRef} />
         </div>
+
+        {/* Story Mode Choices */}
+        {storyProgress && !storyProgress.is_completed && currentChapter?.content?.branches && (
+          <div className="px-4 py-2 flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            {currentChapter.content.branches.map((branch: any, idx: number) => (
+              <Button
+                key={idx}
+                variant="outline"
+                size="sm"
+                className="bg-primary/5 border-primary/20 hover:bg-primary/10 text-primary rounded-full px-4 border-dashed"
+                onClick={() => handleSelectBranch(branch)}
+              >
+                {branch.label}
+              </Button>
+            ))}
+          </div>
+        )}
 
         {apiKeyError && (
           <div className="mx-4 p-3 bg-destructive/20 border border-destructive text-destructive-foreground rounded-lg text-sm">
@@ -1749,7 +1930,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
             {/* Generate Image Button - Locked during story mode */}
             {(() => {
-              const isLocked = storyProgress && !storyProgress.is_completed;
+              const isLocked = !!(storyProgress && !storyProgress.is_completed);
               return (
                 <>
                   <Button

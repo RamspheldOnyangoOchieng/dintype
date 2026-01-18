@@ -168,12 +168,48 @@ export async function sendChatMessageDB(
 
     const conversationHistory = (historyData || []).reverse()
 
-    // 9. Advanced Prompt Construction
+    // 9. Story Mode Context Integration
+    let storyContext = "";
+    try {
+      const { data: storyProgress } = await supabase
+        .from("user_story_progress")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("character_id", characterId)
+        .maybeSingle();
+
+      if (storyProgress && !storyProgress.is_completed) {
+        const { data: currentChapter } = await supabase
+          .from("story_chapters")
+          .select("*")
+          .eq("character_id", characterId)
+          .eq("chapter_number", storyProgress.current_chapter_number)
+          .maybeSingle();
+
+        if (currentChapter) {
+          console.log(`📖 Story Mode Active: Chapter ${currentChapter.chapter_number} - ${currentChapter.title}`);
+          storyContext = `
+### CURRENT STORYLINE CONTEXT ###
+Chapter: ${currentChapter.chapter_number} - ${currentChapter.title}
+Chapter Description: ${currentChapter.description}
+Chapter Tone: ${currentChapter.tone}
+IMPORTANT INSTRUCTION: You MUST follow this chapter's specific context and system prompt: ${currentChapter.system_prompt || ""}
+          `;
+        }
+      }
+    } catch (e) {
+      console.error("Error fetching story context for chat:", e);
+    }
+
+    // 10. Advanced Prompt Construction
     let enhancedSystemPrompt = "";
     const corePersonality = systemPromptFromChar || "You are an AI character. Be engaging and helpful.";
 
+    // Inject story context if available
+    const basePrompt = `${corePersonality}\n${storyContext}`;
+
     if (isPremium) {
-      enhancedSystemPrompt = `${corePersonality}
+      enhancedSystemPrompt = `${basePrompt}
 
 ### PREMIUM SESSION: CASUAL & HUMAN REALISM ###
 1. **TEXTING STYLE**: write like a real person texting. SHORT, PUNCHY, CASUAL. Use lowercase sometimes. Be dry or witty.

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
-import { ArrowLeft, BookOpen, Edit2, Plus, Trash2, Save, GripVertical, FileText, MessageSquare, Image as ImageIcon, Terminal, Check, ChevronLeft, } from "lucide-react"
+import { ArrowLeft, BookOpen, Edit2, Plus, Trash2, Save, GripVertical, FileText, MessageSquare, Image as ImageIcon, Terminal, Check, ChevronLeft, Upload, Wand2, Loader2, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -42,6 +42,7 @@ export default function CharacterStorylinePage() {
 
     const [chapters, setChapters] = useState<StoryChapter[]>([])
     const [characterName, setCharacterName] = useState("")
+    const [character, setCharacter] = useState<any>(null)
     const [loading, setLoading] = useState(true)
 
     // Selection State
@@ -57,6 +58,8 @@ export default function CharacterStorylinePage() {
         system_prompt: ""
     })
     const [isDirty, setIsDirty] = useState(false)
+    const [isGenerating, setIsGenerating] = useState(false)
+    const [isUploading, setIsUploading] = useState(false)
 
     useEffect(() => {
         fetchData()
@@ -87,11 +90,13 @@ export default function CharacterStorylinePage() {
             // Fetch characters
             const { data: char, error: charError } = await supabase
                 .from("characters")
-                .select("name")
+                .select("*")
                 .eq("id", characterId)
                 .single()
 
             if (charError) throw charError
+            // @ts-ignore
+            setCharacter(char)
             // @ts-ignore
             setCharacterName(char?.name || "Unknown")
 
@@ -173,9 +178,9 @@ export default function CharacterStorylinePage() {
             }
 
             // @ts-ignore
-            const { error } = await supabase
+            const { error } = await (supabase
                 .from("story_chapters")
-                .update(updates)
+                .update(updates as any) as any)
                 .eq("id", selectedChapterId)
 
             if (error) throw error
@@ -201,6 +206,104 @@ export default function CharacterStorylinePage() {
             toast.success("Chapter deleted")
         } catch (error: any) {
             toast.error("Error deleting chapter")
+        }
+    }
+
+    const convertFileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result as string)
+            reader.onerror = reject
+            reader.readAsDataURL(file)
+        })
+    }
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const file = e.target.files?.[0]
+        if (!file || !selectedChapterId) return
+
+        setIsUploading(true)
+        try {
+            const base64 = await convertFileToBase64(file)
+            const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "demo"
+            const uploadPreset = "ai-characters-preset"
+
+            const fd = new FormData()
+            fd.append("file", base64)
+            fd.append("upload_preset", uploadPreset)
+            fd.append("folder", "storylines")
+
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                method: "POST",
+                body: fd,
+            })
+
+            if (!res.ok) throw new Error("Upload failed")
+            const data = await res.json()
+
+            // Update content JSON
+            const parsed = JSON.parse(formData.content)
+            if (!parsed.chapter_images) parsed.chapter_images = []
+            parsed.chapter_images[index] = data.secure_url
+
+            setFormData({ ...formData, content: JSON.stringify(parsed, null, 2) })
+            setIsDirty(true)
+            toast.success(`Image ${index + 1} uploaded`)
+        } catch (err) {
+            console.error("Upload error:", err)
+            toast.error("Failed to upload image")
+        } finally {
+            setIsUploading(false)
+        }
+    }
+
+    const handleGenerateImage = async (index: number) => {
+        if (!formData.description && !formData.title) {
+            toast.error("Please provide a chapter title or description for the prompt")
+            return
+        }
+
+        setIsGenerating(true)
+        try {
+            // 1. Convert character image to base64 if available for IP-Adapter
+            let imageBase64 = null
+            if (character?.image_url || character?.image) {
+                const { imageUrlToBase64 } = await import("@/lib/image-utils")
+                imageBase64 = await imageUrlToBase64(character.image_url || character.image)
+            }
+
+            const prompt = `${character?.category === 'anime' ? 'Anime style' : 'Realistic portrait'}, ${formData.title}. ${formData.description}. Cinematic lighting, high detail, masterpiece.`
+
+            const res = await fetch("/api/generate-image", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    prompt,
+                    negativePrompt: "low quality, blurry, distorted, deformed",
+                    selectedCount: 1,
+                    size: "512x1024",
+                    imageBase64 // This enables IP-Adapter for character consistency
+                }),
+            })
+
+            if (!res.ok) throw new Error("Generation failed")
+            const data = await res.json()
+
+            if (data.imageUrl || (data.images && data.images.length > 0)) {
+                const url = data.imageUrl || data.images[0]
+                const parsed = JSON.parse(formData.content)
+                if (!parsed.chapter_images) parsed.chapter_images = []
+                parsed.chapter_images[index] = url
+
+                setFormData({ ...formData, content: JSON.stringify(parsed, null, 2) })
+                setIsDirty(true)
+                toast.success(`Image ${index + 1} generated`)
+            }
+        } catch (err) {
+            console.error("Generation error:", err)
+            toast.error("Failed to generate image")
+        } finally {
+            setIsGenerating(false)
         }
     }
 
@@ -311,12 +414,84 @@ export default function CharacterStorylinePage() {
                                     <TabsList className="bg-black/40 w-full justify-start overflow-x-auto no-scrollbar whitespace-nowrap h-auto py-1">
                                         <TabsTrigger value="details" className="shrink-0">Details & Tone</TabsTrigger>
                                         <TabsTrigger value="visual" className="shrink-0">Visual Builder</TabsTrigger>
+                                        <TabsTrigger value="images" className="shrink-0">Chapter Images (6)</TabsTrigger>
                                         <TabsTrigger value="content" className="shrink-0">Raw JSON (Advanced)</TabsTrigger>
                                         <TabsTrigger value="prompt" className="shrink-0">System Prompt</TabsTrigger>
                                     </TabsList>
                                 </div>
 
                                 <div className="flex-1 p-6">
+                                    <TabsContent value="images" className="mt-0 space-y-6">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            {[0, 1, 2, 3, 4, 5].map((idx) => {
+                                                const parsed = (() => {
+                                                    try { return JSON.parse(formData.content) }
+                                                    catch { return {} }
+                                                })()
+                                                const imageUrl = parsed.chapter_images?.[idx]
+
+                                                return (
+                                                    <Card key={idx} className="bg-[#111] border-white/10 overflow-hidden group">
+                                                        <CardHeader className="p-3 bg-white/5 flex flex-row items-center justify-between">
+                                                            <CardTitle className="text-xs font-bold uppercase tracking-widest text-gray-500">Slot {idx + 1}</CardTitle>
+                                                            {imageUrl && <Check className="h-3 w-3 text-green-500" />}
+                                                        </CardHeader>
+                                                        <CardContent className="p-4 space-y-4">
+                                                            <div className="aspect-[9/16] relative bg-black/40 rounded-lg overflow-hidden border border-white/5 mb-4 group-hover:border-primary/30 transition-colors">
+                                                                {imageUrl ? (
+                                                                    <img src={imageUrl} alt={`Chapter Image ${idx + 1}`} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <div className="flex flex-col items-center justify-center h-full text-gray-600 gap-2">
+                                                                        <ImageIcon className="h-8 w-8 opacity-20" />
+                                                                        <span className="text-[10px] uppercase font-medium">Empty Slot</span>
+                                                                    </div>
+                                                                )}
+                                                                {(isUploading || isGenerating) && (
+                                                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-10 backdrop-blur-sm">
+                                                                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            <div className="grid grid-cols-2 gap-2">
+                                                                <div className="relative">
+                                                                    <input
+                                                                        type="file"
+                                                                        id={`upload-${idx}`}
+                                                                        className="hidden"
+                                                                        accept="image/*"
+                                                                        onChange={(e) => handleImageUpload(e, idx)}
+                                                                        disabled={isUploading || isGenerating}
+                                                                    />
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className="w-full text-[10px] h-8 gap-1 border-white/10 hover:bg-white/5"
+                                                                        onClick={() => document.getElementById(`upload-${idx}`)?.click()}
+                                                                        disabled={isUploading || isGenerating}
+                                                                    >
+                                                                        <Upload className="h-3 w-3" /> Upload
+                                                                    </Button>
+                                                                </div>
+                                                                <Button
+                                                                    variant="secondary"
+                                                                    size="sm"
+                                                                    className="w-full text-[10px] h-8 gap-1 bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20"
+                                                                    onClick={() => handleGenerateImage(idx)}
+                                                                    disabled={isUploading || isGenerating}
+                                                                >
+                                                                    <Sparkles className="h-3 w-3" /> AI Gen
+                                                                </Button>
+                                                            </div>
+                                                        </CardContent>
+                                                    </Card>
+                                                )
+                                            })}
+                                        </div>
+                                        <p className="text-xs text-gray-500 italic mt-4">
+                                            Tip: These 6 images will be used by the AI to progress the chapter visual narrative.
+                                        </p>
+                                    </TabsContent>
                                     <TabsContent value="visual" className="mt-0 max-w-4xl space-y-8">
                                         {/* Visual Editor Logic */}
                                         {(() => {

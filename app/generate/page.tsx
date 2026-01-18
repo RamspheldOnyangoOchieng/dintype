@@ -24,6 +24,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { useAuthModal } from "@/components/auth-modal-context"
 import { containsNSFW } from "@/lib/nsfw-filter"
 import { useCharacters } from "@/components/character-context"
+import { imageUrlToBase64 } from "@/lib/image-utils"
 
 // Remove the static imageOptions array and replace with dynamic calculation
 // Get selected option for token calculation - move this logic up and make it dynamic
@@ -53,7 +54,7 @@ function GenerateContent() {
   const router = useRouter()
   const { setIsOpen } = useSidebar()
   const isMobile = useIsMobile()
-  const { refreshCharacters } = useCharacters()
+  const { refreshCharacters, characters } = useCharacters()
   const searchParams = useSearchParams()
   const promptParam = searchParams.get('prompt') || ""
   const characterId = searchParams.get('characterId') || null
@@ -297,6 +298,17 @@ function GenerateContent() {
     setTimeoutWarning(false)
 
     try {
+      // Get reference image if characterId is present for character consistency
+      let imageBase64 = null
+      const character = characterId ? characters.find(c => c.id === characterId) : null
+      if (characterId && character) {
+        const imageUrl = character.image_url || character.image
+        if (imageUrl) {
+          console.log("🧬 Generating character reference base64...")
+          imageBase64 = await imageUrlToBase64(imageUrl)
+        }
+      }
+
       let response: Response
       let endpoint: string
       let requestBody: any
@@ -315,6 +327,8 @@ function GenerateContent() {
         selectedCount, // Send the number of images selected
         selectedModel: "stability", // Send the model type for token calculation
         characterId, // extracted from searchParams
+        imageBase64, // Pass the character reference image
+        character: character, // Pass character context for prompt enhancement
       }
 
       // Create AbortController for timeout handling

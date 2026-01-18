@@ -73,12 +73,51 @@ async function generateAIResponse(
     characterName: string,
     characterPrompt: string,
     conversationHistory: { role: string; content: string }[],
-    isPremium: boolean
+    isPremium: boolean,
+    userId: string | null = null,
+    characterId: string | null = null
 ) {
     const novitaKey = process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_KEY;
 
-    let enhancedSystemPrompt = characterPrompt || `You are ${characterName}, a romantic AI companion.`;
+    const supabase = await createAdminClient();
+
+    // Fetch Story Context if applicable
+    let storyContext = "";
+    if (userId && characterId && supabase) {
+        try {
+            const { data: storyProgress } = await supabase
+                .from("user_story_progress")
+                .select("*")
+                .eq("user_id", userId)
+                .eq("character_id", characterId)
+                .maybeSingle();
+
+            if (storyProgress && !storyProgress.is_completed) {
+                const { data: currentChapter } = await supabase
+                    .from("story_chapters")
+                    .select("*")
+                    .eq("character_id", characterId)
+                    .eq("chapter_number", storyProgress.current_chapter_number)
+                    .maybeSingle();
+
+                if (currentChapter) {
+                    console.log(`[Telegram] Story Mode Active: ${currentChapter.title}`);
+                    storyContext = `
+### CURRENT STORYLINE CONTEXT ###
+Chapter: ${currentChapter.chapter_number} - ${currentChapter.title}
+Chapter Description: ${currentChapter.description}
+Chapter Tone: ${currentChapter.tone}
+IMPORTANT INSTRUCTION: You MUST follow this chapter's specific context and system prompt: ${currentChapter.system_prompt || ""}
+`;
+                }
+            }
+        } catch (e) {
+            console.error("[Telegram] Error fetching story context:", e);
+        }
+    }
+
+    let enhancedSystemPrompt = `${characterPrompt || `You are ${characterName}, a romantic AI companion.`}\n${storyContext}`;
 
     if (isPremium) {
         enhancedSystemPrompt += `
@@ -265,15 +304,15 @@ export async function POST(request: NextRequest) {
             // Parse callback data: action:value
             const [action, value] = data.split(':');
 
-            if (action === 'select_char') {
-                // User selected a character
-                const characterId = value;
+            if (action === 'select_char' || action === 'select_branch') {
+                // User selected a character or a branch
+                const valueId = value;
 
                 // Get character info
                 const { data: character } = await supabase
                     .from('characters')
                     .select('id, name, image_url, description')
-                    .eq('id', characterId)
+                    .eq('id', valueId)
                     .single();
 
                 if (character) {
@@ -288,7 +327,7 @@ export async function POST(request: NextRequest) {
                         // Update the linked character
                         await supabase
                             .from('telegram_links')
-                            .update({ character_id: characterId })
+                            .update({ character_id: valueId })
                             .eq('telegram_id', telegramUserId.toString());
 
                         await sendTelegramMessage(
@@ -302,12 +341,35 @@ export async function POST(request: NextRequest) {
                                 }
                             }
                         );
+                    } else if (action === 'select_branch') {
+                        // Logic for story branch
+                        const branchIdx = parseInt(valueId);
+                        const { data: linkedAccount } = await supabase.from('telegram_links').select('user_id, character_id').eq('telegram_id', telegramUserId.toString()).maybeSingle();
+                        if (linkedAccount?.user_id && linkedAccount?.character_id) {
+                            const { data: progress } = await supabase.from('user_story_progress').select('*').eq('user_id', linkedAccount.user_id).eq('character_id', linkedAccount.character_id).maybeSingle();
+                            if (progress && !progress.is_completed) {
+                                const { data: chapter } = await supabase.from('story_chapters').select('*').eq('character_id', linkedAccount.character_id).eq('chapter_number', progress.current_chapter_number).maybeSingle();
+                                const branch = chapter?.content?.branches?.[branchIdx];
+                                if (branch) {
+                                    await sendTelegramMessage(chatId, branch.response_message);
+                                    const nextNum = progress.current_chapter_number + (branch.next_chapter_increment || 1);
+                                    const { data: nextCharChapter } = await supabase.from("story_chapters").select("id, title").eq("character_id", linkedAccount.character_id).eq("chapter_number", nextNum).maybeSingle();
+                                    const isComplete = !nextCharChapter;
+                                    await supabase.from("user_story_progress").update({ current_chapter_number: nextNum, is_completed: isComplete }).eq("user_id", linkedAccount.user_id).eq("character_id", linkedAccount.character_id);
+                                    if (!isComplete) {
+                                        await sendTelegramMessage(chatId, `✨ <b>Chapter Completed!</b>\nNext: ${nextCharChapter.title}`);
+                                    } else {
+                                        await sendTelegramMessage(chatId, "🎉 <b>Storyline Completed!</b>\nYou've unlocked Free Roam!");
+                                    }
+                                }
+                            }
+                        }
                     } else {
                         // Create a temporary link for guest users
                         await supabase.from('telegram_links').upsert({
                             telegram_id: telegramUserId.toString(),
                             user_id: null, // Guest user
-                            character_id: characterId,
+                            character_id: valueId,
                             telegram_username: callbackQuery.from.username || null,
                             telegram_first_name: callbackQuery.from.first_name || 'Guest',
                             is_guest: true,
@@ -320,7 +382,7 @@ export async function POST(request: NextRequest) {
                             {
                                 reply_markup: {
                                     inline_keyboard: [
-                                        [{ text: '🔗 Link Pocketlove Account', url: `${SITE_URL}/chat/${characterId}` }],
+                                        [{ text: '🔗 Link Pocketlove Account', url: `${SITE_URL}/chat/${valueId}` }],
                                         [{ text: '🔄 Switch Character', callback_data: 'show_chars' }]
                                     ]
                                 }
@@ -674,7 +736,7 @@ export async function POST(request: NextRequest) {
             // Get character info
             const { data: character } = await supabase
                 .from('characters')
-                .select('name, system_prompt, description')
+                .select('name, system_prompt, description, image, image_url')
                 .eq('id', linkedAccount.character_id)
                 .maybeSingle();
 
@@ -741,6 +803,37 @@ export async function POST(request: NextRequest) {
                         return NextResponse.json({ ok: true });
                     }
 
+                    // --- STORY MODE IMAGE REDIRECT ---
+                    try {
+                        const { data: storyProgress } = await supabase
+                            .from("user_story_progress")
+                            .select("*")
+                            .eq("user_id", linkedAccount.user_id)
+                            .eq("character_id", linkedAccount.character_id)
+                            .maybeSingle();
+
+                        if (storyProgress && !storyProgress.is_completed) {
+                            const { data: chapter } = await supabase
+                                .from("story_chapters")
+                                .select("*")
+                                .eq("character_id", linkedAccount.character_id)
+                                .eq("chapter_number", storyProgress.current_chapter_number)
+                                .maybeSingle();
+
+                            const chImages = chapter?.content?.chapter_images || [];
+                            if (chImages.length > 0) {
+                                // For Telegram, we'll pick a random one from the chapter visuals
+                                // as tracking sub-progress strictly on TG is harder without session state
+                                const randomImg = chImages[Math.floor(Math.random() * chImages.length)];
+                                await sendTelegramPhoto(chatId, randomImg, `I've been waiting for you to ask... here's something special just for you. 😉`);
+                                return NextResponse.json({ ok: true });
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Telegram Story Image fetch error:", e);
+                    }
+                    // --- END STORY MODE REDIRECT ---
+
                     const prompt = extractImagePrompt(text);
                     const enhancedPrompt = await enhanceImagePrompt(prompt, characterPrompt);
                     const apiKey = await getNovitaApiKey();
@@ -752,23 +845,52 @@ export async function POST(request: NextRequest) {
                             await deductTokens(linkedAccount.user_id, tokensToDeduct, 'telegram_image_gen');
                         }
 
+                        // Get character reference image for IP-Adapter
+                        const characterImageUrl = character?.image_url || character?.image;
+                        let base64Image = null;
+                        if (characterImageUrl) {
+                            try {
+                                const imgRes = await fetch(characterImageUrl);
+                                if (imgRes.ok) {
+                                    const buffer = await imgRes.arrayBuffer();
+                                    base64Image = Buffer.from(buffer).toString('base64');
+                                }
+                            } catch (e) {
+                                console.error("Telegram: Failed to convert image to base64", e);
+                            }
+                        }
+
                         try {
+                            const requestBody: any = {
+                                extra: { response_image_type: "jpeg" },
+                                request: {
+                                    prompt: enhancedPrompt,
+                                    model_name: "epicrealism_naturalSinRC1VAE_106430.safetensors",
+                                    width: 512,
+                                    height: 768,
+                                    image_num: 1,
+                                    steps: 25,
+                                    guidance_scale: 7.5,
+                                    sampler_name: "Euler a",
+                                },
+                            };
+
+                            // Add IP-Adapter for character consistency
+                            if (base64Image) {
+                                requestBody.request.controlnet_units = [
+                                    {
+                                        model_name: "ip-adapter_sd15",
+                                        weight: 0.8,
+                                        control_image: base64Image,
+                                        module_name: "none"
+                                    }
+                                ];
+                            }
+
                             const genResponse = await fetch("https://api.novita.ai/v3/async/txt2img", {
                                 method: "POST",
                                 headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    extra: { response_image_type: "jpeg" },
-                                    request: {
-                                        prompt: enhancedPrompt,
-                                        model_name: "epicrealism_naturalSinRC1VAE_106430.safetensors",
-                                        width: 512,
-                                        height: 768,
-                                        image_num: 1,
-                                        steps: 25,
-                                        guidance_scale: 7.5,
-                                        sampler_name: "Euler a",
-                                    },
-                                }),
+                                body: JSON.stringify(requestBody),
                             });
 
                             if (genResponse.ok) {
@@ -809,8 +931,39 @@ export async function POST(request: NextRequest) {
                     characterName,
                     characterPrompt,
                     conversationHistory,
-                    isPremium
+                    isPremium,
+                    linkedAccount.user_id,
+                    linkedAccount.character_id
                 );
+
+                // Fetch story branches for reply markup
+                let replyMarkup = undefined;
+                try {
+                    const { data: storyProgress } = await supabase
+                        .from("user_story_progress")
+                        .select("*")
+                        .eq("user_id", linkedAccount.user_id)
+                        .eq("character_id", linkedAccount.character_id)
+                        .maybeSingle();
+
+                    if (storyProgress && !storyProgress.is_completed) {
+                        const { data: currentChapter } = await supabase
+                            .from("story_chapters")
+                            .select("*")
+                            .eq("character_id", linkedAccount.character_id)
+                            .eq("chapter_number", storyProgress.current_chapter_number)
+                            .maybeSingle();
+
+                        if (currentChapter?.content?.branches?.length > 0) {
+                            const buttons = currentChapter.content.branches.map((b: any, idx: number) => ([
+                                { text: b.label, callback_data: `select_branch:${idx}` }
+                            ]));
+                            replyMarkup = { inline_keyboard: buttons };
+                        }
+                    }
+                } catch (e) {
+                    console.error("Telegram: Error fetching branches for keyboard", e);
+                }
 
                 // Save AI response
                 if (sessionId) {
@@ -823,7 +976,7 @@ export async function POST(request: NextRequest) {
                     });
                 }
 
-                await sendTelegramMessage(chatId, aiResponse);
+                await sendTelegramMessage(chatId, aiResponse, { reply_markup: replyMarkup });
             } else {
                 // Guest user - handle image generation for guest if allowed
                 if (isAskingForImage(text)) {

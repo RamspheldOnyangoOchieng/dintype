@@ -170,6 +170,37 @@ export default function TelegramCharactersPage() {
                 </div>
             </div>
 
+            {/* Floating Active Character Avatar */}
+            {activeCharacterId && (() => {
+                const activeChar = characters.find(c => c.id === activeCharacterId)
+                if (!activeChar) return null
+                return (
+                    <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-right fade-in duration-500">
+                        <div className="relative group">
+                            <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-[#ff0080] shadow-lg shadow-[#ff0080]/30 ring-2 ring-black">
+                                <Image
+                                    src={activeChar.image_url || activeChar.image || "/placeholder.svg"}
+                                    alt={activeChar.name}
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
+                                />
+                            </div>
+                            {/* Pulse effect */}
+                            <div className="absolute inset-0 rounded-full border-2 border-[#ff0080] animate-ping opacity-30" />
+                            {/* Active badge */}
+                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#ff0080] text-white text-[6px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wide whitespace-nowrap">
+                                Active
+                            </div>
+                            {/* Tooltip on hover/tap */}
+                            <div className="absolute right-full mr-2 top-1/2 -translate-y-1/2 bg-black/90 text-white text-xs font-medium px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap border border-white/10">
+                                {activeChar.name}
+                            </div>
+                        </div>
+                    </div>
+                )
+            })()}
+
             {/* User Greeting & Balance */}
             <div className="px-6 py-4 flex items-center justify-between">
                 <div>

@@ -141,6 +141,7 @@ export async function POST(req: NextRequest) {
       selectedCount, // Frontend sends this for number of images
       selectedModel, // Frontend sends this for model type
       characterId, // extracted from body
+      imageBase64, // Character reference image
     } = body;
 
     // Use frontend parameters if available, otherwise fall back to defaults
@@ -406,7 +407,7 @@ export async function POST(req: NextRequest) {
     const enforceSFW = !isAdmin && !isPremium && tokenCost === 0
     console.log(`🛡️  NSFW Policy: ${enforceSFW ? 'ENFORCE SFW' : 'ALLOW NSFW'} (Cost: ${tokenCost}, Admin: ${isAdmin}, Premium: ${isPremium})`)
 
-    const requestBody = {
+    const requestBody: any = {
       extra: {
         response_image_type: "jpeg",
         // Enable NSFW detection only for free tier single-image generations
@@ -433,6 +434,21 @@ export async function POST(req: NextRequest) {
         sampler_name: "DPM++ 2M Karras",
         guidance_scale,
       },
+    }
+
+    // Apply IP-Adapter for character consistency if reference image is provided
+    if (imageBase64) {
+      console.log("🧬 Applying IP-Adapter for character consistency")
+      const cleanBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+
+      requestBody.request.controlnet_units = [
+        {
+          model_name: "ip-adapter_sd15",
+          weight: 0.8,
+          control_image: cleanBase64,
+          module_name: "none"
+        }
+      ];
     }
 
     // Create database task record BEFORE API call for webhook tracking (Use Admin Client)
