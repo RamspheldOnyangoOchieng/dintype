@@ -54,7 +54,8 @@ export async function POST(request: NextRequest) {
             .maybeSingle();
 
         let tokens = 12; // Default for guests
-        let diamonds = 0;
+        let totalLikes = 0;
+        let likedCharacters: string[] = [];
         let activeCharacterId = null;
 
         if (link) {
@@ -70,8 +71,16 @@ export async function POST(request: NextRequest) {
 
                 if (tokenData) tokens = tokenData.balance;
 
-                // Also check for diamonds if you have a diamonds table, 
-                // for now we'll mock it if not found
+                // Fetch likes
+                const { data: likesData } = await supabase
+                    .from('character_likes')
+                    .select('character_id')
+                    .eq('user_id', link.user_id);
+
+                if (likesData) {
+                    likedCharacters = likesData.map(l => l.character_id);
+                    totalLikes = likedCharacters.length;
+                }
             }
         }
 
@@ -79,7 +88,8 @@ export async function POST(request: NextRequest) {
             success: true,
             user: {
                 tokens,
-                diamonds,
+                totalLikes,
+                likedCharacters,
                 activeCharacterId
             }
         });

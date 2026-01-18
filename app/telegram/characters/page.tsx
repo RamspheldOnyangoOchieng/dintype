@@ -32,6 +32,8 @@ export default function TelegramCharactersPage() {
     const [tokens, setTokens] = useState(0)
     const [diamonds, setDiamonds] = useState(0)
     const [userName, setUserName] = useState("Player")
+    const [likedCharacters, setLikedCharacters] = useState<string[]>([])
+    const [totalLikes, setTotalLikes] = useState(0)
     const [activeCharacterId, setActiveCharacterId] = useState<string | null>(null)
 
     const supabase = createClient()
@@ -41,6 +43,7 @@ export default function TelegramCharactersPage() {
         if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
             const tg = window.Telegram.WebApp
             tg.ready()
+            tg.expand()
             tg.setHeaderColor('#000000')
             tg.setBackgroundColor('#0b0b0b')
         }
@@ -70,7 +73,7 @@ export default function TelegramCharactersPage() {
                         setUserName(user.first_name || "Player")
                     }
 
-                    // Fetch user's tokens, diamonds, and active character from our backend
+                    // Fetch user's tokens, likes, and active character from our backend
                     if (tg.initData) {
                         const response = await fetch('/api/telegram/user-data', {
                             method: 'POST',
@@ -82,7 +85,8 @@ export default function TelegramCharactersPage() {
                             const data = await response.json()
                             if (data.user) {
                                 setTokens(data.user.tokens || 0)
-                                setDiamonds(data.user.diamonds || 0)
+                                setTotalLikes(data.user.totalLikes || 0)
+                                setLikedCharacters(data.user.likedCharacters || [])
                                 setActiveCharacterId(data.user.activeCharacterId || null)
                             }
                         } else {
@@ -129,6 +133,49 @@ export default function TelegramCharactersPage() {
         }
     }
 
+    const handleLike = async (e: React.MouseEvent, charId: string) => {
+        e.stopPropagation()
+        const isLiked = likedCharacters.includes(charId)
+
+        // Haptic feedback
+        if (window.Telegram?.WebApp?.HapticFeedback) {
+            window.Telegram.WebApp.HapticFeedback.impactOccurred('light')
+        }
+
+        // Optimistic UI update
+        if (isLiked) {
+            setLikedCharacters(prev => prev.filter(id => id !== charId))
+            setTotalLikes(prev => Math.max(0, prev - 1))
+        } else {
+            setLikedCharacters(prev => [...prev, charId])
+            setTotalLikes(prev => prev + 1)
+        }
+
+        try {
+            const tg = window.Telegram?.WebApp
+            const initData = tg?.initData || ""
+
+            const response = await fetch(`/api/characters/${charId}/like`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ initData, source: 'telegram' })
+            })
+
+            if (!response.ok) {
+                // Rollback on error
+                if (isLiked) {
+                    setLikedCharacters(prev => [...prev, charId])
+                    setTotalLikes(prev => prev + 1)
+                } else {
+                    setLikedCharacters(prev => prev.filter(id => id !== charId))
+                    setTotalLikes(prev => Math.max(0, prev - 1))
+                }
+            }
+        } catch (err) {
+            console.error("Like error:", err)
+        }
+    }
+
     // Filter characters based on gender selection
     const filteredCharacters = characters.filter(char => {
         if (filter === 'female') {
@@ -141,7 +188,7 @@ export default function TelegramCharactersPage() {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-[#0b0b0b]">
                 <Loader2 className="w-10 h-10 text-[#ff0080] animate-spin" />
-                <p className="text-white/40 text-sm mt-4">Loading characters...</p>
+                <p className="text-white/40 text-sm mt-4 tracking-widest font-black">POCKETLOVE</p>
             </div>
         )
     }
@@ -160,53 +207,80 @@ export default function TelegramCharactersPage() {
 
                 <div className="flex items-center justify-between px-6 py-4">
                     <button
-                        onClick={() => window.Telegram?.WebApp?.close()}
+                        onClick={() => {
+                            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('medium')
+                            window.Telegram?.WebApp?.close()
+                        }}
                         className="text-white/60 text-sm font-bold hover:text-white transition-colors"
                     >
-                        CLOSE
+                        Close
                     </button>
                     <div className="text-center">
                         <h2 className="text-white font-black text-lg tracking-tighter uppercase leading-none">PocketLove</h2>
-                        <span className="text-primary text-[10px] font-black uppercase tracking-[0.2em]">Discovery</span>
+                        <span className="text-white/30 text-[9px] font-black uppercase tracking-[0.2em]">mini app</span>
                     </div>
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center border border-white/10">
+                    <button
+                        onClick={() => {
+                            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light')
+                            window.location.href = '/settings'
+                        }}
+                        className="w-8 h-8 rounded-full flex items-center justify-center border border-white/10 active:bg-white/5 transition-all"
+                    >
                         <MoreVertical className="w-4 h-4 text-white/40" />
-                    </div>
+                    </button>
                 </div>
 
-                {/* User Stats Bar */}
-                <div className="px-6 py-2 flex items-center justify-between border-t border-white/5 bg-white/[0.02]">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-[11px] font-black text-white/50 uppercase tracking-widest">{userName}</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-1.5">
-                            <Heart className="w-3.5 h-3.5 text-pink-500 fill-pink-500" />
-                            <span className="text-xs font-black">{diamonds}</span>
+                {/* User Stats Box - MATCH SCREENSHOT */}
+                <div className="px-6 pb-6">
+                    <div className="flex justify-between items-end">
+                        <div className="space-y-1">
+                            <h1 className="text-3xl font-black tracking-tight leading-none">Hello, <span className="text-[#ff0080]">{userName}</span></h1>
+                            <p className="text-white/30 text-[10px] font-black uppercase tracking-[0.2em]">START A DIALOGUE!</p>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                            <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                            <span className="text-xs font-black">{tokens}</span>
+
+                        <div className="flex items-center bg-white/[0.03] border border-white/5 rounded-2xl overflow-hidden p-1 gap-1">
+                            <div className="px-3 flex items-center gap-1.5 border-r border-white/5">
+                                <Heart className={`w-4 h-4 ${totalLikes > 0 ? "text-[#00c2ff] fill-[#00c2ff]" : "text-white/20"}`} />
+                                <span className="text-sm font-black text-white/80">{totalLikes}</span>
+                            </div>
+                            <div className="px-3 flex items-center gap-1.5">
+                                <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
+                                <span className="text-sm font-black text-white/80">{tokens}</span>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('medium')
+                                    window.location.href = '/premium'
+                                }}
+                                className="w-9 h-9 bg-[#ff0080] rounded-xl flex items-center justify-center active:scale-95 transition-transform"
+                            >
+                                <Plus className="w-5 h-5 text-white" />
+                            </button>
                         </div>
                     </div>
                 </div>
 
                 {/* Filter Tabs */}
-                <div className="px-5 py-4 flex gap-2">
+                <div className="px-5 pb-4 flex gap-2">
                     <button
-                        onClick={() => setFilter('female')}
-                        className={`flex-1 py-3 rounded-xl text-[10px] font-black tracking-[0.2em] transition-all duration-300 ${filter === 'female'
-                            ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]'
+                        onClick={() => {
+                            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light')
+                            setFilter('female')
+                        }}
+                        className={`flex-1 py-3.5 rounded-2xl text-[11px] font-black tracking-[0.2em] transition-all duration-300 ${filter === 'female'
+                            ? 'bg-gradient-to-r from-[#ff0080] to-[#7928ca] text-white shadow-[0_0_25px_rgba(255,0,128,0.3)]'
                             : 'bg-white/5 text-white/30 border border-white/5'
                             }`}
                     >
                         ♀ FEMALE
                     </button>
                     <button
-                        onClick={() => setFilter('male')}
-                        className={`flex-1 py-3 rounded-xl text-[10px] font-black tracking-[0.2em] transition-all duration-300 ${filter === 'male'
-                            ? 'bg-primary text-white shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]'
+                        onClick={() => {
+                            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light')
+                            setFilter('male')
+                        }}
+                        className={`flex-1 py-3.5 rounded-2xl text-[11px] font-black tracking-[0.2em] transition-all duration-300 ${filter === 'male'
+                            ? 'bg-white text-black'
                             : 'bg-white/5 text-white/30 border border-white/5'
                             }`}
                     >
@@ -216,19 +290,21 @@ export default function TelegramCharactersPage() {
             </div>
 
             {/* SCROLLABLE CONTENT AREA */}
-            <div className="flex-1 overflow-y-auto px-5 pt-2 pb-32 no-scrollbar scroll-smooth">
+            <div className="flex-1 overflow-y-auto px-5 pt-4 pb-32 no-scrollbar scroll-smooth">
                 <div className="flex items-center justify-between mb-6 px-1">
-                    <h3 className="text-2xl font-black text-white italic">COMPANIONS</h3>
-                    <div className="flex items-center gap-2 text-white/20">
-                        <Users className="w-4 h-4" />
-                        <span className="text-xs font-bold font-mono">{filteredCharacters.length}</span>
+                    <div className="flex items-baseline gap-2">
+                        <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase">Characters</h3>
+                        <div className="flex items-center gap-1 text-white/20">
+                            <Users className="w-3 h-3" />
+                            <span className="text-[10px] font-black font-mono">({filteredCharacters.length})</span>
+                        </div>
                     </div>
                 </div>
 
                 {filteredCharacters.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 opacity-30">
                         <Loader2 className="w-10 h-10 animate-spin mb-4" />
-                        <p className="font-bold text-sm tracking-widest">FETCHING SOULS...</p>
+                        <p className="font-bold text-sm tracking-widest uppercase">Fetching Souls...</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 gap-4">
@@ -236,8 +312,8 @@ export default function TelegramCharactersPage() {
                             <div
                                 key={char.id}
                                 onClick={() => handleSelect(char)}
-                                className={`group relative aspect-[3/4.2] rounded-[2rem] overflow-hidden border-2 transition-all duration-500 transform active:scale-[0.98] ${selectingId === char.id
-                                    ? 'border-primary shadow-[0_0_25px_rgba(var(--primary-rgb),0.5)]'
+                                className={`group relative aspect-[3/4.5] rounded-[2.5rem] overflow-hidden border-2 transition-all duration-500 transform active:scale-[0.97] ${selectingId === char.id
+                                    ? 'border-[#ff0080] shadow-[0_0_25px_rgba(255,0,128,0.4)]'
                                     : activeCharacterId === char.id
                                         ? 'border-pink-500/50'
                                         : 'border-white/5 bg-white/5'
@@ -254,36 +330,43 @@ export default function TelegramCharactersPage() {
                                 {/* Identity Gradient Overlay */}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90" />
 
+                                {/* Like Button */}
+                                <button
+                                    onClick={(e) => handleLike(e, char.id)}
+                                    className="absolute top-4 right-4 z-20 active:scale-125 transition-transform"
+                                >
+                                    <Heart
+                                        className={`w-5 h-5 drop-shadow-lg ${likedCharacters.includes(char.id)
+                                            ? "text-[#ff0080] fill-[#ff0080]"
+                                            : "text-white/60 hover:text-white"
+                                            }`}
+                                    />
+                                </button>
+
                                 {/* Status Badge */}
                                 {activeCharacterId === char.id && (
-                                    <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-pink-500 text-white text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-tighter">
-                                        <div className="w-1 h-1 rounded-full bg-white animate-pulse" />
-                                        CONNECTED
+                                    <div className="absolute top-4 left-4 flex items-center gap-1.5 bg-[#ff0080] text-white text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-tighter z-10">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                        ACTIVE
                                     </div>
                                 )}
 
                                 {/* Loading Overlay */}
                                 {selectingId === char.id && (
-                                    <div className="absolute inset-0 bg-black/80 flex items-center justify-center backdrop-blur-md">
+                                    <div className="absolute inset-0 bg-black/80 flex items-center justify-center backdrop-blur-md z-30">
                                         <div className="relative">
-                                            <Loader2 className="w-12 h-12 text-primary animate-spin" />
-                                            <div className="absolute inset-0 blur-xl bg-primary/20 animate-pulse" />
+                                            <Loader2 className="w-12 h-12 text-[#ff0080] animate-spin" />
+                                            <div className="absolute inset-0 blur-xl bg-[#ff0080]/20 animate-pulse" />
                                         </div>
                                     </div>
                                 )}
 
                                 {/* Character Info Block */}
-                                <div className="absolute bottom-5 left-5 right-5 space-y-1">
-                                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">{char.category || 'Companion'}</span>
-                                    <h3 className="text-xl font-black text-white truncate drop-shadow-lg leading-none">{char.name}</h3>
-                                    {char.relationship && (
-                                        <div className="flex items-center gap-1 pb-1">
-                                            <div className="w-1 h-1 rounded-full bg-white/30" />
-                                            <p className="text-white/40 text-[9px] font-black uppercase tracking-widest truncate">
-                                                {char.relationship}
-                                            </p>
-                                        </div>
-                                    )}
+                                <div className="absolute bottom-6 left-6 right-6 space-y-1">
+                                    <h3 className="text-2xl font-black text-white truncate drop-shadow-xl leading-none">{char.name}</h3>
+                                    <p className="text-white/50 text-[10px] font-black uppercase tracking-widest truncate">
+                                        {char.relationship || 'Single'}
+                                    </p>
                                 </div>
                             </div>
                         ))}

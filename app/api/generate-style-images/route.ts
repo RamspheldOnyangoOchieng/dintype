@@ -133,11 +133,11 @@ export async function POST(request: NextRequest) {
 
     const prompts = {
       realistic: {
-        prompt: 'masterpiece, professional portrait photography, beautiful woman, sophisticated fashion, warm cinematic lighting, photorealistic, 8k resolution, Kodak Portra 400 aesthetic, shot on 35mm lens, sharp focus, natural skin texture, visible pores, elegant pose, confident expression, vibrant colors',
+        prompt: 'masterpiece, professional portrait photography, beautiful woman, sophisticated fashion, warm cinematic lighting, photorealistic, 8k resolution, Kodak Portra 400 aesthetic, shot on 35mm lens, sharp focus, natural skin texture, visible pores, slender fingers with clear, beautiful nails and high-gloss polish, elegant pose, confident expression, vibrant colors',
         negative: baseNegative
       },
       anime: {
-        prompt: 'masterpiece, high-quality anime style, vibrant colors, detailed anime illustration, manga aesthetic, sharp lines, cel-shaded, professional anime art, expressive features, elegant pose, beautiful anime girl, background blur',
+        prompt: 'masterpiece, high-quality anime style, vibrant colors, detailed anime illustration, manga aesthetic, sharp lines, cel-shaded, professional anime art, expressive features, elegant pose, slender fingers with clear beautiful nails, beautiful anime girl, background blur',
         negative: 'ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, realistic, 3d, photograph, western cartoon'
       }
     };
@@ -194,7 +194,7 @@ export async function GET() {
     // Generate realistic style
     try {
       const realisticPrompt = {
-        prompt: 'masterpiece, professional portrait photography, beautiful woman, sophisticated fashion, warm cinematic lighting, photorealistic, 8k resolution, Kodak Portra 400 aesthetic, shot on 35mm lens, sharp focus, natural skin texture, visible pores, elegant pose, confident expression, vibrant colors',
+        prompt: 'masterpiece, professional portrait photography, beautiful woman, sophisticated fashion, warm cinematic lighting, photorealistic, 8k resolution, Kodak Portra 400 aesthetic, shot on 35mm lens, sharp focus, natural skin texture, visible pores, slender fingers with clear, beautiful nails and high-gloss polish, elegant pose, confident expression, vibrant colors',
         negative: 'ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, cross-eyed, lazy eye, bad feet, extra arms, extra legs, disjointed limbs, incorrect limb proportions, unrealistic body, unrealistic face, unnatural skin, disconnected limbs, lopsided, cloned face, glitch, double torso, bad posture, wrong perspective, overexposed, underexposed, low detail, plastic skin, unnatural skin texture, plastic clothing, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clothes, distorted bikini, missing nipples, extra nipples, fused nipples, bad anatomy genitals'
       };
 
@@ -211,7 +211,7 @@ export async function GET() {
     // Generate anime style
     try {
       const animePrompt = {
-        prompt: 'masterpiece, high-quality anime style, vibrant colors, detailed anime illustration, manga aesthetic, sharp lines, cel-shaded, professional anime art, expressive features, elegant pose, beautiful anime girl, background blur',
+        prompt: 'masterpiece, high-quality anime style, vibrant colors, detailed anime illustration, manga aesthetic, sharp lines, cel-shaded, professional anime art, expressive features, elegant pose, slender fingers with clear beautiful nails, beautiful anime girl, background blur',
         negative: 'ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, realistic, 3d, photograph, western cartoon'
       };
 
