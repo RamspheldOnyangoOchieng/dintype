@@ -27,6 +27,7 @@ import {
 } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { generateCharacterDescription, generateSystemPrompt, type GenerateCharacterParams } from "@/lib/openai"
+import { toast } from "sonner"
 import Image from "next/image"
 
 // Add this helper function at the top of the file, outside the component
@@ -170,16 +171,17 @@ export default function EditCharacterPage() {
     try {
       setIsUploading(true)
       setError("")
+      const toastId = toast.loading("Uploading image...")
 
       // Create a FormData object for the upload
-      const formData = new FormData()
-      formData.append("file", await convertFileToBase64(file))
-      formData.append("folder", "ai-characters")
+      const uploadFormData = new FormData()
+      uploadFormData.append("file", await convertFileToBase64(file))
+      uploadFormData.append("folder", "ai-characters")
 
       // Use internal API route for secure server-side upload
       const response = await fetch("/api/upload", {
         method: "POST",
-        body: formData,
+        body: uploadFormData,
       })
 
       const result = await response.json()
@@ -192,21 +194,31 @@ export default function EditCharacterPage() {
         throw new Error("Failed to upload image to Cloudinary (no URL returned)")
       }
 
+      // Update local state
       setFormData((prev) => ({ ...prev, image: result.secure_url }))
-    } catch (err) {
-      console.error("Error uploading image:", err)
+      setImagePreview(result.secure_url)
 
-      if (err instanceof Error) {
-        setError(err.message)
-      } else {
-        setError("Failed to upload image. Please try again.")
+      // Auto-save the image to the database immediately for better UX
+      try {
+        await updateCharacter(id, { image: result.secure_url })
+        toast.success("Profile image updated and saved!", { id: toastId })
+      } catch (saveErr) {
+        console.warn("Failed to auto-save image, but upload succeeded", saveErr)
+        toast.success("Image uploaded (click Update to save permanently)", { id: toastId })
       }
 
-      // Keep the image preview even if upload failed
-      setFormData((prev) => ({
-        ...prev,
-        image: imagePreview || "/placeholder.svg?height=400&width=300",
-      }))
+    } catch (err) {
+      console.error("Error uploading image:", err)
+      const errorMessage = err instanceof Error ? err.message : "Failed to upload image"
+      setError(errorMessage)
+      toast.error(errorMessage)
+
+      // Revert to current character image if upload failed
+      const character = getCharacter(id)
+      if (character) {
+        setImagePreview(character.image)
+        setFormData((prev) => ({ ...prev, image: character.image }))
+      }
     } finally {
       setIsUploading(false)
     }
@@ -261,8 +273,14 @@ export default function EditCharacterPage() {
             setFormData(prev => ({ ...prev, image: newImageUrl }))
             setImagePreview(newImageUrl)
 
-            // Optionally auto-upload to Cloudinary here if needed, 
-            // but for now we'll just set it. It will be saved when user clicks "Update Character".
+            // Auto-save the regenerated image
+            try {
+              await updateCharacter(id, { image: newImageUrl })
+              toast.success("Character face regenerated and saved!")
+            } catch (saveErr) {
+              console.warn("Failed to auto-save regenerated image", saveErr)
+              toast.success("Image regenerated (click Update to save permanently)")
+            }
           }
           break
         } else if (checkData.status === "TASK_STATUS_FAILED") {
@@ -276,7 +294,9 @@ export default function EditCharacterPage() {
 
     } catch (err) {
       console.error("Error regenerating image:", err)
-      setError(err instanceof Error ? err.message : "Failed to regenerate image")
+      const errorMessage = err instanceof Error ? err.message : "Failed to regenerate image"
+      setError(errorMessage)
+      toast.error(errorMessage)
     } finally {
       setIsRegenerating(false)
     }

@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
                 thumbnailUrl: img.thumbnail_url || img.image_url,
                 isLocked: img.is_locked && !canView,
                 isNsfw: img.is_nsfw || false,
+                isPrimary: img.is_primary || false,
                 unlockCost: img.unlock_cost || 100,
                 isFreePreview: isFreePreview,
                 isUnlockedByUser,
@@ -81,9 +82,12 @@ export async function GET(request: NextRequest) {
         const allImages = [...galleryItems];
         if (character && character.image) {
             // Check if it's already in the gallery by URL (optional, but good for cleanliness)
-            const isAlreadyInGallery = galleryItems.some(img => img.imageUrl === character.image);
+            const matchedGalleryItem = galleryItems.find(img => img.imageUrl === character.image);
 
-            if (!isAlreadyInGallery) {
+            if (matchedGalleryItem) {
+                // If it's already in gallery, ensure it's marked as primary if it matches characters.image
+                matchedGalleryItem.isPrimary = true;
+            } else {
                 allImages.unshift({
                     id: `${characterId}_profile`,
                     characterId: characterId,
@@ -91,6 +95,7 @@ export async function GET(request: NextRequest) {
                     thumbnailUrl: character.image,
                     isLocked: false, // Main profile image is always unlocked
                     isNsfw: false,
+                    isPrimary: true,
                     unlockCost: 0,
                     isFreePreview: true,
                     isUnlockedByUser: true,
@@ -116,6 +121,221 @@ export async function GET(request: NextRequest) {
 
     } catch (error) {
         console.error('Gallery API error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}
+
+export async function POST(request: NextRequest) {
+    try {
+        const body = await request.json();
+        const { characterId, imageUrl, thumbnail_url, isLocked, isNsfw, sortOrder, isPrimary } = body;
+
+        if (!characterId || !imageUrl) {
+            return NextResponse.json({ error: 'Character ID and Image URL are required' }, { status: 400 });
+        }
+
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        // Check if user is admin
+        if (!user) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+
+        const supabaseAdmin = await createAdminClient();
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+        }
+        const { data: adminRecord } = await supabaseAdmin
+            .from('admin_users')
+            .select('id')
+            .eq('user_id', user.id)
+            .single();
+
+        if (!adminRecord) {
+            return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+        }
+
+        // If setting as primary, reset others first
+        if (isPrimary) {
+            await supabaseAdmin
+                .from('character_gallery')
+                .update({ is_primary: false })
+                .eq('character_id', characterId);
+
+            // Also update character main image
+            await supabaseAdmin
+                .from('characters')
+                .update({ image: imageUrl })
+                .eq('id', characterId);
+        }
+
+        // Insert into character_gallery
+        const { data, error } = await supabaseAdmin
+            .from('character_gallery')
+            .insert([{
+                character_id: characterId,
+                image_url: imageUrl,
+                thumbnail_url: thumbnail_url || imageUrl,
+                is_locked: isLocked ?? true,
+                is_nsfw: isNsfw ?? false,
+                is_primary: isPrimary ?? false,
+                sort_order: sortOrder ?? 0,
+                created_at: new Date().toISOString()
+            }])
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error adding to gallery:', error);
+            return NextResponse.json({ error: 'Failed to add image to gallery' }, { status: 500 });
+        }
+
+        return NextResponse.json(data);
+
+    } catch (error) {
+        console.error('Gallery POST error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const imageId = searchParams.get('id');
+
+        if (!imageId) {
+            return NextResponse.json({ error: 'Image ID is required' }, { status: 400 });
+        }
+
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+
+        const supabaseAdmin = await createAdminClient();
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+        }
+
+        const { data: adminRecord } = await supabaseAdmin
+            .from('admin_users')
+            .select('id')
+            .eq('user_id', user.id)
+            .single();
+
+        if (!adminRecord) {
+            return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+        }
+
+        // Get the image first to find the URL
+        const { data: image } = await supabaseAdmin
+            .from('character_gallery')
+            .select('image_url')
+            .eq('id', imageId)
+            .single();
+
+        // Delete from DB
+        const { error } = await supabaseAdmin
+            .from('character_gallery')
+            .delete()
+            .eq('id', imageId);
+
+        if (error) {
+            console.error('Error deleting from gallery:', error);
+            return NextResponse.json({ error: 'Failed to delete image' }, { status: 500 });
+        }
+
+        // Optionally delete from Cloudinary
+        if (image?.image_url?.includes('cloudinary.com')) {
+            try {
+                const { getPublicIdFromUrl, deleteImageFromCloudinary } = await import("@/lib/cloudinary-actions")
+                const publicId = await getPublicIdFromUrl(image.image_url)
+                if (publicId) {
+                    await deleteImageFromCloudinary(publicId)
+                }
+            } catch (e) {
+                console.warn('Failed to delete from Cloudinary:', e)
+            }
+        }
+
+        return NextResponse.json({ success: true });
+
+    } catch (error) {
+        console.error('Gallery DELETE error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}
+
+export async function PATCH(request: NextRequest) {
+    try {
+        const body = await request.json();
+        const { id, characterId, isPrimary } = body;
+
+        if (!id || !characterId) {
+            return NextResponse.json({ error: 'ID and Character ID are required' }, { status: 400 });
+        }
+
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+        }
+
+        const supabaseAdmin = await createAdminClient();
+        if (!supabaseAdmin) {
+            return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
+        }
+
+        const { data: adminRecord } = await supabaseAdmin
+            .from('admin_users')
+            .select('id')
+            .eq('user_id', user.id)
+            .single();
+
+        if (!adminRecord) {
+            return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+        }
+
+        // If setting as primary
+        if (isPrimary) {
+            // 1. Reset all other images for this character
+            await supabaseAdmin
+                .from('character_gallery')
+                .update({ is_primary: false })
+                .eq('character_id', characterId);
+
+            // 2. Set this image as primary
+            const { data: updatedImage, error: updateError } = await supabaseAdmin
+                .from('character_gallery')
+                .update({ is_primary: true })
+                .eq('id', id)
+                .select()
+                .single();
+
+            if (updateError) {
+                console.error('Error setting primary:', updateError);
+                return NextResponse.json({ error: 'Failed to set primary image' }, { status: 500 });
+            }
+
+            // 3. Update the main character table
+            if (updatedImage) {
+                await supabaseAdmin
+                    .from('characters')
+                    .update({ image: updatedImage.image_url })
+                    .eq('id', characterId);
+            }
+
+            return NextResponse.json({ success: true, image: updatedImage });
+        }
+
+        return NextResponse.json({ error: 'Nothing to update' }, { status: 400 });
+
+    } catch (error) {
+        console.error('Gallery PATCH error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 }

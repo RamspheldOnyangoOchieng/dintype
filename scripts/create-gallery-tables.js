@@ -31,6 +31,7 @@ async function createGalleryTables() {
                 generated_by UUID,
                 is_admin_uploaded BOOLEAN DEFAULT false,
                 is_free_preview BOOLEAN DEFAULT false,
+                is_primary BOOLEAN DEFAULT false,
                 sort_order INTEGER DEFAULT 0,
                 created_at TIMESTAMPTZ DEFAULT NOW(),
                 updated_at TIMESTAMPTZ DEFAULT NOW()
