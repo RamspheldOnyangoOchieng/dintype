@@ -240,15 +240,7 @@ export default function TelegramRootPage() {
                     <h2 className="text-white font-black text-lg tracking-tighter uppercase leading-none">PocketLove</h2>
                     <p className="text-white/30 text-[9px] font-black uppercase tracking-[0.2em]">mini app</p>
                 </div>
-                <button
-                    onClick={() => {
-                        if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light')
-                        setActiveTab('profile')
-                    }}
-                    className="w-10 h-10 rounded-full flex items-center justify-center border border-white/10 active:bg-white/5 transition-colors"
-                >
-                    <MoreVertical className="w-5 h-5 text-white/50" />
-                </button>
+                <div className="w-10" />
             </div>
 
             {/* User Greeting & Balance */}

@@ -2244,6 +2244,37 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     />
                   </div>
                 )}
+
+                {/* Mobile Generate Button */}
+                {(() => {
+                  const isLocked = !!(storyProgress && !storyProgress.is_completed);
+                  return (
+                    <div className="mb-8 mt-4">
+                      <Button
+                        className={cn(
+                          "w-full border-none font-bold h-12 transition-all duration-300 shadow-lg",
+                          isLocked
+                            ? "bg-primary/30 hover:bg-primary/40 text-primary-foreground/60 cursor-not-allowed"
+                            : "bg-primary hover:bg-primary/90 text-primary-foreground"
+                        )}
+                        onClick={handleAdvancedGenerate}
+                        disabled={isLocked}
+                      >
+                        {isLocked ? (
+                          <Lock className="mr-2 h-5 w-5 text-amber-500/80" />
+                        ) : (
+                          <Wand2 className="mr-2 h-5 w-5" />
+                        )}
+                        {t("generate.generate")}
+                      </Button>
+                      {isLocked && (
+                        <div className="text-center mt-3 text-xs text-amber-500/90 flex items-center justify-center gap-1.5 font-medium bg-black/40 py-2 rounded-lg backdrop-blur-sm border border-amber-500/20">
+                          <Lock className="h-3.5 w-3.5" /> Image generation locked until story complete
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
