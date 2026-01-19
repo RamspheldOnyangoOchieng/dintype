@@ -172,26 +172,22 @@ export default function EditCharacterPage() {
       // Create a FormData object for the upload
       const formData = new FormData()
       formData.append("file", await convertFileToBase64(file))
-      formData.append("upload_preset", "ai-characters-preset") // Replace with your actual preset name
       formData.append("folder", "ai-characters")
 
-      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "demo"
-
-      // Make a direct POST request to the Cloudinary API
-      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      // Use internal API route for secure server-side upload
+      const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(`Cloudinary API error: ${errorData.error?.message || "Unknown error"}`)
-      }
-
       const result = await response.json()
 
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to upload image")
+      }
+
       if (!result.secure_url) {
-        throw new Error("Failed to upload image to Cloudinary")
+        throw new Error("Failed to upload image to Cloudinary (no URL returned)")
       }
 
       setFormData((prev) => ({ ...prev, image: result.secure_url }))
