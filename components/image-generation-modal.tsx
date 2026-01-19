@@ -14,19 +14,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Sparkles, Copy, Settings, Palette, User, Zap, Brain, Target } from "lucide-react"
 import Image from "next/image"
 
+interface CharacterTraits {
+  characterGender?: string
+  characterAge?: string
+  bodyType?: string
+  characterStyle?: string
+  artStyle?: string
+  hairColor?: string
+  eyeColor?: string
+  skinTone?: string
+  clothing?: string
+  pose?: string
+  background?: string
+  mood?: string
+}
+
 interface ImageGenerationModalProps {
   isOpen: boolean
   onClose: () => void
-  onImageSelect: (
-    imageUrl: string,
-    traits?: {
-      hairColor?: string
-      eyeColor?: string
-      appearanceStyle?: string
-      bodyType?: string
-      ethnicity?: string
-    },
-  ) => void
+  onImageSelect: (imageUrl: string, traits?: CharacterTraits) => void
   trigger?: React.ReactNode
 }
 
@@ -457,11 +463,18 @@ export function ImageGenerationModal({ isOpen, onClose, onImageSelect, trigger }
 
   const handleUseImage = (imageUrl: string) => {
     onImageSelect(imageUrl, {
+      characterGender,
+      characterAge,
+      bodyType,
+      characterStyle,
+      artStyle,
       hairColor,
       eyeColor,
-      appearanceStyle: characterStyle,
-      bodyType,
-      ethnicity: skinTone,
+      skinTone,
+      clothing,
+      pose,
+      background,
+      mood,
     })
     onClose()
     // Reset the modal state

@@ -281,10 +281,14 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
         .update(snakeCaseData)
         .eq("id", id)
         .select()
-        .single()
+        .maybeSingle()
 
       if (supabaseError) {
         throw supabaseError
+      }
+
+      if (!data) {
+        throw new Error("Character not found or you don't have permission to update it.")
       }
 
       // Convert snake_case back to camelCase

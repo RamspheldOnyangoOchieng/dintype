@@ -32,6 +32,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
@@ -86,9 +87,20 @@ export default function EditCharacterPage() {
     hobbies: "",
     body: "Average",
     ethnicity: "Mixed",
-    hairColor: "Brown",
-    eyeColor: "Brown",
-    appearanceStyle: "Realistic",
+    // Character appearance traits from image generation
+    characterGender: "female",
+    characterAge: "young_adult",
+    bodyType: "average",
+    characterStyle: "realistic",
+    artStyle: "digital_art",
+    hairColor: "brown",
+    eyeColor: "brown",
+    skinTone: "fair",
+    clothing: "casual",
+    pose: "portrait",
+    background: "simple",
+    mood: "neutral",
+    // Other fields
     language: "English",
     relationship: "Single",
     systemPrompt: "",
@@ -143,9 +155,20 @@ export default function EditCharacterPage() {
         hobbies: character.hobbies || "",
         body: character.body || "Average",
         ethnicity: character.ethnicity || "Mixed",
-        hairColor: character.hairColor || "Brown",
-        eyeColor: character.eyeColor || "Brown",
-        appearanceStyle: character.appearanceStyle || "Realistic",
+        // Character appearance traits
+        characterGender: character.characterGender || "female",
+        characterAge: character.characterAge || "young_adult",
+        bodyType: character.bodyType || "average",
+        characterStyle: character.characterStyle || "realistic",
+        artStyle: character.artStyle || "digital_art",
+        hairColor: character.hairColor || "brown",
+        eyeColor: character.eyeColor || "brown",
+        skinTone: character.skinTone || "fair",
+        clothing: character.clothing || "casual",
+        pose: character.pose || "portrait",
+        background: character.background || "simple",
+        mood: character.mood || "neutral",
+        // Other fields
         language: character.language || "English",
         relationship: character.relationship || "Single",
         systemPrompt: character.systemPrompt || "",
@@ -909,16 +932,16 @@ export default function EditCharacterPage() {
                       </div>
 
                       <div className="space-y-2 md:col-span-2">
-                        <label htmlFor="appearanceStyle" className="block text-sm font-medium text-gray-300">
+                        <label htmlFor="characterStyle" className="block text-sm font-medium text-gray-300">
                           Visual Style
                         </label>
                         <Input
-                          id="appearanceStyle"
-                          name="appearanceStyle"
-                          value={formData.appearanceStyle}
+                          id="characterStyle"
+                          name="characterStyle"
+                          value={formData.characterStyle}
                           onChange={handleChange}
                           className="bg-[#252525] border-[#333] text-white"
-                          placeholder="e.g., Realistic, Anime, semi-realistic"
+                          placeholder="e.g., realistic, anime, semi_realistic"
                         />
                       </div>
 
@@ -1059,6 +1082,9 @@ export default function EditCharacterPage() {
               <Wand2 className="h-5 w-5 text-primary" />
               Regenerate Character Face
             </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Generate a new face for your character. This will update the primary profile image.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">

@@ -34,9 +34,20 @@ export default function CreateCharacterPage() {
     hobbies: "",
     body: "Average",
     ethnicity: "Mixed",
-    hairColor: "Brown",
-    eyeColor: "Brown",
-    appearanceStyle: "Realistic",
+    // Character appearance traits from image generation
+    characterGender: "female",
+    characterAge: "young_adult",
+    bodyType: "average",
+    characterStyle: "realistic",
+    artStyle: "digital_art",
+    hairColor: "brown",
+    eyeColor: "brown",
+    skinTone: "fair",
+    clothing: "casual",
+    pose: "portrait",
+    background: "simple",
+    mood: "neutral",
+    // Other fields
     language: "English",
     relationship: "Single",
     systemPrompt: "",
@@ -134,11 +145,18 @@ export default function CreateCharacterPage() {
   const handleUseGeneratedImage = async (
     imageUrl: string,
     traits?: {
+      characterGender?: string
+      characterAge?: string
+      bodyType?: string
+      characterStyle?: string
+      artStyle?: string
       hairColor?: string
       eyeColor?: string
-      appearanceStyle?: string
-      bodyType?: string
-      ethnicity?: string
+      skinTone?: string
+      clothing?: string
+      pose?: string
+      background?: string
+      mood?: string
     },
   ) => {
     try {
@@ -152,11 +170,18 @@ export default function CreateCharacterPage() {
       if (traits) {
         setFormData((prev) => ({
           ...prev,
+          characterGender: traits.characterGender || prev.characterGender,
+          characterAge: traits.characterAge || prev.characterAge,
+          bodyType: traits.bodyType || prev.bodyType,
+          characterStyle: traits.characterStyle || prev.characterStyle,
+          artStyle: traits.artStyle || prev.artStyle,
           hairColor: traits.hairColor || prev.hairColor,
           eyeColor: traits.eyeColor || prev.eyeColor,
-          appearanceStyle: traits.appearanceStyle || prev.appearanceStyle,
-          body: traits.bodyType || prev.body,
-          ethnicity: traits.ethnicity || prev.ethnicity,
+          skinTone: traits.skinTone || prev.skinTone,
+          clothing: traits.clothing || prev.clothing,
+          pose: traits.pose || prev.pose,
+          background: traits.background || prev.background,
+          mood: traits.mood || prev.mood,
         }))
       }
 
@@ -578,16 +603,16 @@ export default function CreateCharacterPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <label htmlFor="appearanceStyle" className="block text-sm font-medium text-gray-300">
+                      <label htmlFor="characterStyle" className="block text-sm font-medium text-gray-300">
                         Visual Style
                       </label>
                       <Input
-                        id="appearanceStyle"
-                        name="appearanceStyle"
-                        value={formData.appearanceStyle}
+                        id="characterStyle"
+                        name="characterStyle"
+                        value={formData.characterStyle}
                         onChange={handleChange}
                         className="bg-[#252525] border-[#333] text-white"
-                        placeholder="e.g., Realistic, Anime, semi-realistic"
+                        placeholder="e.g., realistic, anime, semi_realistic"
                       />
                     </div>
 

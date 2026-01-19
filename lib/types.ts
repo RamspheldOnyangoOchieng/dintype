@@ -14,9 +14,20 @@ export type Character = {
   hobbies: string
   body: string
   ethnicity: string
+  // Character appearance traits
+  characterGender?: string
+  characterAge?: string
+  bodyType?: string
+  characterStyle?: string
+  artStyle?: string
   hairColor?: string
   eyeColor?: string
-  appearanceStyle?: string
+  skinTone?: string
+  clothing?: string
+  pose?: string
+  background?: string
+  mood?: string
+  // Other fields
   language: string
   relationship: string
   isNew: boolean

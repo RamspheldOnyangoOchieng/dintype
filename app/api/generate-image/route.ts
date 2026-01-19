@@ -380,7 +380,15 @@ export async function POST(req: NextRequest) {
                 IMPORTANT - CHARACTER CONTEXT (YOU MUST DESCRIBE THIS CHARACTER):
                 Name: ${character.name}
                 Description: ${character.description}
-                Visual Traits: ${character.hairColor || 'unknown'} hair, ${character.eyeColor || 'unknown'} eyes, ${character.body || 'average'} body, ${character.ethnicity || 'mixed'} ethnicity, ${character.style || character.appearanceStyle || 'realistic'} style.
+                Visual Traits: 
+                  - Hair: ${character.hairColor || 'unknown'}
+                  - Eyes: ${character.eyeColor || 'unknown'}
+                  - Skin Tone: ${character.skinTone || 'unknown'}
+                  - Body Type: ${character.bodyType || character.body || 'average'}
+                  - Ethnicity: ${character.ethnicity || 'mixed'}
+                  - Style: ${character.characterStyle || character.style || 'realistic'}
+                  - Mood: ${character.mood || 'neutral'}
+                YOU MUST USE THESE EXACT PHYSICAL ATTRIBUTES IN YOUR DESCRIPTION.
                 Appearance Prompt: ${character.systemPrompt || character.imagePrompt}
                 ` : ''}
 

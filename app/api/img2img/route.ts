@@ -45,9 +45,12 @@ export async function POST(req: NextRequest) {
       character?.name,
       character?.hairColor ? `${character.hairColor} hair` : null,
       character?.eyeColor ? `${character.eyeColor} eyes` : null,
+      character?.skinTone ? `${character.skinTone} skin tone` : null,
+      character?.bodyType || character?.body,
+      character?.characterStyle ? `${character.characterStyle} style` : null,
       character?.ethnicity,
-      character?.body,
       character?.age ? `${character.age} years old` : null,
+      character?.mood ? `${character.mood} expression` : null,
       character?.personality,
       character?.description
     ].filter(Boolean).join(", ");

@@ -74,26 +74,38 @@ export async function PATCH(
   try {
     const json = await request.json();
 
-    // Check ownership or admin
-    // Note: RLS might handle this automatically, but explicit check is good for 403 vs 404
-    const { data: existing, error: fetchError } = await supabase
-      .from('characters')
-      .select('user_id')
-      .eq('id', id)
-      .single();
+    // Check if user is admin
+    const { createAdminClient } = await import("@/lib/supabase-admin");
+    const supabaseAdmin = await createAdminClient();
 
-    // If user is owner, they can update.
-    // We assume RLS policies are SET UP for update.
-    // If not, we might need service role, but usually we prefer user role.
+    let isAdmin = false;
+    if (supabaseAdmin) {
+      const { data: adminRecord } = await supabaseAdmin
+        .from('admin_users')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      isAdmin = !!adminRecord;
+    }
 
-    const { data, error } = await (supabase as any)
+    // Use admin client for admins, regular client for normal users
+    const client = isAdmin && supabaseAdmin ? supabaseAdmin : supabase;
+
+    const { data, error } = await (client as any)
       .from("characters")
       .update(json)
       .eq("id", id)
       .select()
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Update error:", error);
+      throw error;
+    }
+
+    if (!data) {
+      return NextResponse.json({ error: "Character not found or you don't have permission to update it" }, { status: 404 });
+    }
 
     return NextResponse.json(data);
   } catch (error: any) {
