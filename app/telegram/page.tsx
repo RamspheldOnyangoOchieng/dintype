@@ -236,7 +236,10 @@ export default function TelegramRootPage() {
                     <p className="text-white/30 text-[9px] font-black uppercase tracking-[0.2em]">mini app</p>
                 </div>
                 <button
-                    onClick={() => router.push('/settings')}
+                    onClick={() => {
+                        if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light')
+                        setActiveTab('profile')
+                    }}
                     className="w-10 h-10 rounded-full flex items-center justify-center border border-white/10 active:bg-white/5 transition-colors"
                 >
                     <MoreVertical className="w-5 h-5 text-white/50" />
@@ -245,7 +248,7 @@ export default function TelegramRootPage() {
 
             {/* User Greeting & Balance */}
             <div className="px-6 py-4 flex items-center justify-between">
-                <div>
+                <div onClick={() => setActiveTab('profile')} className="cursor-pointer active:opacity-70 transition-opacity">
                     <div className="flex items-center gap-2">
                         <span className="text-white font-black text-3xl">Hello,</span>
                         <span className="text-[#ff0080] font-black text-3xl">{userName}</span>
@@ -255,16 +258,25 @@ export default function TelegramRootPage() {
 
                 {/* Token & Balance Display */}
                 <div className="bg-white/[0.03] rounded-2xl flex items-center overflow-hidden border border-white/5 p-1 gap-1">
-                    <div className="flex items-center gap-1.5 px-3 py-2 border-r border-white/5">
+                    <div
+                        onClick={() => setActiveTab('profile')}
+                        className="flex items-center gap-1.5 px-3 py-2 border-r border-white/5 cursor-pointer active:bg-white/5 transition-colors"
+                    >
                         <Heart className="w-4 h-4 text-cyan-400 fill-cyan-400" />
                         <span className="text-white text-sm font-black">{totalLikes}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 px-3 py-2">
+                    <div
+                        onClick={() => setActiveTab('profile')}
+                        className="flex items-center gap-1.5 px-3 py-2 cursor-pointer active:bg-white/5 transition-colors"
+                    >
                         <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
                         <span className="text-white text-sm font-black">{tokens}</span>
                     </div>
                     <button
-                        onClick={() => router.push('/premium')}
+                        onClick={() => {
+                            if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light')
+                            setActiveTab('profile')
+                        }}
                         className="bg-[#ff0080] w-9 h-9 rounded-xl flex items-center justify-center active:scale-95 transition-all"
                     >
                         <Plus className="w-5 h-5 text-white" strokeWidth={3} />
