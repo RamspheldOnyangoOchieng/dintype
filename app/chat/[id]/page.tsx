@@ -60,6 +60,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import { Trash2, UserCircle, Settings, Info, Share2, MessageCircle, Lock } from "lucide-react"
 import { getStoryProgress, getChapter, initializeStoryProgress, completeChapter, type StoryChapter, type UserStoryProgress } from "@/lib/story-mode"
 import { Progress } from "@/components/ui/progress"
@@ -133,6 +140,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const [isSaving, setIsSaving] = useState(false)
   const [lastMessages, setLastMessages] = useState<Record<string, Message | null>>({})
   const [isProfileOpen, setIsProfileOpen] = useState(true)
+  const [isMobileProfileOpen, setIsMobileProfileOpen] = useState(false)
   const [premiumModalFeature, setPremiumModalFeature] = useState("Message Limit")
   const [premiumModalDescription, setPremiumModalDescription] = useState("Daily message limit reached. Upgrade to premium to continue.")
   const [premiumModalMode, setPremiumModalMode] = useState<'upgrade' | 'message-limit'>('upgrade')
@@ -1552,7 +1560,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     <div
       key="chat-page-root"
       className="flex flex-col md:flex-row bg-background w-full overflow-hidden"
-      style={{ position: 'relative', top: 0, height: '100vh', maxHeight: '100vh' }}
+      style={{ position: 'relative', top: 0, height: '100dvh', maxHeight: '100dvh' }}
       suppressHydrationWarning
     >
       {/* Left Sidebar - Chat List - Independent Scroll */}
@@ -1647,7 +1655,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           </div>
         )}
         {/* Chat Header - Fixed/Static */}
-        <div className="border-b border-border flex items-center px-3 md:px-4 py-3 md:py-4 justify-between bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10 flex-shrink-0">
+        <div className="border-b border-border flex items-center px-3 md:px-4 py-3 md:py-4 justify-between bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 flex-shrink-0">
           <div className="flex items-center min-w-0 flex-1">
             <Button
               variant="ghost"
@@ -1679,7 +1687,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 loading="lazy"
               />
             </div>
-            <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
+            <div className="flex flex-col min-w-0 flex-1 overflow-hidden cursor-pointer md:cursor-auto" onClick={() => window.innerWidth < 768 && setIsMobileProfileOpen(true)}>
               <h4 className="font-bold truncate text-foreground leading-tight">
                 {character?.name || t("general.loading")}
               </h4>
@@ -1696,6 +1704,16 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             </div>
           </div>
           <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-2">
+            {/* Mobile Profile Trigger */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden text-muted-foreground hover:text-foreground mr-1"
+              onClick={() => setIsMobileProfileOpen(true)}
+            >
+              <User className="h-5 w-5" />
+            </Button>
+
             {/* Desktop Actions */}
             <div className="hidden sm:flex items-center gap-1 md:gap-2">
               <ClearChatDialog onConfirm={handleClearChat} isClearing={isClearingChat} />
@@ -2113,6 +2131,128 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           </div>
         </div>
       </div>
+
+      <Sheet open={isMobileProfileOpen} onOpenChange={setIsMobileProfileOpen}>
+        <SheetContent side="right" className="p-0 w-full sm:w-[400px] border-l-border bg-background z-[100]">
+          <SheetHeader className="absolute top-2 right-2 z-50">
+            <SheetTitle className="sr-only">Profile Details</SheetTitle>
+          </SheetHeader>
+          <div className="h-full w-full flex flex-col">
+            <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800" style={{ overscrollBehavior: 'contain' }}>
+              {/* Profile Images Carousel */}
+              <div className="relative w-full h-[350px]">
+                {showVideo ? (
+                  <div className="w-full h-full">
+                    {character?.videoUrl ? (
+                      <>
+                        <video
+                          key={character.videoUrl}
+                          src={character.videoUrl}
+                          className="w-full h-full object-cover"
+                          controls
+                          autoPlay
+                          onError={(e) => {
+                            console.error("Video error:", e)
+                            toast.error("Error loading video. See console for details.")
+                          }}
+                        />
+                        <div className="absolute top-0 left-0 w-full bg-black/50 p-2 text-white text-xs">
+                          {character.videoUrl}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex items-center justify-center h-full bg-black/20">
+                        <p className="text-white bg-black/50 p-2 rounded">No video available</p>
+                      </div>
+                    )}
+                    <button
+                      className="absolute top-2 right-2 bg-background/50 p-1 rounded-full z-10"
+                      onClick={() => {
+                        console.log("Closing video")
+                        setShowVideo(false)
+                      }}
+                    >
+                      <ChevronLeft className="h-6 w-6" />
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {/* Carousel Image */}
+                    <img
+                      src={
+                        (galleryImages.length > 0
+                          ? galleryImages[currentImageIndex]
+                          : (character?.image || "/placeholder.svg"))
+                      }
+                      alt={character?.name || "Character"}
+                      className="w-full h-full object-cover bg-background transition-opacity duration-300"
+                      onError={() => handleImageError("profile")}
+                      loading="lazy"
+                    />
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-90" />
+
+                    {/* Navigation Arrows */}
+                    <button
+                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-1.5 rounded-full transition-colors text-white backdrop-blur-sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePrevImage();
+                      }}
+                    >
+                      <ChevronLeft className="h-6 w-6" />
+                    </button>
+                    <button
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-1.5 rounded-full transition-colors text-white backdrop-blur-sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNextImage();
+                      }}
+                    >
+                      <ChevronRight className="h-6 w-6" />
+                    </button>
+
+                    {/* Floating "Watch Video" button if video exists */}
+                    {character?.videoUrl && (
+                      <button
+                        className="absolute top-4 right-12 bg-black/60 hover:bg-black/80 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors backdrop-blur-sm z-10 font-medium"
+                        onClick={() => setShowVideo(true)}
+                      >
+                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                        Video
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Profile Info - Overlaying the image slightly */}
+              <div className="px-5 -mt-20 relative z-10">
+                <h4 className="text-3xl font-black text-white mb-2 drop-shadow-md">{character?.name}</h4>
+                <div className="w-full h-px bg-white/20 mb-4" />
+                <p className="text-gray-200 text-sm leading-relaxed mb-6 drop-shadow-sm font-medium">{character?.description}</p>
+
+                {/* Character Gallery */}
+                {characterId && (
+                  <div className="bg-background/80 backdrop-blur-xl rounded-2xl p-4 border border-white/5 mb-6">
+                    <h5 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Gallery</h5>
+                    <CharacterGallery
+                      characterId={characterId}
+                      onImageClick={(url) => {
+                        if (url) {
+                          setSelectedImage([url])
+                          setSelectedImagePrompt("")
+                        }
+                      }}
+                      onGalleryUpdate={fetchGallery}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {/* Debug Panel */}
       <DebugPanel
