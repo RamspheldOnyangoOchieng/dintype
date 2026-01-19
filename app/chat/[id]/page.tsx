@@ -1906,8 +1906,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Story Mode Choices */}
-        {storyProgress && !storyProgress.is_completed && currentChapter?.content?.branches && (
+        {/* Story Mode Choices (Hidden) */}
+        {/* {storyProgress && !storyProgress.is_completed && currentChapter?.content?.branches && (
           <div className="px-4 py-2 flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
             {currentChapter.content.branches.map((branch: any, idx: number) => (
               <Button
@@ -1921,7 +1921,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               </Button>
             ))}
           </div>
-        )}
+        )} */}
 
         {apiKeyError && (
           <div className="mx-4 p-3 bg-destructive/20 border border-destructive text-destructive-foreground rounded-lg text-sm">

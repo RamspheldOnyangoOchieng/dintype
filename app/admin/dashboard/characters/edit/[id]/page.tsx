@@ -22,6 +22,7 @@ import {
   Upload,
   AlertTriangle,
   BookOpen,
+  RefreshCw,
 } from "lucide-react"
 import { generateCharacterDescription, generateSystemPrompt, type GenerateCharacterParams } from "@/lib/openai"
 import Image from "next/image"
@@ -34,6 +35,22 @@ const convertFileToBase64 = (file: File): Promise<string> => {
     reader.onerror = reject
     reader.readAsDataURL(file)
   })
+}
+
+const urlToBase64 = async (url: string): Promise<string> => {
+  try {
+    const response = await fetch(url)
+    const blob = await response.blob()
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result as string)
+      reader.onerror = reject
+      reader.readAsDataURL(blob)
+    })
+  } catch (error) {
+    console.error("Error converting URL to base64:", error)
+    throw error
+  }
 }
 
 export default function EditCharacterPage() {
@@ -65,6 +82,7 @@ export default function EditCharacterPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [isRegenerating, setIsRegenerating] = useState(false)
   const [error, setError] = useState("")
   const [notFound, setNotFound] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -193,6 +211,76 @@ export default function EditCharacterPage() {
       }))
     } finally {
       setIsUploading(false)
+    }
+  }
+
+  const handleRegenerateImage = async () => {
+    setIsRegenerating(true)
+    setError("")
+
+    try {
+      let base64Image = null
+
+      // Attempt to load current image for twinning if it exists and isn't a placeholder
+      if (formData.image && !formData.image.includes("placeholder")) {
+        try {
+          base64Image = await urlToBase64(formData.image)
+        } catch (e) {
+          console.warn("Could not load current image for twinning, strictly using description.", e)
+        }
+      }
+
+      // API Call
+      const response = await fetch("/api/img2img", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: "portrait, looking at camera, high quality, photorealistic, masterpiece, 8k",
+          character: formData,
+          imageBase64: base64Image
+        }),
+      })
+
+      if (!response.ok) throw new Error("Failed to start image generation")
+      const result = await response.json()
+      const taskId = result.taskId || result.id
+
+      if (!taskId) throw new Error("No task ID returned")
+
+      // Poll for completion
+      let attempts = 0
+      const maxAttempts = 45 // 90 seconds
+
+      while (attempts < maxAttempts) {
+        await new Promise(r => setTimeout(r, 2000))
+
+        const checkRes = await fetch(`/api/check-generation?taskId=${taskId}`)
+        const checkData = await checkRes.json()
+
+        if (checkData.status === "TASK_STATUS_SUCCEED") {
+          if (checkData.images && checkData.images.length > 0) {
+            const newImageUrl = checkData.images[0]
+            setFormData(prev => ({ ...prev, image: newImageUrl }))
+            setImagePreview(newImageUrl)
+
+            // Optionally auto-upload to Cloudinary here if needed, 
+            // but for now we'll just set it. It will be saved when user clicks "Update Character".
+          }
+          break
+        } else if (checkData.status === "TASK_STATUS_FAILED") {
+          throw new Error(checkData.reason || "Image generation failed")
+        }
+
+        attempts++
+      }
+
+      if (attempts >= maxAttempts) throw new Error("Generation timed out")
+
+    } catch (err) {
+      console.error("Error regenerating image:", err)
+      setError(err instanceof Error ? err.message : "Failed to regenerate image")
+    } finally {
+      setIsRegenerating(false)
     }
   }
 
@@ -548,6 +636,19 @@ export default function EditCharacterPage() {
                             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
                           </div>
                         )}
+                      </div>
+                      <div className="flex justify-center mt-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleRegenerateImage}
+                          disabled={isRegenerating || isUploading}
+                          className="w-full max-w-[200px]"
+                        >
+                          <RefreshCw className={`mr-2 h-4 w-4 ${isRegenerating ? "animate-spin" : ""}`} />
+                          {isRegenerating ? "Twinning..." : "Regenerate Face"}
+                        </Button>
                       </div>
                     </div>
 

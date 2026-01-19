@@ -27,7 +27,8 @@ export async function GET(request: NextRequest) {
             .select('*')
             .eq('character_id', characterId)
             .order('sort_order', { ascending: true })
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false })
+            .range(0, 4999);
 
         if (galleryError) {
             console.error('Error fetching character_gallery:', galleryError);
