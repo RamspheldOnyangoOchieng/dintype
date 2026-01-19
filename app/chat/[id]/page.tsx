@@ -708,6 +708,21 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     }
   }, [loadChatHistory, isMounted])
 
+  // Auto-save session management - Enable auto-save when in chat, disable when leaving
+  useEffect(() => {
+    // Enable auto-save when entering chat
+    localStorage.setItem('chat_session_active', 'true')
+    localStorage.setItem('chat_auto_save_enabled', 'true')
+    console.log('🔵 Chat session started - Auto-save enabled')
+
+    // Cleanup: Disable auto-save when leaving chat
+    return () => {
+      localStorage.removeItem('chat_session_active')
+      localStorage.removeItem('chat_auto_save_enabled')
+      console.log('🔴 Chat session ended - Auto-save disabled')
+    }
+  }, [characterId]) // Re-enable when switching characters
+
   // Add this inside the ChatPage component function, after the other useEffect hooks:
   // Effect to log character data when it changes
   useEffect(() => {
@@ -819,6 +834,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       let useMockApi = false
 
       try {
+        // Check if auto-save is enabled for the current chat session
+        const isChatSessionActive = localStorage.getItem('chat_session_active') === 'true'
+        const autoSaveEnabled = localStorage.getItem('chat_auto_save_enabled') === 'true'
+        const shouldAutoSave = isChatSessionActive && autoSaveEnabled
+
+        console.log('💾 Auto-save check:', { isChatSessionActive, autoSaveEnabled, shouldAutoSave })
+
         // Make the API request to the real endpoint
         response = await fetch("/api/img2img", {
           method: "POST",
@@ -830,7 +852,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             negativePrompt: "bad quality, worst quality, low quality",
             imageBase64: base64Image,
             character: character,
-            autoSave: true,
+            autoSave: shouldAutoSave,
           }),
         })
 
