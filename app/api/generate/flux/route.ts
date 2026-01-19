@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
     const seed = Math.floor(Math.random() * 4294967295)
 
     const requestBody = {
+      model_name: "flux-schnell", // Explicitly set Flux model
       prompt: enhancedPrompt,
       seed: seed,
       steps: 4,
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
     const timeoutId = setTimeout(() => controller.abort(), 25000) // 25 second timeout
 
     try {
-      const response = await fetch("https://api.novita.ai/v3/async/txt2img", {
+      const response = await fetch("https://api.novita.ai/v3/txt2img", { // Use synchronous endpoint for Flux Schnell
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,

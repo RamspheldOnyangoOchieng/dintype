@@ -24,11 +24,21 @@ import {
   BookOpen,
   RefreshCw,
   Menu,
+  Loader2,
 } from "lucide-react"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
 import { generateCharacterDescription, generateSystemPrompt, type GenerateCharacterParams } from "@/lib/openai"
 import { toast } from "sonner"
 import Image from "next/image"
+import { ScrollArea } from "@/components/ui/scroll-area" // Assume scroll-area exists or use div
 
 // Add this helper function at the top of the file, outside the component
 const convertFileToBase64 = (file: File): Promise<string> => {
@@ -89,6 +99,31 @@ export default function EditCharacterPage() {
   const [error, setError] = useState("")
   const [notFound, setNotFound] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+
+  // New states for regeneration modal
+  const [isRegenModalOpen, setIsRegenModalOpen] = useState(false)
+  const [regenPrompt, setRegenPrompt] = useState("portrait, looking at camera, high quality, photorealistic, masterpiece, 8k")
+  const [suggestions, setSuggestions] = useState<Record<string, any[]>>({})
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+
+  // Fetch suggestions
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      try {
+        setLoadingSuggestions(true)
+        const res = await fetch("/api/prompts/suggestions")
+        const data = await res.json()
+        if (data.suggestions) {
+          setSuggestions(data.suggestions)
+        }
+      } catch (err) {
+        console.error("Failed to fetch suggestions:", err)
+      } finally {
+        setLoadingSuggestions(false)
+      }
+    }
+    fetchSuggestions()
+  }, [])
 
   // Load character data
   useEffect(() => {
@@ -224,9 +259,19 @@ export default function EditCharacterPage() {
     }
   }
 
-  const handleRegenerateImage = async () => {
+  const appendSuggestion = (text: string) => {
+    setRegenPrompt((prev) => {
+      if (prev.includes(text)) return prev
+      return `${prev}, ${text}`
+    })
+  }
+
+  const handleRegenerateImage = async (customPrompt?: string) => {
     setIsRegenerating(true)
     setError("")
+    setIsRegenModalOpen(false) // Close modal when starting
+
+    const finalPrompt = customPrompt || regenPrompt
 
     try {
       let base64Image = null
@@ -245,7 +290,7 @@ export default function EditCharacterPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: "portrait, looking at camera, high quality, photorealistic, masterpiece, 8k",
+          prompt: finalPrompt,
           character: formData,
           imageBase64: base64Image
         }),
@@ -273,13 +318,32 @@ export default function EditCharacterPage() {
             setFormData(prev => ({ ...prev, image: newImageUrl }))
             setImagePreview(newImageUrl)
 
-            // Auto-save the regenerated image
+            // 1. Add to Gallery and set as Primary
             try {
-              await updateCharacter(id, { image: newImageUrl })
-              toast.success("Character face regenerated and saved!")
+              const galleryRes = await fetch("/api/gallery", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  characterId: id,
+                  imageUrl: newImageUrl,
+                  isLocked: false,
+                  isNsfw: false,
+                  isPrimary: true // This will auto-update the character's main image too
+                })
+              })
+
+              if (!galleryRes.ok) throw new Error("Failed to add to gallery")
+
+              toast.success("Character face regenerated, saved to gallery, and set as primary!")
             } catch (saveErr) {
-              console.warn("Failed to auto-save regenerated image", saveErr)
-              toast.success("Image regenerated (click Update to save permanently)")
+              console.warn("Failed to save to gallery", saveErr)
+              // Fallback to updating just the character image if gallery fails
+              try {
+                await updateCharacter(id, { image: newImageUrl })
+                toast.success("Character face regenerated and saved!")
+              } catch (fallbackErr) {
+                toast.error("Image regenerated but failed to save.")
+              }
             }
           }
           break
@@ -443,472 +507,546 @@ export default function EditCharacterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#141414] text-white">
-      <div className="flex flex-col lg:flex-row h-screen overflow-hidden">
-        {/* Admin Sidebar - Desktop */}
-        <div className="hidden lg:flex w-64 bg-[#1A1A1A] border-r border-[#252525] flex-col">
-          <div className="p-4 border-b border-[#252525]">
-            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
-              Character Editor
-            </h1>
-            <p className="text-xs text-gray-400 mt-1 truncate">{formData.name || "New Character"}</p>
-          </div>
-
-          <nav className="flex-1 p-4 space-y-2">
-            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
-              Character Menu
+    <>
+      <div className="min-h-screen bg-[#141414] text-white">
+        <div className="flex flex-col lg:flex-row h-screen overflow-hidden">
+          {/* Admin Sidebar - Desktop */}
+          <div className="hidden lg:flex w-64 bg-[#1A1A1A] border-r border-[#252525] flex-col">
+            <div className="p-4 border-b border-[#252525]">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
+                Character Editor
+              </h1>
+              <p className="text-xs text-gray-400 mt-1 truncate">{formData.name || "New Character"}</p>
             </div>
 
-            <Button
-              variant="ghost"
-              className="w-full justify-start bg-[#252525] text-primary"
-              onClick={() => { }}
-            >
-              <Users className="mr-2 h-4 w-4" />
-              Profile Details
-            </Button>
+            <nav className="flex-1 p-4 space-y-2">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
+                Character Menu
+              </div>
 
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#252525]"
-              onClick={() => router.push(`/admin/dashboard/characters/${id}/storyline`)}
-            >
-              <BookOpen className="mr-2 h-4 w-4" />
-              Storyline
-            </Button>
-
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#252525]"
-              onClick={() => router.push(`/admin/dashboard/characters/${id}/images`)}
-            >
-              <ImageIcon className="mr-2 h-4 w-4" />
-              Profile Photos
-            </Button>
-
-            <div className="pt-4 mt-4 border-t border-[#252525]">
               <Button
                 variant="ghost"
-                className="w-full justify-start text-gray-400 hover:text-white"
-                onClick={() => router.push("/admin/dashboard/characters")}
+                className="w-full justify-start bg-[#252525] text-primary"
+                onClick={() => { }}
               >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to List
+                <Users className="mr-2 h-4 w-4" />
+                Profile Details
               </Button>
-            </div>
-          </nav>
 
-          <div className="p-4 border-t border-[#252525]">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">{user.username}</p>
-                <p className="text-xs text-gray-400">Administrator</p>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#252525]"
+                onClick={() => router.push(`/admin/dashboard/characters/${id}/storyline`)}
+              >
+                <BookOpen className="mr-2 h-4 w-4" />
+                Storyline
+              </Button>
+
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#252525]"
+                onClick={() => router.push(`/admin/dashboard/characters/${id}/images`)}
+              >
+                <ImageIcon className="mr-2 h-4 w-4" />
+                Profile Photos
+              </Button>
+
+              <div className="pt-4 mt-4 border-t border-[#252525]">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-gray-400 hover:text-white"
+                  onClick={() => router.push("/admin/dashboard/characters")}
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to List
+                </Button>
+              </div>
+            </nav>
+
+            <div className="p-4 border-t border-[#252525]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">{user.username}</p>
+                  <p className="text-xs text-gray-400">Administrator</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Main Content */}
-        <div className="flex-1 overflow-auto">
-          <header className="bg-[#1A1A1A] border-b border-[#252525] p-4 flex justify-between items-center sticky top-0 z-10">
-            <div className="flex items-center">
-              <div className="lg:hidden mr-2">
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Menu className="h-5 w-5" />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="w-64 p-0 bg-[#1A1A1A] border-r border-[#252525] text-white">
-                    <SheetTitle className="sr-only">Character Editor Menu</SheetTitle>
-                    <div className="p-4 border-b border-[#252525]">
-                      <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
-                        Character Editor
-                      </h1>
-                      <p className="text-xs text-gray-400 mt-1 truncate">{formData.name || "New Character"}</p>
-                    </div>
-
-                    <nav className="flex-1 p-4 space-y-2">
-                      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
-                        Character Menu
+          {/* Main Content */}
+          <div className="flex-1 overflow-auto">
+            <header className="bg-[#1A1A1A] border-b border-[#252525] p-4 flex justify-between items-center sticky top-0 z-10">
+              <div className="flex items-center">
+                <div className="lg:hidden mr-2">
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <Menu className="h-5 w-5" />
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-64 p-0 bg-[#1A1A1A] border-r border-[#252525] text-white">
+                      <SheetTitle className="sr-only">Character Editor Menu</SheetTitle>
+                      <div className="p-4 border-b border-[#252525]">
+                        <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
+                          Character Editor
+                        </h1>
+                        <p className="text-xs text-gray-400 mt-1 truncate">{formData.name || "New Character"}</p>
                       </div>
 
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start bg-[#252525] text-primary"
-                        onClick={() => { }}
-                      >
-                        <Users className="mr-2 h-4 w-4" />
-                        Profile Details
-                      </Button>
+                      <nav className="flex-1 p-4 space-y-2">
+                        <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
+                          Character Menu
+                        </div>
 
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#252525]"
-                        onClick={() => router.push(`/admin/dashboard/characters/${id}/storyline`)}
-                      >
-                        <BookOpen className="mr-2 h-4 w-4" />
-                        Storyline
-                      </Button>
-
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#252525]"
-                        onClick={() => router.push(`/admin/dashboard/characters/${id}/images`)}
-                      >
-                        <ImageIcon className="mr-2 h-4 w-4" />
-                        Profile Photos
-                      </Button>
-
-                      <div className="pt-4 mt-4 border-t border-[#252525]">
                         <Button
                           variant="ghost"
-                          className="w-full justify-start text-gray-400 hover:text-white"
-                          onClick={() => router.push("/admin/dashboard/characters")}
+                          className="w-full justify-start bg-[#252525] text-primary"
+                          onClick={() => { }}
                         >
-                          <ArrowLeft className="mr-2 h-4 w-4" />
-                          Back to List
+                          <Users className="mr-2 h-4 w-4" />
+                          Profile Details
                         </Button>
-                      </div>
-                    </nav>
-                  </SheetContent>
-                </Sheet>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="hidden sm:flex mr-2"
-                onClick={() => router.push("/admin/dashboard/characters")}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <h2 className="text-lg sm:text-xl font-bold truncate max-w-[150px] sm:max-w-none">
-                Edit: {formData.name}
-              </h2>
-            </div>
-            <Button variant="outline" size="sm" onClick={() => router.push("/")} className="ml-2">
-              <Home className="mr-2 h-4 w-4 hidden sm:block" />
-              <span className="hidden sm:inline">View Site</span>
-              <span className="sm:hidden">Site</span>
-            </Button>
-          </header>
 
-          <div className="p-4 sm:p-6">
-            <div className="bg-[#1A1A1A] rounded-xl p-4 sm:p-6 mb-6">
-              {error && (
-                <div className="mb-6 p-4 bg-red-900/20 border border-red-800 text-red-300 rounded-lg flex items-center">
-                  <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0" />
-                  <span>{error}</span>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#252525]"
+                          onClick={() => router.push(`/admin/dashboard/characters/${id}/storyline`)}
+                        >
+                          <BookOpen className="mr-2 h-4 w-4" />
+                          Storyline
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#252525]"
+                          onClick={() => router.push(`/admin/dashboard/characters/${id}/images`)}
+                        >
+                          <ImageIcon className="mr-2 h-4 w-4" />
+                          Profile Photos
+                        </Button>
+
+                        <div className="pt-4 mt-4 border-t border-[#252525]">
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start text-gray-400 hover:text-white"
+                            onClick={() => router.push("/admin/dashboard/characters")}
+                          >
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back to List
+                          </Button>
+                        </div>
+                      </nav>
+                    </SheetContent>
+                  </Sheet>
                 </div>
-              )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hidden sm:flex mr-2"
+                  onClick={() => router.push("/admin/dashboard/characters")}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <h2 className="text-lg sm:text-xl font-bold truncate max-w-[150px] sm:max-w-none">
+                  Edit: {formData.name}
+                </h2>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => router.push("/")} className="ml-2">
+                <Home className="mr-2 h-4 w-4 hidden sm:block" />
+                <span className="hidden sm:inline">View Site</span>
+                <span className="sm:hidden">Site</span>
+              </Button>
+            </header>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Basic Information */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Basic Information</h3>
+            <div className="p-4 sm:p-6">
+              <div className="bg-[#1A1A1A] rounded-xl p-4 sm:p-6 mb-6">
+                {error && (
+                  <div className="mb-6 p-4 bg-red-900/20 border border-red-800 text-red-300 rounded-lg flex items-center">
+                    <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
 
-                    <div className="space-y-2">
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-300">
-                        Name
-                      </label>
-                      <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        className="bg-[#252525] border-[#333] text-white"
-                        placeholder="Character name"
-                      />
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Basic Information */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Basic Information</h3>
+
+                      <div className="space-y-2">
+                        <label htmlFor="name" className="block text-sm font-medium text-gray-300">
+                          Name
+                        </label>
+                        <Input
+                          id="name"
+                          name="name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="Character name"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="age" className="block text-sm font-medium text-gray-300">
+                          Age
+                        </label>
+                        <Input
+                          id="age"
+                          name="age"
+                          type="number"
+                          value={formData.age.toString()}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          min="18"
+                          max="100"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="occupation" className="block text-sm font-medium text-gray-300">
+                          Occupation
+                        </label>
+                        <Input
+                          id="occupation"
+                          name="occupation"
+                          value={formData.occupation}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="Character occupation"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="personality" className="block text-sm font-medium text-gray-300">
+                          Personality
+                        </label>
+                        <Input
+                          id="personality"
+                          name="personality"
+                          value={formData.personality}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Friendly, Outgoing, Shy"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="hobbies" className="block text-sm font-medium text-gray-300">
+                          Hobbies
+                        </label>
+                        <Input
+                          id="hobbies"
+                          name="hobbies"
+                          value={formData.hobbies}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Reading, Hiking, Photography"
+                        />
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <label htmlFor="age" className="block text-sm font-medium text-gray-300">
-                        Age
-                      </label>
-                      <Input
-                        id="age"
-                        name="age"
-                        type="number"
-                        value={formData.age.toString()}
-                        onChange={handleChange}
-                        className="bg-[#252525] border-[#333] text-white"
-                        min="18"
-                        max="100"
-                      />
-                    </div>
+                    {/* Additional Details */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Additional Details</h3>
 
-                    <div className="space-y-2">
-                      <label htmlFor="occupation" className="block text-sm font-medium text-gray-300">
-                        Occupation
-                      </label>
-                      <Input
-                        id="occupation"
-                        name="occupation"
-                        value={formData.occupation}
-                        onChange={handleChange}
-                        className="bg-[#252525] border-[#333] text-white"
-                        placeholder="Character occupation"
-                      />
-                    </div>
+                      {/* Image Upload */}
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-300">Character Image</label>
+                        <div
+                          className="relative aspect-square w-full max-w-[200px] bg-[#252525] rounded-lg overflow-hidden cursor-pointer"
+                          onClick={handleImageClick}
+                        >
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                          />
+                          {imagePreview ? (
+                            <Image
+                              src={imagePreview || "/placeholder.svg"}
+                              alt="Character preview"
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="flex flex-col items-center justify-center h-full p-4">
+                              <Upload className="h-8 w-8 mb-2 text-gray-400" />
+                              <p className="text-sm text-gray-400 text-center">
+                                {isUploading ? "Uploading..." : "Click to upload image"}
+                              </p>
+                            </div>
+                          )}
+                          {isUploading && (
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex justify-center mt-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsRegenModalOpen(true)}
+                            disabled={isRegenerating || isUploading}
+                            className="w-full max-w-[200px]"
+                          >
+                            <RefreshCw className={`mr-2 h-4 w-4 ${isRegenerating ? "animate-spin" : ""}`} />
+                            {isRegenerating ? "Generating..." : "Regenerate Face"}
+                          </Button>
+                        </div>
+                      </div>
 
-                    <div className="space-y-2">
-                      <label htmlFor="personality" className="block text-sm font-medium text-gray-300">
-                        Personality
-                      </label>
-                      <Input
-                        id="personality"
-                        name="personality"
-                        value={formData.personality}
-                        onChange={handleChange}
-                        className="bg-[#252525] border-[#333] text-white"
-                        placeholder="e.g., Friendly, Outgoing, Shy"
-                      />
-                    </div>
+                      {/* Add a video upload field after the image upload section */}
+                      {/* Add this after the image upload section in the form */}
+                      <div className="space-y-2">
+                        <label htmlFor="videoUrl" className="block text-sm font-medium text-gray-300">
+                          Character Video URL (Optional)
+                        </label>
+                        <Input
+                          id="videoUrl"
+                          name="videoUrl"
+                          value={formData.videoUrl}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="https://example.com/character-video.mp4"
+                        />
+                        <p className="text-xs text-gray-400">
+                          Add a URL to a short video that will play when users hover over this character.
+                        </p>
+                      </div>
 
-                    <div className="space-y-2">
-                      <label htmlFor="hobbies" className="block text-sm font-medium text-gray-300">
-                        Hobbies
-                      </label>
-                      <Input
-                        id="hobbies"
-                        name="hobbies"
-                        value={formData.hobbies}
-                        onChange={handleChange}
-                        className="bg-[#252525] border-[#333] text-white"
-                        placeholder="e.g., Reading, Hiking, Photography"
-                      />
+                      <div className="space-y-2">
+                        <label htmlFor="body" className="block text-sm font-medium text-gray-300">
+                          Body Type
+                        </label>
+                        <Input
+                          id="body"
+                          name="body"
+                          value={formData.body}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Athletic, Slim, Average"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="ethnicity" className="block text-sm font-medium text-gray-300">
+                          Ethnicity
+                        </label>
+                        <Input
+                          id="ethnicity"
+                          name="ethnicity"
+                          value={formData.ethnicity}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="Character ethnicity"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="language" className="block text-sm font-medium text-gray-300">
+                          Language
+                        </label>
+                        <Input
+                          id="language"
+                          name="language"
+                          value={formData.language}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., English, Spanish, Mandarin"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="relationship" className="block text-sm font-medium text-gray-300">
+                          Relationship Status
+                        </label>
+                        <Input
+                          id="relationship"
+                          name="relationship"
+                          value={formData.relationship}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Single, Married, Complicated"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center">
+                          <input
+                            id="isNew"
+                            name="isNew"
+                            type="checkbox"
+                            checked={formData.isNew}
+                            onChange={(e) => setFormData((prev) => ({ ...prev, isNew: e.target.checked }))}
+                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <label htmlFor="isNew" className="ml-2 block text-sm text-gray-300">
+                            Mark as New
+                          </label>
+                        </div>
+                        <p className="text-xs text-gray-400">Characters marked as new will display a "New" badge.</p>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Additional Details */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Additional Details</h3>
+                  {/* AI Generated Content */}
+                  <div className="space-y-4 pt-4 border-t border-[#252525]">
+                    <h3 className="text-lg font-medium">AI Generated Content</h3>
 
-                    {/* Image Upload */}
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-300">Character Image</label>
-                      <div
-                        className="relative aspect-square w-full max-w-[200px] bg-[#252525] rounded-lg overflow-hidden cursor-pointer"
-                        onClick={handleImageClick}
-                      >
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          className="hidden"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                        />
-                        {imagePreview ? (
-                          <Image
-                            src={imagePreview || "/placeholder.svg"}
-                            alt="Character preview"
-                            fill
-                            className="object-cover"
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center justify-center h-full p-4">
-                            <Upload className="h-8 w-8 mb-2 text-gray-400" />
-                            <p className="text-sm text-gray-400 text-center">
-                              {isUploading ? "Uploading..." : "Click to upload image"}
-                            </p>
-                          </div>
-                        )}
-                        {isUploading && (
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex justify-center mt-2">
+                      <div className="flex justify-between items-center">
+                        <label htmlFor="description" className="block text-sm font-medium text-gray-300">
+                          Character Description
+                        </label>
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
-                          onClick={handleRegenerateImage}
-                          disabled={isRegenerating || isUploading}
-                          className="w-full max-w-[200px]"
+                          onClick={handleGenerateDescription}
+                          disabled={isGenerating}
+                          className="text-primary border-primary hover:bg-primary/10"
                         >
-                          <RefreshCw className={`mr-2 h-4 w-4 ${isRegenerating ? "animate-spin" : ""}`} />
-                          {isRegenerating ? "Twinning..." : "Regenerate Face"}
+                          <Wand2 className="mr-2 h-4 w-4" />
+                          {isGenerating ? "Generating..." : "Regenerate Description"}
                         </Button>
                       </div>
+                      <Textarea
+                        id="description"
+                        name="description"
+                        value={formData.description}
+                        onChange={handleChange}
+                        className="bg-[#252525] border-[#333] text-white min-h-[100px]"
+                        placeholder="A brief description of the character"
+                      />
                     </div>
 
-                    {/* Add a video upload field after the image upload section */}
-                    {/* Add this after the image upload section in the form */}
                     <div className="space-y-2">
-                      <label htmlFor="videoUrl" className="block text-sm font-medium text-gray-300">
-                        Character Video URL (Optional)
-                      </label>
-                      <Input
-                        id="videoUrl"
-                        name="videoUrl"
-                        value={formData.videoUrl}
+                      <div className="flex justify-between items-center">
+                        <label htmlFor="systemPrompt" className="block text-sm font-medium text-gray-300">
+                          System Prompt
+                        </label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleGenerateSystemPrompt}
+                          disabled={isGenerating}
+                          className="text-primary border-primary hover:bg-primary/10"
+                        >
+                          <Wand2 className="mr-2 h-4 w-4" />
+                          {isGenerating ? "Generating..." : "Regenerate System Prompt"}
+                        </Button>
+                      </div>
+                      <Textarea
+                        id="systemPrompt"
+                        name="systemPrompt"
+                        value={formData.systemPrompt}
                         onChange={handleChange}
-                        className="bg-[#252525] border-[#333] text-white"
-                        placeholder="https://example.com/character-video.mp4"
+                        className="bg-[#252525] border-[#333] text-white min-h-[150px]"
+                        placeholder="The system prompt that will guide the AI's responses as this character"
                       />
                       <p className="text-xs text-gray-400">
-                        Add a URL to a short video that will play when users hover over this character.
+                        This prompt will instruct the AI on how to behave and respond as this character.
                       </p>
                     </div>
-
-                    <div className="space-y-2">
-                      <label htmlFor="body" className="block text-sm font-medium text-gray-300">
-                        Body Type
-                      </label>
-                      <Input
-                        id="body"
-                        name="body"
-                        value={formData.body}
-                        onChange={handleChange}
-                        className="bg-[#252525] border-[#333] text-white"
-                        placeholder="e.g., Athletic, Slim, Average"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label htmlFor="ethnicity" className="block text-sm font-medium text-gray-300">
-                        Ethnicity
-                      </label>
-                      <Input
-                        id="ethnicity"
-                        name="ethnicity"
-                        value={formData.ethnicity}
-                        onChange={handleChange}
-                        className="bg-[#252525] border-[#333] text-white"
-                        placeholder="Character ethnicity"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label htmlFor="language" className="block text-sm font-medium text-gray-300">
-                        Language
-                      </label>
-                      <Input
-                        id="language"
-                        name="language"
-                        value={formData.language}
-                        onChange={handleChange}
-                        className="bg-[#252525] border-[#333] text-white"
-                        placeholder="e.g., English, Spanish, Mandarin"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <label htmlFor="relationship" className="block text-sm font-medium text-gray-300">
-                        Relationship Status
-                      </label>
-                      <Input
-                        id="relationship"
-                        name="relationship"
-                        value={formData.relationship}
-                        onChange={handleChange}
-                        className="bg-[#252525] border-[#333] text-white"
-                        placeholder="e.g., Single, Married, Complicated"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center">
-                        <input
-                          id="isNew"
-                          name="isNew"
-                          type="checkbox"
-                          checked={formData.isNew}
-                          onChange={(e) => setFormData((prev) => ({ ...prev, isNew: e.target.checked }))}
-                          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                        />
-                        <label htmlFor="isNew" className="ml-2 block text-sm text-gray-300">
-                          Mark as New
-                        </label>
-                      </div>
-                      <p className="text-xs text-gray-400">Characters marked as new will display a "New" badge.</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* AI Generated Content */}
-                <div className="space-y-4 pt-4 border-t border-[#252525]">
-                  <h3 className="text-lg font-medium">AI Generated Content</h3>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <label htmlFor="description" className="block text-sm font-medium text-gray-300">
-                        Character Description
-                      </label>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleGenerateDescription}
-                        disabled={isGenerating}
-                        className="text-primary border-primary hover:bg-primary/10"
-                      >
-                        <Wand2 className="mr-2 h-4 w-4" />
-                        {isGenerating ? "Generating..." : "Regenerate Description"}
-                      </Button>
-                    </div>
-                    <Textarea
-                      id="description"
-                      name="description"
-                      value={formData.description}
-                      onChange={handleChange}
-                      className="bg-[#252525] border-[#333] text-white min-h-[100px]"
-                      placeholder="A brief description of the character"
-                    />
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <label htmlFor="systemPrompt" className="block text-sm font-medium text-gray-300">
-                        System Prompt
-                      </label>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleGenerateSystemPrompt}
-                        disabled={isGenerating}
-                        className="text-primary border-primary hover:bg-primary/10"
-                      >
-                        <Wand2 className="mr-2 h-4 w-4" />
-                        {isGenerating ? "Generating..." : "Regenerate System Prompt"}
-                      </Button>
-                    </div>
-                    <Textarea
-                      id="systemPrompt"
-                      name="systemPrompt"
-                      value={formData.systemPrompt}
-                      onChange={handleChange}
-                      className="bg-[#252525] border-[#333] text-white min-h-[150px]"
-                      placeholder="The system prompt that will guide the AI's responses as this character"
-                    />
-                    <p className="text-xs text-gray-400">
-                      This prompt will instruct the AI on how to behave and respond as this character.
-                    </p>
+                  <div className="pt-4 flex justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="mr-2"
+                      onClick={() => router.push("/admin/dashboard/characters")}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isSaving}>
+                      {isSaving ? "Saving..." : "Update Character"}
+                    </Button>
                   </div>
-                </div>
-
-                <div className="pt-4 flex justify-end">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="mr-2"
-                    onClick={() => router.push("/admin/dashboard/characters")}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isSaving}>
-                    {isSaving ? "Saving..." : "Update Character"}
-                  </Button>
-                </div>
-              </form>
+                </form>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Regeneration Modal */}
+      <Dialog open={isRegenModalOpen} onOpenChange={setIsRegenModalOpen}>
+        <DialogContent className="sm:max-w-[600px] bg-[#1a1a1a] border-[#333] text-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wand2 className="h-5 w-5 text-primary" />
+              Regenerate Character Face
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-400">Current Prompt</label>
+              <Textarea
+                value={regenPrompt}
+                onChange={(e) => setRegenPrompt(e.target.value)}
+                className="bg-[#252525] border-[#333] text-white min-h-[100px]"
+                placeholder="Enter generation prompt..."
+              />
+            </div>
+
+            <ScrollArea className="h-[300px] pr-4">
+              <div className="space-y-6">
+                {Object.entries(suggestions).map(([category, items]) => (
+                  <div key={category} className="space-y-2">
+                    <h4 className="text-sm font-semibold text-primary capitalize flex items-center justify-between">
+                      {category}
+                      <span className="text-[10px] text-gray-500 font-normal">Click to add to prompt</span>
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {items.map((item: any) => (
+                        <Badge
+                          key={item.id}
+                          variant="secondary"
+                          className="bg-[#333] hover:bg-primary/20 text-gray-300 hover:text-primary cursor-pointer border-[#444] py-1 px-2 text-xs transition-colors"
+                          onClick={() => appendSuggestion(item.prompt_text)}
+                        >
+                          {item.label}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                {loadingSuggestions && (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="animate-spin h-6 w-6 text-primary" />
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="ghost"
+              onClick={() => setIsRegenModalOpen(false)}
+              className="text-gray-400 hover:text-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => handleRegenerateImage()}
+              className="bg-primary hover:bg-primary/90 text-white"
+            >
+              <Wand2 className="mr-2 h-4 w-4" />
+              Start Generation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

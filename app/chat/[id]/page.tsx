@@ -799,9 +799,6 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         return
       }
 
-      // Clear any existing interval first
-      clearImageCheckInterval()
-
       // Reset processing state
       isProcessingImageRef.current = false
       currentTaskIdRef.current = null
@@ -811,23 +808,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       // Get the character's image URL
       const characterImageUrl = character?.image || "/placeholder.svg"
 
-      // Add a loading message to the chat
-      const loadingMessage: Message = {
-        id: Math.random().toString(36).substring(2, 15),
-        role: "assistant",
-        content: `${character?.name || 'I'} is sending a photo for you. It'll be ready in a moment...`,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      }
-
-      if (isMounted) {
-        setMessages((prev) => [...prev, loadingMessage])
-        saveMessageToLocalStorage(characterId!, loadingMessage)
-      }
-
       // Convert the image to base64
       console.log("Converting image to base64:", characterImageUrl)
       const base64Image = await imageUrlToBase64(characterImageUrl)
-
       if (!base64Image) {
         throw new Error("Failed to convert image to base64")
       }
@@ -1001,6 +984,25 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
             setMessages((prev) => [...prev, imageMessage])
             saveMessageToLocalStorage(characterId!, imageMessage)
+
+            // Get a natural response from the character about the photo
+            setTimeout(async () => {
+              try {
+                const aiResponse = await sendChatMessageDB(
+                  characterId!,
+                  `[SYSTEM: You just sent a photo with this context: "${prompt}". Provide a very short, natural, flirty comment about it as your character. No asterisks.]`,
+                  character?.systemPrompt || "",
+                  user?.id || ""
+                );
+
+                if (aiResponse.success && aiResponse.message) {
+                  setMessages((prev) => [...prev, aiResponse.message!]);
+                  saveMessageToLocalStorage(characterId!, aiResponse.message!);
+                }
+              } catch (err) {
+                console.error("Failed to get natural response for photo:", err);
+              }
+            }, 1000);
 
             // Clear task ID and processing flag
             currentTaskIdRef.current = null
