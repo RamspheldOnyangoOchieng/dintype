@@ -34,6 +34,9 @@ export default function CreateCharacterPage() {
     hobbies: "",
     body: "Average",
     ethnicity: "Mixed",
+    hairColor: "Brown",
+    eyeColor: "Brown",
+    appearanceStyle: "Realistic",
     language: "English",
     relationship: "Single",
     systemPrompt: "",
@@ -128,13 +131,34 @@ export default function CreateCharacterPage() {
     }
   }
 
-  const handleUseGeneratedImage = async (imageUrl: string) => {
+  const handleUseGeneratedImage = async (
+    imageUrl: string,
+    traits?: {
+      hairColor?: string
+      eyeColor?: string
+      appearanceStyle?: string
+      bodyType?: string
+      ethnicity?: string
+    },
+  ) => {
     try {
       setIsUploading(true)
       setError("")
 
       // Set the preview immediately
       setImagePreview(imageUrl)
+
+      // Update traits if provided
+      if (traits) {
+        setFormData((prev) => ({
+          ...prev,
+          hairColor: traits.hairColor || prev.hairColor,
+          eyeColor: traits.eyeColor || prev.eyeColor,
+          appearanceStyle: traits.appearanceStyle || prev.appearanceStyle,
+          body: traits.bodyType || prev.body,
+          ethnicity: traits.ethnicity || prev.ethnicity,
+        }))
+      }
 
       // Convert the generated image URL to a file and upload it
       const response = await fetch(imageUrl)
@@ -521,6 +545,50 @@ export default function CreateCharacterPage() {
                           placeholder="Character ethnicity"
                         />
                       </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label htmlFor="hairColor" className="block text-sm font-medium text-gray-300">
+                          Hair Color
+                        </label>
+                        <Input
+                          id="hairColor"
+                          name="hairColor"
+                          value={formData.hairColor}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Brown, Blue, Blonde"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="eyeColor" className="block text-sm font-medium text-gray-300">
+                          Eye Color
+                        </label>
+                        <Input
+                          id="eyeColor"
+                          name="eyeColor"
+                          value={formData.eyeColor}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Brown, Blue, Green"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="appearanceStyle" className="block text-sm font-medium text-gray-300">
+                        Visual Style
+                      </label>
+                      <Input
+                        id="appearanceStyle"
+                        name="appearanceStyle"
+                        value={formData.appearanceStyle}
+                        onChange={handleChange}
+                        className="bg-[#252525] border-[#333] text-white"
+                        placeholder="e.g., Realistic, Anime, semi-realistic"
+                      />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

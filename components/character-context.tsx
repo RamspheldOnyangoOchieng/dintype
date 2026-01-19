@@ -326,7 +326,7 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
       // Create a FormData object for the upload
       const formData = new FormData()
       formData.append("file", base64String)
-      formData.append("upload_preset", "ai-characters-preset") // Replace with your actual preset name
+      formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default")
       formData.append("folder", "ai-characters")
 
       const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "demo"

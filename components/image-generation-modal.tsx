@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-
+import React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -18,7 +17,16 @@ import Image from "next/image"
 interface ImageGenerationModalProps {
   isOpen: boolean
   onClose: () => void
-  onImageSelect: (imageUrl: string) => void
+  onImageSelect: (
+    imageUrl: string,
+    traits?: {
+      hairColor?: string
+      eyeColor?: string
+      appearanceStyle?: string
+      bodyType?: string
+      ethnicity?: string
+    },
+  ) => void
   trigger?: React.ReactNode
 }
 
@@ -448,7 +456,13 @@ export function ImageGenerationModal({ isOpen, onClose, onImageSelect, trigger }
   }
 
   const handleUseImage = (imageUrl: string) => {
-    onImageSelect(imageUrl)
+    onImageSelect(imageUrl, {
+      hairColor,
+      eyeColor,
+      appearanceStyle: characterStyle,
+      bodyType,
+      ethnicity: skinTone,
+    })
     onClose()
     // Reset the modal state
     setGeneratedImages([])

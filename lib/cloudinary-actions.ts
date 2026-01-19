@@ -19,8 +19,8 @@ export async function uploadImageToCloudinary(
   folder = "ai-characters",
 ): Promise<CloudinaryUploadResult> {
   try {
-    const cloudName = process.env.CLOUDINARY_CLOUD_NAME || "demo"
-    const uploadPreset = "ai-characters-preset" // Replace with your actual preset name
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || "demo"
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default"
 
     // Create a FormData object for the upload
     const formData = new FormData()
@@ -87,7 +87,7 @@ export async function getPublicIdFromUrl(url: string): Promise<string> {
  */
 export async function deleteImageFromCloudinary(publicId: string): Promise<boolean> {
   try {
-    const cloudName = process.env.CLOUDINARY_CLOUD_NAME || "demo"
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || "demo"
     const apiKey = process.env.CLOUDINARY_API_KEY || ""
     const apiSecret = process.env.CLOUDINARY_API_SECRET || ""
 

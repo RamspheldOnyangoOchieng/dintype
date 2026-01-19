@@ -64,6 +64,9 @@ export default function EditCharacterPage({ params }: { params: { id: string } }
     hobbies: "",
     body: "Average",
     ethnicity: "Mixed",
+    hairColor: "Brown",
+    eyeColor: "Brown",
+    appearanceStyle: "Realistic",
     language: "English",
     relationship: "Single",
     systemPrompt: "",
@@ -92,6 +95,9 @@ export default function EditCharacterPage({ params }: { params: { id: string } }
         hobbies: character.hobbies || "",
         body: character.body || "Average",
         ethnicity: character.ethnicity || "Mixed",
+        hairColor: character.hairColor || "Brown",
+        eyeColor: character.eyeColor || "Brown",
+        appearanceStyle: character.appearanceStyle || "Realistic",
         language: character.language || "English",
         relationship: character.relationship || "Single",
         systemPrompt: character.systemPrompt || "",
@@ -165,32 +171,8 @@ export default function EditCharacterPage({ params }: { params: { id: string } }
       setIsUploading(true)
       setError("")
 
-      // Create a FormData object for the upload
-      const formData = new FormData()
-      formData.append("file", await convertFileToBase64(file))
-      formData.append("upload_preset", "ai-characters-preset") // Replace with your actual preset name
-      formData.append("folder", "ai-characters")
-
-      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "demo"
-
-      // Make a direct POST request to the Cloudinary API
-      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-        method: "POST",
-        body: formData,
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(`Cloudinary API error: ${errorData.error?.message || "Unknown error"}`)
-      }
-
-      const result = await response.json()
-
-      if (!result.secure_url) {
-        throw new Error("Failed to upload image to Cloudinary")
-      }
-
-      setFormData((prev) => ({ ...prev, image: result.secure_url }))
+      const imageUrl = await uploadImage(file)
+      setFormData((prev) => ({ ...prev, image: imageUrl }))
     } catch (err) {
       console.error("Error uploading image:", err)
       setError(formatError(err))

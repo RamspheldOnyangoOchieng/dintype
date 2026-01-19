@@ -14,6 +14,9 @@ export type Character = {
   hobbies: string
   body: string
   ethnicity: string
+  hairColor?: string
+  eyeColor?: string
+  appearanceStyle?: string
   language: string
   relationship: string
   isNew: boolean

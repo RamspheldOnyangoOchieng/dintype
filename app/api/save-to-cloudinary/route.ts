@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     // Prepare form data for Cloudinary upload
     const formData = new FormData()
     formData.append("file", new Blob([imageBuffer]))
-    formData.append("upload_preset", "ml_default")
+    formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default")
 
     // Upload to Cloudinary
     const cloudinaryResponse = await fetch(

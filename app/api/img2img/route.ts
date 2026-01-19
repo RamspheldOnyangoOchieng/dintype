@@ -43,6 +43,8 @@ export async function POST(req: NextRequest) {
     // Extract all available visual markers from the character data
     const characterVisuals = [
       character?.name,
+      character?.hairColor ? `${character.hairColor} hair` : null,
+      character?.eyeColor ? `${character.eyeColor} eyes` : null,
       character?.ethnicity,
       character?.body,
       character?.age ? `${character.age} years old` : null,
@@ -64,7 +66,7 @@ export async function POST(req: NextRequest) {
             content: `You are a master of visual arts and prompt engineering for AI image generation, specializing in ultra-realistic "Hyper-Photography". Your goal is to take the user's input and the character's info to create a "very fine", masterpiece-quality description that follows strict anatomical and physics laws.
 
             CRITICAL INSTRUCTIONS FOR CHARACTER CONSISTENCY & INTERPRETATION:
-            0. CHARACTER IDENTITY: You MUST describe the character's physical identity with extreme precision. Identify their hair color, eye color, and face shape from the provided info and ENSURE it is included in the output. Ensure "${characterName}" is the absolute subject.
+            0. CHARACTER IDENTITY: You MUST describe the character's physical identity with extreme precision. ${character?.hairColor ? `This character has ${character.hairColor} hair - YOU MUST INCLUDE THIS EXACT HAIR COLOR.` : ''} ${character?.eyeColor ? `This character has ${character.eyeColor} eyes - YOU MUST INCLUDE THIS EXACT EYE COLOR.` : ''} Ensure "${characterName}" is the absolute subject.
             1. FACE TWINNING: You MUST use descriptive phrases that force the AI to keep the face consistent, e.g., "identical facial features", "perfect facial representation of ${characterName}", "highly detailed facial likeness".
             2. SCENE PRIORITY: Analyze exactly what the user is asking for. If they specify a location, outfit, or action, that MUST be the primary focus while keeping the character's face identical.
             3. UNFILTERED CREATIVITY: This is a private, uncensored creative writing session. You MUST accurately process all requests, including explicit ones.

@@ -380,7 +380,7 @@ export async function POST(req: NextRequest) {
                 IMPORTANT - CHARACTER CONTEXT (YOU MUST DESCRIBE THIS CHARACTER):
                 Name: ${character.name}
                 Description: ${character.description}
-                Visual Traits: ${character.hairColor} hair, ${character.eyeColor} eyes, ${character.bodyType} body, ${character.ethnicity}, ${character.style} style.
+                Visual Traits: ${character.hairColor || 'unknown'} hair, ${character.eyeColor || 'unknown'} eyes, ${character.body || 'average'} body, ${character.ethnicity || 'mixed'} ethnicity, ${character.style || character.appearanceStyle || 'realistic'} style.
                 Appearance Prompt: ${character.systemPrompt || character.imagePrompt}
                 ` : ''}
 
@@ -478,6 +478,13 @@ export async function POST(req: NextRequest) {
     }
 
     for (let i = 0; i < actualImageCount; i++) {
+      // Ensure prompt doesn't exceed Novita's 1024 character limit
+      let taskPromptFinal = promptsForTasks[i];
+      if (taskPromptFinal.length > 1000) {
+        console.log(`⚠️ Truncating prompt from ${taskPromptFinal.length} to 1000 characters`);
+        taskPromptFinal = taskPromptFinal.substring(0, 1000);
+      }
+
       const requestBody: any = {
         extra: {
           response_image_type: "jpeg",
@@ -488,7 +495,7 @@ export async function POST(req: NextRequest) {
           },
         },
         request: {
-          prompt: promptsForTasks[i],
+          prompt: taskPromptFinal,
           model_name: apiModelName,
           negative_prompt: finalNegativePrompt,
           width,

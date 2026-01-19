@@ -16,7 +16,7 @@ const path = require('path');
 const NOVITA_API_KEY = process.env.NOVITA_API_KEY || 'sk_SaCwNYi5f8Q-zqa7YqSttPVMos2xxkDTcJ3rK0jiQfk';
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qfjptqdkthmejxpwbmvq.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmanB0cWRrdGhtZWp4cHdibXZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzA5NTIyMCwiZXhwIjoyMDY4NjcxMjIwfQ.wVBiVf-fmg3KAng-QN9ApxhjVkgKxj7L2aem7y1iPT4';
-const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'YOUR_CLOUD_NAME';
+const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || 'YOUR_CLOUD_NAME';
 const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || 'YOUR_API_KEY';
 const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET || 'YOUR_API_SECRET';
 
@@ -218,7 +218,7 @@ async function uploadToCloudinary(imageUrl, folder) {
     // Upload to Cloudinary
     const formData = new FormData();
     formData.append('file', imageBuffer);
-    formData.append('upload_preset', 'ml_default'); // OR your preset
+    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'ml_default');
     formData.append('folder', folder);
 
     const uploadResponse = await fetch(

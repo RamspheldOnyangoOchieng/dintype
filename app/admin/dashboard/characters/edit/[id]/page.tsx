@@ -86,6 +86,9 @@ export default function EditCharacterPage() {
     hobbies: "",
     body: "Average",
     ethnicity: "Mixed",
+    hairColor: "Brown",
+    eyeColor: "Brown",
+    appearanceStyle: "Realistic",
     language: "English",
     relationship: "Single",
     systemPrompt: "",
@@ -140,6 +143,9 @@ export default function EditCharacterPage() {
         hobbies: character.hobbies || "",
         body: character.body || "Average",
         ethnicity: character.ethnicity || "Mixed",
+        hairColor: character.hairColor || "Brown",
+        eyeColor: character.eyeColor || "Brown",
+        appearanceStyle: character.appearanceStyle || "Realistic",
         language: character.language || "English",
         relationship: character.relationship || "Single",
         systemPrompt: character.systemPrompt || "",
@@ -871,6 +877,48 @@ export default function EditCharacterPage() {
                           onChange={handleChange}
                           className="bg-[#252525] border-[#333] text-white"
                           placeholder="Character ethnicity"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="hairColor" className="block text-sm font-medium text-gray-300">
+                          Hair Color
+                        </label>
+                        <Input
+                          id="hairColor"
+                          name="hairColor"
+                          value={formData.hairColor}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Brown, Blue, Blonde"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="eyeColor" className="block text-sm font-medium text-gray-300">
+                          Eye Color
+                        </label>
+                        <Input
+                          id="eyeColor"
+                          name="eyeColor"
+                          value={formData.eyeColor}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Brown, Blue, Green"
+                        />
+                      </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <label htmlFor="appearanceStyle" className="block text-sm font-medium text-gray-300">
+                          Visual Style
+                        </label>
+                        <Input
+                          id="appearanceStyle"
+                          name="appearanceStyle"
+                          value={formData.appearanceStyle}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Realistic, Anime, semi-realistic"
                         />
                       </div>
 
