@@ -935,13 +935,30 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
           console.log("Checking image status for task:", currentTaskIdRef.current)
 
-          // Build query params with userId if available
+          // Check if auto-save is enabled for the current chat session
+          const isChatSessionActive = localStorage.getItem('chat_session_active') === 'true'
+          const autoSaveEnabled = localStorage.getItem('chat_auto_save_enabled') === 'true'
+          const shouldAutoSave = isChatSessionActive && autoSaveEnabled
+
+          // Build query params with userId, autoSave flag, and other metadata
           const queryParams = new URLSearchParams({
-            taskId: currentTaskIdRef.current
+            taskId: currentTaskIdRef.current,
+            autoSave: shouldAutoSave.toString(),
           })
+
           if (user?.id) {
             queryParams.append('userId', user.id)
           }
+
+          if (characterId) {
+            queryParams.append('characterId', characterId)
+          }
+
+          if (prompt) {
+            queryParams.append('prompt', prompt)
+          }
+
+          console.log("💾 Status check with auto-save:", shouldAutoSave)
 
           const response = await fetch(`${checkEndpoint}?${queryParams.toString()}`)
 

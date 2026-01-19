@@ -933,14 +933,28 @@ export async function POST(request: NextRequest) {
                                         await sendTelegramPhoto(chatId, imageUrl, `Here's what I made for you... do you like it? 💕`);
                                         await incrementImageUsage(linkedAccount.user_id);
 
-                                        // Save to DB
-                                        await supabase.from('generated_images').insert({
-                                            user_id: linkedAccount.user_id,
-                                            character_id: linkedAccount.character_id,
-                                            image_url: imageUrl,
-                                            prompt: enhancedPrompt,
-                                            source: 'telegram'
-                                        });
+                                        // Auto-save to database (Telegram session)
+                                        try {
+                                            console.log("💾 [Telegram] Auto-saving image for user:", linkedAccount.user_id);
+
+                                            const { error: saveError } = await supabase.from('generated_images').insert({
+                                                user_id: linkedAccount.user_id,
+                                                character_id: linkedAccount.character_id,
+                                                image_url: imageUrl,
+                                                prompt: enhancedPrompt,
+                                                source: 'telegram',
+                                                created_at: new Date().toISOString()
+                                            });
+
+                                            if (saveError) {
+                                                console.error("❌ [Telegram] Auto-save failed:", saveError);
+                                            } else {
+                                                console.log("✅ [Telegram] Image auto-saved to collection");
+                                            }
+                                        } catch (saveErr) {
+                                            console.error("❌ [Telegram] Auto-save exception:", saveErr);
+                                        }
+
                                         return NextResponse.json({ ok: true });
                                     }
                                 }

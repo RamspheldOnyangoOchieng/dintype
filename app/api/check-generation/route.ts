@@ -81,11 +81,46 @@ export async function GET(request: NextRequest) {
     const supabaseAdmin = await createAdminClient()
 
     if (allSucceeded) {
+      // Update task status
       if (supabaseAdmin) {
         await supabaseAdmin
           .from("generation_tasks")
           .update({ status: "succeeded" })
           .eq("task_id", taskId)
+      }
+
+      // Auto-save logic: Check if this generation should be auto-saved
+      const userId = searchParams.get("userId")
+      const autoSave = searchParams.get("autoSave") === "true"
+      const characterId = searchParams.get("characterId")
+      const prompt = searchParams.get("prompt")
+
+      if (autoSave && userId && supabaseAdmin && allImages.length > 0) {
+        console.log("💾 Auto-saving generated images for user:", userId)
+
+        try {
+          // Save each generated image to the database
+          const imagesToSave = allImages.map(imageUrl => ({
+            user_id: userId,
+            character_id: characterId || null,
+            image_url: imageUrl,
+            prompt: prompt || "Chat image",
+            source: "chat",
+            created_at: new Date().toISOString()
+          }))
+
+          const { error: saveError } = await supabaseAdmin
+            .from("generated_images")
+            .insert(imagesToSave)
+
+          if (saveError) {
+            console.error("❌ Auto-save failed:", saveError)
+          } else {
+            console.log("✅ Auto-saved", imagesToSave.length, "image(s) to collection")
+          }
+        } catch (saveErr) {
+          console.error("❌ Auto-save exception:", saveErr)
+        }
       }
 
       return NextResponse.json({
