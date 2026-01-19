@@ -1704,16 +1704,6 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             </div>
           </div>
           <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-2">
-            {/* Mobile Profile Trigger */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden text-muted-foreground hover:text-foreground mr-1"
-              onClick={() => setIsMobileProfileOpen(true)}
-            >
-              <User className="h-5 w-5" />
-            </Button>
-
             {/* Desktop Actions */}
             <div className="hidden sm:flex items-center gap-1 md:gap-2">
               <ClearChatDialog onConfirm={handleClearChat} isClearing={isClearingChat} />
@@ -1726,16 +1716,22 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               )}
             </div>
 
-            {/* Profile Sidebar Toggle (Desktop only) */}
+            {/* Profile Toggle */}
             <Button
               variant="ghost"
               size="icon"
               className={cn(
-                "hidden lg:flex text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation transition-colors",
-                isProfileOpen && "text-primary"
+                "flex text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation transition-colors",
+                (isProfileOpen || isMobileProfileOpen) && "text-primary"
               )}
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-              title={isProfileOpen ? "Hide Profile" : "Show Profile"}
+              onClick={() => {
+                if (window.innerWidth < 1024) {
+                  setIsMobileProfileOpen(true)
+                } else {
+                  setIsProfileOpen(!isProfileOpen)
+                }
+              }}
+              title="Profile Details"
             >
               <User className="h-5 w-5" />
             </Button>
