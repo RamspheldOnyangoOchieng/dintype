@@ -524,7 +524,10 @@ export async function POST(request: NextRequest) {
                             'deep_link'
                         );
 
-                        let welcomeMessage = `💕 <b>${character.name}</b>\n\n${charGreeting}`;
+                        // Helper to safely escape HTML
+                        const safeName = (name: string) => name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+                        let welcomeMessage = `💕 <b>${safeName(character.name)}</b>\n\n${charGreeting}`;
 
                         await sendTelegramMessage(
                             chatId,
@@ -593,7 +596,10 @@ export async function POST(request: NextRequest) {
                             'synced'
                         );
 
-                        let greetingMessage = `✨ <b>Synced!</b>\n\n${charGreeting}`;
+                        // Helper to safely escape HTML
+                        const safeName = (name: string) => name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+                        let greetingMessage = `💕 <b>${safeName(pendingLink.character_name)}</b>\n\n${charGreeting}`;
 
                         await sendTelegramMessage(
                             chatId,
@@ -641,7 +647,10 @@ export async function POST(request: NextRequest) {
                             'welcome_back'
                         );
 
-                        let welcomeBack = `💕 <b>${character.name}</b>\n\n${charGreeting}`;
+                        // Helper to safely escape HTML
+                        const safeName = (name: string) => name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+                        let welcomeBack = `💕 <b>${safeName(character.name)}</b>\n\n${charGreeting}`;
 
                         await sendTelegramMessage(
                             chatId,

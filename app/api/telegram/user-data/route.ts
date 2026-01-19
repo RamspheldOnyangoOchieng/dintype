@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase-admin';
+import { getUserPlanInfo } from '@/lib/subscription-limits';
 import crypto from 'crypto';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -57,6 +58,7 @@ export async function POST(request: NextRequest) {
         let totalLikes = 0;
         let likedCharacters: string[] = [];
         let activeCharacterId = null;
+        let isPremium = false;
 
         if (link) {
             activeCharacterId = link.character_id;
@@ -70,6 +72,10 @@ export async function POST(request: NextRequest) {
                     .maybeSingle();
 
                 if (tokenData) tokens = tokenData.balance;
+
+                // Check plan status
+                const planInfo = await getUserPlanInfo(link.user_id);
+                isPremium = planInfo.planType === 'premium';
 
                 // Fetch likes
                 const { data: likesData } = await supabase
@@ -90,7 +96,8 @@ export async function POST(request: NextRequest) {
                 tokens,
                 totalLikes,
                 likedCharacters,
-                activeCharacterId
+                activeCharacterId,
+                isPremium
             }
         });
 

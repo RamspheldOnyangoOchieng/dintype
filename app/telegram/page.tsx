@@ -43,6 +43,7 @@ export default function TelegramRootPage() {
     const [likedCharacters, setLikedCharacters] = useState<string[]>([])
     const [totalLikes, setTotalLikes] = useState(0)
     const [activeTab, setActiveTab] = useState<Tab>('home')
+    const [isPremium, setIsPremium] = useState(false)
 
     const supabase = createClient()
     const router = useRouter()
@@ -58,6 +59,7 @@ export default function TelegramRootPage() {
                 setDiamonds(parsed.diamonds || 0)
                 setTotalLikes(parsed.totalLikes || 0)
                 setLikedCharacters(parsed.likedCharacters || [])
+                setIsPremium(parsed.isPremium || false)
             } catch (e) { }
         }
 
@@ -116,18 +118,21 @@ export default function TelegramRootPage() {
                                 setLikedCharacters(data.user.likedCharacters || [])
                                 setTotalLikes(data.user.totalLikes || data.user.likedCharacters?.length || 0)
                                 setActiveCharacterId(data.user.activeCharacterId || null)
+                                setIsPremium(data.user.isPremium || false)
 
                                 localStorage.setItem('tg_user_root_cache', JSON.stringify({
                                     userName: user?.first_name || "Player",
                                     tokens: data.user.tokens,
                                     diamonds: data.user.diamonds,
                                     totalLikes: data.user.totalLikes || data.user.likedCharacters?.length || 0,
-                                    likedCharacters: data.user.likedCharacters
+                                    likedCharacters: data.user.likedCharacters,
+                                    isPremium: data.user.isPremium
                                 }))
                             }
                         }
                     }
                 }
+
             } catch (err) {
                 console.error("Error in fetchInitialData:", err)
             } finally {
@@ -462,7 +467,15 @@ export default function TelegramRootPage() {
                         </div>
                         <div>
                             <h4 className="text-xl font-black">{userName}</h4>
-                            <p className="text-white/30 text-xs font-bold uppercase tracking-widest">PocketLove Citizen</p>
+                            <div className="flex items-center gap-1">
+                                {isPremium ? (
+                                    <span className="text-amber-400 text-xs font-black uppercase tracking-widest flex items-center gap-1">
+                                        <Sparkles className="w-3 h-3" /> Premium Citizen
+                                    </span>
+                                ) : (
+                                    <p className="text-white/30 text-xs font-bold uppercase tracking-widest">PocketLove Citizen</p>
+                                )}
+                            </div>
                         </div>
                     </div>
 
