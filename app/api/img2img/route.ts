@@ -106,17 +106,24 @@ export async function POST(req: NextRequest) {
     }
 
     // Prepare request body for Novita API
-    // If we have an imageBase64, we use IP-Adapter for consistency
+    // Ensure prompts are within Novita's 1024 rune limit
+    let finalPrompt = enhancedPrompt;
+    if (finalPrompt.length > 1021) {
+      finalPrompt = finalPrompt.substring(0, 1021);
+    }
+
     const baseNegative = `deformed face, distorted face, bad anatomy, wrong proportions, extra limbs, extra arms, extra legs, extra fingers, extra toes, missing fingers, fused fingers, long fingers, short fingers, broken hands, malformed hands, twisted wrists, asymmetrical face, uneven eyes, crossed eyes, lazy eye, misaligned pupils, double pupils, melting face, warped face, collapsed jaw, broken mouth, stretched mouth, floating teeth, multiple mouths, open mouth smile, exaggerated smile, uncanny valley, fake human, artificial look, plastic skin, waxy skin, rubber skin, doll face, mannequin, cgi, 3d render, overly smooth skin, airbrushed skin, beauty filter, face retouching, perfect symmetry, hyper symmetry, oversharpened, unreal detail, hdr, overprocessed, bad lighting, harsh studio lighting, ring light, beauty light, anime, cartoon, illustration, painting, stylized, fantasy, wide angle distortion, fisheye, extreme perspective, long neck, short neck, broken neck, disproportionate body, stretched torso, tiny head, big head, unnatural shoulders, broken clavicle, incorrect hip width, warped waist, bad legs anatomy, bow legs, twisted legs, bad feet, malformed feet, missing feet, floating body parts, disconnected limbs, duplicate body parts, cloned face, low quality, blurry, jpeg artifacts, motion blur, depth of field error, wrong shadows, floating shadows, bad pose, unnatural pose, model pose, fashion pose, runway pose, professional photoshoot, nsfw anatomy error, different person, wrong character, not ${characterName}`;
     let finalNegative = negativePrompt ? `${baseNegative}, ${negativePrompt}` : baseNegative;
-    if (finalNegative.length > 1000) finalNegative = finalNegative.substring(0, 1000);
+    if (finalNegative.length > 1021) {
+      finalNegative = finalNegative.substring(0, 1021);
+    }
 
     const requestBody: any = {
       extra: {
         response_image_type: "jpeg",
       },
       request: {
-        prompt: enhancedPrompt,
+        prompt: finalPrompt,
         model_name: "epicrealism_naturalSinRC1VAE_106430.safetensors",
         negative_prompt: finalNegative,
         width: 512,

@@ -35,6 +35,13 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Failed to fetch gallery' }, { status: 500 });
         }
 
+        // Fetch the character's main profile image
+        const { data: character } = await supabaseAdmin
+            .from('characters')
+            .select('image, name')
+            .eq('id', characterId)
+            .single();
+
         // If user is logged in, check which images they've unlocked
         let unlockedImageIds: string[] = [];
         if (user) {
@@ -47,7 +54,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Process images
-        const allImages = (galleryImages || []).map(img => {
+        const galleryItems = (galleryImages || []).map(img => {
             const isUnlockedByUser = unlockedImageIds.includes(img.id);
             const isFreePreview = img.is_free_preview === true;
             const isGeneratedByUser = user && img.generated_by === user.id;
@@ -69,6 +76,29 @@ export async function GET(request: NextRequest) {
                 createdAt: img.created_at
             };
         });
+
+        // Add the main profile image to the gallery if it exists
+        const allImages = [...galleryItems];
+        if (character && character.image) {
+            // Check if it's already in the gallery by URL (optional, but good for cleanliness)
+            const isAlreadyInGallery = galleryItems.some(img => img.imageUrl === character.image);
+
+            if (!isAlreadyInGallery) {
+                allImages.unshift({
+                    id: `${characterId}_profile`,
+                    characterId: characterId,
+                    imageUrl: character.image,
+                    thumbnailUrl: character.image,
+                    isLocked: false, // Main profile image is always unlocked
+                    isNsfw: false,
+                    unlockCost: 0,
+                    isFreePreview: true,
+                    isUnlockedByUser: true,
+                    isOwnImage: true,
+                    createdAt: new Date().toISOString()
+                });
+            }
+        }
 
         // Count stats
         const totalImages = allImages.length;

@@ -46,8 +46,8 @@ export function MobileNav() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [lastScrollY])
 
-  // Don't show the mobile nav on chat pages
-  if (pathname?.startsWith("/chat")) {
+  // Don't show the mobile nav on chat pages or admin pages
+  if (pathname?.startsWith("/chat") || pathname?.startsWith("/admin")) {
     return null
   }
 

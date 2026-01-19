@@ -23,7 +23,9 @@ import {
   AlertTriangle,
   BookOpen,
   RefreshCw,
+  Menu,
 } from "lucide-react"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { generateCharacterDescription, generateSystemPrompt, type GenerateCharacterParams } from "@/lib/openai"
 import Image from "next/image"
 
@@ -422,9 +424,9 @@ export default function EditCharacterPage() {
 
   return (
     <div className="min-h-screen bg-[#141414] text-white">
-      <div className="flex h-screen">
-        {/* Admin Sidebar */}
-        <div className="w-64 bg-[#1A1A1A] border-r border-[#252525] flex flex-col">
+      <div className="flex flex-col lg:flex-row h-screen overflow-hidden">
+        {/* Admin Sidebar - Desktop */}
+        <div className="hidden lg:flex w-64 bg-[#1A1A1A] border-r border-[#252525] flex-col">
           <div className="p-4 border-b border-[#252525]">
             <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
               Character Editor
@@ -488,26 +490,91 @@ export default function EditCharacterPage() {
 
         {/* Main Content */}
         <div className="flex-1 overflow-auto">
-          <header className="bg-[#1A1A1A] border-b border-[#252525] p-4 flex justify-between items-center">
+          <header className="bg-[#1A1A1A] border-b border-[#252525] p-4 flex justify-between items-center sticky top-0 z-10">
             <div className="flex items-center">
+              <div className="lg:hidden mr-2">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <Menu className="h-5 w-5" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-64 p-0 bg-[#1A1A1A] border-r border-[#252525] text-white">
+                    <SheetTitle className="sr-only">Character Editor Menu</SheetTitle>
+                    <div className="p-4 border-b border-[#252525]">
+                      <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
+                        Character Editor
+                      </h1>
+                      <p className="text-xs text-gray-400 mt-1 truncate">{formData.name || "New Character"}</p>
+                    </div>
+
+                    <nav className="flex-1 p-4 space-y-2">
+                      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">
+                        Character Menu
+                      </div>
+
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start bg-[#252525] text-primary"
+                        onClick={() => { }}
+                      >
+                        <Users className="mr-2 h-4 w-4" />
+                        Profile Details
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#252525]"
+                        onClick={() => router.push(`/admin/dashboard/characters/${id}/storyline`)}
+                      >
+                        <BookOpen className="mr-2 h-4 w-4" />
+                        Storyline
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start text-gray-400 hover:text-white hover:bg-[#252525]"
+                        onClick={() => router.push(`/admin/dashboard/characters/${id}/images`)}
+                      >
+                        <ImageIcon className="mr-2 h-4 w-4" />
+                        Profile Photos
+                      </Button>
+
+                      <div className="pt-4 mt-4 border-t border-[#252525]">
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-gray-400 hover:text-white"
+                          onClick={() => router.push("/admin/dashboard/characters")}
+                        >
+                          <ArrowLeft className="mr-2 h-4 w-4" />
+                          Back to List
+                        </Button>
+                      </div>
+                    </nav>
+                  </SheetContent>
+                </Sheet>
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="mr-2"
+                className="hidden sm:flex mr-2"
                 onClick={() => router.push("/admin/dashboard/characters")}
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <h2 className="text-xl font-bold">Edit Character: {formData.name}</h2>
+              <h2 className="text-lg sm:text-xl font-bold truncate max-w-[150px] sm:max-w-none">
+                Edit: {formData.name}
+              </h2>
             </div>
-            <Button variant="outline" onClick={() => router.push("/")}>
-              <Home className="mr-2 h-4 w-4" />
-              View Site
+            <Button variant="outline" size="sm" onClick={() => router.push("/")} className="ml-2">
+              <Home className="mr-2 h-4 w-4 hidden sm:block" />
+              <span className="hidden sm:inline">View Site</span>
+              <span className="sm:hidden">Site</span>
             </Button>
           </header>
 
-          <div className="p-6">
-            <div className="bg-[#1A1A1A] rounded-xl p-6 mb-6">
+          <div className="p-4 sm:p-6">
+            <div className="bg-[#1A1A1A] rounded-xl p-4 sm:p-6 mb-6">
               {error && (
                 <div className="mb-6 p-4 bg-red-900/20 border border-red-800 text-red-300 rounded-lg flex items-center">
                   <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0" />
