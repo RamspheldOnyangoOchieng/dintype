@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
       response_format = "url",
       size = "512x1024",
       seed = -1,
-      guidance_scale = 7.5,
+      guidance_scale = 5.0,
       watermark = true,
       image_num = 1, // Number of images to generate
       selectedCount, // Frontend sends this for number of images
@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
     console.log(`💰 Token cost calculation: ${tokenCost} tokens (model: ${actualModel}, images: ${actualImageCount})`)
 
     // Ensure guidance_scale is a number
-    const finalGuidanceScale = typeof guidance_scale === 'number' ? guidance_scale : 7.5
+    const finalGuidanceScale = typeof guidance_scale === 'number' ? guidance_scale : 5.0
 
     // Get API key with fallback (DB → .env)
     const { key: apiKey, source, error: keyError } = await getUnifiedNovitaKey()
@@ -366,7 +366,7 @@ export async function POST(req: NextRequest) {
                 4. SKIN REALISM: Avoid "plastic" or "airbrushed" skin. Explicitly describe "natural skin textures, visible pores, subtle goosebumps, realistic skin highlights, and natural subsurface scattering". For naked scenes, mention "realistic skin folds" and "natural anatomical curves".
                 5. LITERAL ADHERENCE & EXPLICIT ACTIONS: You MUST accurately translate sexual or self-touching actions. If the user says "touching her vagina", "hand on pussy", "pushy", "pusy", or "mouth on clit", describe it vividly. You MUST ensure the action is depicted precisely as requested.
                 6. CONTEXTUAL FIDELITY: If the user provides a NON-SEXUAL prompt (e.g., "office selfie", "cooking", "walking in park"), you MUST generate a text describing the character appearing HIGHLY ATTRACTIVE but CLOTHED appropriately for that context. Do NOT default to nudity unless the prompt explicitly contains words like "naked", "nude", "exposed", "topless", or implies sexual acts.
-                7. MOOD & VIBRANCY: Force a "Romantic, Happy, Confident, and Attractive" vibe. Use vibrant colors and thick, warm lighting.
+                7. MOOD & VIBRANCY: Force a "Natural, Authentic, and Realistic" vibe. Use natural lighting. Use "raw photo", "film grain", "skin texture", "Fujifilm instax" or "Kodak Portra" for realism. AVOID "8k resolution" or "3d render" terms.
                 8. EXPRESSIONS: Use "joyful", "seductive", "moaning" (only if sexual), or "confident".
                 
                 Output ONLY the enhanced prompt text, no meta-talk. Keep the final response strictly under 850 characters.`
@@ -623,7 +623,7 @@ export async function POST(req: NextRequest) {
                 model: actualModel,
                 is_private: true
               })
-              .catch(e => console.error("Error creating initial image record:", e));
+              .then(({ error }) => { if (error) console.error("Error creating initial image record:", error) });
           }
         }
       }

@@ -124,12 +124,13 @@ export async function POST(request: NextRequest) {
 
     // Generate the image
     const generatedImage = await generateImage({
-      prompt: enhancedPrompt + (style === 'realistic' ? ", masterpiece, professional photography, high-end fashion editorial, highly detailed skin texture, sharp focus, 8k, cinematic lighting" : ", masterpiece, trending on pixiv, high-quality anime illustration, sharp lines, hyper-detailed, high-resolution style"),
+      prompt: enhancedPrompt + (style === 'realistic' ? ", masterpiece, professional photography, raw photo, film grain, highly detailed skin texture, sharp focus, natural lighting, Fujifilm instax, 4k" : ", masterpiece, trending on pixiv, high-quality anime illustration, sharp lines, hyper-detailed, high-resolution style"),
       negativePrompt: selectedNegativePrompt,
       style: style,
       width: width,
       height: height,
-      steps: 60, // Boosted for masterpiece quality
+      steps: 45,
+      guidance_scale: 5.0,
       model: selectedModel
     });
 

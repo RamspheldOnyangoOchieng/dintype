@@ -317,7 +317,7 @@ Return ONLY the improved explicit prompt, no explanations or warnings.`
               steps: 50,
               seed: -1,
               sampler_name: 'DPM++ 2M Karras',
-              guidance_scale: 7.5,
+              guidance_scale: 5.0,
             },
           }),
         });

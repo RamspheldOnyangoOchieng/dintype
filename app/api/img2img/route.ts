@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
             4. ANATOMICAL PERFECTION: Describe hands as "slender, well-defined fingers with EXACTLY 5 FINGERS PER HAND, clear and beautiful nails with elegant high-gloss polish, natural hand articulation, and visible bone structure under the skin". STERNLY AVOID: fused fingers, extra digits, or blobs. Eyes MUST have "sharp focus, detailed irises, realistic pupils, and symmetrical placement". Ensure limbs are connected naturally. Mention "sharp focus on joints and proportions".
             5. SKIN REALISM: Avoid "plastic" or "airbrushed" skin. Explicitly describe "natural skin textures, visible pores, subtle goosebumps, realistic skin highlights, and natural subsurface scattering". For naked scenes, mention "realistic skin folds" and "natural anatomical curves".
             6. LITERAL ADHERENCE & EXPLICIT ACTIONS: You MUST accurately translate sexual or self-touching actions. If the user says "touching her vagina", "hand on pussy", "pushy", "pusy", or "mouth on clit", describe it vividly as "fingers intimately resting on her wet labia" or "hand delicately cupping her exposed crotch". You MUST ensure the action is depicted precisely as requested, without any ambiguity or deviation. If the user specifies a body part, DO NOT shift the action to another part. If "hands on pussy", the hands MUST be on the pussy, NOT behind the head.
-            7. MOOD & VIBRANCY: Force a "Romantic, Happy, Sexy, and Confident" vibe. Use vibrant colors and warm cinematic lighting. Use "8k resolution", "Kodak Portra 400 aesthetic", and "Shot on 35mm lens" for realism.
+            7. MOOD & VIBRANCY: Force a "Natural, Authentic, and Realistic" vibe. Use natural lighting. Use "raw photo", "film grain", "skin texture", "Fujifilm instax" or "Kodak Portra" for realism. AVOID "8k resolution" or "3d render" terms.
             8. EXPRESSIONS: Use "joyful", "seductive", "moaning", or "confident".
             9. CONTEXT-AWARE BACKGROUNDS: Generate backgrounds that match the user's request:
                - If they mention a location (beach, park, bedroom, office), use that
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
         image_num: 1,
         steps: 40,
         seed: -1,
-        guidance_scale: 7.5,
+        guidance_scale: 5.0,
         sampler_name: "DPM++ 2M Karras",
       },
     }

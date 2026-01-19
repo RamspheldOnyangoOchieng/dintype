@@ -41,7 +41,7 @@ async function generateImageWithNovita(prompt: string, negativePrompt: string): 
                 height: 768,
                 image_num: 1,
                 sampler_name: 'DPM++ 2M Karras',
-                guidance_scale: 7,
+                guidance_scale: 5.0,
                 steps: 25,
                 seed: -1,
             },
@@ -127,9 +127,9 @@ function buildPromptFromCustomization(customization: CustomizationData): { promp
         bodyDetailsDescriptor,
     ].filter(Boolean);
 
-    let prompt = allDescriptors.join(', ') + ', high quality, detailed, centered, frontal view, beautiful lighting, 8k resolution, cinematic lighting, masterpiece, ultra-realistic, shot on 35mm lens, kodak portra 400 aesthetic, natural skin texture, sharp focus';
+    let prompt = allDescriptors.join(', ') + ', high quality, detailed, centered, frontal view, raw photo, film grain, natural lighting, highly detailed skin texture, sharp focus, Fujifilm instax, 4k, masterpiece, ultra-realistic, shot on 35mm lens, kodak portra 400 aesthetic, natural skin texture';
 
-    const baseNegative = 'ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, mutated hands, bad hands, malformed hands, poorly drawn hands, poorly drawn face, distorted eyes, asymmetrical eyes, iris distortion, bloodshot eyes, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, cross-eyed, lazy eye, bad feet, extra arms, extra legs, disjointed limbs, incorrect limb proportions, unrealistic body, unrealistic face, unnatural skin, disconnected limbs, lopsided, cloned face, glitch, double torso, bad posture, wrong perspective, overexposed, underexposed, low detail, plastic skin, unnatural skin texture, plastic clothing, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clouds, distorted bikini, missing nipples, extra nipples, fused nipples, bad anatomy genitals';
+    const baseNegative = 'deformed face, distorted face, bad anatomy, wrong proportions, extra limbs, extra arms, extra legs, extra fingers, extra toes, missing fingers, fused fingers, long fingers, short fingers, broken hands, malformed hands, twisted wrists, asymmetrical face, uneven eyes, crossed eyes, lazy eye, misaligned pupils, double pupils, melting face, warped face, collapsed jaw, broken mouth, stretched mouth, floating teeth, multiple mouths, open mouth smile, exaggerated smile, uncanny valley, fake human, artificial look, plastic skin, waxy skin, rubber skin, doll face, mannequin, cgi, 3d render, overly smooth skin, airbrushed skin, beauty filter, face retouching, perfect symmetry, hyper symmetry, oversharpened, unreal detail, hdr, overprocessed, bad lighting, harsh studio lighting, ring light, beauty light, anime, cartoon, illustration, painting, stylized, fantasy, wide angle distortion, fisheye, extreme perspective, long neck, short neck, broken neck, disproportionate body, stretched torso, tiny head, big head, unnatural shoulders, broken clavicle, incorrect hip width, warped waist, bad legs anatomy, bow legs, twisted legs, bad feet, malformed feet, missing feet, floating body parts, disconnected limbs, duplicate body parts, cloned face, low quality, blurry, jpeg artifacts, motion blur, depth of field error, wrong shadows, floating shadows, bad pose, unnatural pose, model pose, fashion pose, runway pose, professional photoshoot, nsfw anatomy error';
 
     // Length safety
     if (prompt.length > 1000) prompt = prompt.substring(0, 1000);

@@ -16,6 +16,7 @@ export interface ImageGenerationParams {
   seed?: number;
   model?: string;
   style?: 'realistic' | 'anime';
+  guidance_scale?: number;
 }
 
 export interface GeneratedImage {
@@ -44,12 +45,13 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     steps = 30,
     seed = -1,
     model = 'sd_xl_base_1.0.safetensors',
-    style = 'realistic'
+    style = 'realistic',
+    guidance_scale = 5.0
   } = params;
 
   // Enhance prompt with style-specific details
   let enhancedPrompt = style === 'realistic'
-    ? `professional portrait photography, ${prompt}, elegant, sophisticated, high fashion, studio lighting, professional makeup, tasteful, classy, high quality, detailed`
+    ? `professional portrait photography, ${prompt}, raw photo, film grain, natural lighting, highly detailed skin texture, sharp focus, Fujifilm instax, 4k`
     : `anime style, ${prompt}, beautiful anime art, detailed illustration, high quality, professional digital art, clean lines, vibrant colors`;
 
   // Truncate to 1000 characters to respect API limit of 1024
@@ -71,7 +73,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       height,
       sampler_name: 'DPM++ 2M Karras',
       steps,
-      guidance_scale: 7,
+      guidance_scale: guidance_scale,
       seed,
       batch_size: 1,
       image_num: 1,
@@ -248,11 +250,11 @@ export function buildAttributePrompt(attributes: {
   // Professional photography details for realistic style
   if (style === 'realistic') {
     parts.push('professional portrait photography');
-    parts.push('studio lighting, perfect skin texture');
+    parts.push('natural lighting, natural skin texture');
     parts.push('wearing elegant fashionable outfit');
     parts.push('upper body shot, three-quarter view');
     parts.push('professional makeup, tasteful styling');
-    parts.push('high quality, 8k resolution, sharp focus');
+    parts.push('raw photo, film grain, 4k, Fujifilm instax');
   } else {
     parts.push('professional anime illustration');
     parts.push('detailed face and eyes, clean lines');
