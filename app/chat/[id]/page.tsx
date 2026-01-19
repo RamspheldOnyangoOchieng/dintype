@@ -326,17 +326,14 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         }
       }
 
-      // 3. Fallback: Direct database fetch
+      // 3. Fallback: Direct database fetch (using our API for admin overrides)
       console.log("🔎 Character not in context, trying direct fetch...");
       try {
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from("characters")
-          .select("*")
-          .eq("id", charId)
-          .maybeSingle();
-
-        if (error) throw error;
+        const response = await fetch(`/api/characters/${charId}`)
+        if (!response.ok) {
+          throw new Error("Failed to fetch character from API")
+        }
+        const data = await response.json();
 
         // Type guard using explicit casting if needed, though with select('*') and schema it should be fine.
         const typedData = data as any;

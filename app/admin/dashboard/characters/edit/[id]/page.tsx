@@ -315,10 +315,31 @@ export default function EditCharacterPage() {
         if (checkData.status === "TASK_STATUS_SUCCEED") {
           if (checkData.images && checkData.images.length > 0) {
             const newImageUrl = checkData.images[0]
-            setFormData(prev => ({ ...prev, image: newImageUrl }))
-            setImagePreview(newImageUrl)
+            // 0. Ensure ORIGINAL image is in gallery if it's not already there
+            try {
+              const currentGalleryRes = await fetch(`/api/gallery?characterId=${id}`)
+              const currentGalleryData = await currentGalleryRes.json()
+              const isAlreadyInGallery = currentGalleryData.images?.some((img: any) => img.imageUrl === formData.image)
 
-            // 1. Add to Gallery and set as Primary
+              if (!isAlreadyInGallery && formData.image && !formData.image.includes("placeholder")) {
+                console.log("Saving original image to gallery before replacement...")
+                await fetch("/api/gallery", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    characterId: id,
+                    imageUrl: formData.image,
+                    isLocked: false,
+                    isNsfw: false,
+                    isPrimary: false
+                  })
+                })
+              }
+            } catch (err) {
+              console.warn("Failed to save original image to gallery", err)
+            }
+
+            // 1. Add NEW image to Gallery and set as Primary
             try {
               const galleryRes = await fetch("/api/gallery", {
                 method: "POST",
@@ -328,16 +349,22 @@ export default function EditCharacterPage() {
                   imageUrl: newImageUrl,
                   isLocked: false,
                   isNsfw: false,
-                  isPrimary: true // This will auto-update the character's main image too
+                  isPrimary: true
                 })
               })
 
               if (!galleryRes.ok) throw new Error("Failed to add to gallery")
 
+              // 2. EXPLICITLY update the character record in database and context
+              await updateCharacter(id, { image: newImageUrl })
+
+              setFormData(prev => ({ ...prev, image: newImageUrl }))
+              setImagePreview(newImageUrl)
+
               toast.success("Character face regenerated, saved to gallery, and set as primary!")
             } catch (saveErr) {
-              console.warn("Failed to save to gallery", saveErr)
-              // Fallback to updating just the character image if gallery fails
+              console.warn("Failed to save to gallery or update character", saveErr)
+              // Fallback
               try {
                 await updateCharacter(id, { image: newImageUrl })
                 toast.success("Character face regenerated and saved!")
@@ -779,9 +806,9 @@ export default function EditCharacterPage() {
                               </p>
                             </div>
                           )}
-                          {isUploading && (
-                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
+                          {(isUploading || isRegenerating) && (
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-20">
+                              <Loader2 className="animate-spin h-8 w-8 text-white" />
                             </div>
                           )}
                         </div>

@@ -120,26 +120,14 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
     setup()
   }, [])
 
-  // Fetch characters from Supabase
+  // Fetch characters using our internal API (which handles admin overrides)
   async function fetchCharacters() {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-
-      let query = supabase.from("characters").select("*")
-
-      // If not logged in, only fetch public characters
-      if (!session) {
-        query = query.eq('is_public', true)
-      } else {
-        // If logged in, we let RLS handle it (Public + User's own)
-        // or we could be explicit: .or(`is_public.eq.true,user_id.eq.${session.user.id}`)
+      const response = await fetch("/api/characters")
+      if (!response.ok) {
+        throw new Error("Failed to fetch characters from API")
       }
-
-      const { data, error: supabaseError } = await query.order("created_at", { ascending: false })
-
-      if (supabaseError) {
-        throw supabaseError
-      }
+      const data = await response.json()
 
       console.log("Raw Supabase data:", JSON.stringify(data, null, 2))
 
@@ -169,11 +157,11 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
             const path = imgCandidate.startsWith('characters/') ? imgCandidate : `characters/${imgCandidate}`
 
             try {
-              const { data: publicUrlData, error: pubErr } = await supabase.storage
+              const { data: publicUrlData } = supabase.storage
                 .from('images')
                 .getPublicUrl(path)
 
-              if (!pubErr && publicUrlData && publicUrlData.publicUrl) {
+              if (publicUrlData && publicUrlData.publicUrl) {
                 c.image = publicUrlData.publicUrl
                 return c
               }
@@ -263,7 +251,7 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
       // Convert camelCase to snake_case
       const snakeCaseData = camelToSnake(newCharacter)
 
-      const { data, error: supabaseError } = await supabase.from("characters").insert([snakeCaseData]).select().single()
+      const { data, error: supabaseError } = await (supabase as any).from("characters").insert([snakeCaseData]).select().single()
 
       if (supabaseError) {
         throw supabaseError
@@ -288,7 +276,7 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
       // Convert camelCase to snake_case
       const snakeCaseData = camelToSnake(characterData)
 
-      const { data, error: supabaseError } = await supabase
+      const { data, error: supabaseError } = await (supabase as any)
         .from("characters")
         .update(snakeCaseData)
         .eq("id", id)

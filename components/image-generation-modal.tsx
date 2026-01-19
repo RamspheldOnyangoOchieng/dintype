@@ -6,7 +6,7 @@ import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Slider } from "@/components/ui/slider"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
@@ -546,8 +546,8 @@ export function ImageGenerationModal({ isOpen, onClose, onImageSelect, trigger }
                         <div
                           key={lora.value}
                           className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${selectedLora === lora.value
-                              ? "border-primary bg-primary/10"
-                              : "border-[#333] hover:border-[#555] bg-[#1A1A1A]"
+                            ? "border-primary bg-primary/10"
+                            : "border-[#333] hover:border-[#555] bg-[#1A1A1A]"
                             }`}
                           onClick={() => setSelectedLora(lora.value)}
                         >
