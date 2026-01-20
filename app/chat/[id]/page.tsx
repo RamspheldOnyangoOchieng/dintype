@@ -899,7 +899,52 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
       if (!isMounted) return
 
-      // Store the task ID
+      // Check if images were returned directly (Seedream sync success) - skip polling
+      if (responseData.images && responseData.images.length > 0 && responseData.status === "TASK_STATUS_SUCCEED") {
+        console.log("✅ Images returned directly, skipping polling")
+        setGeneratedImageUrl(responseData.images)
+        setIsGeneratingImage(false)
+
+        // Add the generated image to the chat
+        const imageMessage: Message = {
+          id: Math.random().toString(36).substring(2, 15),
+          role: "assistant",
+          content: ".",
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          isImage: true,
+          imageUrl: responseData.images,
+          imagePrompt: prompt,
+        }
+
+        setMessages((prev) => [...prev, imageMessage])
+        saveMessageToLocalStorage(characterId!, imageMessage)
+
+        // Get a natural response from the character about the photo
+        setTimeout(async () => {
+          try {
+            const aiResponse = await sendChatMessageDB(
+              characterId!,
+              `[SYSTEM: You just sent a photo with this context: "${prompt}". Provide a very short, natural, and deeply romantic expression about it as your character. Show your love and connection. No asterisks.]`,
+              character?.systemPrompt || "",
+              user?.id || "",
+              true
+            );
+
+            if (aiResponse.success && aiResponse.message) {
+              setMessages((prev) => [...prev, aiResponse.message!]);
+              saveMessageToLocalStorage(characterId!, aiResponse.message!);
+            }
+          } catch (err) {
+            console.error("Failed to get natural response for photo:", err);
+          }
+        }, 1000);
+
+        currentTaskIdRef.current = null
+        isProcessingImageRef.current = false
+        return
+      }
+
+      // Store the task ID for polling
       const newTaskId = responseData.taskId
       currentTaskIdRef.current = newTaskId
       console.log("Image generation started with task ID:", newTaskId)

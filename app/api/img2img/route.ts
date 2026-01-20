@@ -98,6 +98,12 @@ export async function POST(req: NextRequest) {
       const batchId = Math.random().toString(36).substring(2, 15);
       const taskId = `seedream_${batchId}`;
 
+      // Normalize the image URL
+      let imageUrl = result.url;
+      if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
+        imageUrl = `data:image/jpeg;base64,${imageUrl}`;
+      }
+
       // Persist to DB immediately so polling can find it
       const supabaseAdmin = await createAdminClient();
       if (supabaseAdmin) {
@@ -105,7 +111,7 @@ export async function POST(req: NextRequest) {
           user_id: character?.userId || character?.user_id || null,
           character_id: character?.id && !character.id.startsWith("custom-") ? character.id : null,
           prompt: prompt,
-          image_url: result.url,
+          image_url: imageUrl,
           status: 'completed',
           task_id: taskId,
           model: 'seedream-4.5',
@@ -113,7 +119,12 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      return NextResponse.json({ taskId, status: "TASK_STATUS_SUCCEED" });
+      // Return both taskId AND images so frontend can use immediately without polling
+      return NextResponse.json({
+        taskId,
+        status: "TASK_STATUS_SUCCEED",
+        images: [imageUrl]
+      });
     }
 
     return NextResponse.json({ error: "Failed to generate image" }, { status: 500 });
