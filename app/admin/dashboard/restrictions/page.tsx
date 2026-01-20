@@ -33,7 +33,7 @@ export default function RestrictionsPage() {
     try {
       const response = await fetch('/api/admin/get-restrictions')
       const data = await response.json()
-      
+
       if (data.success) {
         setFreeRestrictions(data.free || [])
         setPremiumRestrictions(data.premium || [])
@@ -109,7 +109,7 @@ export default function RestrictionsPage() {
   // Remove restriction locally
   const removeRestriction = (planType: 'free' | 'premium', key: string) => {
     if (!confirm(`Remove ${key} from ${planType} plan locally? (Must save to apply)`)) return
-    
+
     if (planType === 'free') {
       setFreeRestrictions(prev => prev.filter(r => r.restriction_key !== key))
     } else {
@@ -231,9 +231,9 @@ export default function RestrictionsPage() {
             </Button>
           )}
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           className="text-red-500 mt-2"
           onClick={() => removeRestriction(planType, restriction_key)}
         >
@@ -296,7 +296,7 @@ export default function RestrictionsPage() {
               <CardHeader>
                 <CardTitle>Free Plan Restrictions</CardTitle>
                 <CardDescription>
-                  Configure limits and features for free tier users (0 SEK / 0 EUR)
+                  Configure limits and features for free tier users ($0)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -311,8 +311,8 @@ export default function RestrictionsPage() {
                     </div>
                   ))
                 )}
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full border-dashed"
                   onClick={() => addRestriction('free')}
                 >
@@ -328,7 +328,7 @@ export default function RestrictionsPage() {
               <CardHeader>
                 <CardTitle>Premium Plan Restrictions</CardTitle>
                 <CardDescription>
-                  Configure limits and features for premium users (119 SEK/mo or €11/mo)
+                  Configure limits and features for premium users ($9.99/mo)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -343,8 +343,8 @@ export default function RestrictionsPage() {
                     </div>
                   ))
                 )}
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full border-dashed"
                   onClick={() => addRestriction('premium')}
                 >

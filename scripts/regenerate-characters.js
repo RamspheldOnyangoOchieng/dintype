@@ -12,9 +12,16 @@
 // Fix for Node.js fetch SSL issues
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const NOVITA_API_KEY = process.env.NOVITA_API_KEY || 'sk_SaCwNYi5f8Q-zqa7YqSttPVMos2xxkDTcJ3rK0jiQfk';
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qfjptqdkthmejxpwbmvq.supabase.co';
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmanB0cWRrdGhtZWp4cHdibXZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzA5NTIyMCwiZXhwIjoyMDY4NjcxMjIwfQ.wVBiVf-fmg3KAng-QN9ApxhjVkgKxj7L2aem7y1iPT4';
+require('dotenv').config();
+
+const NOVITA_API_KEY = process.env.NOVITA_API_KEY;
+if (!NOVITA_API_KEY) throw new Error('Missing NOVITA_API_KEY in .env');
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+if (!SUPABASE_URL) throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL in .env');
+
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!SUPABASE_SERVICE_KEY) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY in .env');
 
 // Sample characters to regenerate (similar to those in your screenshots)
 const SAMPLE_CHARACTERS = [
@@ -148,33 +155,33 @@ function buildImagePrompt(character) {
   if (character.style === 'animated') {
     return `3d animation style, ${character.age} year old ${character.ethnicity} woman, ${character.hairColor} hair, ${character.eyeColor} eyes, ${character.bodyType} body, beautiful animated character, smooth 3d rendering, pixar style, disney style, high quality 3d art, professional animation, expressive face, detailed features`;
   }
-  
+
   // For realistic style - with professional/lifestyle context
   const contextualPrompts = {
     'Lawyer': `professional headshot, ${character.age} year old ${character.ethnicity} ${character.occupation.toLowerCase()}, ${character.hairColor} hair, ${character.eyeColor} eyes, ${character.bodyType} build, wearing business suit, office background, professional lighting, confident expression, law office setting, sophisticated style, natural professional photography`,
-    
+
     'Fashion Blogger': `lifestyle photography, ${character.age} year old ${character.ethnicity} fashion influencer, ${character.hairColor} hair, ${character.eyeColor} eyes, ${character.bodyType} body type, stylish trendy outfit, fashionable setting, studio or urban background, confident pose, professional fashion photography, editorial style`,
-    
+
     'Real Estate Agent': `professional portrait, ${character.age} year old ${character.ethnicity} ${character.occupation.toLowerCase()}, ${character.hairColor} hair, ${character.eyeColor} eyes, ${character.bodyType} figure, business casual attire, modern office or property background, friendly professional demeanor, real estate industry style`,
-    
+
     'Club Dancer': `performance photography, ${character.age} year old ${character.ethnicity} professional dancer, ${character.hairColor} hair, ${character.eyeColor} eyes, ${character.bodyType} physique, elegant dance attire, stage or studio setting, graceful pose, artistic lighting, professional dance photography`,
-    
+
     'Nurse': `healthcare professional portrait, ${character.age} year old ${character.ethnicity} nurse, ${character.hairColor} hair, ${character.eyeColor} eyes, ${character.bodyType} build, medical scrubs or professional attire, hospital or clinical background, caring warm expression, medical professional photography`,
-    
+
     'Gaming Sensation': `streamer portrait, ${character.age} year old ${character.ethnicity} gaming content creator, ${character.hairColor} hair, ${character.eyeColor} eyes, ${character.bodyType} frame, casual gaming setup background, RGB lighting, friendly approachable look, modern streaming environment, professional gaming photography`,
-    
+
     'Model': `fashion portrait, ${character.age} year old ${character.ethnicity} professional model, ${character.hairColor} hair, ${character.eyeColor} eyes, ${character.bodyType} figure, elegant pose, studio lighting, high-end fashion photography, sophisticated glamorous style`,
-    
+
     'Artist': `creative portrait, ${character.age} year old ${character.ethnicity} artist, ${character.hairColor} hair, ${character.eyeColor} eyes, ${character.bodyType} build, artistic studio background, creative aesthetic, natural artistic lighting, professional photography`,
-    
+
     'University Student': `lifestyle portrait, ${character.age} year old ${character.ethnicity} college student, ${character.hairColor} hair, ${character.eyeColor} eyes, ${character.bodyType} figure, casual student style, campus or casual background, youthful energetic vibe, natural candid photography`,
-    
+
     'Tennis Enthusiast': `sports portrait, ${character.age} year old ${character.ethnicity} tennis player, ${character.hairColor} hair, ${character.eyeColor} eyes, ${character.bodyType} athletic build, tennis court or sports facility background, athletic wear, active lifestyle photography, outdoor natural lighting`
   };
-  
-  const prompt = contextualPrompts[character.occupation] || 
+
+  const prompt = contextualPrompts[character.occupation] ||
     `professional portrait, ${character.age} year old ${character.ethnicity} woman, ${character.hairColor} hair, ${character.eyeColor} eyes, ${character.bodyType} body type, natural beauty, professional photography`;
-  
+
   return `${prompt}, high quality, realistic, photorealistic, detailed, sharp focus, professional lighting, 8k`;
 }
 
@@ -192,17 +199,17 @@ Speak naturally and stay in character. Be engaging, warm, and authentic in your 
 // Generate image using Novita AI
 async function generateImage(prompt, style) {
   console.log(`  🎨 Generating ${style} image with prompt: "${prompt.substring(0, 80)}..."`);
-  
+
   // Stronger negative prompts to avoid AI-looking images
-  const negativePrompt = style === 'animated' 
+  const negativePrompt = style === 'animated'
     ? 'man, male, boy, men, masculine, multiple people, group, blurry, low quality, distorted, deformed, ugly, bad anatomy, watermark, text, realistic, photorealistic'
     : 'man, male, boy, men, masculine, multiple people, group, blurry, low quality, distorted, deformed, ugly, bad anatomy, watermark, text, logo, signature, cartoon, anime, 3d render, illustration, drawing, painting, plain background, generic studio photo, passport photo, mugshot, amateur photo';
-  
+
   // Use better model for realistic images
   const modelName = style === 'animated'
     ? 'sd_xl_base_1.0.safetensors'  // For animated 3D style
     : 'dreamshaper_8_93211.safetensors';  // Better for realistic women
-  
+
   const response = await fetch('https://api.novita.ai/v3/async/txt2img', {
     method: 'POST',
     headers: {
@@ -210,7 +217,7 @@ async function generateImage(prompt, style) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      extra: { 
+      extra: {
         response_image_type: 'jpeg',
         enable_nsfw_detection: false
       },
@@ -242,27 +249,27 @@ async function generateImage(prompt, style) {
   let attempts = 0;
   while (attempts < 60) {
     await new Promise(r => setTimeout(r, 3000));
-    
+
     const progress = await fetch(`https://api.novita.ai/v3/async/task-result?task_id=${taskId}`, {
       headers: { 'Authorization': `Bearer ${NOVITA_API_KEY}` }
     });
-    
+
     if (!progress.ok) {
       attempts++;
       continue;
     }
-    
+
     const pd = await progress.json();
-    
+
     if (pd.task?.status === 'TASK_STATUS_SUCCEED') {
       console.log(`  ✅ Image generated successfully`);
       return pd.images[0].image_url;
     }
-    
+
     if (pd.task?.status === 'TASK_STATUS_FAILED') {
       throw new Error('Image generation failed');
     }
-    
+
     attempts++;
   }
 
@@ -272,9 +279,9 @@ async function generateImage(prompt, style) {
 // Save character to database (with retry logic)
 async function saveCharacter(character, imageUrl) {
   console.log(`  💾 Saving ${character.name} to database...`);
-  
+
   const systemPrompt = buildSystemPrompt(character);
-  
+
   const payload = {
     name: character.name,
     age: character.age,
@@ -288,7 +295,7 @@ async function saveCharacter(character, imageUrl) {
     is_public: true,
     is_new: true
   };
-  
+
   // Retry up to 3 times
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
@@ -311,7 +318,7 @@ async function saveCharacter(character, imageUrl) {
       const data = await response.json();
       console.log(`  ✅ Saved to database with ID: ${data[0]?.id}`);
       return data[0];
-      
+
     } catch (error) {
       if (attempt < 3) {
         console.log(`  ⚠️  Attempt ${attempt} failed, retrying in 2 seconds...`);
@@ -329,42 +336,42 @@ async function regenerateCharacters() {
   console.log(`📊 Characters to generate: ${SAMPLE_CHARACTERS.length}\n`);
   console.log(`⏱️  Estimated time: ${Math.ceil(SAMPLE_CHARACTERS.length * 30 / 60)} minutes\n`);
   console.log('='.repeat(70) + '\n');
-  
+
   const results = {
     success: [],
     failed: []
   };
-  
+
   for (let i = 0; i < SAMPLE_CHARACTERS.length; i++) {
     const character = SAMPLE_CHARACTERS[i];
     console.log(`\n[${i + 1}/${SAMPLE_CHARACTERS.length}] Generating: ${character.name}`);
     console.log('─'.repeat(70));
-    
+
     try {
       // Build prompt
       const prompt = buildImagePrompt(character);
-      
+
       // Generate image (pass style)
       const imageUrl = await generateImage(prompt, character.style);
-      
+
       // Save to database
       const saved = await saveCharacter(character, imageUrl);
-      
+
       results.success.push({
         name: character.name,
         id: saved.id,
         image_url: saved.image_url,
         style: character.style
       });
-      
+
       console.log(`  ✅ ${character.name} (${character.style}) complete!\n`);
-      
+
       // Small delay between characters
       if (i < SAMPLE_CHARACTERS.length - 1) {
         console.log('  ⏸️  Waiting 2 seconds before next character...\n');
         await new Promise(r => setTimeout(r, 2000));
       }
-      
+
     } catch (error) {
       console.error(`  ❌ Failed to generate ${character.name}: ${error.message}\n`);
       results.failed.push({
@@ -373,14 +380,14 @@ async function regenerateCharacters() {
       });
     }
   }
-  
+
   // Print summary
   console.log('\n' + '='.repeat(70));
   console.log('🎉 REGENERATION COMPLETE!');
   console.log('='.repeat(70));
   console.log(`✅ Successfully generated: ${results.success.length}/${SAMPLE_CHARACTERS.length}`);
   console.log(`❌ Failed: ${results.failed.length}/${SAMPLE_CHARACTERS.length}\n`);
-  
+
   if (results.success.length > 0) {
     console.log('✨ Successfully generated characters:');
     results.success.forEach(char => {
@@ -388,14 +395,14 @@ async function regenerateCharacters() {
       console.log(`     Image: ${char.image_url}`);
     });
   }
-  
+
   if (results.failed.length > 0) {
     console.log('\n⚠️  Failed characters:');
     results.failed.forEach(char => {
       console.log(`   - ${char.name}: ${char.error}`);
     });
   }
-  
+
   console.log('\n✅ All done! Characters are now available in your database.\n');
 }
 

@@ -3,12 +3,17 @@
 // Same SSL fix as main script
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const SUPABASE_URL = 'https://qfjptqdkthmejxpwbmvq.supabase.co';
-const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmanB0cWRrdGhtZWp4cHdibXZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzA5NTIyMCwiZXhwIjoyMDY4NjcxMjIwfQ.wVBiVf-fmg3KAng-QN9ApxhjVkgKxj7L2aem7y1iPT4';
+require('dotenv').config();
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+if (!SUPABASE_URL) throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL in .env');
+
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!SUPABASE_SERVICE_KEY) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY in .env');
 
 async function test() {
   console.log('Testing Supabase API connection...\n');
-  
+
   try {
     const response = await fetch(`${SUPABASE_URL}/rest/v1/characters?limit=1`, {
       headers: {
@@ -16,10 +21,10 @@ async function test() {
         'apikey': SUPABASE_SERVICE_KEY,
       }
     });
-    
+
     console.log('Response status:', response.status);
     console.log('Response OK:', response.ok);
-    
+
     if (response.ok) {
       const data = await response.json();
       console.log('\n✅ SUCCESS! Connected to Supabase');

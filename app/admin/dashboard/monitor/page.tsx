@@ -7,6 +7,12 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { AlertTriangle, TrendingUp, DollarSign, MessageSquare, Image, Users } from 'lucide-react'
 
+interface CurrencyConfig {
+  code: string
+  symbol: string
+  rate: number
+}
+
 interface BudgetStatus {
   allowed: boolean
   current: {
@@ -14,6 +20,7 @@ interface BudgetStatus {
     images: number
     characters: number
     apiCost: number
+    apiCostUSD?: number
     tokenRevenue: number
   }
   limits: {
@@ -21,6 +28,7 @@ interface BudgetStatus {
     messages: number
     images: number
   }
+  currency?: CurrencyConfig
   percentUsed: {
     cost: number
     messages: number
@@ -74,7 +82,7 @@ export default function CostMonitorPage() {
 
   useEffect(() => {
     fetchData()
-    
+
     // Auto-refresh every 10 seconds
     const interval = setInterval(fetchData, 10000)
     return () => clearInterval(interval)
@@ -104,8 +112,16 @@ export default function CostMonitorPage() {
   }
 
   const { budget, projection } = data
+  const currency = budget.currency || { code: 'USD', symbol: '$', rate: 1.0 }
+
+  // Helper to format money based on currency config
+  const formatMoney = (amountInUSD: number) => {
+    const val = amountInUSD * currency.rate
+    return `${val.toFixed(2)} ${currency.symbol}`
+  }
+
   const profit = budget.current.tokenRevenue - budget.current.apiCost
-  const profitMargin = budget.current.tokenRevenue > 0 
+  const profitMargin = budget.current.tokenRevenue > 0
     ? ((profit / budget.current.tokenRevenue) * 100).toFixed(1)
     : '0'
 
@@ -115,7 +131,7 @@ export default function CostMonitorPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Real-Time Cost Monitor</h1>
         <p className="text-muted-foreground">
-          Live API usage tracking and budget enforcement
+          Live API usage tracking and budget enforcement ({currency.code})
         </p>
         <p className="text-xs text-muted-foreground mt-1">
           Last updated: {new Date(data.timestamp).toLocaleString()}
@@ -144,8 +160,8 @@ export default function CostMonitorPage() {
           <TrendingUp className="h-4 w-4" />
           <AlertTitle>Budget Projection Warning</AlertTitle>
           <AlertDescription>
-            At current usage rate, you'll spend ${projection.projected.toFixed(2)} this month
-            (limit: ${budget.limits.apiCost}). Consider reducing usage or increasing budget.
+            At current usage rate, you'll spend {formatMoney(projection.projected)} this month
+            (limit: {formatMoney(budget.limits.apiCost)}). Consider reducing usage or increasing budget.
           </AlertDescription>
         </Alert>
       )}
@@ -159,10 +175,10 @@ export default function CostMonitorPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {budget.current.apiCost.toFixed(2)} kr
+              {formatMoney(budget.current.apiCost)}
             </div>
             <p className="text-xs text-muted-foreground">
-              of {budget.limits.apiCost} kr limit
+              of {formatMoney(budget.limits.apiCost)} limit
             </p>
             <Progress value={budget.percentUsed.cost} className="mt-2" />
             <p className="text-xs text-muted-foreground mt-1">
@@ -178,10 +194,10 @@ export default function CostMonitorPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {budget.current.tokenRevenue.toFixed(2)} kr
+              {formatMoney(budget.current.tokenRevenue)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Profit: {profit.toFixed(2)} kr ({profitMargin}%)
+              Profit: {formatMoney(profit)} ({profitMargin}%)
             </p>
             <Badge variant="outline" className="mt-2">
               {(budget.current.tokenRevenue / budget.current.apiCost).toFixed(1)}x ROI
@@ -240,28 +256,28 @@ export default function CostMonitorPage() {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Current Spend:</span>
-              <span className="text-xl font-bold">{projection.currentCost.toFixed(2)} kr</span>
+              <span className="text-xl font-bold">{formatMoney(projection.currentCost)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Projected End of Month:</span>
               <span className={`text-xl font-bold ${projection.onTrackToExceed ? 'text-red-600' : 'text-green-600'}`}>
-                {projection.projected.toFixed(2)} kr
+                {formatMoney(projection.projected)}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Daily Average:</span>
               <span className="text-sm text-muted-foreground">
-                {(projection.currentCost / projection.daysElapsed).toFixed(2)} kr/day
+                {formatMoney(projection.currentCost / projection.daysElapsed)}/day
               </span>
             </div>
             {projection.onTrackToExceed && (
               <Badge variant="destructive" className="w-full justify-center">
-                On track to exceed budget by {(projection.projected - budget.limits.apiCost).toFixed(2)} kr
+                On track to exceed budget by {formatMoney(projection.projected - budget.limits.apiCost)}
               </Badge>
             )}
             {!projection.onTrackToExceed && (
               <Badge variant="outline" className="w-full justify-center bg-green-50">
-                Within budget - {(budget.limits.apiCost - projection.projected).toFixed(2)} kr buffer remaining
+                Within budget - {formatMoney(budget.limits.apiCost - projection.projected)} buffer remaining
               </Badge>
             )}
           </div>
@@ -315,12 +331,14 @@ export default function CostMonitorPage() {
 
             <div className="flex justify-between items-center pt-2 border-t-2">
               <span className="font-bold">Total API Cost</span>
-              <span className="text-xl font-bold">{budget.current.apiCost.toFixed(2)} kr</span>
+              <span className="text-xl font-bold">{formatMoney(budget.current.apiCost)}</span>
             </div>
-            <div className="flex justify-between items-center text-xs text-muted-foreground">
-              <span>USD equivalent:</span>
-              <span>${budget.current.apiCostUSD?.toFixed(2) || '0.00'}</span>
-            </div>
+            {currency.code !== 'USD' && (
+              <div className="flex justify-between items-center text-xs text-muted-foreground">
+                <span>USD equivalent:</span>
+                <span>${budget.current.apiCostUSD?.toFixed(2) || budget.current.apiCost.toFixed(2)}</span>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

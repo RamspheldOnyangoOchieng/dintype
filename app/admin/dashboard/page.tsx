@@ -150,6 +150,33 @@ export default function AdminDashboardPage() {
         // Silently fail for budget limits to avoid console noise
         // console.warn("Failed to fetch budget limits")
       }
+      setMonthlyPrice(settings.pricing.monthly.price.toString())
+      setMonthlyOriginalPrice(settings.pricing.monthly.originalPrice.toString())
+      setMonthlyDiscount(settings.pricing.monthly.discount.toString())
+      setQuarterlyPrice(settings.pricing.quarterly.price.toString())
+      setQuarterlyOriginalPrice(settings.pricing.quarterly.originalPrice.toString())
+      setQuarterlyDiscount(settings.pricing.quarterly.discount.toString())
+      setYearlyPrice(settings.pricing.yearly.price.toString())
+      setYearlyOriginalPrice(settings.pricing.yearly.originalPrice.toString())
+      setYearlyDiscount(settings.pricing.yearly.discount.toString())
+
+      // Try to load from DB to sync
+      try {
+        const response = await fetch("/api/admin/settings")
+        if (response.ok) {
+          const data = await response.json()
+          const dbCurrencyConfig = data.settings.find((s: any) => s.key === 'currency_config')
+          if (dbCurrencyConfig?.value) {
+            setCurrency(dbCurrencyConfig.value.symbol || '$')
+          }
+          const limits = data.settings.find((s: any) => s.key === 'budget_limits')
+          if (limits) {
+            setBudgetLimits(prev => ({ ...prev, ...limits.value }))
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load settings from DB")
+      }
     }
 
     fetchData()
@@ -176,14 +203,14 @@ export default function AdminDashboardPage() {
     },
     {
       title: "Token usage",
-      value: typeof monthlyRevenue === 'number' ? `${monthlyRevenue.toFixed(2)}` : "0.00",
+      value: typeof monthlyRevenue === 'number' ? `${currency}${monthlyRevenue.toFixed(2)}` : `${currency}0.00`,
       change: "0%",
       changeType: "neutral",
       icon: DollarSign,
     },
     {
       title: "Total Revenue",
-      value: typeof totalRevenue === 'number' ? `$${totalRevenue.toFixed(2)}` : "$0.00",
+      value: typeof totalRevenue === 'number' ? `${currency}${totalRevenue.toFixed(2)}` : `${currency}0.00`,
       change: "0%",
       changeType: "neutral",
       icon: DollarSign,
@@ -222,6 +249,7 @@ export default function AdminDashboardPage() {
     setIsSaving(true)
     // Simulate API call
     setTimeout(async () => {
+      // Update local context
       updateSettings({
         siteName,
         logoText,
@@ -246,8 +274,9 @@ export default function AdminDashboardPage() {
         },
       })
 
-      // Save budget to DB
+      // Save to DB
       try {
+        // Save budget
         await fetch("/api/admin/settings", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -256,8 +285,34 @@ export default function AdminDashboardPage() {
             value: budgetLimits
           })
         })
+
+        // Save currency config for the whole system
+        await fetch("/api/admin/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            key: "currency_config",
+            value: {
+              code: currency === 'kr' ? 'SEK' : 'USD', // Simple heuristic or we could add a code field
+              symbol: currency,
+              rate: currency === 'kr' ? 10.5 : 1.0 // Default rate for SEK if using kr
+            }
+          })
+        })
+
+        // Save site identity
+        await fetch("/api/admin/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: "site_name", value: siteName })
+        })
+        await fetch("/api/admin/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: "logo_text", value: logoText })
+        })
       } catch (e) {
-        console.error("Failed to save budget limits to DB")
+        console.error("Failed to save settings to DB")
       }
 
       setSaveMessage("Settings saved successfully!")

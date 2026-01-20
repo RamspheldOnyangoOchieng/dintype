@@ -1,7 +1,12 @@
 const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = 'https://qfjptqdkthmejxpwbmvq.supabase.co';
-const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmanB0cWRrdGhtZWp4cHdibXZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzA5NTIyMCwiZXhwIjoyMDY4NjcxMjIwfQ.wVBiVf-fmg3KAng-QN9ApxhjVkgKxj7L2aem7y1iPT4';
+require('dotenv').config();
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+if (!supabaseUrl) throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL in .env');
+
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!supabaseServiceKey) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY in .env');
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -89,13 +94,13 @@ async function checkCharactersAndImages() {
         console.log('ANALYSIS');
         console.log('='.repeat(80) + '\n');
 
-        const imagesWithSupabase = characters.filter(c => 
+        const imagesWithSupabase = characters.filter(c =>
             (c.image_url || c.image)?.includes('supabase.co')
         );
-        const imagesWithCloudinary = characters.filter(c => 
+        const imagesWithCloudinary = characters.filter(c =>
             (c.image_url || c.image)?.includes('cloudinary.com')
         );
-        const imagesWithNovita = characters.filter(c => 
+        const imagesWithNovita = characters.filter(c =>
             (c.image_url || c.image)?.includes('novita.ai')
         );
         const imagesWithOther = characters.filter(c => {

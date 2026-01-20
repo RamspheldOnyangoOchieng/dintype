@@ -3,14 +3,25 @@ const cloudinary = require('cloudinary').v2;
 const { createClient } = require('@supabase/supabase-js');
 
 // Configuration - HARDCODED for reliability in this specific run
-const NOVITA_API_KEY = 'sk_XSyAqDO2XEZMH6SGnqyzCgPOQWVsV_j3_KYjxqigSJs';
-const SUPABASE_URL = 'https://yrhexcjqwycfkjrmgplp.supabase.co';
-const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlyaGV4Y2pxd3ljZmtqcm1ncGxwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2Mjc5MjY4MiwiZXhwIjoyMDY4MzY4NjgyfQ.NeQBMxK0fWdkAPHZkfJnpMGcKfdJqtgJgoXVqyzTg0Q';
+require('dotenv').config();
+
+const NOVITA_API_KEY = process.env.NOVITA_API_KEY;
+if (!NOVITA_API_KEY) throw new Error('Missing NOVITA_API_KEY in .env');
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+if (!SUPABASE_URL) throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL in .env');
+
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!SUPABASE_SERVICE_KEY) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY in .env');
+
+const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
+const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
 
 cloudinary.config({
-  cloud_name: 'ddg02aqiw',
-  api_key: '614297593432527',
-  api_secret: 'p2E_hT2tCkPNtBREKg5BMt-t4Os'
+  cloud_name: CLOUDINARY_CLOUD_NAME,
+  api_key: CLOUDINARY_API_KEY,
+  api_secret: CLOUDINARY_API_SECRET
 });
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
@@ -32,7 +43,7 @@ const STYLES = ['realistic', 'anime'];
 function buildPrompt(category, value, style) {
   const base = 'single beautiful woman, solo female, one person only, beautiful young lady';
   let specificPrompt = '';
-  
+
   if (category === 'eyeColor') specificPrompt = `${value} eyes, beautiful ${value} eye color, face close-up, expressive eyes`;
   else if (category === 'hairColor') specificPrompt = `${value} hair color, vibrant ${value} hair, clear hair color`;
   else if (category === 'hairStyle') specificPrompt = `${value} hairstyle, beautiful hair, focus on hair`;
@@ -42,7 +53,7 @@ function buildPrompt(category, value, style) {
   else if (category === 'outfit') specificPrompt = `wearing ${value}, ${value} fashion, full body portrait`;
   else if (category === 'ethnicity') specificPrompt = `${value} woman, ${value} features, portrait`;
   else if (category === 'eyeShape') specificPrompt = `${value} eyes, ${value} eye shape, face portrait`;
-  
+
   if (style === 'anime') {
     return `${base}, ${specificPrompt}, anime style, anime girl, beautiful anime character, high quality anime art, detailed`;
   } else {
@@ -53,7 +64,7 @@ function buildPrompt(category, value, style) {
 async function generateWithNovita(prompt, category, value, style) {
   console.log(`  🎨 Generating ${style} ${category} ${value}...`);
   const modelName = style === 'anime' ? 'sd_xl_base_1.0.safetensors' : 'dreamshaper_8_93211.safetensors';
-  
+
   try {
     const res = await fetch('https://api.novita.ai/v3/async/txt2img', {
       method: 'POST',
@@ -141,7 +152,7 @@ async function main() {
           const cloudinaryUrl = await uploadToCloudinary(novitaUrl, category, value, style);
           await saveToDatabase(category, value, style, cloudinaryUrl, prompt);
           console.log(`  ✅ Success: ${category}-${value}-${style}`);
-          
+
           // Small delay to be kind to APIs
           await new Promise(r => setTimeout(r, 1000));
         } catch (err) {

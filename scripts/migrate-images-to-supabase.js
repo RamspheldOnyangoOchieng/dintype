@@ -12,20 +12,25 @@ const path = require('path');
 const https = require('https');
 const http = require('http');
 
-const SUPABASE_URL = 'https://qfjptqdkthmejxpwbmvq.supabase.co';
-const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmanB0cWRrdGhtZWp4cHdibXZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzA5NTIyMCwiZXhwIjoyMDY4NjcxMjIwfQ.wVBiVf-fmg3KAng-QN9ApxhjVkgKxj7L2aem7y1iPT4';
+require('dotenv').config();
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+if (!SUPABASE_URL) throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL in .env');
+
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!SUPABASE_SERVICE_KEY) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY in .env');
 
 // Download image from URL
 function downloadImage(url) {
   return new Promise((resolve, reject) => {
     const protocol = url.startsWith('https') ? https : http;
-    
+
     protocol.get(url, (response) => {
       if (response.statusCode !== 200) {
         reject(new Error(`Failed to download: ${response.statusCode}`));
         return;
       }
-      
+
       const chunks = [];
       response.on('data', chunk => chunks.push(chunk));
       response.on('end', () => resolve(Buffer.concat(chunks)));
@@ -38,7 +43,7 @@ function downloadImage(url) {
 async function uploadToSupabase(buffer, characterId) {
   const filename = `${characterId}.jpeg`;
   const uploadUrl = `${SUPABASE_URL}/storage/v1/object/images/characters/${filename}`;
-  
+
   const response = await fetch(uploadUrl, {
     method: 'POST',
     headers: {
@@ -48,12 +53,12 @@ async function uploadToSupabase(buffer, characterId) {
     },
     body: buffer
   });
-  
+
   if (!response.ok) {
     const error = await response.text();
     throw new Error(`Upload failed: ${error}`);
   }
-  
+
   return `${SUPABASE_URL}/storage/v1/object/public/images/characters/${filename}`;
 }
 
@@ -68,11 +73,11 @@ async function getCharactersWithS3Images() {
       }
     }
   );
-  
+
   if (!response.ok) {
     throw new Error(`Failed to fetch characters: ${await response.text()}`);
   }
-  
+
   return await response.json();
 }
 
@@ -91,7 +96,7 @@ async function updateCharacterImageUrl(characterId, newImageUrl) {
       body: JSON.stringify({ image_url: newImageUrl })
     }
   );
-  
+
   if (!response.ok) {
     throw new Error(`Failed to update: ${await response.text()}`);
   }
@@ -100,66 +105,66 @@ async function updateCharacterImageUrl(characterId, newImageUrl) {
 async function main() {
   console.log('\n🔄 MIGRATING IMAGES TO SUPABASE STORAGE\n');
   console.log('='.repeat(70) + '\n');
-  
+
   // Get all characters with S3 URLs
   console.log('📊 Fetching characters with S3 image URLs...');
   const characters = await getCharactersWithS3Images();
   console.log(`   Found: ${characters.length} characters\n`);
-  
+
   const results = { success: [], failed: [] };
-  
+
   for (let i = 0; i < characters.length; i++) {
     const char = characters[i];
     console.log(`[${i + 1}/${characters.length}] ${char.name}`);
     console.log('─'.repeat(70));
-    
+
     try {
       // Download image
       console.log('  📥 Downloading image...');
       const imageBuffer = await downloadImage(char.image_url);
       console.log(`  ✅ Downloaded (${(imageBuffer.length / 1024).toFixed(2)} KB)`);
-      
+
       // Upload to Supabase
       console.log('  📤 Uploading to Supabase Storage...');
       const newUrl = await uploadToSupabase(imageBuffer, char.id);
       console.log(`  ✅ Uploaded: ${newUrl}`);
-      
+
       // Update database
       console.log('  💾 Updating database...');
       await updateCharacterImageUrl(char.id, newUrl);
       console.log(`  ✅ Database updated!`);
-      
+
       results.success.push(char.name);
       console.log(`  ✅ ${char.name} COMPLETE!\n`);
-      
+
       // Small delay
       if (i < characters.length - 1) {
         await new Promise(r => setTimeout(r, 1000));
       }
-      
+
     } catch (error) {
       console.error(`  ❌ FAILED: ${error.message}\n`);
       results.failed.push({ name: char.name, error: error.message });
     }
   }
-  
+
   // Summary
   console.log('\n' + '='.repeat(70));
   console.log('✅ MIGRATION COMPLETE!');
   console.log('='.repeat(70));
   console.log(`✅ Success: ${results.success.length}/${characters.length}`);
   console.log(`❌ Failed: ${results.failed.length}/${characters.length}\n`);
-  
+
   if (results.success.length > 0) {
     console.log('✨ Migrated:');
     results.success.forEach(name => console.log(`   - ${name}`));
   }
-  
+
   if (results.failed.length > 0) {
     console.log('\n⚠️  Failed:');
     results.failed.forEach(f => console.log(`   - ${f.name}: ${f.error}`));
   }
-  
+
   console.log('\n');
 }
 

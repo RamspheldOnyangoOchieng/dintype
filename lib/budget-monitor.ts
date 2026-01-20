@@ -8,12 +8,20 @@ const DEFAULT_MONTHLY_LIMITS = {
 }
 
 
+const DEFAULT_CURRENCY_CONFIG = {
+  code: 'USD',
+  symbol: '$',
+  rate: 1.0, // Base rate (USD)
+}
+
 /**
  * Get current budget limits from settings table or return defaults
  */
 export async function getBudgetLimits(): Promise<typeof DEFAULT_MONTHLY_LIMITS> {
   try {
     const supabase = await createAdminClient()
+    if (!supabase) return DEFAULT_MONTHLY_LIMITS
+
     const { data } = await supabase
       .from('settings')
       .select('value')
@@ -29,6 +37,29 @@ export async function getBudgetLimits(): Promise<typeof DEFAULT_MONTHLY_LIMITS> 
   return DEFAULT_MONTHLY_LIMITS
 }
 
+/**
+ * Get currency configuration from settings or return default (USD)
+ */
+export async function getCurrencyConfig() {
+  try {
+    const supabase = await createAdminClient()
+    if (!supabase) return DEFAULT_CURRENCY_CONFIG
+
+    const { data } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'currency_config')
+      .maybeSingle()
+
+    if (data?.value) {
+      return { ...DEFAULT_CURRENCY_CONFIG, ...(data.value as any) }
+    }
+  } catch (e) {
+    console.error('Failed to fetch currency config:', e)
+  }
+  return DEFAULT_CURRENCY_CONFIG
+}
+
 export interface MonthlyUsage {
   messages: number
   images: number
@@ -41,7 +72,8 @@ export interface MonthlyUsage {
 export interface BudgetStatus {
   allowed: boolean
   current: MonthlyUsage
-  limits: typeof MONTHLY_LIMITS
+  limits: typeof DEFAULT_MONTHLY_LIMITS
+  currency: typeof DEFAULT_CURRENCY_CONFIG
   percentUsed: {
     cost: number
     messages: number
@@ -57,7 +89,10 @@ export interface BudgetStatus {
  */
 export async function checkMonthlyBudget(): Promise<BudgetStatus> {
   const supabase = await createAdminClient()
-  
+  if (!supabase) throw new Error('Supabase admin client validation failed')
+
+  const currency = await getCurrencyConfig()
+
   // Get start of current month
   const monthStart = new Date()
   monthStart.setDate(1)
@@ -83,6 +118,7 @@ export async function checkMonthlyBudget(): Promise<BudgetStatus> {
         tokenRevenue: 0,
       },
       limits: limits,
+      currency,
       percentUsed: { cost: 0, messages: 0, images: 0 },
     }
   }
@@ -90,7 +126,7 @@ export async function checkMonthlyBudget(): Promise<BudgetStatus> {
   // Calculate current usage
   const apiCostUSD = logs.reduce((sum, l) => sum + (l.api_cost || 0), 0)
   const tokenRevenueUSD = logs.reduce((sum, l) => sum + (l.tokens_used || 0), 0) * 0.05 // 1 token ≈ $0.05
-  
+
   const usage: MonthlyUsage = {
     messages: logs.filter((l) => l.action.toLowerCase().includes('message')).length,
     images: logs.filter((l) => l.action.toLowerCase().includes('image')).length,
@@ -113,8 +149,9 @@ export async function checkMonthlyBudget(): Promise<BudgetStatus> {
       allowed: false,
       current: usage,
       limits: limits,
+      currency,
       percentUsed,
-      message: `Monthly budget limit reached ($${limits.apiCost}). Service temporarily disabled. Contact admin.`,
+      message: `Monthly budget limit reached (${currency.symbol}${limits.apiCost}). Service temporarily disabled. Contact admin.`,
     }
   }
 
@@ -123,6 +160,7 @@ export async function checkMonthlyBudget(): Promise<BudgetStatus> {
       allowed: false,
       current: usage,
       limits: limits,
+      currency,
       percentUsed,
       message: `Monthly message limit reached (${limits.messages.toLocaleString()}). Service temporarily disabled.`,
     }
@@ -133,6 +171,7 @@ export async function checkMonthlyBudget(): Promise<BudgetStatus> {
       allowed: false,
       current: usage,
       limits: limits,
+      currency,
       percentUsed,
       message: `Monthly image limit reached (${limits.images}). Service temporarily disabled.`,
     }
@@ -147,6 +186,7 @@ export async function checkMonthlyBudget(): Promise<BudgetStatus> {
       allowed: true,
       current: usage,
       limits: limits,
+      currency,
       percentUsed,
       warning: true,
       message: `Warning: Approaching monthly budget limit (${Math.max(
@@ -161,6 +201,7 @@ export async function checkMonthlyBudget(): Promise<BudgetStatus> {
     allowed: true,
     current: usage,
     limits: limits,
+    currency,
     percentUsed,
   }
 }
@@ -175,6 +216,7 @@ export async function logApiCost(
   userId?: string
 ) {
   const supabase = await createAdminClient()
+  if (!supabase) return
 
   await supabase.from('cost_logs').insert({
     action,
@@ -198,6 +240,7 @@ export async function getDailyUsageStats(days = 30): Promise<
   }>
 > {
   const supabase = await createAdminClient()
+  if (!supabase) return []
 
   const startDate = new Date()
   startDate.setDate(startDate.getDate() - days)
@@ -244,6 +287,9 @@ export async function projectMonthlyCost(): Promise<{
   onTrackToExceed: boolean
 }> {
   const supabase = await createAdminClient()
+  if (!supabase) {
+    return { projected: 0, daysElapsed: 0, daysRemaining: 0, currentCost: 0, onTrackToExceed: false }
+  }
 
   const now = new Date()
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)

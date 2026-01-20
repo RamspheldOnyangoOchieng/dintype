@@ -64,19 +64,41 @@ type SiteContextType = {
 export function SiteProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<SiteSettings>(defaultSettings)
 
-  // Load settings from localStorage on client side
+  // Load settings from API and localStorage on client side
   useEffect(() => {
-    const savedSettings = localStorage.getItem("siteSettings")
-    if (savedSettings) {
+    const fetchSettings = async () => {
+      // First try local storage for quick load
+      const savedSettings = localStorage.getItem("siteSettings")
+      if (savedSettings) {
+        try {
+          const parsed = JSON.parse(savedSettings)
+          setSettings(prev => ({ ...prev, ...parsed }))
+        } catch (e) { }
+      }
+
+      // Then fetch from DB for the "truth"
       try {
-        const parsed = JSON.parse(savedSettings)
-        // Merge with defaults and respect persisted language (en | sv)
-        const merged = { ...defaultSettings, ...parsed }
-        setSettings(merged)
+        const response = await fetch("/api/public-settings")
+        if (response.ok) {
+          const data = await response.json()
+          if (data.success && data.settings) {
+            setSettings(prev => ({
+              ...prev,
+              siteName: data.settings.siteName,
+              logoText: data.settings.logoText,
+              pricing: {
+                ...prev.pricing,
+                currency: data.settings.currency.symbol
+              }
+            }))
+          }
+        }
       } catch (error) {
-        console.error("Failed to parse site settings:", error)
+        console.error("Failed to fetch public settings:", error)
       }
     }
+
+    fetchSettings()
   }, [])
 
   // Save settings to localStorage when they change

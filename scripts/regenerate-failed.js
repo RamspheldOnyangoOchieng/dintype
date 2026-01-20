@@ -7,9 +7,16 @@
 // Fix for Node.js fetch SSL issues
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const NOVITA_API_KEY = 'sk_SaCwNYi5f8Q-zqa7YqSttPVMos2xxkDTcJ3rK0jiQfk';
-const SUPABASE_URL = 'https://qfjptqdkthmejxpwbmvq.supabase.co';
-const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmanB0cWRrdGhtZWp4cHdibXZxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MzA5NTIyMCwiZXhwIjoyMDY4NjcxMjIwfQ.wVBiVf-fmg3KAng-QN9ApxhjVkgKxj7L2aem7y1iPT4';
+require('dotenv').config();
+
+const NOVITA_API_KEY = process.env.NOVITA_API_KEY;
+if (!NOVITA_API_KEY) throw new Error('Missing NOVITA_API_KEY in .env');
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+if (!SUPABASE_URL) throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL in .env');
+
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+if (!SUPABASE_SERVICE_KEY) throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY in .env');
 
 // Only the failed characters
 const FAILED_CHARACTERS = [
@@ -70,15 +77,15 @@ Speak naturally and stay in character. Be engaging, warm, and authentic in your 
 
 async function generateImage(prompt, style) {
   console.log(`  🎨 Generating ${style} image...`);
-  
-  const negativePrompt = style === 'animated' 
+
+  const negativePrompt = style === 'animated'
     ? 'man, male, boy, men, masculine, multiple people, group, blurry, low quality, distorted, deformed, ugly, bad anatomy, watermark, text, realistic, photorealistic'
     : 'man, male, boy, men, masculine, multiple people, group, blurry, low quality, distorted, deformed, ugly, bad anatomy, watermark, text, cartoon, anime, artificial, fake looking, overly smooth skin, plastic skin, unrealistic, too perfect, instagram filter, heavy makeup, airbrushed';
-  
+
   const modelName = style === 'animated'
     ? 'sd_xl_base_1.0.safetensors'
     : 'dreamshaper_8_93211.safetensors';
-  
+
   const response = await fetch('https://api.novita.ai/v3/async/txt2img', {
     method: 'POST',
     headers: {
@@ -86,7 +93,7 @@ async function generateImage(prompt, style) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      extra: { 
+      extra: {
         response_image_type: 'jpeg',
         enable_nsfw_detection: false
       },
@@ -117,27 +124,27 @@ async function generateImage(prompt, style) {
   let attempts = 0;
   while (attempts < 60) {
     await new Promise(r => setTimeout(r, 3000));
-    
+
     const progress = await fetch(`https://api.novita.ai/v3/async/task-result?task_id=${taskId}`, {
       headers: { 'Authorization': `Bearer ${NOVITA_API_KEY}` }
     });
-    
+
     if (!progress.ok) {
       attempts++;
       continue;
     }
-    
+
     const pd = await progress.json();
-    
+
     if (pd.task?.status === 'TASK_STATUS_SUCCEED') {
       console.log(`  ✅ Image generated successfully`);
       return pd.images[0].image_url;
     }
-    
+
     if (pd.task?.status === 'TASK_STATUS_FAILED') {
       throw new Error('Image generation failed');
     }
-    
+
     attempts++;
   }
 
@@ -146,9 +153,9 @@ async function generateImage(prompt, style) {
 
 async function saveCharacter(character, imageUrl) {
   console.log(`  💾 Saving ${character.name} to database...`);
-  
+
   const systemPrompt = buildSystemPrompt(character);
-  
+
   const payload = {
     name: character.name,
     age: character.age,
@@ -162,7 +169,7 @@ async function saveCharacter(character, imageUrl) {
     is_public: true,
     is_new: true
   };
-  
+
   // Retry up to 5 times with exponential backoff
   for (let attempt = 1; attempt <= 5; attempt++) {
     try {
@@ -185,11 +192,11 @@ async function saveCharacter(character, imageUrl) {
       const data = await response.json();
       console.log(`  ✅ Saved to database with ID: ${data[0]?.id}`);
       return data[0];
-      
+
     } catch (error) {
       if (attempt < 5) {
         const waitTime = attempt * 3000; // 3s, 6s, 9s, 12s
-        console.log(`  ⚠️  Attempt ${attempt} failed, retrying in ${waitTime/1000}s...`);
+        console.log(`  ⚠️  Attempt ${attempt} failed, retrying in ${waitTime / 1000}s...`);
         await new Promise(r => setTimeout(r, waitTime));
       } else {
         throw error;
@@ -202,59 +209,59 @@ async function main() {
   console.log('\n🔄 Regenerating failed characters...\n');
   console.log(`📊 Characters to generate: ${FAILED_CHARACTERS.length}\n`);
   console.log('='.repeat(70) + '\n');
-  
+
   const results = { success: [], failed: [] };
-  
+
   for (let i = 0; i < FAILED_CHARACTERS.length; i++) {
     const character = FAILED_CHARACTERS[i];
     console.log(`\n[${i + 1}/${FAILED_CHARACTERS.length}] ${character.name}`);
     console.log('─'.repeat(70));
-    
+
     try {
       const prompt = buildImagePrompt(character);
       const imageUrl = await generateImage(prompt, character.style);
       const saved = await saveCharacter(character, imageUrl);
-      
+
       results.success.push({
         name: character.name,
         id: saved.id,
         image_url: saved.image_url,
         style: character.style
       });
-      
+
       console.log(`  ✅ ${character.name} (${character.style}) complete!\n`);
-      
+
       if (i < FAILED_CHARACTERS.length - 1) {
         console.log('  ⏸️  Waiting 3 seconds...\n');
         await new Promise(r => setTimeout(r, 3000));
       }
-      
+
     } catch (error) {
       console.error(`  ❌ Failed: ${error.message}\n`);
       results.failed.push({ name: character.name, error: error.message });
     }
   }
-  
+
   console.log('\n' + '='.repeat(70));
   console.log('✅ COMPLETE!');
   console.log('='.repeat(70));
   console.log(`✅ Success: ${results.success.length}/${FAILED_CHARACTERS.length}`);
   console.log(`❌ Failed: ${results.failed.length}/${FAILED_CHARACTERS.length}\n`);
-  
+
   if (results.success.length > 0) {
     console.log('✨ Successfully generated:');
     results.success.forEach(char => {
       console.log(`   - ${char.name} (${char.style}) - ID: ${char.id}`);
     });
   }
-  
+
   if (results.failed.length > 0) {
     console.log('\n⚠️  Still failed:');
     results.failed.forEach(char => {
       console.log(`   - ${char.name}: ${char.error}`);
     });
   }
-  
+
   console.log('\n');
 }
 

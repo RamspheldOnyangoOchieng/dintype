@@ -1,7 +1,12 @@
 const { createClient } = require('@supabase/supabase-js')
 
-const supabaseUrl = 'https://qfjptqdkthmejxpwbmvq.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFmanB0cWRrdGhtZWp4cHdibXZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMwOTUyMjAsImV4cCI6MjA2ODY3MTIyMH0.OGYdQYRAkL_4njlwLOymfmE_kMDWM8pGvOeWv-YuDZk'
+require('dotenv').config();
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+if (!supabaseUrl) throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL in .env');
+
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+if (!supabaseAnonKey) throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY in .env');
 
 async function testAuth() {
   try {
@@ -59,7 +64,7 @@ if (error) {
 `)
     console.log('─'.repeat(60))
     console.log('\n4. Check the output to see if you have a valid session')
-    
+
   } catch (error) {
     console.error('❌ Error:', error.message)
   }
