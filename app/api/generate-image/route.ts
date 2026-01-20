@@ -493,6 +493,18 @@ export async function POST(req: NextRequest) {
         taskPromptFinal = taskPromptFinal.substring(0, 1000);
       }
 
+      // Determine which reference image to use for twinning
+      // If we have multiple reference images, cycle through them for better batch diversity
+      let referenceImage = character?.image;
+      if (character?.images && Array.isArray(character.images) && character.images.length > 0) {
+        // Filter out any placeholders
+        const validImages = character.images.filter((img: string) => img && !img.includes('placeholder'));
+        if (validImages.length > 0) {
+          // Use different images for different tasks in the batch
+          referenceImage = validImages[i % validImages.length];
+        }
+      }
+
       const requestBody: any = {
         extra: {
           response_image_type: "jpeg",
@@ -519,17 +531,17 @@ export async function POST(req: NextRequest) {
               strength: loraStrength
             }
           ] : [],
-          controlnet_units: (imageBase64 || character?.image) ? [
+          controlnet_units: (imageBase64 || referenceImage) ? [
             {
               model_name: "ip-adapter_sd15",
               weight: 0.95,
-              control_image: imageBase64 ? imageBase64.replace(/^data:image\/\w+;base64,/, "") : character?.image,
+              control_image: imageBase64 ? imageBase64.replace(/^data:image\/\w+;base64,/, "") : referenceImage,
               module_name: "none"
             },
             {
               model_name: "ip-adapter_plus_face_sd15",
               weight: 0.75,
-              control_image: imageBase64 ? imageBase64.replace(/^data:image\/\w+;base64,/, "") : character?.image,
+              control_image: imageBase64 ? imageBase64.replace(/^data:image\/\w+;base64,/, "") : referenceImage,
               module_name: "none"
             }
           ] : []

@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+// Native fetch is used in Node.js 18+
 
 async function testPayment() {
     const response = await fetch('http://localhost:3000/api/verify-payment', {

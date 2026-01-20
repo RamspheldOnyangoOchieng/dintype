@@ -31,7 +31,8 @@ export async function sendChatMessageDB(
   characterId: string,
   userMessage: string,
   systemPromptFromChar: string,
-  userId: string
+  userId: string,
+  skipImageCheck: boolean = false
 ): Promise<{
   success: boolean
   message?: Message
@@ -129,7 +130,7 @@ export async function sendChatMessageDB(
     }
 
     // 7. Handle image requests
-    if (isAskingForImage(userMessage)) {
+    if (!skipImageCheck && isAskingForImage(userMessage)) {
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: "assistant",

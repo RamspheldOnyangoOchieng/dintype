@@ -987,9 +987,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               try {
                 const aiResponse = await sendChatMessageDB(
                   characterId!,
-                  `[SYSTEM: You just sent a photo with this context: "${prompt}". Provide a very short, natural, flirty comment about it as your character. No asterisks.]`,
+                  `[SYSTEM: You just sent a photo with this context: "${prompt}". Provide a very short, natural, and deeply romantic expression about it as your character. Show your love and connection. No asterisks.]`,
                   character?.systemPrompt || "",
-                  user?.id || ""
+                  user?.id || "",
+                  true // skipImageCheck: true to avoid re-triggering the image loading message
                 );
 
                 if (aiResponse.success && aiResponse.message) {

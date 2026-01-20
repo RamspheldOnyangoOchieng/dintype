@@ -273,7 +273,7 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
         throw new Error("Database not initialized. Please set up the database first.")
       }
 
-      // Convert camelCase to snake_case
+      console.log(`📤 Updating character ${id}...`, characterData)
       const snakeCaseData = camelToSnake(characterData)
 
       const { data, error: supabaseError } = await (supabase as any)
@@ -284,20 +284,22 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
         .maybeSingle()
 
       if (supabaseError) {
+        // If it's an auth error, we might want to let the caller handle refresh
+        // but we can also log more details here
+        console.error("Supabase update error:", supabaseError)
         throw supabaseError
       }
 
       if (!data) {
-        throw new Error("Character not found or you don't have permission to update it.")
+        throw new Error("Character not found or you don't have permission to update it. Note: Sample characters (IDs 1, 2, etc.) cannot be updated in the database.")
       }
 
-      // Convert snake_case back to camelCase
-      const formattedData = snakeToCamel(data)
+      const formattedData = snakeToCamel(data) as Character
       setCharacters((prev) => prev.map((char) => (char.id === id ? formattedData : char)))
       return formattedData
-    } catch (err) {
-      console.error("Error updating character:", err)
-      throw new Error(formatError(err))
+    } catch (error) {
+      console.error("Error updating character:", error)
+      throw error
     }
   }
 

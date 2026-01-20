@@ -2,7 +2,7 @@
  * Generate and store all attribute selection images
  * Run with: node scripts/generate-selection-images.js
  */
-const fetch = require('node-fetch');
+// Native fetch is used in Node.js 18+
 require('dotenv').config();
 
 const NOVITA_API_KEY = process.env.NOVITA_API_KEY;

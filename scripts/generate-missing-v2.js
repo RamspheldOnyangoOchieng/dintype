@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+// Native fetch is used in Node.js 18+
 const cloudinary = require('cloudinary').v2;
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();

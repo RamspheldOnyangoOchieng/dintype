@@ -7,7 +7,7 @@
  * Usage: node scripts/generate-personality-relationship-images.js
  */
 
-const fetch = require('node-fetch');
+// Native fetch is used in Node.js 18+
 const fs = require('fs');
 const path = require('path');
 

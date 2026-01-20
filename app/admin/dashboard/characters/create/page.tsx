@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/components/auth-context"
 import { useCharacters } from "@/components/character-context"
-import { Home, ArrowLeft, Wand2, Upload, Sparkles, X } from "lucide-react"
+import { Home, ArrowLeft, Wand2, Upload, Sparkles, X, Plus, ImageIcon } from "lucide-react"
 import { generateCharacterDescription, generateSystemPrompt, type GenerateCharacterParams } from "@/lib/openai"
 import Image from "next/image"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -21,9 +21,10 @@ export default function CreateCharacterPage() {
   const { addCharacter, uploadImage } = useCharacters()
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const multiFileInputRef = useRef<HTMLInputElement>(null)
 
   // Add video upload functionality to the form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     name: "",
     age: 25,
     image: "/placeholder.svg?height=400&width=300",
@@ -52,6 +53,7 @@ export default function CreateCharacterPage() {
     relationship: "Single",
     systemPrompt: "",
     category: "anime", // Default category
+    images: [] as string[], // Add this field
   })
 
   const [isGenerating, setIsGenerating] = useState(false)
@@ -70,14 +72,14 @@ export default function CreateCharacterPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
+    setFormData((prev: any) => ({
       ...prev,
-      [name]: name === "age" ? Number.parseInt(value) || 18 : value,
+      [name]: name === "age" ? (value === "" ? "" : Number.parseInt(value)) : value,
     }))
   }
 
   const handleCategoryChange = (value: string) => {
-    setFormData((prev) => ({
+    setFormData((prev: any) => ({
       ...prev,
       category: value,
     }))
@@ -89,7 +91,7 @@ export default function CreateCharacterPage() {
 
   const handleRemoveImage = () => {
     setImagePreview(null)
-    setFormData((prev) => ({ ...prev, image: "/placeholder.svg?height=400&width=300" }))
+    setFormData((prev: any) => ({ ...prev, image: "/placeholder.svg?height=400&width=300" }))
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
     }
@@ -115,7 +117,7 @@ export default function CreateCharacterPage() {
 
       try {
         const imageUrl = await uploadImage(file)
-        setFormData((prev) => ({ ...prev, image: imageUrl }))
+        setFormData((prev: any) => ({ ...prev, image: imageUrl }))
       } catch (err) {
         console.error("Error uploading image:", err)
 
@@ -130,7 +132,7 @@ export default function CreateCharacterPage() {
         const reader = new FileReader()
         reader.onload = (e) => {
           const result = e.target?.result as string
-          setFormData((prev) => ({
+          setFormData((prev: any) => ({
             ...prev,
             image: result,
           }))
@@ -140,6 +142,41 @@ export default function CreateCharacterPage() {
     } finally {
       setIsUploading(false)
     }
+  }
+
+  const handleReferenceImagesClick = () => {
+    multiFileInputRef.current?.click()
+  }
+
+  const handleReferenceImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setIsUploading(true)
+    setError("")
+
+    try {
+      const uploadPromises = Array.from(files).map(file => uploadImage(file))
+      const uploadedUrls = await Promise.all(uploadPromises)
+
+      setFormData((prev: any) => ({
+        ...prev,
+        images: [...(prev.images || []), ...uploadedUrls]
+      }))
+    } catch (err) {
+      console.error("Error uploading reference images:", err)
+      setError(`Failed to upload some images: ${err instanceof Error ? err.message : "Unknown error"}`)
+    } finally {
+      setIsUploading(false)
+      if (multiFileInputRef.current) multiFileInputRef.current.value = ""
+    }
+  }
+
+  const removeReferenceImage = (index: number) => {
+    setFormData((prev: any) => ({
+      ...prev,
+      images: prev.images.filter((_: any, i: number) => i !== index)
+    }))
   }
 
   const handleUseGeneratedImage = async (
@@ -168,7 +205,7 @@ export default function CreateCharacterPage() {
 
       // Update traits if provided
       if (traits) {
-        setFormData((prev) => ({
+        setFormData((prev: any) => ({
           ...prev,
           characterGender: traits.characterGender || prev.characterGender,
           characterAge: traits.characterAge || prev.characterAge,
@@ -191,13 +228,13 @@ export default function CreateCharacterPage() {
       const file = new File([blob], `generated-image-${Date.now()}.jpg`, { type: "image/jpeg" })
 
       const uploadedImageUrl = await uploadImage(file)
-      setFormData((prev) => ({ ...prev, image: uploadedImageUrl }))
+      setFormData((prev: any) => ({ ...prev, image: uploadedImageUrl }))
     } catch (err) {
       console.error("Error using generated image:", err)
       setError(`Failed to use generated image: ${err instanceof Error ? err.message : "Unknown error"}`)
 
       // If upload fails, still keep the generated image as preview
-      setFormData((prev) => ({ ...prev, image: imageUrl }))
+      setFormData((prev: any) => ({ ...prev, image: imageUrl }))
     } finally {
       setIsUploading(false)
     }
@@ -222,7 +259,7 @@ export default function CreateCharacterPage() {
       }
 
       const description = await generateCharacterDescription(params)
-      setFormData((prev) => ({ ...prev, description }))
+      setFormData((prev: any) => ({ ...prev, description }))
     } catch (err) {
       console.error("Error generating description:", err)
       setError("Failed to generate description. Please try again.")
@@ -250,7 +287,7 @@ export default function CreateCharacterPage() {
         hobbies: formData.hobbies,
       })
 
-      setFormData((prev) => ({ ...prev, systemPrompt }))
+      setFormData((prev: any) => ({ ...prev, systemPrompt }))
     } catch (err) {
       console.error("Error generating system prompt:", err)
       setError("Failed to generate system prompt. Please try again.")
@@ -268,10 +305,31 @@ export default function CreateCharacterPage() {
       return
     }
 
+    if (!formData.age || Number(formData.age) < 18) {
+      setError("Age must be 18 or older")
+      setIsSaving(false)
+      return
+    }
+
     setIsSaving(true)
 
     try {
-      await addCharacter(formData)
+      // Only include fields that exist in the database schema
+      const {
+        name, age, image, videoUrl, description,
+        personality, occupation, hobbies, body,
+        ethnicity, language, relationship,
+        systemPrompt, category, images
+      } = formData
+
+      const characterData = {
+        name, age, image, videoUrl, description,
+        personality, occupation, hobbies, body,
+        ethnicity, language, relationship,
+        systemPrompt, category, images
+      }
+
+      await addCharacter(characterData)
       router.push("/admin/dashboard/characters")
     } catch (err) {
       console.error("Error saving character:", err)
@@ -423,6 +481,64 @@ export default function CreateCharacterPage() {
                           </div>
                         </div>
                       )}
+
+                      {/* Reference Assets Gallery */}
+                      <div className="space-y-4 pt-6 mt-6 border-t border-[#333]">
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-lg font-medium">Reference Assets</h3>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleReferenceImagesClick}
+                            disabled={isUploading}
+                            className="text-primary border-primary hover:bg-primary/10 bg-transparent"
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add More
+                          </Button>
+                        </div>
+                        <input
+                          type="file"
+                          ref={multiFileInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          multiple
+                          onChange={handleReferenceImagesChange}
+                        />
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                          {formData.images.map((img: string, idx: number) => (
+                            <div key={idx} className="relative aspect-square rounded-lg overflow-hidden group border border-[#333]">
+                              <Image
+                                src={img}
+                                alt={`Reference ${idx}`}
+                                fill
+                                className="object-cover"
+                                unoptimized
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeReferenceImage(idx)}
+                                className="absolute top-1 right-1 bg-red-500/80 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+
+                          {formData.images.length === 0 && (
+                            <div
+                              className="col-span-full border-2 border-dashed border-[#333] rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors"
+                              onClick={handleReferenceImagesClick}
+                            >
+                              <ImageIcon className="h-8 w-8 text-gray-500 mb-2" />
+                              <p className="text-xs text-gray-500 text-center font-medium">Zero Reference Images</p>
+                              <p className="text-[10px] text-gray-500 text-center mt-1">Upload 5-10 clear photos for best AI twinning</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -456,11 +572,12 @@ export default function CreateCharacterPage() {
                           id="age"
                           name="age"
                           type="number"
-                          value={formData.age.toString()}
+                          value={formData.age === "" ? "" : formData.age.toString()}
                           onChange={handleChange}
                           className="bg-[#252525] border-[#333] text-white"
                           min="18"
                           max="100"
+                          placeholder="18"
                         />
                       </div>
                     </div>
