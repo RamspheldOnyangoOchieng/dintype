@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUnifiedNovitaKey } from "@/lib/unified-api-keys"
+import { generateImage } from '@/lib/novita-api';
 
 interface CustomizationData {
     style: 'realistic' | 'anime';
@@ -17,77 +17,15 @@ interface CustomizationData {
     bust: string;
 }
 
-async function generateImageWithNovita(prompt: string, negativePrompt: string): Promise<string> {
-    const { key: NOVITA_API, error } = await getUnifiedNovitaKey();
-    if (!NOVITA_API) {
-        throw new Error(error || 'NOVITA_API is not configured');
-    }
-
-    const response = await fetch('https://api.novita.ai/v3/async/txt2img', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${NOVITA_API}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            extra: {
-                response_image_type: 'jpeg',
-            },
-            request: {
-                model_name: 'sd_xl_base_1.0.safetensors',
-                prompt: prompt,
-                negative_prompt: negativePrompt,
-                width: 512,
-                height: 768,
-                image_num: 1,
-                sampler_name: 'DPM++ 2M Karras',
-                guidance_scale: 5.0,
-                steps: 25,
-                seed: -1,
-            },
-        }),
+async function generateImageWithNovita(prompt: string, negativePrompt: string, style: 'realistic' | 'anime'): Promise<string> {
+    const result = await generateImage({
+        prompt,
+        negativePrompt,
+        style,
+        width: 512,
+        height: 768
     });
-
-    if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`NOVITA API error: ${error}`);
-    }
-
-    const data = await response.json();
-    const taskId = data.task_id;
-
-    // Poll for completion
-    let attempts = 0;
-    const maxAttempts = 60; // 2 minutes max
-
-    while (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-        attempts++;
-
-        const progressResponse = await fetch(`https://api.novita.ai/v3/async/task-result?task_id=${taskId}`, {
-            headers: {
-                'Authorization': `Bearer ${NOVITA_API}`,
-            },
-        });
-
-        if (!progressResponse.ok) {
-            throw new Error('Failed to check generation progress');
-        }
-
-        const progressData = await progressResponse.json();
-
-        if (progressData.task.status === 'TASK_STATUS_SUCCEED') {
-            const imageUrl = progressData.images[0]?.image_url;
-            if (!imageUrl) {
-                throw new Error('No image URL in response');
-            }
-            return imageUrl;
-        } else if (progressData.task.status === 'TASK_STATUS_FAILED') {
-            throw new Error('Image generation failed');
-        }
-    }
-
-    throw new Error('Image generation timed out');
+    return result.url;
 }
 
 function buildPromptFromCustomization(customization: CustomizationData): { prompt: string; negativePrompt: string } {
@@ -158,7 +96,7 @@ export async function POST(request: NextRequest) {
         console.log('📝 Generated prompt:', prompt);
 
         // Generate image
-        const imageUrl = await generateImageWithNovita(prompt, negativePrompt);
+        const imageUrl = await generateImageWithNovita(prompt, negativePrompt, customization.style);
         console.log('✅ Character image generated:', imageUrl);
 
         return NextResponse.json({

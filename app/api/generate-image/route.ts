@@ -467,112 +467,144 @@ export async function POST(req: NextRequest) {
       promptsForTasks.push(taskPrompt);
     }
 
-    // --- SUBMIT TASKS TO NOVITA ---
-    console.log(`🚀 Submitting ${actualImageCount} tasks to Novita for diversity...`);
+    // --- GENERATE IMAGES WITH SEEDREAM 4.5 (PRIMARY) ---
+    console.log(`🚀 Generating ${actualImageCount} images with Seedream 4.5 (Masterpiece Engine)...`);
 
-    let finalNegativePrompt = negativePrompt === DEFAULT_NEGATIVE_PROMPT
-      ? DEFAULT_NEGATIVE_PROMPT
-      : `${DEFAULT_NEGATIVE_PROMPT}, ${negativePrompt}`;
+    const seedreamNegative = "low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, normal quality, jpeg artifacts, signature, duplicate";
 
-    // Add generic pose negatives if an intimate action is requested to avoid "hands behind head" bias
-    const lowerPrompt = prompt.toLowerCase();
-    if (lowerPrompt.includes('vagina') || lowerPrompt.includes('pussy') || lowerPrompt.includes('pusy') || lowerPrompt.includes('touching') || lowerPrompt.includes('spread')) {
-      finalNegativePrompt += ", hands behind head, interlocking fingers behind head, arms raised behind head, generic sexy pose";
-    }
+    // Use a helper function for retry logic
+    const generateWithRetry = async (idx: number) => {
+      let taskPromptFinal = promptsForTasks[idx];
+      if (taskPromptFinal.length > 1000) taskPromptFinal = taskPromptFinal.substring(0, 1000);
 
-    // Strict truncation for Novita 1024 char limit
-    if (finalNegativePrompt.length > 1000) {
-      finalNegativePrompt = finalNegativePrompt.substring(0, 1000);
-    }
+      const MAX_RETRIES = 3;
+      let currentError = null;
 
-    for (let i = 0; i < actualImageCount; i++) {
-      // Ensure prompt doesn't exceed Novita's 1024 character limit
-      let taskPromptFinal = promptsForTasks[i];
-      if (taskPromptFinal.length > 1000) {
-        console.log(`⚠️ Truncating prompt from ${taskPromptFinal.length} to 1000 characters`);
-        taskPromptFinal = taskPromptFinal.substring(0, 1000);
-      }
-
-      // Determine which reference image to use for twinning
-      // If we have multiple reference images, cycle through them for better batch diversity
-      let referenceImage = character?.image;
-      if (character?.images && Array.isArray(character.images) && character.images.length > 0) {
-        // Filter out any placeholders
-        const validImages = character.images.filter((img: string) => img && !img.includes('placeholder'));
-        if (validImages.length > 0) {
-          // Use different images for different tasks in the batch
-          referenceImage = validImages[i % validImages.length];
-        }
-      }
-
-      const requestBody: any = {
-        extra: {
-          response_image_type: "jpeg",
-          enable_nsfw_detection: enforceSFW,
-          nsfw_detection_level: enforceSFW ? 2 : 0,
-          webhook: {
-            url: webhookUrl,
-          },
-        },
-        request: {
-          prompt: taskPromptFinal,
-          model_name: apiModelName,
-          negative_prompt: finalNegativePrompt,
-          width,
-          height,
-          image_num: 1, // One image per task for maximum diversity
-          steps: 50,
-          seed: -1,
-          sampler_name: "DPM++ 2M Karras",
-          guidance_scale: finalGuidanceScale,
-          loras: lora ? [
-            {
-              model_name: lora,
-              strength: loraStrength
-            }
-          ] : [],
-          controlnet_units: (imageBase64 || referenceImage) ? [
-            {
-              model_name: "ip-adapter_sd15",
-              weight: 0.95,
-              control_image: imageBase64 ? imageBase64.replace(/^data:image\/\w+;base64,/, "") : referenceImage,
-              module_name: "none"
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          const sdResponse = await fetch("https://api.novita.ai/v3/seedream-4.5", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
             },
-            {
-              model_name: "ip-adapter_plus_face_sd15",
-              weight: 0.75,
-              control_image: imageBase64 ? imageBase64.replace(/^data:image\/\w+;base64,/, "") : referenceImage,
-              module_name: "none"
+            body: JSON.stringify({
+              prompt: taskPromptFinal,
+              negative_prompt: seedreamNegative,
+              size: size,
+              seed: -1,
+              steps: 30,
+              guidance_scale: 7.0,
+              optimize_prompt_options: { mode: "auto" }
+            }),
+          });
+
+          if (sdResponse.ok) {
+            const sdData = await sdResponse.json();
+            if (sdData.images && sdData.images.length > 0) {
+              console.log(`✅ Seedream 4.5 image ${idx + 1} succeeded on attempt ${attempt}`);
+              return { success: true, image: sdData.images[0] };
             }
-          ] : []
-        },
-      }
-
-      const response = await fetch("https://api.novita.ai/v3/async/txt2img", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const taskId = data.data?.task_id || data.task_id;
-
-        if (taskId) {
-          taskIds.push(taskId);
-          console.log(`✅ Task ${i + 1}/${actualImageCount} submitted: ${taskId}`);
-        } else {
-          console.error(`❌ Task ${i + 1} succeeded but no task_id returned:`, JSON.stringify(data));
+          } else {
+            const err = await sdResponse.text();
+            console.warn(`⚠️ Seedream 4.5 image ${idx + 1} attempt ${attempt} failed: ${err}`);
+            currentError = err;
+          }
+        } catch (e: any) {
+          console.warn(`⚠️ Seedream 4.5 image ${idx + 1} attempt ${attempt} exception: ${e.message}`);
+          currentError = e.message;
         }
-      } else {
-        const errorText = await response.text();
-        console.error(`❌ Task ${i + 1} failed:`, errorText);
-        // Store the last error to return to user if all fail
-        lastError = errorText;
+        if (attempt < MAX_RETRIES) await new Promise(r => setTimeout(r, 1000));
       }
+      return { success: false, error: currentError };
+    };
+
+    // Process all images in the batch
+    const seedreamResults = await Promise.all(
+      Array.from({ length: actualImageCount }).map((_, i) => generateWithRetry(i))
+    );
+
+    // If Seedream fails, FALLBACK to existing async txt2img
+    const failedIndices = seedreamResults.map((r, i) => r.success ? -1 : i).filter(i => i !== -1);
+    const successfulSeedreams = seedreamResults.filter(r => r.success).map(r => r.image);
+
+    if (failedIndices.length > 0) {
+      console.log(`📉 ${failedIndices.length} Seedream tasks failed. Falling back to Novita Async...`);
+      for (const idx of failedIndices) {
+        let taskPromptFinal = promptsForTasks[idx];
+        if (taskPromptFinal.length > 1000) taskPromptFinal = taskPromptFinal.substring(0, 1000);
+
+        const requestBody: any = {
+          extra: {
+            response_image_type: "jpeg",
+            enable_nsfw_detection: enforceSFW,
+            nsfw_detection_level: enforceSFW ? 2 : 0,
+            webhook: { url: webhookUrl },
+          },
+          request: {
+            prompt: taskPromptFinal,
+            model_name: DEFAULT_MODEL,
+            negative_prompt: seedreamNegative,
+            width,
+            height,
+            image_num: 1,
+            steps: 40,
+            seed: -1,
+            sampler_name: "DPM++ 2M Karras",
+            guidance_scale: 5.0,
+          },
+        };
+
+        const fbResponse = await fetch("https://api.novita.ai/v3/async/txt2img", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        });
+
+        if (fbResponse.ok) {
+          const fbData = await fbResponse.json();
+          const tid = fbData.data?.task_id || fbData.task_id;
+          if (tid) {
+            taskIds.push(tid);
+            console.log(`✅ Fallback task ${idx + 1} submitted: ${tid}`);
+          }
+        } else {
+          lastError = await fbResponse.text();
+          console.error(`❌ Fallback task ${idx + 1} failed:`, lastError);
+        }
+      }
+    }
+
+    // Persist Seedream results to DB so polling can find them immediately
+    const batchId = Math.random().toString(36).substring(2, 15);
+    if (successfulSeedreams.length > 0) {
+      const tide = `seedream_${batchId}`;
+      taskIds.push(tide);
+
+      const supabaseAdmin = await createAdminClient();
+      if (supabaseAdmin) {
+        for (const base64 of successfulSeedreams) {
+          let imageUrl = base64;
+          if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
+            imageUrl = `data:image/jpeg;base64,${imageUrl}`;
+          }
+
+          await supabaseAdmin.from('generated_images').insert({
+            user_id: userId,
+            character_id: characterId && !characterId.startsWith("custom-") ? characterId : null,
+            prompt: prompt,
+            image_url: imageUrl,
+            status: 'completed',
+            task_id: tide,
+            model: 'seedream-4.5',
+            is_private: true
+          });
+        }
+      }
+      console.log(`✅ ${successfulSeedreams.length} Seedream images persisted for batch ${batchId}`);
     }
 
     if (taskIds.length === 0) {
@@ -588,8 +620,8 @@ export async function POST(req: NextRequest) {
 
     const combinedTaskId = taskIds.join(',');
 
-    // Create database task record BEFORE API call for webhook tracking (Use Admin Client)
-    console.log('💾 Creating task record in database...')
+    // Create database task record for tracking and history
+    console.log('💾 Logging generation task to database...')
     const taskRecord = {
       user_id: userId,
       prompt: prompt,

@@ -17,6 +17,7 @@ export interface ImageGenerationParams {
   model?: string;
   style?: 'realistic' | 'anime';
   guidance_scale?: number;
+  controlnet_units?: any[];
 }
 
 export interface GeneratedImage {
@@ -27,11 +28,10 @@ export interface GeneratedImage {
 }
 
 /**
- * Generate image using Novita AI API
+ * Generate image using Novita AI API with Seedream 4.5 and fallback logic
  */
 export async function generateImage(params: ImageGenerationParams): Promise<GeneratedImage> {
-  // Get API key with fallback (DB → .env)
-  const { key: NOVITA_API_KEY, error: keyError } = await getUnifiedNovitaKey()
+  const { key: NOVITA_API_KEY, error: keyError } = await getUnifiedNovitaKey();
 
   if (!NOVITA_API_KEY) {
     throw new Error(keyError || 'Novita API key is not configured');
@@ -39,50 +39,118 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   const {
     prompt,
-    negativePrompt = 'low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, text, watermark',
+    negativePrompt = 'low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, text, watermark, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin',
     width = 512,
     height = 768,
     steps = 30,
     seed = -1,
-    model = 'sd_xl_base_1.0.safetensors',
     style = 'realistic',
-    guidance_scale = 5.0
+    guidance_scale = 7.0,
+    controlnet_units = []
   } = params;
 
-  // Enhance prompt with style-specific details
+  // Enhance prompt
   let enhancedPrompt = style === 'realistic'
-    ? `professional portrait photography, ${prompt}, raw photo, film grain, natural lighting, highly detailed skin texture, sharp focus, Fujifilm instax, 4k`
-    : `anime style, ${prompt}, beautiful anime art, detailed illustration, high quality, professional digital art, clean lines, vibrant colors`;
+    ? `professional photography, ${prompt}, raw photo, highly detailed, sharp focus, 8k resolution, authentic skin texture`
+    : `anime style, ${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors`;
 
-  // Truncate to 1000 characters to respect API limit of 1024
   if (enhancedPrompt.length > 1000) {
     enhancedPrompt = enhancedPrompt.substring(0, 1000);
   }
 
-  const requestBody = {
+  // Define retry logic for Seedream 4.5
+  const MAX_RETRIES = 3;
+  let lastError = null;
+
+  console.log(`🚀 Attempting image generation with Seedream 4.5 (Max ${MAX_RETRIES} tries)...`);
+
+  // Note: Seedream 4.5 currently doesn't support ControlNet units via this endpoint.
+  // If ControlNet is provided, we might want to skip Seedream or just use it for the prompt quality.
+  // Given user preference for Seedream, we'll try it first and fallback to SDXL + ControlNet if it fails.
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await fetch('https://api.novita.ai/v3/seedream-4.5', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${NOVITA_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: enhancedPrompt,
+          negative_prompt: negativePrompt,
+          size: `${width}x${height}`,
+          seed: seed === -1 ? Math.floor(Math.random() * 2147483647) : seed,
+          steps: steps,
+          guidance_scale: guidance_scale,
+          optimize_prompt_options: {
+            mode: 'auto'
+          }
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.images && data.images.length > 0) {
+          console.log(`✅ Seedream 4.5 succeeded on attempt ${attempt}`);
+
+          let imageUrl = data.images[0];
+          if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
+            imageUrl = `data:image/jpeg;base64,${imageUrl}`;
+          }
+
+          return {
+            url: imageUrl,
+            seed: seed,
+            width: width,
+            height: height,
+          };
+        }
+      } else {
+        const errorText = await response.text();
+        console.warn(`⚠️ Seedream 4.5 attempt ${attempt} failed: ${errorText}`);
+        lastError = new Error(`Seedream 4.5 error: ${errorText}`);
+      }
+    } catch (error: any) {
+      console.warn(`⚠️ Seedream 4.5 attempt ${attempt} crashed: ${error.message}`);
+      lastError = error;
+    }
+
+    if (attempt < MAX_RETRIES) {
+      console.log(`🔄 Retrying Seedream 4.5 in 2 seconds...`);
+      await new Promise(r => setTimeout(r, 2000));
+    }
+  }
+
+  // FALLBACK to old async/txt2img if Seedream fails after 3 tries (supports ControlNet)
+  console.log('📉 Seedream 4.5 failed all attempts. Falling back to Stable Diffusion XL (async)...');
+
+  const requestBody: any = {
     extra: {
       response_image_type: "jpeg",
       enable_nsfw_detection: false,
-      nsfw_detection_level: 0
     },
     request: {
-      model_name: model,
+      model_name: 'sd_xl_base_1.0.safetensors',
       prompt: enhancedPrompt,
       negative_prompt: negativePrompt,
       width,
       height,
       sampler_name: 'DPM++ 2M Karras',
       steps,
-      guidance_scale: guidance_scale,
+      guidance_scale: 5.0,
       seed,
       batch_size: 1,
       image_num: 1,
     }
   };
 
+  if (controlnet_units && controlnet_units.length > 0) {
+    requestBody.request.controlnet_units = controlnet_units;
+  }
+
   try {
-    // Submit generation request
-    const response = await fetch(NOVITA_API_URL, {
+    const response = await fetch(`https://api.novita.ai/v3/async/txt2img`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${NOVITA_API_KEY}`,
@@ -92,47 +160,32 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(`Novita API error: ${error.message || response.statusText}`);
+      throw new Error(`Fallback API failed: ${await response.text()}`);
     }
 
     const data = await response.json();
     const taskId = data.task_id;
-
-    // Poll for completion
     const result = await pollForCompletion(taskId, NOVITA_API_KEY);
 
-    console.log('Novita polling result:', JSON.stringify(result, null, 2));
-
     let imageUrl = '';
-    let seed = -1;
-    let width = params.width || 512;
-    let height = params.height || 768;
-
     if (result.images && result.images.length > 0) {
       imageUrl = result.images[0].image_url;
-      // Some responses have different structure for seed/dims in images array or at root
-      // Prioritize root if available, else assume requested dims or fallback
-      seed = result.seed || -1;
-      width = result.width || width;
-      height = result.height || height;
-    } else if (result.task && result.task.images && result.task.images.length > 0) {
-      // Handle task/images structure if nested
+    } else if (result.task?.images?.[0]?.image_url) {
       imageUrl = result.task.images[0].image_url;
-      seed = result.task.seed || seed;
     } else {
-      throw new Error(`No images found in Novita response: ${JSON.stringify(result)}`);
+      throw new Error('No images found in fallback response');
     }
 
+    console.log('✅ Fallback generation successful');
     return {
       url: imageUrl,
-      seed: seed,
-      width: width,
-      height: height,
+      seed: result.seed || seed,
+      width: result.width || width,
+      height: result.height || height,
     };
-  } catch (error) {
-    console.error('Error generating image:', error);
-    throw error;
+  } catch (err) {
+    console.error('❌ Both Seedream 4.5 and Fallback failed:', err);
+    throw lastError || err;
   }
 }
 
@@ -143,35 +196,23 @@ async function pollForCompletion(taskId: string, apiKey: string, maxAttempts = 6
   const pollUrl = `https://api.novita.ai/v3/async/task-result?task_id=${taskId}`;
 
   for (let i = 0; i < maxAttempts; i++) {
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     const response = await fetch(pollUrl, {
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-      },
+      headers: { 'Authorization': `Bearer ${apiKey}` },
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to check task status: ${response.statusText}`);
-    }
+    if (!response.ok) throw new Error(`Status check failed: ${response.statusText}`);
 
     const data = await response.json();
-
-    // Check various status fields depending on exact API version response
     const status = data.task ? data.task.status : data.status;
 
-    if (status === 'TASK_STATUS_SUCCEED' || status === 'SUCCEEDED') {
-      // Return the whole data object so caller can find images wherever they are
-      return data;
-    } else if (status === 'TASK_STATUS_FAILED' || status === 'FAILED') {
-      const reason = data.task ? data.task.reason : (data.reason || 'Unknown error');
-      throw new Error(`Image generation failed: ${reason}`);
+    if (status === 'TASK_STATUS_SUCCEED' || status === 'SUCCEEDED') return data;
+    if (status === 'TASK_STATUS_FAILED' || status === 'FAILED') {
+      throw new Error(`Task failed: ${data.task?.reason || data.reason || 'Unknown'}`);
     }
-
-    // Continue polling if still processing
   }
-
-  throw new Error('Image generation timed out');
+  throw new Error('Task timed out');
 }
 
 /**

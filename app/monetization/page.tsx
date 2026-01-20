@@ -7,12 +7,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { 
-  DollarSign, 
-  TrendingUp, 
-  Wallet, 
-  Coins, 
-  BarChart3, 
+import {
+  DollarSign,
+  TrendingUp,
+  Wallet,
+  Coins,
+  BarChart3,
   Calendar,
   Zap,
   Star,
@@ -202,7 +202,7 @@ export default function MonetizationPage() {
   useEffect(() => {
     const loadModelEarnings = async () => {
       if (!user?.id) return
-      
+
       try {
         const response = await fetch(`/api/model-earnings?userId=${user.id}`)
         const data = await response.json()
@@ -308,7 +308,7 @@ export default function MonetizationPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {modelEarnings.loading ? "Loading..." : `$${(modelEarnings.totalTokens * 0.0001).toFixed(4)}`}
+              {modelEarnings.loading ? "Loading..." : `$ ${(modelEarnings.totalTokens * 0.0001).toFixed(4)}`}
             </div>
             <p className="text-xs text-muted-foreground">
               From {modelEarnings.totalTokens.toLocaleString()} tokens earned
@@ -338,10 +338,10 @@ export default function MonetizationPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {modelEarnings.loading ? "Loading..." : `$${(modelEarnings.totalTokens * 0.0001).toFixed(2)}`}
+              {modelEarnings.loading ? "Loading..." : `$ ${(modelEarnings.totalTokens * 0.0001).toFixed(2)}`}
             </div>
             <p className="text-xs text-muted-foreground">
-              {modelEarnings.totalTokens * 0.0001 >= 50 ? "Ready to withdraw" : `Need $${(50 - (modelEarnings.totalTokens * 0.0001)).toFixed(2)} more`}
+              {modelEarnings.totalTokens * 0.0001 >= 50 ? "Ready to withdraw" : `Need $ ${(50 - (modelEarnings.totalTokens * 0.0001)).toFixed(2)} more`}
             </p>
           </CardContent>
         </Card>
@@ -351,7 +351,7 @@ export default function MonetizationPage() {
       <Alert className="mb-8">
         <CheckCircle className="h-4 w-4" />
         <AlertDescription>
-          <strong>Welcome to your Monetization Dashboard!</strong> Here you can view your earnings from model usage, 
+          <strong>Welcome to your Monetization Dashboard!</strong> Here you can view your earnings from model usage,
           manage your purchased models, and request withdrawals. All earnings are automatically tracked when you use premium models.
         </AlertDescription>
       </Alert>
@@ -390,8 +390,8 @@ export default function MonetizationPage() {
                       Browse Premium Models
                     </Button>
                   </Link>
-                  <Button 
-                    className="w-full justify-start" 
+                  <Button
+                    className="w-full justify-start"
                     variant="outline"
                     onClick={() => {
                       const withdrawalsTab = document.querySelector('[value="withdrawals"]') as HTMLElement;
@@ -445,7 +445,7 @@ export default function MonetizationPage() {
                     Buy premium AI models using tokens to unlock advanced features
                   </p>
                 </div>
-                
+
                 <div className="text-center p-4 border rounded-lg">
                   <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-3">
                     <TrendingUp className="h-6 w-6 text-green-600" />
@@ -455,7 +455,7 @@ export default function MonetizationPage() {
                     Earn money when others use your purchased models
                   </p>
                 </div>
-                
+
                 <div className="text-center p-4 border rounded-lg">
                   <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Wallet className="h-6 w-6 text-purple-600" />
@@ -479,7 +479,7 @@ export default function MonetizationPage() {
                 Token Earnings from Model Usage
               </CardTitle>
               <CardDescription>
-                Earnings from users chatting with your models at $0.0001 per token
+                Earnings from users chatting with your models at $ 0.0001 per token
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -517,20 +517,20 @@ export default function MonetizationPage() {
                         Consumed in all chats
                       </p>
                     </div>
-                    
+
                     <div className="bg-muted/50 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <DollarSign className="h-4 w-4 text-green-600" />
                         <span className="text-sm font-medium">Total Earnings</span>
                       </div>
                       <div className="text-2xl font-bold text-green-600">
-                        ${(modelEarnings.totalTokens * 0.0001).toFixed(4)}
+                        $ {(modelEarnings.totalTokens * 0.0001).toFixed(4)}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {modelEarnings.totalTokens} tokens × $0.0001 = ${(modelEarnings.totalTokens * 0.0001).toFixed(4)}
+                        {modelEarnings.totalTokens} tokens × $ 0.0001 = $ {(modelEarnings.totalTokens * 0.0001).toFixed(4)}
                       </p>
                     </div>
-                    
+
                     <div className="bg-muted/50 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Cpu className="h-4 w-4 text-blue-600" />
@@ -560,7 +560,7 @@ export default function MonetizationPage() {
                         </div>
                         <div className="text-right">
                           <div className="text-3xl font-bold text-green-600">
-                            ${(modelEarnings.totalTokens * 0.0001).toFixed(4)}
+                            $ {(modelEarnings.totalTokens * 0.0001).toFixed(4)}
                           </div>
                           <p className="text-sm text-muted-foreground mt-1">
                             From {modelEarnings.totalTokens.toLocaleString()} total tokens
@@ -605,10 +605,10 @@ export default function MonetizationPage() {
                             </div>
                             <div className="text-right">
                               <div className="text-lg font-bold text-green-600">
-                                ${modelEarning.toFixed(4)}
+                                $ {modelEarning.toFixed(4)}
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                {model.totalTokensConsumed} tokens × $0.0001
+                                {model.totalTokensConsumed} tokens × $ 0.0001
                               </div>
                             </div>
                           </div>
@@ -656,7 +656,7 @@ export default function MonetizationPage() {
                       Browse More Models
                     </Button>
                   </Link>
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={() => {
                       const earningsTab = document.querySelector('[value="earnings"]') as HTMLElement;

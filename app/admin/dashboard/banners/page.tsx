@@ -7,10 +7,15 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/auth-context"
-import { Home, Search, Trash2, Edit, Plus, Upload, Save, X, AlertTriangle, LinkIcon } from "lucide-react"
+import { Home, Search, Trash2, Edit, Plus, Upload, Save, X, AlertTriangle, LinkIcon, ExternalLink } from "lucide-react"
 import { format } from "date-fns"
 import { useToast } from "@/hooks/use-toast"
 import { createClient } from "@/utils/supabase/client"
+import { Switch } from "@/components/ui/switch"
+import Image from "next/image"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { cn } from "@/lib/utils"
 
 interface Banner {
   id: string
@@ -39,7 +44,7 @@ export default function AdminBannersPage() {
   const [error, setError] = useState<string | null>(null)
   const [availableBuckets, setAvailableBuckets] = useState<string[]>([])
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     imageUrl: "",
     title: "",
     subtitle: "",
@@ -309,14 +314,14 @@ export default function AdminBannersPage() {
         prev.map((banner) =>
           banner.id === isEditing
             ? {
-                ...banner,
-                imageUrl: formData.imageUrl,
-                title: formData.title,
-                subtitle: formData.subtitle,
-                buttonText: formData.buttonText,
-                buttonLink: formData.buttonLink,
-                linkUrl: formData.linkUrl,
-              }
+              ...banner,
+              imageUrl: formData.imageUrl,
+              title: formData.title,
+              subtitle: formData.subtitle,
+              buttonText: formData.buttonText,
+              buttonLink: formData.buttonLink,
+              linkUrl: formData.linkUrl,
+            }
             : banner,
         ),
       )
@@ -420,317 +425,320 @@ export default function AdminBannersPage() {
   }
 
   if (!user) {
-    return null // Will redirect in useEffect
+    return null
   }
 
   return (
-    <div className="min-h-screen bg-[#141414] text-white">
-      <div className="flex h-screen">
-        {/* Main Content */}
-        <div className="flex-1 overflow-auto">
-          <header className="bg-[#1A1A1A] border-b border-[#252525] p-4 flex justify-between items-center">
-            <h2 className="text-xl font-bold">Banner Management</h2>
-            <Button variant="outline" onClick={() => router.push("/")}>
-              <Home className="mr-2 h-4 w-4" />
-              View Site
-            </Button>
-          </header>
+    <div className="p-8 space-y-8 animate-in fade-in duration-500">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div>
+          <h1 className="text-3xl font-black tracking-tight text-white flex items-center gap-3">
+            Promotional Banners
+            <Badge variant="secondary" className="bg-[#252525] text-[#00A3FF] border-[#333] font-black">
+              {banners.length}
+            </Badge>
+          </h1>
+          <p className="text-gray-400 mt-1 font-medium italic">High-impact visibility controls for your platform assets.</p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+          <div className="relative group flex-1 sm:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 group-focus-within:text-[#00A3FF] transition-colors" />
+            <Input
+              placeholder="Search banners..."
+              className="pl-10 bg-[#1A1A1A] border-[#252525] text-white focus:border-[#00A3FF]/50 focus:ring-[#00A3FF]/20 h-11 rounded-xl transition-all"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Button
+            className="bg-[#00A3FF] hover:bg-[#0082CC] text-white font-black h-11 px-6 rounded-xl shadow-lg shadow-[#00A3FF]/20 transition-all active:scale-95"
+            onClick={() => setIsAdding(true)}
+          >
+            <Plus className="mr-2 h-5 w-5" />
+            Add Banner
+          </Button>
+        </div>
+      </div>
 
-          <div className="p-6">
-            <div className="bg-[#1A1A1A] rounded-xl p-6 mb-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-medium">Promotional Banners ({banners.length})</h3>
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search banners..."
-                      className="pl-9 bg-[#252525] border-[#333] text-white w-64"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+      {/* Add/Edit Banner Form Inline */}
+      {(isAdding || isEditing) && (
+        <div className="bg-[#1A1A1A] border border-[#252525] rounded-2xl p-8 mb-10 shadow-2xl relative overflow-hidden backdrop-blur-sm animate-in slide-in-from-top-4 duration-300">
+          <div className="absolute top-0 left-0 w-1 h-full bg-[#00A3FF]" />
+          <div className="flex justify-between items-center mb-8">
+            <h4 className="text-2xl font-black text-white">{isAdding ? "Create New Campaign" : "Optimize Banner"}</h4>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-gray-500 hover:text-white hover:bg-[#252525] rounded-xl transition-colors"
+              onClick={() => {
+                setIsAdding(false)
+                setIsEditing(null)
+              }}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 mb-8">
+            <div className="space-y-4">
+              <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">Visual Asset Preview</label>
+              <div className="relative aspect-[1222/244] w-full bg-[#0F0F0F] border border-[#252525] rounded-2xl overflow-hidden group shadow-inner border-dashed">
+                {formData.imageUrl ? (
+                  <img
+                    src={formData.imageUrl}
+                    alt="Preview"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-600">
+                    <Upload className="h-10 w-10 mb-3 opacity-20" />
+                    <span className="text-xs font-bold opacity-30">Recommended: 1222 x 244 pixels</span>
                   </div>
-                  <Button className="bg-primary hover:bg-primary/90 text-primary-foreground" onClick={() => setIsAdding(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Banner
-                  </Button>
-                </div>
+                )}
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-8 h-8 border-4 border-[#00A3FF] border-t-transparent rounded-full animate-spin" />
+                      <span className="text-[#00A3FF] text-xs font-black uppercase tracking-widest">Processing</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Error Message */}
-              {error && (
-                <div className="mb-6 p-4 bg-red-900/20 border border-red-800 text-red-300 rounded-lg flex items-center">
-                  <AlertTriangle className="h-5 w-5 mr-2" />
-                  <span>{error}</span>
+              <div className="flex gap-3">
+                <div className="relative flex-1">
+                  <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Input
+                    placeholder="Direct Asset URL"
+                    className="pl-10 bg-[#0F0F0F] border-[#252525] text-white h-12 rounded-xl focus:border-[#00A3FF]/50 transition-all font-mono text-sm"
+                    value={formData.imageUrl}
+                    onChange={(e) => setFormData((prev: any) => ({ ...prev, imageUrl: e.target.value }))}
+                  />
                 </div>
-              )}
+                <Button
+                  variant="outline"
+                  className="h-12 px-6 border-[#252525] bg-[#0F0F0F] hover:bg-[#252525] hover:text-white text-gray-400 rounded-xl transition-all"
+                  disabled={isUploading}
+                  onClick={() => document.getElementById('image-upload')?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload
+                </Button>
+                <input
+                  id="image-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
+              </div>
+            </div>
 
-              {/* Add/Edit Banner Form */}
-              {(isAdding || isEditing) && (
-                <div className="mb-6 p-4 bg-[#252525] rounded-lg">
-                  <div className="flex justify-between items-center mb-4">
-                    <h4 className="font-medium">{isAdding ? "Add New Banner" : "Edit Banner"}</h4>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setIsAdding(false)
-                        setIsEditing(null)
-                        setFormData({
-                          imageUrl: "",
-                          title: "",
-                          subtitle: "",
-                          buttonText: "",
-                          buttonLink: "",
-                          linkUrl: "",
-                        })
-                      }}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Banner Image (1222x244px)</label>
-                      <div className="flex flex-col gap-2">
-                        {formData.imageUrl && (
-                          <div className="relative w-full h-32 bg-[#1A1A1A] rounded-lg overflow-hidden">
-                            <img
-                              src={formData.imageUrl || "/placeholder.svg"}
-                              alt="Banner preview"
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
-                        <div className="flex gap-2">
-                          {availableBuckets.length > 0 ? (
-                            <label className="flex-1">
-                              <div className="relative flex items-center justify-center w-full h-10 bg-[#1A1A1A] border border-[#333] rounded-md cursor-pointer hover:bg-[#252525]">
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  className="sr-only"
-                                  onChange={handleImageUpload}
-                                  disabled={isUploading}
-                                />
-                                {isUploading ? (
-                                  <span className="flex items-center">
-                                    <Upload className="h-4 w-4 mr-2 animate-spin" />
-                                    Uploading...
-                                  </span>
-                                ) : (
-                                  <span className="flex items-center">
-                                    <Upload className="h-4 w-4 mr-2" />
-                                    Upload Image
-                                  </span>
-                                )}
-                              </div>
-                            </label>
-                          ) : (
-                            <Button
-                              variant="outline"
-                              className="flex-1"
-                              onClick={() => {
-                                toast({
-                                  title: "Storage not available",
-                                  description: "Please enter an image URL directly.",
-                                })
-                              }}
-                            >
-                              <LinkIcon className="h-4 w-4 mr-2" />
-                              Use Image URL
-                            </Button>
-                          )}
-                          <Input
-                            placeholder="Enter image URL"
-                            className="flex-1 bg-[#1A1A1A] border-[#333] text-white"
-                            value={formData.imageUrl}
-                            onChange={(e) => setFormData((prev) => ({ ...prev, imageUrl: e.target.value }))}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
-                        <Input
-                          placeholder="Banner title"
-                          className="bg-[#1A1A1A] border-[#333] text-white"
-                          value={formData.title}
-                          onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Subtitle (optional)</label>
-                        <Input
-                          placeholder="Banner subtitle"
-                          className="bg-[#1A1A1A] border-[#333] text-white"
-                          value={formData.subtitle}
-                          onChange={(e) => setFormData((prev) => ({ ...prev, subtitle: e.target.value }))}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Banner Link URL (required)</label>
-                      <Input
-                        placeholder="/page or https://example.com"
-                        className="bg-[#1A1A1A] border-[#333] text-white"
-                        value={formData.linkUrl}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, linkUrl: e.target.value }))}
-                      />
-                      <p className="text-xs text-gray-400 mt-1">
-                        The entire banner will be clickable and link to this URL
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Button Text (optional)</label>
-                      <Input
-                        placeholder="Call to action text"
-                        className="bg-[#1A1A1A] border-[#333] text-white"
-                        value={formData.buttonText}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, buttonText: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Button Link (optional)</label>
-                      <Input
-                        placeholder="/page or https://example.com"
-                        className="bg-[#1A1A1A] border-[#333] text-white"
-                        value={formData.buttonLink}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, buttonLink: e.target.value }))}
-                      />
-                      <p className="text-xs text-gray-400 mt-1">
-                        If provided, a button will appear on the banner with this link
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                      onClick={isAdding ? handleAddBanner : handleUpdateBanner}
-                      disabled={!formData.imageUrl || !formData.title || !formData.linkUrl}
-                    >
-                      <Save className="mr-2 h-4 w-4" />
-                      {isAdding ? "Add Banner" : "Update Banner"}
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Banners Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-[#252525]">
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Image</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Title</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Link</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Button</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Active</th>
-                      <th className="text-left py-3 px-4 text-gray-400 font-medium">Created</th>
-                      <th className="text-right py-3 px-4 text-gray-400 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredBanners.length > 0 ? (
-                      filteredBanners.map((banner) => (
-                        <tr key={banner.id} className="border-b border-[#252525] hover:bg-[#252525]/50">
-                          <td className="py-3 px-4">
-                            <div className="w-20 h-10 bg-[#252525] rounded-md overflow-hidden">
-                              <img
-                                src={banner.imageUrl || "/placeholder.svg"}
-                                alt={banner.title}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div>
-                              <div className="font-medium">{banner.title}</div>
-                              {banner.subtitle && <div className="text-sm text-gray-400">{banner.subtitle}</div>}
-                            </div>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="text-sm text-gray-400">{banner.linkUrl}</span>
-                          </td>
-                          <td className="py-3 px-4">
-                            {banner.buttonText ? (
-                              <div className="flex flex-col">
-                                <span className="text-sm">{banner.buttonText}</span>
-                                {banner.buttonLink && (
-                                  <span className="text-xs text-gray-400">{banner.buttonLink}</span>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex items-center">
-                              <button
-                                onClick={() => handleToggleActive(banner.id)}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                                  banner.isActive ? "bg-primary" : "bg-input"
-                                }`}
-                              >
-                                <span
-                                  className={`pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform ${
-                                    banner.isActive ? "translate-x-6" : "translate-x-1"
-                                  }`}
-                                />
-                              </button>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4 text-gray-400">
-                            {format(new Date(banner.createdAt), "MMM d, yyyy")}
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-blue-400 hover:text-blue-300 hover:bg-blue-900/20"
-                                onClick={() => handleEditBanner(banner)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                                onClick={() => handleDeleteBanner(banner.id)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan={7} className="py-8 text-center text-gray-400">
-                          {searchTerm
-                            ? "No banners found matching your search."
-                            : "No banners found. Add one to get started."}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">Campaign Title</label>
+                <Input
+                  placeholder="e.g. Premium Experience"
+                  className="bg-[#0F0F0F] border-[#252525] text-white h-12 rounded-xl focus:border-[#00A3FF] transition-all"
+                  value={formData.title}
+                  onChange={(e) => setFormData((prev: any) => ({ ...prev, title: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">Redirect Slug/URL</label>
+                <Input
+                  placeholder="/premium or http://..."
+                  className="bg-[#0F0F0F] border-[#252525] text-white h-12 rounded-xl font-mono text-xs"
+                  value={formData.linkUrl}
+                  onChange={(e) => setFormData((prev: any) => ({ ...prev, linkUrl: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">Supporting Text</label>
+                <Input
+                  placeholder="Detailed description of the promotion"
+                  className="bg-[#0F0F0F] border-[#252525] text-white h-12 rounded-xl"
+                  value={formData.subtitle}
+                  onChange={(e) => setFormData((prev: any) => ({ ...prev, subtitle: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">CTA Button Label</label>
+                <Input
+                  placeholder="e.g. Go Premium"
+                  className="bg-[#0F0F0F] border-[#252525] text-white h-12 rounded-xl"
+                  value={formData.buttonText}
+                  onChange={(e) => setFormData((prev: any) => ({ ...prev, buttonText: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">Button Redirect</label>
+                <Input
+                  placeholder="/checkout"
+                  className="bg-[#0F0F0F] border-[#252525] text-white h-12 rounded-xl font-mono text-xs"
+                  value={formData.buttonLink}
+                  onChange={(e) => setFormData((prev: any) => ({ ...prev, buttonLink: e.target.value }))}
+                />
               </div>
             </div>
           </div>
+
+          <div className="flex justify-end gap-4 pt-6 border-t border-[#252525]">
+            <Button
+              variant="ghost"
+              className="text-gray-500 hover:text-white hover:bg-white/5 font-bold h-12 px-8 rounded-xl"
+              onClick={() => {
+                setIsAdding(false)
+                setIsEditing(null)
+              }}
+            >
+              Discard
+            </Button>
+            <Button
+              className="bg-[#00A3FF] hover:bg-[#0082CC] text-white font-black h-12 px-10 rounded-xl shadow-xl shadow-[#00A3FF]/20 transition-all active:scale-95"
+              onClick={isAdding ? handleAddBanner : handleUpdateBanner}
+              disabled={!formData.imageUrl || !formData.title || !formData.linkUrl}
+            >
+              <Save className="mr-2 h-5 w-5" />
+              {isAdding ? "Finalize Campaign" : "Update Asset"}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Error Feedback */}
+      {error && (
+        <Alert variant="destructive" className="bg-red-500/10 border-red-500/30 text-red-400 rounded-2xl p-6 border-dashed">
+          <AlertTriangle className="h-5 w-5" />
+          <AlertDescription className="font-bold underline decoration-red-500/50 decoration-2 underline-offset-4">{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Modern Banners Table */}
+      <div className="bg-[#1A1A1A] border border-[#252525] rounded-[24px] overflow-hidden shadow-2xl backdrop-blur-md">
+        <div className="overflow-x-auto overflow-y-hidden custom-scrollbar">
+          <table className="w-full text-left border-collapse min-w-[1000px]">
+            <thead>
+              <tr className="border-b border-[#252525] bg-[#141414]/80">
+                <th className="py-6 px-8 text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Image</th>
+                <th className="py-6 px-8 text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Creative Details</th>
+                <th className="py-6 px-8 text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Live Link</th>
+                <th className="py-6 px-8 text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">CTA Configuration</th>
+                <th className="py-6 px-8 text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Status</th>
+                <th className="py-6 px-8 text-[11px] font-black text-gray-500 uppercase tracking-[0.2em]">Deployment</th>
+                <th className="py-6 px-8 text-[11px] font-black text-gray-500 uppercase tracking-[0.2em] text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#252525]">
+              {filteredBanners.map((banner) => (
+                <tr key={banner.id} className="hover:bg-white/[0.02] transition-all group duration-300">
+                  <td className="py-6 px-8">
+                    <div className="relative w-[130px] aspect-[122/44] rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10 group-hover:ring-[#00A3FF]/40 transition-all duration-500">
+                      <Image
+                        src={banner.imageUrl || "/placeholder.svg"}
+                        alt={banner.title}
+                        fill
+                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                    </div>
+                  </td>
+                  <td className="py-6 px-8">
+                    <div className="flex flex-col">
+                      <span className="text-lg font-black text-white leading-tight group-hover:text-[#00A3FF] transition-colors">{banner.title}</span>
+                      {banner.subtitle && (
+                        <span className="text-xs text-gray-500 mt-1.5 line-clamp-1 max-w-[200px] leading-relaxed italic">{banner.subtitle}</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-6 px-8">
+                    <div className="flex items-center gap-2 group/link">
+                      <code className="text-[11px] font-bold text-gray-400 bg-[#252525] px-2 py-1 rounded-md border border-[#333] transition-colors group-hover/link:text-white group-hover/link:border-white/20">{banner.linkUrl}</code>
+                      <ExternalLink className="h-3 w-3 text-gray-600 opacity-0 group-hover/link:opacity-100 transition-all" />
+                    </div>
+                  </td>
+                  <td className="py-6 px-8">
+                    {banner.buttonText ? (
+                      <div className="flex flex-col space-y-1">
+                        <span className="text-xs font-black text-white px-2 py-1 bg-white/5 rounded-md inline-block w-fit">{banner.buttonText}</span>
+                        {banner.buttonLink && (
+                          <span className="text-[10px] text-gray-500 font-mono pl-1">{banner.buttonLink}</span>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="h-6 w-12 bg-[#252525] rounded-full flex items-center justify-center">
+                        <span className="text-[10px] text-gray-600 font-black">-</span>
+                      </div>
+                    )}
+                  </td>
+                  <td className="py-6 px-8">
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={banner.isActive}
+                        onCheckedChange={() => handleToggleActive(banner.id)}
+                        className="data-[state=checked]:bg-[#00A3FF] data-[state=unchecked]:bg-[#333] scale-110"
+                      />
+                      <span className={cn(
+                        "text-[10px] font-black uppercase tracking-widest transition-colors",
+                        banner.isActive ? "text-[#00A3FF]" : "text-gray-600"
+                      )}>
+                        {banner.isActive ? "Active" : "Paused"}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-6 px-8">
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-black text-white tracking-widest uppercase">
+                        {format(new Date(banner.createdAt), "dd MMM")}
+                      </span>
+                      <span className="text-[9px] text-gray-600 font-medium">
+                        {format(new Date(banner.createdAt), "yyyy")}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-6 px-8 text-right">
+                    <div className="flex justify-end items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 text-gray-500 hover:text-[#00A3FF] hover:bg-[#00A3FF]/10 rounded-xl transition-all border border-transparent hover:border-[#00A3FF]/20"
+                        onClick={() => handleEditBanner(banner)}
+                        title="Edit Campaign"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 text-gray-700 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-500/20"
+                        onClick={() => handleDeleteBanner(banner.id)}
+                        title="Remove Content"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filteredBanners.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="py-40 text-center">
+                    <div className="flex flex-col items-center justify-center animate-pulse">
+                      <div className="w-20 h-20 bg-[#252525] rounded-full flex items-center justify-center mb-6 border border-[#333]">
+                        <Search className="h-8 w-8 text-gray-500" />
+                      </div>
+                      <h3 className="text-xl font-black text-white mb-2">Creative Void</h3>
+                      <p className="text-sm text-gray-500 font-medium max-w-xs mx-auto">
+                        {searchTerm
+                          ? `We couldn't find any results matching "${searchTerm}". Try a different filter.`
+                          : "Your promotional pipeline is currently empty. Start by adding a banner to engage your users."}
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

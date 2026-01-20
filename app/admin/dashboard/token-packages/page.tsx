@@ -54,9 +54,9 @@ export default function TokenPackagesPage() {
         if (!editingPackage) return
         const { error } = await supabase
             .from("token_packages")
-            .update({ 
-                name: editingPackage.name, 
-                tokens: editingPackage.tokens, 
+            .update({
+                name: editingPackage.name,
+                tokens: editingPackage.tokens,
                 price: editingPackage.price,
                 price_display: editingPackage.price_display,
                 active: editingPackage.active
@@ -121,7 +121,7 @@ export default function TokenPackagesPage() {
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Display Price</label>
                             <Input
-                                placeholder="$9.99 / 9,99 €"
+                                placeholder="$ 9.99 / 9,99 €"
                                 value={newPackage.price_display}
                                 onChange={(e) => setNewPackage({ ...newPackage, price_display: e.target.value })}
                             />
@@ -185,10 +185,10 @@ export default function TokenPackagesPage() {
                                                 />
                                             </TableCell>
                                             <TableCell>
-                                                <select 
+                                                <select
                                                     className="bg-background border rounded p-1 text-sm"
                                                     value={editingPackage.active ? "true" : "false"}
-                                                    onChange={(e) => setEditingPackage({...editingPackage, active: e.target.value === "true"})}
+                                                    onChange={(e) => setEditingPackage({ ...editingPackage, active: e.target.value === "true" })}
                                                 >
                                                     <option value="true">Active</option>
                                                     <option value="false">Inactive</option>

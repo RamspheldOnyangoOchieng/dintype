@@ -27,12 +27,15 @@ export function formatCurrency(
   // For EUR, we might want a different locale
   const activeLocale = currency === 'EUR' ? 'de-DE' : locale;
 
-  return new Intl.NumberFormat(activeLocale, {
+  const formatted = new Intl.NumberFormat(activeLocale, {
     style: 'currency',
     currency: currency,
     minimumFractionDigits: includeDecimals ? 2 : 0,
     maximumFractionDigits: includeDecimals ? 2 : 0,
   }).format(amount);
+
+  // Add space after symbol and ensure symbol is at the front for USD/EUR in this app's style
+  return formatted.replace(/([$€£]|kr)/g, '$1 ').trim();
 }
 
 /**
@@ -110,7 +113,7 @@ export const CURRENCY_NAME = 'US Dollars';
 export const PRICING = {
   PREMIUM_MONTHLY_USD: 11.99,
   PREMIUM_MONTHLY_EUR: 11.99,
-  PREMIUM_MONTHLY_FORMATTED: '$11.99 / 11,99 €',
+  PREMIUM_MONTHLY_FORMATTED: '$ 11.99 / 11,99 €',
 
   TOKEN_PACKAGES: {
     SMALL: { tokens: 200, price_usd: 9.99, price_eur: 9.99, images: 40 },

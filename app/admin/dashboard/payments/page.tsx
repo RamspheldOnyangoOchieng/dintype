@@ -200,7 +200,7 @@ export default function AdminPaymentsPage() {
                     </TableCell>
                     <TableCell>{transaction.plan_name || "Token Purchase"}</TableCell>
                     <TableCell className="font-semibold">
-                      ${transaction.amount.toFixed(2)}
+                      $ {transaction.amount.toFixed(2)}
                     </TableCell>
                     <TableCell>{getStatusBadge(transaction.status)}</TableCell>
                     <TableCell className="font-mono text-xs">
@@ -248,7 +248,7 @@ export default function AdminPaymentsPage() {
                 placeholder="Enter amount to refund"
               />
               <p className="text-sm text-muted-foreground">
-                Original amount: ${selectedTransaction?.amount.toFixed(2)}
+                Original amount: $ {selectedTransaction?.amount.toFixed(2)}
               </p>
             </div>
 

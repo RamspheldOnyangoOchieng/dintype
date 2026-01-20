@@ -233,63 +233,72 @@ Return ONLY the improved explicit prompt, no explanations or warnings.`
       }
     }
 
-    console.log('Generating image with Friendli AI...');
-
+    // IMAGE GENERATION WITH SEEDREAM 4.5 (PRIMARY)
     let bodyImageUrl: string | null = null;
-    let usedFriendli = false;
+    const MAX_SEEDREAM_RETRIES = 3;
+    let seedreamError = null;
 
-    // Try Friendli AI first
-    try {
-      const friendliResponse = await fetch('https://api.friendli.ai/dedicated/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${friendliApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'dephwl5l8jhx7dl',
-          prompt: enhancedPrompt,
-          response_format: 'jpeg',
-          seed: Math.floor(Math.random() * 10000000000000000),
-          num_inference_steps: 36,
-          guidance_scale: 3.5
-        }),
-      });
+    if (novitaApiKey) {
+      console.log(`🚀 Attempting character generation with Seedream 4.5 (Max ${MAX_SEEDREAM_RETRIES} tries)...`);
 
-      if (friendliResponse.ok) {
-        const friendliData = await friendliResponse.json();
-        const bodyImageBase64 = friendliData.data?.[0]?.b64_json;
+      const seedreamNegative = "low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, duplicate";
 
-        if (bodyImageBase64) {
-          bodyImageUrl = `data:image/jpeg;base64,${bodyImageBase64}`;
-          usedFriendli = true;
-          console.log('✅ Image generated successfully with Friendli AI');
-        } else {
-          throw new Error('No image data from Friendli');
+      for (let attempt = 1; attempt <= MAX_SEEDREAM_RETRIES; attempt++) {
+        try {
+          const seedreamResponse = await fetch('https://api.novita.ai/v3/seedream-4.5', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${novitaApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              prompt: enhancedPrompt,
+              negative_prompt: seedreamNegative,
+              size: '512x768',
+              seed: Math.floor(Math.random() * 2147483647),
+              steps: 30,
+              guidance_scale: 7.0,
+              optimize_prompt_options: {
+                mode: 'auto'
+              }
+            }),
+          });
+
+          if (seedreamResponse.ok) {
+            const data = await seedreamResponse.json();
+            if (data.images && data.images.length > 0) {
+              let imageUrl = data.images[0];
+              if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
+                imageUrl = `data:image/jpeg;base64,${imageUrl}`;
+              }
+              bodyImageUrl = imageUrl;
+              console.log(`✅ Seedream 4.5 succeeded on attempt ${attempt}`);
+              break;
+            }
+          } else {
+            const errorText = await seedreamResponse.text();
+            console.warn(`⚠️ Seedream 4.5 attempt ${attempt} failed: ${errorText}`);
+            seedreamError = new Error(`Seedream 4.5 failed: ${errorText}`);
+          }
+        } catch (error: any) {
+          console.warn(`⚠️ Seedream 4.5 attempt ${attempt} exception: ${error.message}`);
+          seedreamError = error;
         }
-      } else {
-        const errorText = await friendliResponse.text();
-        console.warn(`⚠️ Friendli API error (${friendliResponse.status}): ${errorText.substring(0, 200)}`);
-        throw new Error(`Friendli failed with status ${friendliResponse.status}`);
-      }
-    } catch (friendliError) {
-      console.warn('⚠️ Friendli AI failed, falling back to NOVITA:', friendliError instanceof Error ? friendliError.message : 'Unknown error');
 
-      // Fallback to NOVITA image generation
-      if (!novitaApiKey) {
-        return NextResponse.json(
-          { error: 'Both Friendli and NOVITA APIs are not available' },
-          { status: 500 }
-        );
+        if (attempt < MAX_SEEDREAM_RETRIES) {
+          await new Promise(r => setTimeout(r, 2000));
+        }
       }
+    }
+
+    // FALLBACK TO SYNC SDXL OR ASYNC IF SEEDREAM FAILED
+    if (!bodyImageUrl) {
+      console.log('📉 Seedream 4.5 failed. Trying fallback to Novita SDXL (async)...');
 
       try {
-        console.log('🔄 Falling back to NOVITA for image generation...');
-
         const baseNegative = "deformed face, distorted face, bad anatomy, wrong proportions, extra limbs, extra arms, extra legs, extra fingers, extra toes, missing fingers, fused fingers, long fingers, short fingers, broken hands, malformed hands, twisted wrists, asymmetrical face, uneven eyes, crossed eyes, lazy eye, misaligned pupils, double pupils, melting face, warped face, collapsed jaw, broken mouth, stretched mouth, floating teeth, multiple mouths, open mouth smile, exaggerated smile, uncanny valley, fake human, artificial look, plastic skin, waxy skin, rubber skin, doll face, mannequin, cgi, 3d render, overly smooth skin, airbrushed skin, beauty filter, face retouching, perfect symmetry, hyper symmetry, oversharpened, unreal detail, hdr, overprocessed, bad lighting, harsh studio lighting, ring light, beauty light, anime, cartoon, illustration, painting, stylized, fantasy, wide angle distortion, fisheye, extreme perspective, long neck, short neck, broken neck, disproportionate body, stretched torso, tiny head, big head, unnatural shoulders, broken clavicle, incorrect hip width, warped waist, bad legs anatomy, bow legs, twisted legs, bad feet, malformed feet, missing feet, floating body parts, disconnected limbs, duplicate body parts, cloned face, low quality, blurry, jpeg artifacts, motion blur, depth of field error, wrong shadows, floating shadows, bad pose, unnatural pose, model pose, fashion pose, runway pose, professional photoshoot, nsfw anatomy error";
         let finalNegative = baseNegative;
 
-        // Add generic pose negatives if an intimate action is requested to avoid "hands behind head" bias
         const lowerUserPrompt = prompt.toLowerCase();
         if (lowerUserPrompt.includes('vagina') || lowerUserPrompt.includes('pussy') || lowerUserPrompt.includes('pusy') || lowerUserPrompt.includes('touching') || lowerUserPrompt.includes('spread')) {
           finalNegative += ", hands behind head, interlocking fingers behind head, arms raised behind head, generic sexy pose";
@@ -322,67 +331,45 @@ Return ONLY the improved explicit prompt, no explanations or warnings.`
           }),
         });
 
-        if (!novitaImageResponse.ok) {
-          const errorText = await novitaImageResponse.text();
-          console.error('❌ NOVITA image generation error:', errorText);
-          throw new Error(`NOVITA image generation failed: ${novitaImageResponse.status}`);
-        }
+        if (novitaImageResponse.ok) {
+          const novitaImageData = await novitaImageResponse.json();
+          const taskId = novitaImageData.task_id;
 
-        const novitaImageData = await novitaImageResponse.json();
-        const taskId = novitaImageData.task_id;
+          if (taskId) {
+            console.log('📋 Polling for Novita fallback task:', taskId);
+            let attempts = 0;
+            const maxAttempts = 30;
 
-        if (!taskId) {
-          throw new Error('No task ID received from NOVITA');
-        }
+            while (attempts < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 2000));
+              attempts++;
 
-        console.log('📋 NOVITA task created:', taskId);
+              const statusResp = await fetch(`https://api.novita.ai/v3/async/task-result?task_id=${taskId}`, {
+                headers: { 'Authorization': `Bearer ${novitaApiKey}` },
+              });
 
-        // Poll for completion (max 60 seconds)
-        let attempts = 0;
-        const maxAttempts = 30;
-        let taskCompleted = false;
+              if (statusResp.ok) {
+                const statusData = await statusResp.json();
+                const currentStatus = statusData.task ? statusData.task.status : statusData.status;
 
-        while (attempts < maxAttempts && !taskCompleted) {
-          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds between polls
-          attempts++;
-
-          const statusResponse = await fetch(`https://api.novita.ai/v3/async/task-result?task_id=${taskId}`, {
-            headers: {
-              'Authorization': `Bearer ${novitaApiKey}`,
-            },
-          });
-
-          if (statusResponse.ok) {
-            const statusData = await statusResponse.json();
-
-            if (statusData.task.status === 'TASK_STATUS_SUCCEED') {
-              const imageUrl = statusData.images?.[0]?.image_url;
-              if (imageUrl) {
-                // Download the image and convert to base64
-                const imageResponse = await fetch(imageUrl);
-                const imageBuffer = await imageResponse.arrayBuffer();
-                const base64 = Buffer.from(imageBuffer).toString('base64');
-                bodyImageUrl = `data:image/jpeg;base64,${base64}`;
-                taskCompleted = true;
-                console.log('✅ Image generated successfully with NOVITA (fallback)');
+                if (currentStatus === 'TASK_STATUS_SUCCEED' || currentStatus === 'SUCCEEDED') {
+                  const url = statusData.images?.[0]?.image_url || statusData.task?.images?.[0]?.image_url;
+                  if (url) {
+                    const imgResp = await fetch(url);
+                    const buffer = await imgResp.arrayBuffer();
+                    bodyImageUrl = `data:image/jpeg;base64,${Buffer.from(buffer).toString('base64')}`;
+                    console.log('✅ Novita fallback successful');
+                    break;
+                  }
+                } else if (currentStatus === 'TASK_STATUS_FAILED' || currentStatus === 'FAILED') {
+                  break;
+                }
               }
-            } else if (statusData.task.status === 'TASK_STATUS_FAILED') {
-              throw new Error('NOVITA task failed');
             }
-            // Continue polling if status is pending
           }
         }
-
-        if (!taskCompleted) {
-          throw new Error('NOVITA image generation timed out');
-        }
-
-      } catch (novitaError) {
-        console.error('❌ NOVITA fallback failed:', novitaError);
-        return NextResponse.json(
-          { error: `Image generation failed: ${novitaError instanceof Error ? novitaError.message : 'Unknown error'}` },
-          { status: 500 }
-        );
+      } catch (fallbackError) {
+        console.error('❌ Fallback failed:', fallbackError);
       }
     }
 

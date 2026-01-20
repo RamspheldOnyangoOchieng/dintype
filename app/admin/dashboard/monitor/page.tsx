@@ -117,7 +117,7 @@ export default function CostMonitorPage() {
   // Helper to format money based on currency config
   const formatMoney = (amountInUSD: number) => {
     const val = amountInUSD * currency.rate
-    return `${val.toFixed(2)} ${currency.symbol}`
+    return `${currency.symbol} ${val.toFixed(2)}`
   }
 
   const profit = budget.current.tokenRevenue - budget.current.apiCost

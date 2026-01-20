@@ -49,8 +49,30 @@ export async function GET(request: NextRequest) {
     }
 
     const taskIds = taskId.split(',')
+    const supabaseAdmin = await createAdminClient()
+
     const results = await Promise.all(taskIds.map(async (id) => {
       try {
+        // Handle Seedream results that are already stored in the DB
+        if (id.startsWith('seedream_')) {
+          if (supabaseAdmin) {
+            const { data: dbImages } = await supabaseAdmin
+              .from('generated_images')
+              .select('image_url')
+              .eq('task_id', id)
+
+            if (dbImages && dbImages.length > 0) {
+              return {
+                id,
+                task: { status: "TASK_STATUS_SUCCEED", progress_percent: 100 },
+                images: dbImages.map(img => ({ image_url: img.image_url }))
+              }
+            }
+          }
+          // If not found yet, assume it's still being processed/saved
+          return { id, task: { status: "TASK_STATUS_QUEUED", progress_percent: 0 } }
+        }
+
         const response = await fetch(`https://api.novita.ai/v3/async/task-result?task_id=${id}`, {
           method: "GET",
           headers: {
@@ -77,8 +99,6 @@ export async function GET(request: NextRequest) {
     // Calculate average progress
     const totalProgress = results.reduce((acc, r) => acc + (r.task?.progress_percent || 0), 0)
     const avgProgress = Math.round(totalProgress / taskIds.length)
-
-    const supabaseAdmin = await createAdminClient()
 
     if (allSucceeded) {
       // Update task status

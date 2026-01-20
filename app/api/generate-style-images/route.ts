@@ -12,79 +12,17 @@ interface GenerateImageRequest {
   style: 'realistic' | 'anime';
 }
 
-async function generateImageWithNovita(prompt: string, negativePrompt: string): Promise<string> {
-  const NOVITA_API = await getNovitaApiKey();
+import { generateImage } from '@/lib/novita-api';
 
-  if (!NOVITA_API) {
-    throw new Error('No Novita API key configured. Please add it in Admin Dashboard or .env file');
-  }
-
-  const response = await fetch('https://api.novita.ai/v3/async/txt2img', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${NOVITA_API}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      extra: {
-        response_image_type: 'jpeg',
-      },
-      request: {
-        model_name: 'sd_xl_base_1.0.safetensors',
-        prompt: prompt,
-        negative_prompt: negativePrompt,
-        width: 512,
-        height: 768,
-        image_num: 1,
-        sampler_name: 'DPM++ 2M Karras',
-        guidance_scale: 7,
-        steps: 25,
-        seed: -1,
-      },
-    }),
+async function generateImageWithNovita(prompt: string, negativePrompt: string, style: 'realistic' | 'anime'): Promise<string> {
+  const result = await generateImage({
+    prompt,
+    negativePrompt,
+    style,
+    width: 512,
+    height: 768
   });
-
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`NOVITA API error: ${error}`);
-  }
-
-  const data = await response.json();
-  const taskId = data.task_id;
-
-  // Poll for completion
-  let attempts = 0;
-  const maxAttempts = 60; // 2 minutes max
-
-  while (attempts < maxAttempts) {
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
-
-    const progressResponse = await fetch(`https://api.novita.ai/v3/async/task-result?task_id=${taskId}`, {
-      headers: {
-        'Authorization': `Bearer ${NOVITA_API}`,
-      },
-    });
-
-    if (!progressResponse.ok) {
-      throw new Error('Failed to check generation progress');
-    }
-
-    const progressData = await progressResponse.json();
-
-    if (progressData.task.status === 'TASK_STATUS_SUCCEED') {
-      const imageUrl = progressData.images[0]?.image_url;
-      if (!imageUrl) {
-        throw new Error('No image URL in response');
-      }
-      return imageUrl;
-    } else if (progressData.task.status === 'TASK_STATUS_FAILED') {
-      throw new Error('Image generation failed');
-    }
-
-    attempts++;
-  }
-
-  throw new Error('Image generation timeout');
+  return result.url;
 }
 
 async function downloadImage(url: string): Promise<ArrayBuffer> {
@@ -149,7 +87,7 @@ export async function POST(request: NextRequest) {
     console.log(`Generating ${style} style image...`);
 
     // Generate image with NOVITA
-    const imageUrl = await generateImageWithNovita(prompt, negative);
+    const imageUrl = await generateImageWithNovita(prompt, negative, style);
     console.log('Image generated:', imageUrl);
 
     // Download the image
@@ -198,7 +136,7 @@ export async function GET() {
         negative: 'ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, cross-eyed, lazy eye, bad feet, extra arms, extra legs, disjointed limbs, incorrect limb proportions, unrealistic body, unrealistic face, unnatural skin, disconnected limbs, lopsided, cloned face, glitch, double torso, bad posture, wrong perspective, overexposed, underexposed, low detail, plastic skin, unnatural skin texture, plastic clothing, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clothes, distorted bikini, missing nipples, extra nipples, fused nipples, bad anatomy genitals'
       };
 
-      const realisticUrl = await generateImageWithNovita(realisticPrompt.prompt, realisticPrompt.negative);
+      const realisticUrl = await generateImageWithNovita(realisticPrompt.prompt, realisticPrompt.negative, 'realistic');
       const realisticBuffer = await downloadImage(realisticUrl);
       results.realistic = await uploadToSupabase(realisticBuffer, `style-images/realistic-style-${Date.now()}.jpg`);
     } catch (error) {
@@ -215,7 +153,7 @@ export async function GET() {
         negative: 'ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, out of frame, tiling, watermarks, signature, censored, distortion, grain, realistic, 3d, photograph, western cartoon'
       };
 
-      const animeUrl = await generateImageWithNovita(animePrompt.prompt, animePrompt.negative);
+      const animeUrl = await generateImageWithNovita(animePrompt.prompt, animePrompt.negative, 'anime');
       const animeBuffer = await downloadImage(animeUrl);
       results.anime = await uploadToSupabase(animeBuffer, `style-images/anime-style-${Date.now()}.jpg`);
     } catch (error) {

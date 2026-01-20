@@ -203,14 +203,14 @@ export default function AdminDashboardPage() {
     },
     {
       title: "Token usage",
-      value: typeof monthlyRevenue === 'number' ? `${currency}${monthlyRevenue.toFixed(2)}` : `${currency}0.00`,
+      value: typeof monthlyRevenue === 'number' ? `${currency} ${monthlyRevenue.toFixed(2)}` : `${currency} 0.00`,
       change: "0%",
       changeType: "neutral",
       icon: DollarSign,
     },
     {
       title: "Total Revenue",
-      value: typeof totalRevenue === 'number' ? `${currency}${totalRevenue.toFixed(2)}` : `${currency}0.00`,
+      value: typeof totalRevenue === 'number' ? `${currency} ${totalRevenue.toFixed(2)}` : `${currency} 0.00`,
       change: "0%",
       changeType: "neutral",
       icon: DollarSign,

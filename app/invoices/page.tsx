@@ -55,7 +55,7 @@ export default function InvoicesPage() {
   const downloadInvoice = (invoice: Invoice) => {
     // Generate invoice HTML
     const invoiceHTML = generateInvoiceHTML(invoice)
-    
+
     // Create blob and download
     const blob = new Blob([invoiceHTML], { type: "text/html" })
     const url = URL.createObjectURL(blob)
@@ -105,13 +105,13 @@ export default function InvoicesPage() {
     <tbody>
       <tr>
         <td style="padding: 10px;">${invoice.plan_name || "Token Purchase"}</td>
-        <td style="text-align: right; padding: 10px;">$${invoice.amount.toFixed(2)}</td>
+        <td style="text-align: right; padding: 10px;">$ ${invoice.amount.toFixed(2)}</td>
       </tr>
     </tbody>
   </table>
 
   <div class="total" style="text-align: right; border-top: 2px solid #333; padding-top: 20px;">
-    Total: $${invoice.amount.toFixed(2)}
+    Total: $ ${invoice.amount.toFixed(2)}
   </div>
 
   <div class="footer">
@@ -179,7 +179,7 @@ export default function InvoicesPage() {
                     </TableCell>
                     <TableCell>{invoice.plan_name || "Token Purchase"}</TableCell>
                     <TableCell className="font-semibold">
-                      ${invoice.amount.toFixed(2)}
+                      $ {invoice.amount.toFixed(2)}
                     </TableCell>
                     <TableCell>
                       <Badge
