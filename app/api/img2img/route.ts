@@ -4,6 +4,8 @@ import { createAdminClient } from "@/lib/supabase-admin"
 import { generateImage } from "@/lib/novita-api"
 import { getUnifiedNovitaKey } from "@/lib/unified-api-keys"
 
+export const maxDuration = 300;
+
 export async function POST(req: NextRequest) {
   try {
     const { prompt, negativePrompt, character, imageBase64 } = await req.json()
@@ -37,7 +39,7 @@ export async function POST(req: NextRequest) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "deepseek/deepseek-r1-turbo",
+        model: "deepseek/deepseek-v3",
         messages: [
           {
             role: "system",

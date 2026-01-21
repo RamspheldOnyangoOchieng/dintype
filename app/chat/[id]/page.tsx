@@ -1207,8 +1207,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       if (isAskingForImage(combinedContent)) {
         // Story Mode Image Handling
         if (storyProgress && !storyProgress.is_completed) {
-          // Filter out any invalid image URLs
-          const chImages = (currentChapter?.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0);
+          // Filter out any invalid image URLs (must be absolute URLs or base64)
+          const chImages = (currentChapter?.content?.chapter_images || []).filter((img: any) =>
+            typeof img === 'string' && (img.startsWith('http') || img.startsWith('data:'))
+          );
+
           if (chImages.length > 0) {
             // Try to find a matching image based on prompt keywords if available
             const meta = currentChapter?.content?.chapter_image_metadata || []
@@ -1233,7 +1236,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               role: "assistant",
               content: `${character?.name || "I"} is sending a photo for you...`,
               isImage: true,
-              imageUrl: nextImg,
+              imageUrl: nextImg, // Now guaranteed to be a valid URL
               timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             }
 
@@ -1245,24 +1248,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
             setIsSendingMessage(false)
             return
-          } else {
-            // Fallback if no chapter images are set yet
-            const blockedMsg: Message = {
-              id: Math.random().toString(),
-              role: "assistant",
-              content: "*blushes* I... I'm not ready to show you everything yet. Let's just talk a bit more first? 💕",
-              timestamp: new Date().toLocaleTimeString(),
-            }
-            setTimeout(() => {
-              setMessages((prev) => [...prev, blockedMsg])
-              saveMessageToLocalStorage(character.id, blockedMsg)
-            }, 1000)
-            setIsSendingMessage(false)
-            return
           }
+          // If no valid story images found, FALL THROUGH to normal generation
         }
 
-        // Normal image generation (outside Story Mode)
+        // Normal image generation (outside Story Mode or if story images missing)
         const imagePrompt = extractImagePrompt(combinedContent)
         setIsSendingMessage(false)
         await generateImage(imagePrompt)

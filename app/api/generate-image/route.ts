@@ -8,6 +8,8 @@ import { containsNSFW } from "@/lib/nsfw-filter"
 import type { Database } from "@/types/supabase"
 import { logApiCost } from "@/lib/budget-monitor"
 
+export const maxDuration = 300;
+
 // Dynamic token costs based on image count
 const getTokenCost = (imageCount: number = 1): number => {
   // Ensure imageCount is a valid number

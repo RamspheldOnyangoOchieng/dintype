@@ -14,6 +14,7 @@ export interface ImageGenerationParams {
   seed?: number;
   style?: 'realistic' | 'anime';
   guidance_scale?: number;
+  controlnet_units?: any[];
 }
 
 export interface GeneratedImage {
@@ -43,6 +44,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     seed = -1,
     style = 'realistic',
     guidance_scale = 7.0,
+    controlnet_units,
   } = params;
 
   // Enhance prompt based on style
@@ -79,8 +81,9 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
           seed: seed === -1 ? Math.floor(Math.random() * 2147483647) : seed,
           steps: steps,
           guidance_scale: guidance_scale,
+          controlnet_units: controlnet_units,
           optimize_prompt_options: {
-            mode: 'auto'
+            mode: 'standard'
           }
         }),
         signal: controller.signal,

@@ -5,6 +5,8 @@ import { getUnifiedNovitaKey } from '@/lib/unified-api-keys';
 import { createClient } from '@/lib/supabase-server';
 import { getUserPlanInfo } from '@/lib/subscription-limits';
 
+export const maxDuration = 300;
+
 export async function POST(request: NextRequest) {
   try {
     // Check authentication and premium status
