@@ -88,8 +88,8 @@ export async function POST(req: NextRequest) {
     const result = await generateImage({
       prompt: finalPrompt,
       negativePrompt: negativePrompt,
-      width: 512,
-      height: 768,
+      width: 1024,
+      height: 1536,
       steps: 30,
       guidance_scale: 7.0,
       controlnet_units: controlnetUnits

@@ -38,8 +38,8 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   const {
     prompt,
     negativePrompt = 'low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, text, watermark, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin',
-    width = 512,
-    height = 768,
+    width = 1024,
+    height = 1536,
     steps = 30,
     seed = -1,
     style = 'realistic',
