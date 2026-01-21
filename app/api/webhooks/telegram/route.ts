@@ -248,36 +248,7 @@ async function enhanceImagePrompt(userPrompt: string, characterDescription: stri
     }
 }
 
-// Poll for image generation result
-async function pollImageStatus(taskId: string, maxSeconds: number = 25) {
-    const apiKey = await getNovitaApiKey();
-    if (!apiKey) return null;
-
-    const start = Date.now();
-    while (Date.now() - start < maxSeconds * 1000) {
-        try {
-            const response = await fetch(`https://api.novita.ai/v3/async/task-result?task_id=${taskId}`, {
-                method: "GET",
-                headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                if (data.task?.status === "TASK_STATUS_SUCCEED" && data.images?.[0]?.image_url) {
-                    return data.images[0].image_url;
-                }
-                if (data.task?.status === "TASK_STATUS_FAILED") {
-                    console.error("Image generation failed:", data.task.reason);
-                    return null;
-                }
-            }
-        } catch (e) {
-            console.error("Polling error:", e);
-        }
-        await new Promise(r => setTimeout(r, 2000)); // Poll every 2 seconds
-    }
-    return null;
-}
+// Image status polling removed - Seedream 4.5 is synchronous
 
 // Get recommended characters
 async function getRecommendedCharacters(supabase: any, limit: number = 4) {
@@ -849,12 +820,27 @@ export async function POST(request: NextRequest) {
                                 .eq("chapter_number", storyProgress.current_chapter_number)
                                 .maybeSingle();
 
-                            const chImages = chapter?.content?.chapter_images || [];
+                            // Filter out any invalid image URLs
+                            const chImages = (chapter?.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0);
                             if (chImages.length > 0) {
-                                // For Telegram, we'll pick a random one from the chapter visuals
-                                // as tracking sub-progress strictly on TG is harder without session state
-                                const randomImg = chImages[Math.floor(Math.random() * chImages.length)];
-                                await sendTelegramPhoto(chatId, randomImg, `I've been waiting for you to ask... here's something special just for you. 😉`);
+                                // Try to find a matching image based on keywords if available
+                                const meta = chapter?.content?.chapter_image_metadata || []
+                                const lowercasePrompt = text.toLowerCase()
+                                let bestMatchImg = null
+
+                                if (meta.length > 0) {
+                                    for (const imgUrl of chImages) {
+                                        const originalIdx = (chapter?.content?.chapter_images || []).indexOf(imgUrl);
+                                        const imgMeta = (meta[originalIdx] || "").toLowerCase();
+                                        if (imgMeta && lowercasePrompt.split(' ').some((word: string) => word.length > 3 && imgMeta.includes(word))) {
+                                            bestMatchImg = imgUrl;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                const selectedImg = bestMatchImg || chImages[Math.floor(Math.random() * chImages.length)];
+                                await sendTelegramPhoto(chatId, selectedImg, `I've been waiting for you to ask... here's something special just for you. 😉`);
                                 return NextResponse.json({ ok: true });
                             }
                         }
@@ -870,106 +856,59 @@ export async function POST(request: NextRequest) {
 
                     if (apiKey) {
                         try {
+                            const { generateImage } = await import('@/lib/novita-api');
+
                             // Deduct tokens first
                             const tokensToDeduct = isPremium ? 5 : 0;
                             if (isPremium) {
                                 await deductTokens(linkedAccount.user_id, tokensToDeduct, 'telegram_image_gen');
                             }
 
-                            // Get character reference image for IP-Adapter
-                            const characterImageUrl = character?.image_url || character?.image;
-                            let base64Image = null;
-                            if (characterImageUrl) {
-                                try {
-                                    const imgRes = await fetch(characterImageUrl);
-                                    if (imgRes.ok) {
-                                        const buffer = await imgRes.arrayBuffer();
-                                        base64Image = Buffer.from(buffer).toString('base64');
-                                    }
-                                } catch (e) {
-                                    console.error("Telegram: Failed to convert image to base64", e);
-                                }
-                            }
+                            console.log(`🚀 [Telegram] Generating image with Seedream 4.5 for user: ${linkedAccount.user_id}`);
 
-                            // Add generic pose negatives if an intimate action is requested to avoid "hands behind head" bias
-                            let finalNegative = baseNegative;
-                            const lowerUserPrompt = prompt.toLowerCase();
-                            if (lowerUserPrompt.includes('vagina') || lowerUserPrompt.includes('pussy') || lowerUserPrompt.includes('pusy') || lowerUserPrompt.includes('touching') || lowerUserPrompt.includes('spread')) {
-                                finalNegative += ", hands behind head, interlocking fingers behind head, arms raised behind head, generic sexy pose";
-                            }
-                            if (finalNegative.length > 1000) finalNegative = finalNegative.substring(0, 1000);
-
-                            const requestBody: any = {
-                                extra: { response_image_type: "jpeg" },
-                                request: {
-                                    prompt: enhancedPrompt,
-                                    model_name: "epicrealism_naturalSinRC1VAE_106430.safetensors",
-                                    negative_prompt: finalNegative,
-                                    width: 512,
-                                    height: 768,
-                                    image_num: 1,
-                                    steps: 40,
-                                    guidance_scale: 7.5,
-                                    sampler_name: "DPM++ 2M Karras",
-                                },
-                            };
-
-                            // Add IP-Adapter for character consistency
-                            if (base64Image) {
-                                requestBody.request.controlnet_units = [
-                                    {
-                                        model_name: "ip-adapter_sd15",
-                                        weight: 0.8,
-                                        control_image: base64Image,
-                                        module_name: "none"
-                                    }
-                                ];
-                            }
-
-                            const genResponse = await fetch("https://api.novita.ai/v3/async/txt2img", {
-                                method: "POST",
-                                headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-                                body: JSON.stringify(requestBody),
+                            const result = await generateImage({
+                                prompt: enhancedPrompt,
+                                negativePrompt: baseNegative,
+                                width: 512,
+                                height: 768,
+                                style: 'realistic'
                             });
 
-                            if (genResponse.ok) {
-                                const genData = await genResponse.json();
-                                const taskId = genData.data?.task_id || genData.task_id;
+                            if (result && result.url) {
+                                const imageUrl = result.url;
+                                await sendTelegramPhoto(chatId, imageUrl, `Here's what I made for you... do you like it? 💕`);
+                                await incrementImageUsage(linkedAccount.user_id);
 
-                                if (taskId) {
-                                    const imageUrl = await pollImageStatus(taskId);
-                                    if (imageUrl) {
-                                        await sendTelegramPhoto(chatId, imageUrl, `Here's what I made for you... do you like it? 💕`);
-                                        await incrementImageUsage(linkedAccount.user_id);
+                                // Auto-save to database (Telegram session)
+                                try {
+                                    console.log("💾 [Telegram] Auto-saving image for user:", linkedAccount.user_id);
 
-                                        // Auto-save to database (Telegram session)
-                                        try {
-                                            console.log("💾 [Telegram] Auto-saving image for user:", linkedAccount.user_id);
+                                    const { error: saveError } = await supabase.from('generated_images').insert({
+                                        user_id: linkedAccount.user_id,
+                                        character_id: linkedAccount.character_id,
+                                        image_url: imageUrl,
+                                        prompt: enhancedPrompt,
+                                        source: 'telegram',
+                                        created_at: new Date().toISOString(),
+                                        model: 'seedream-4.5',
+                                        status: 'completed'
+                                    });
 
-                                            const { error: saveError } = await supabase.from('generated_images').insert({
-                                                user_id: linkedAccount.user_id,
-                                                character_id: linkedAccount.character_id,
-                                                image_url: imageUrl,
-                                                prompt: enhancedPrompt,
-                                                source: 'telegram',
-                                                created_at: new Date().toISOString()
-                                            });
-
-                                            if (saveError) {
-                                                console.error("❌ [Telegram] Auto-save failed:", saveError);
-                                            } else {
-                                                console.log("✅ [Telegram] Image auto-saved to collection");
-                                            }
-                                        } catch (saveErr) {
-                                            console.error("❌ [Telegram] Auto-save exception:", saveErr);
-                                        }
-
-                                        return NextResponse.json({ ok: true });
+                                    if (saveError) {
+                                        console.error("❌ [Telegram] Auto-save failed:", saveError);
+                                    } else {
+                                        console.log("✅ [Telegram] Image auto-saved to collection");
                                     }
+                                } catch (saveErr) {
+                                    console.error("❌ [Telegram] Auto-save exception:", saveErr);
                                 }
+
+                                return NextResponse.json({ ok: true });
                             }
-                        } catch (e) {
+                        } catch (e: any) {
                             console.error("Telegram image gen error:", e);
+                            await sendTelegramMessage(chatId, `I'm sorry, I hit a snag: ${e.message || 'Generation failed'}. Let's keep chatting? 💕`);
+                            return NextResponse.json({ ok: true });
                         }
                     }
 

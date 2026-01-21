@@ -397,7 +397,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             localStorage.setItem(`last_daily_msg_${charId}`, today);
 
             // If chapter has images, send one too
-            const chImages = chapter?.content?.chapter_images || [];
+            // Filter out any null/undefined/empty strings from chapter images to prevent broken images
+            const chImages = (chapter?.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0);
             if (chImages.length > 0) {
               const randomImg = chImages[Math.floor(Math.random() * chImages.length)];
               const imgMsg: Message = {
@@ -1206,10 +1207,26 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       if (isAskingForImage(combinedContent)) {
         // Story Mode Image Handling
         if (storyProgress && !storyProgress.is_completed) {
-          const chImages = currentChapter?.content?.chapter_images || []
+          // Filter out any invalid image URLs
+          const chImages = (currentChapter?.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0);
           if (chImages.length > 0) {
-            // Find the next image that hasn't been sent in this session yet
-            const nextImg = chImages.find((img) => !sentChapterImages.includes(img)) || chImages[0]
+            // Try to find a matching image based on prompt keywords if available
+            const meta = currentChapter?.content?.chapter_image_metadata || []
+            const lowercasePrompt = combinedContent.toLowerCase()
+            let bestMatchImg = null
+
+            if (meta.length > 0) {
+              for (const imgUrl of chImages) {
+                const originalIdx = (currentChapter?.content?.chapter_images || []).indexOf(imgUrl);
+                const imgMeta = (meta[originalIdx] || "").toLowerCase();
+                if (imgMeta && lowercasePrompt.split(' ').some((word: string) => word.length > 3 && imgMeta.includes(word))) {
+                  bestMatchImg = imgUrl;
+                  break;
+                }
+              }
+            }
+
+            const nextImg = bestMatchImg || chImages.find((img) => !sentChapterImages.includes(img)) || chImages[0]
 
             const storyImgMsg: Message = {
               id: `story-img-${Date.now()}`,
@@ -1275,7 +1292,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
       // Narrative Progression Logic (Story Mode)
       if (storyProgress && !storyProgress.is_completed && currentChapter) {
-        const chImages = currentChapter.content?.chapter_images || []
+        const chImages = (currentChapter.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0)
         const aiText = aiResponse.message?.content?.toLowerCase() || ""
 
         // Triggers for "Natural Photo Sending"
@@ -1302,7 +1319,23 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           photoTriggers.some((t) => aiText.includes(t)) || aiResponse.message?.content?.includes("(Image:")
 
         if (shouldSendImage && chImages.length > 0) {
-          const nextImg = chImages.find((img) => !sentChapterImages.includes(img))
+          // Try to find a matching image based on keywords if available
+          const meta = currentChapter?.content?.chapter_image_metadata || []
+          const lowercaseAiText = aiText.toLowerCase()
+          let bestMatchImg = null
+
+          if (meta.length > 0) {
+            for (const imgUrl of chImages) {
+              const originalIdx = (currentChapter?.content?.chapter_images || []).indexOf(imgUrl);
+              const imgMeta = (meta[originalIdx] || "").toLowerCase();
+              if (imgMeta && lowercaseAiText.split(' ').some((word: string) => word.length > 3 && imgMeta.includes(word))) {
+                bestMatchImg = imgUrl;
+                break;
+              }
+            }
+          }
+
+          const nextImg = bestMatchImg || chImages.find((img) => !sentChapterImages.includes(img))
           if (nextImg) {
             const storyImgMsg: Message = {
               id: `story-auto-img-${Date.now()}`,
@@ -1912,7 +1945,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       }}
                     >
                       <img
-                        src={imageErrors[message.id] ? "/placeholder.svg" : message.imageUrl}
+                        src={imageErrors[message.id] ? "/placeholder.svg" : (Array.isArray(message.imageUrl) ? message.imageUrl[0] : message.imageUrl)}
                         alt="Generated image"
                         className="w-full h-full object-cover"
                         style={{ borderRadius: '1rem' }}

@@ -1,11 +1,9 @@
 /**
  * Novita AI Image Generation API Client
- * Generates tasteful, professional images for character attributes
+ * Uses Seedream 4.5 exclusively for masterpiece-quality image generation
  */
 
 import { getUnifiedNovitaKey } from "./unified-api-keys"
-
-const NOVITA_API_URL = `https://api.novita.ai/v3/async/txt2img`;
 
 export interface ImageGenerationParams {
   prompt: string;
@@ -14,10 +12,8 @@ export interface ImageGenerationParams {
   height?: number;
   steps?: number;
   seed?: number;
-  model?: string;
   style?: 'realistic' | 'anime';
   guidance_scale?: number;
-  controlnet_units?: any[];
 }
 
 export interface GeneratedImage {
@@ -28,7 +24,8 @@ export interface GeneratedImage {
 }
 
 /**
- * Generate image using Novita AI API with Seedream 4.5 and fallback logic
+ * Generate image using Seedream 4.5 (exclusive engine)
+ * Features: Ultra-realistic rendering, natural skin textures, superior lighting
  */
 export async function generateImage(params: ImageGenerationParams): Promise<GeneratedImage> {
   const { key: NOVITA_API_KEY, error: keyError } = await getUnifiedNovitaKey();
@@ -46,30 +43,29 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     seed = -1,
     style = 'realistic',
     guidance_scale = 7.0,
-    controlnet_units = []
   } = params;
 
-  // Enhance prompt
+  // Enhance prompt based on style
   let enhancedPrompt = style === 'realistic'
-    ? `professional photography, ${prompt}, raw photo, highly detailed, sharp focus, 8k resolution, authentic skin texture`
-    : `anime style, ${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors`;
+    ? `professional photography, ${prompt}, raw photo, highly detailed, sharp focus, 8k resolution, authentic skin texture, natural lighting, Kodak Portra 400 aesthetic`
+    : `anime style, ${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art`;
 
   if (enhancedPrompt.length > 1000) {
     enhancedPrompt = enhancedPrompt.substring(0, 1000);
   }
 
-  // Define retry logic for Seedream 4.5
+  // Seedream 4.5 with retry logic
   const MAX_RETRIES = 3;
-  let lastError = null;
+  let lastError: Error | null = null;
 
-  console.log(`🚀 Attempting image generation with Seedream 4.5 (Max ${MAX_RETRIES} tries)...`);
-
-  // Note: Seedream 4.5 currently doesn't support ControlNet units via this endpoint.
-  // If ControlNet is provided, we might want to skip Seedream or just use it for the prompt quality.
-  // Given user preference for Seedream, we'll try it first and fallback to SDXL + ControlNet if it fails.
+  console.log(`🚀 Generating image with Seedream 4.5 (Max ${MAX_RETRIES} attempts)...`);
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
+      // 45 second timeout per attempt
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 45000);
+
       const response = await fetch('https://api.novita.ai/v3/seedream-4.5', {
         method: 'POST',
         headers: {
@@ -87,7 +83,10 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
             mode: 'auto'
           }
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         const data = await response.json();
@@ -95,6 +94,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
           console.log(`✅ Seedream 4.5 succeeded on attempt ${attempt}`);
 
           let imageUrl = data.images[0];
+          // Add base64 prefix if needed
           if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
             imageUrl = `data:image/jpeg;base64,${imageUrl}`;
           }
@@ -105,6 +105,8 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
             width: width,
             height: height,
           };
+        } else {
+          throw new Error('No images returned from Seedream 4.5');
         }
       } else {
         const errorText = await response.text();
@@ -112,8 +114,9 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
         lastError = new Error(`Seedream 4.5 error: ${errorText}`);
       }
     } catch (error: any) {
-      console.warn(`⚠️ Seedream 4.5 attempt ${attempt} crashed: ${error.message}`);
-      lastError = error;
+      const errMsg = error.name === 'AbortError' ? 'Request timed out' : error.message;
+      console.warn(`⚠️ Seedream 4.5 attempt ${attempt} exception: ${errMsg}`);
+      lastError = new Error(errMsg);
     }
 
     if (attempt < MAX_RETRIES) {
@@ -122,97 +125,9 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     }
   }
 
-  // FALLBACK to old async/txt2img if Seedream fails after 3 tries (supports ControlNet)
-  console.log('📉 Seedream 4.5 failed all attempts. Falling back to Stable Diffusion XL (async)...');
-
-  const requestBody: any = {
-    extra: {
-      response_image_type: "jpeg",
-      enable_nsfw_detection: false,
-    },
-    request: {
-      model_name: 'sd_xl_base_1.0.safetensors',
-      prompt: enhancedPrompt,
-      negative_prompt: negativePrompt,
-      width,
-      height,
-      sampler_name: 'DPM++ 2M Karras',
-      steps,
-      guidance_scale: 5.0,
-      seed,
-      batch_size: 1,
-      image_num: 1,
-    }
-  };
-
-  if (controlnet_units && controlnet_units.length > 0) {
-    requestBody.request.controlnet_units = controlnet_units;
-  }
-
-  try {
-    const response = await fetch(`https://api.novita.ai/v3/async/txt2img`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${NOVITA_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Fallback API failed: ${await response.text()}`);
-    }
-
-    const data = await response.json();
-    const taskId = data.task_id;
-    const result = await pollForCompletion(taskId, NOVITA_API_KEY);
-
-    let imageUrl = '';
-    if (result.images && result.images.length > 0) {
-      imageUrl = result.images[0].image_url;
-    } else if (result.task?.images?.[0]?.image_url) {
-      imageUrl = result.task.images[0].image_url;
-    } else {
-      throw new Error('No images found in fallback response');
-    }
-
-    console.log('✅ Fallback generation successful');
-    return {
-      url: imageUrl,
-      seed: result.seed || seed,
-      width: result.width || width,
-      height: result.height || height,
-    };
-  } catch (err) {
-    console.error('❌ Both Seedream 4.5 and Fallback failed:', err);
-    throw lastError || err;
-  }
-}
-
-/**
- * Poll Novita API for task completion
- */
-async function pollForCompletion(taskId: string, apiKey: string, maxAttempts = 60): Promise<any> {
-  const pollUrl = `https://api.novita.ai/v3/async/task-result?task_id=${taskId}`;
-
-  for (let i = 0; i < maxAttempts; i++) {
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const response = await fetch(pollUrl, {
-      headers: { 'Authorization': `Bearer ${apiKey}` },
-    });
-
-    if (!response.ok) throw new Error(`Status check failed: ${response.statusText}`);
-
-    const data = await response.json();
-    const status = data.task ? data.task.status : data.status;
-
-    if (status === 'TASK_STATUS_SUCCEED' || status === 'SUCCEEDED') return data;
-    if (status === 'TASK_STATUS_FAILED' || status === 'FAILED') {
-      throw new Error(`Task failed: ${data.task?.reason || data.reason || 'Unknown'}`);
-    }
-  }
-  throw new Error('Task timed out');
+  // All retries failed
+  console.error('❌ Seedream 4.5 failed all attempts');
+  throw lastError || new Error('Image generation failed after all retries');
 }
 
 /**
@@ -263,7 +178,6 @@ export function buildAttributePrompt(attributes: {
       'Latina': 'attractive woman with warm tan to light brown skin tones and expressive, vibrant facial features, idealized and desirable',
       'African': 'attractive woman with deep brown to dark skin tones and bold, well-defined facial features, idealized and desirable',
       'Mixed': 'attractive woman with blended skin tones and unique facial harmony that combines traits from multiple backgrounds, idealized and desirable',
-      // Legacy mappings (will map to new ones)
       'European': 'attractive woman with lighter skin tones and a sharper or angular facial structure, idealized and desirable',
       'East Asian': 'attractive woman with fair to golden skin tones and a softer or oval facial structure, idealized and desirable',
       'South Asian': 'attractive woman with medium brown to deep brown skin tones and rounded or symmetrical facial features, idealized and desirable',

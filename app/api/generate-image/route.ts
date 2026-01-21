@@ -8,69 +8,19 @@ import { containsNSFW } from "@/lib/nsfw-filter"
 import type { Database } from "@/types/supabase"
 import { logApiCost } from "@/lib/budget-monitor"
 
-// Dynamic token costs based on model and image count
-const getTokenCost = (model: string, imageCount: number = 1): number => {
+// Dynamic token costs based on image count
+const getTokenCost = (imageCount: number = 1): number => {
   // Ensure imageCount is a valid number
   const count = isNaN(imageCount) ? 1 : Math.max(1, imageCount)
 
   // Single image generation is free
   if (count === 1) return 0
 
-  // Map frontend model names to token costs
-  let baseTokenCost = 5 // Default for stability/seedream
-
-  if (model === "flux") {
-    baseTokenCost = 10
-  } else if (model === "stability" || model === DEFAULT_MODEL) {
-    baseTokenCost = 5
-  }
-
-  return baseTokenCost * count
+  // 5 tokens per additional image
+  return 5 * count
 }
 
-// Define types for the API
-type NovitaRequestBody = {
-  extra: {
-    response_image_type: string
-  }
-  request: {
-    prompt: string
-    model_name: string
-    negative_prompt?: string
-    width: number
-    height: number
-    image_num: number
-    steps: number
-    seed: number
-    sampler_name: string
-    guidance_scale: number
-  }
-}
-
-type NovitaTaskResponse = {
-  task_id: string
-}
-
-type NovitaTaskResultResponse = {
-  task: {
-    task_id: string
-    status: string
-    reason: string
-  }
-  images: {
-    image_url: string
-    image_type: string
-  }[]
-}
-
-const DEFAULT_MODEL = "epicrealism_naturalSinRC1VAE_106430.safetensors";
-
-// Enhanced negative prompts for maximum quality (Trimmed to stay under Novita's 1024 character limit)
-const DEFAULT_NEGATIVE_PROMPT_PARTS = [
-  "deformed face, distorted face, bad anatomy, extra limbs, extra arms, extra legs, extra fingers, extra toes, missing fingers, fused fingers, broken hands, malformed hands, asymmetrical face, uneven eyes, crossed eyes, lazy eye, misaligned pupils, melting face, warped face, collapsed jaw, floating teeth, uncanny valley, artificial look, plastic skin, waxy skin, rubber skin, doll face, mannequin, cgi, 3d render, airbrushed skin, beauty filter, face retouching, oversharpened, overprocessed, bad lighting, anime, cartoon, illustration, painting, wide angle distortion, long neck, disproportionate body, stretched torso, tiny head, unnatural shoulders, bad legs anatomy, bad feet, floating body parts, low quality, blurry, jpeg artifacts, motion blur, nsfw anatomy error"
-];
-
-const DEFAULT_NEGATIVE_PROMPT = DEFAULT_NEGATIVE_PROMPT_PARTS.join(", ");
+const DEFAULT_NEGATIVE_PROMPT = "low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, duplicate";
 
 /**
  * Get webhook URL for Novita callbacks
@@ -111,38 +61,30 @@ export async function POST(req: NextRequest) {
 
     const {
       prompt,
-      model = DEFAULT_MODEL,
       negativePrompt = DEFAULT_NEGATIVE_PROMPT,
-      response_format = "url",
       size = "512x1024",
       seed = -1,
-      guidance_scale = 5.0,
-      watermark = true,
-      image_num = 1, // Number of images to generate
-      selectedCount, // Frontend sends this for number of images
-      selectedModel, // Frontend sends this for model type
-      characterId, // extracted from body
-      imageBase64, // Character reference image
-      character, // Character context for identity locking
-      autoSave = false, // Default false to prevent unwanted saving elsewhere
-      lora, // LoRA model name
-      loraStrength = 0.8, // LoRA strength
+      guidance_scale = 7.0,
+      image_num = 1,
+      selectedCount,
+      selectedModel,
+      characterId,
+      character,
+      autoSave = false,
     } = body;
 
     // Use frontend parameters if available, otherwise fall back to defaults
-    actualImageCount = selectedCount ? parseInt(selectedCount as string) : image_num
-    if (isNaN(actualImageCount)) actualImageCount = 1
+    actualImageCount = selectedCount ? parseInt(selectedCount as string) : image_num;
+    if (isNaN(actualImageCount)) actualImageCount = 1;
 
-    actualModel = selectedModel || model
+    const actualModel = selectedModel || 'seedream-4.5';
 
-    const apiModelName = DEFAULT_MODEL;
-
-    // Calculate dynamic token cost based on model and image count
-    tokenCost = getTokenCost(actualModel, actualImageCount)
-    console.log(`💰 Token cost calculation: ${tokenCost} tokens (model: ${actualModel}, images: ${actualImageCount})`)
+    // Calculate dynamic token cost based on image count
+    tokenCost = getTokenCost(actualImageCount);
+    console.log(`💰 Token cost calculation: ${tokenCost} tokens (images: ${actualImageCount})`);
 
     // Ensure guidance_scale is a number
-    const finalGuidanceScale = typeof guidance_scale === 'number' ? guidance_scale : 5.0
+    const finalGuidanceScale = typeof guidance_scale === 'number' ? guidance_scale : 7.0;
 
     // Get API key with fallback (DB → .env)
     const { key: apiKey, source, error: keyError } = await getUnifiedNovitaKey()
@@ -470,112 +412,33 @@ export async function POST(req: NextRequest) {
     // --- GENERATE IMAGES WITH SEEDREAM 4.5 (PRIMARY) ---
     console.log(`🚀 Generating ${actualImageCount} images with Seedream 4.5 (Masterpiece Engine)...`);
 
-    const seedreamNegative = "low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, normal quality, jpeg artifacts, signature, duplicate";
-
-    // Use a helper function for retry logic
-    const generateWithRetry = async (idx: number) => {
-      let taskPromptFinal = promptsForTasks[idx];
-      if (taskPromptFinal.length > 1000) taskPromptFinal = taskPromptFinal.substring(0, 1000);
-
-      const MAX_RETRIES = 3;
-      let currentError = null;
-
-      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        try {
-          const sdResponse = await fetch("https://api.novita.ai/v3/seedream-4.5", {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${apiKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              prompt: taskPromptFinal,
-              negative_prompt: seedreamNegative,
-              size: size,
-              seed: -1,
-              steps: 30,
-              guidance_scale: 7.0,
-              optimize_prompt_options: { mode: "auto" }
-            }),
-          });
-
-          if (sdResponse.ok) {
-            const sdData = await sdResponse.json();
-            if (sdData.images && sdData.images.length > 0) {
-              console.log(`✅ Seedream 4.5 image ${idx + 1} succeeded on attempt ${attempt}`);
-              return { success: true, image: sdData.images[0] };
-            }
-          } else {
-            const err = await sdResponse.text();
-            console.warn(`⚠️ Seedream 4.5 image ${idx + 1} attempt ${attempt} failed: ${err}`);
-            currentError = err;
-          }
-        } catch (e: any) {
-          console.warn(`⚠️ Seedream 4.5 image ${idx + 1} attempt ${attempt} exception: ${e.message}`);
-          currentError = e.message;
-        }
-        if (attempt < MAX_RETRIES) await new Promise(r => setTimeout(r, 1000));
-      }
-      return { success: false, error: currentError };
-    };
+    const { generateImage } = await import("@/lib/novita-api");
 
     // Process all images in the batch
     const seedreamResults = await Promise.all(
-      Array.from({ length: actualImageCount }).map((_, i) => generateWithRetry(i))
+      Array.from({ length: actualImageCount }).map(async (_, idx) => {
+        try {
+          let taskPromptFinal = promptsForTasks[idx];
+          const result = await generateImage({
+            prompt: taskPromptFinal,
+            negativePrompt: DEFAULT_NEGATIVE_PROMPT,
+            width: width,
+            height: height,
+            style: actualModel.includes('anime') ? 'anime' : 'realistic'
+          });
+          return { success: true, image: result.url };
+        } catch (e: any) {
+          console.warn(`⚠️ Seedream 4.5 image ${idx + 1} failed: ${e.message}`);
+          return { success: false, error: e.message };
+        }
+      })
     );
 
-    // If Seedream fails, FALLBACK to existing async txt2img
-    const failedIndices = seedreamResults.map((r, i) => r.success ? -1 : i).filter(i => i !== -1);
     const successfulSeedreams = seedreamResults.filter(r => r.success).map(r => r.image);
+    const failedIndices = seedreamResults.map((r, i) => r.success ? -1 : i).filter(i => i !== -1);
 
     if (failedIndices.length > 0) {
-      console.log(`📉 ${failedIndices.length} Seedream tasks failed. Falling back to Novita Async...`);
-      for (const idx of failedIndices) {
-        let taskPromptFinal = promptsForTasks[idx];
-        if (taskPromptFinal.length > 1000) taskPromptFinal = taskPromptFinal.substring(0, 1000);
-
-        const requestBody: any = {
-          extra: {
-            response_image_type: "jpeg",
-            enable_nsfw_detection: enforceSFW,
-            nsfw_detection_level: enforceSFW ? 2 : 0,
-            webhook: { url: webhookUrl },
-          },
-          request: {
-            prompt: taskPromptFinal,
-            model_name: DEFAULT_MODEL,
-            negative_prompt: seedreamNegative,
-            width,
-            height,
-            image_num: 1,
-            steps: 40,
-            seed: -1,
-            sampler_name: "DPM++ 2M Karras",
-            guidance_scale: 5.0,
-          },
-        };
-
-        const fbResponse = await fetch("https://api.novita.ai/v3/async/txt2img", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        });
-
-        if (fbResponse.ok) {
-          const fbData = await fbResponse.json();
-          const tid = fbData.data?.task_id || fbData.task_id;
-          if (tid) {
-            taskIds.push(tid);
-            console.log(`✅ Fallback task ${idx + 1} submitted: ${tid}`);
-          }
-        } else {
-          lastError = await fbResponse.text();
-          console.error(`❌ Fallback task ${idx + 1} failed:`, lastError);
-        }
-      }
+      console.log(`⚠️ ${failedIndices.length} Seedream tasks failed after all retries`);
     }
 
     // Persist Seedream results to DB so polling can find them immediately

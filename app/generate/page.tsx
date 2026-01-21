@@ -313,22 +313,20 @@ function GenerateContent() {
       let endpoint: string
       let requestBody: any
 
-      // Always use Seedream 3.0 API now
+      // Always use Seedream 4.5 API now via the unified endpoint
       endpoint = "/api/generate-image"
       requestBody = {
         prompt,
         negativePrompt,
-        model: "stability",
         response_format: "url",
         size: "512x1024",
         seed: -1,
-        guidance_scale: 7.5,
+        guidance_scale: 7.0, // Seedream 4.5 optimized
         watermark: true,
-        selectedCount, // Send the number of images selected
-        selectedModel: "stability", // Send the model type for token calculation
-        characterId, // extracted from searchParams
-        imageBase64, // Pass the character reference image
-        character: character, // Pass character context for prompt enhancement
+        selectedCount,
+        characterId,
+        imageBase64,
+        character: character,
       }
 
       // Create AbortController for timeout handling
@@ -694,9 +692,9 @@ function GenerateContent() {
       const saveBody = {
         imageUrl: imageUrl,
         prompt: prompt,
-        modelUsed: "stability",
+        modelUsed: "seedream-4.5",
         userId: user?.id || getAnonymousUserId(),
-        characterId: characterId, // Include character ID if present
+        characterId: characterId,
       }
 
       // Call the save-generated-image API to upload to Cloudinary and save to database

@@ -196,44 +196,29 @@ Personality: ${character.personality}
 Speak naturally and stay in character. Be engaging, warm, and authentic in your responses.`;
 }
 
-// Generate image using Novita AI
+// Generate image using Novita AI Seedream 4.5
 async function generateImage(prompt, style) {
-  console.log(`  🎨 Generating ${style} image with prompt: "${prompt.substring(0, 80)}..."`);
+  console.log(`  🎨 Generating ${style} image with Seedream 4.5 Masterpiece Engine...`);
 
   // Stronger negative prompts to avoid AI-looking images
   const negativePrompt = style === 'animated'
-    ? 'man, male, boy, men, masculine, multiple people, group, blurry, low quality, distorted, deformed, ugly, bad anatomy, watermark, text, realistic, photorealistic'
-    : 'man, male, boy, men, masculine, multiple people, group, blurry, low quality, distorted, deformed, ugly, bad anatomy, watermark, text, logo, signature, cartoon, anime, 3d render, illustration, drawing, painting, plain background, generic studio photo, passport photo, mugshot, amateur photo';
+    ? 'low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, duplicate, photorealistic, photography, 3d, digital render'
+    : 'low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, duplicate';
 
-  // Use better model for realistic images
-  const modelName = style === 'animated'
-    ? 'sd_xl_base_1.0.safetensors'  // For animated 3D style
-    : 'dreamshaper_8_93211.safetensors';  // Better for realistic women
-
-  const response = await fetch('https://api.novita.ai/v3/async/txt2img', {
+  const response = await fetch('https://api.novita.ai/v3/seedream-4.5', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${NOVITA_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      extra: {
-        response_image_type: 'jpeg',
-        enable_nsfw_detection: false
-      },
-      request: {
-        model_name: modelName,
-        prompt: prompt,
-        negative_prompt: negativePrompt,
-        width: 512,
-        height: 768,
-        image_num: 1,
-        batch_size: 1,
-        sampler_name: 'DPM++ 2M Karras',
-        guidance_scale: style === 'animated' ? 7.5 : 6.5,  // Lower guidance for more natural look
-        steps: 35,  // More steps for better quality
-        seed: -1
-      }
+      prompt: prompt,
+      negative_prompt: negativePrompt,
+      size: "512x768",
+      steps: 30,
+      guidance_scale: 7.0,
+      seed: -1,
+      optimize_prompt_options: { mode: "auto" }
     })
   });
 
@@ -242,38 +227,13 @@ async function generateImage(prompt, style) {
   }
 
   const data = await response.json();
-  const taskId = data.task_id;
-  console.log(`  ⏳ Task ID: ${taskId}, waiting for completion...`);
 
-  // Poll for completion
-  let attempts = 0;
-  while (attempts < 60) {
-    await new Promise(r => setTimeout(r, 3000));
-
-    const progress = await fetch(`https://api.novita.ai/v3/async/task-result?task_id=${taskId}`, {
-      headers: { 'Authorization': `Bearer ${NOVITA_API_KEY}` }
-    });
-
-    if (!progress.ok) {
-      attempts++;
-      continue;
-    }
-
-    const pd = await progress.json();
-
-    if (pd.task?.status === 'TASK_STATUS_SUCCEED') {
-      console.log(`  ✅ Image generated successfully`);
-      return pd.images[0].image_url;
-    }
-
-    if (pd.task?.status === 'TASK_STATUS_FAILED') {
-      throw new Error('Image generation failed');
-    }
-
-    attempts++;
+  if (data.images && data.images.length > 0) {
+    console.log(`  ✅ Image generated successfully (Synchronous)`);
+    return data.images[0];
   }
 
-  throw new Error('Image generation timeout');
+  throw new Error('Image generation failed - no images returned');
 }
 
 // Save character to database (with retry logic)

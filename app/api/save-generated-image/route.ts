@@ -7,7 +7,7 @@ import { uploadImageToCloudinary } from "@/lib/cloudinary-upload"
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { prompt, imageUrl, modelUsed = "novita", characterId, userId: passedUserId } = body
+    const { prompt, imageUrl, modelUsed = "seedream-4.5", characterId, userId: passedUserId } = body
 
     if (!prompt || !imageUrl) {
       return NextResponse.json({ error: "Missing required fields: prompt and imageUrl" }, { status: 400 })

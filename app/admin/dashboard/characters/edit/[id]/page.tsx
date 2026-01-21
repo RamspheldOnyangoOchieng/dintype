@@ -337,11 +337,67 @@ export default function EditCharacterPage() {
 
       if (!response.ok) throw new Error("Failed to start image generation")
       const result = await response.json()
+
+      // Check if images were returned directly (Seedream sync success) - skip polling
+      if (result.images && result.images.length > 0 && result.status === "TASK_STATUS_SUCCEED") {
+        console.log("✅ Images returned directly, skipping polling")
+        const newImageUrl = result.images[0]
+
+        // Save to gallery and update character
+        try {
+          // Ensure ORIGINAL image is in gallery first
+          const currentGalleryRes = await fetch(`/api/gallery?characterId=${id}`)
+          const currentGalleryData = await currentGalleryRes.json()
+          const isAlreadyInGallery = currentGalleryData.images?.some((img: any) => img.imageUrl === formData.image)
+
+          if (!isAlreadyInGallery && formData.image && !formData.image.includes("placeholder")) {
+            await fetch("/api/gallery", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                characterId: id,
+                imageUrl: formData.image,
+                isLocked: false,
+                isNsfw: false,
+                isPrimary: false
+              })
+            })
+          }
+
+          // Add NEW image to Gallery
+          await fetch("/api/gallery", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              characterId: id,
+              imageUrl: newImageUrl,
+              isLocked: false,
+              isNsfw: false,
+              isPrimary: true
+            })
+          })
+
+          await refreshSession()
+          await updateCharacter(id, { image: newImageUrl })
+          setFormData((prev: any) => ({ ...prev, image: newImageUrl }))
+          setImagePreview(newImageUrl)
+          toast.success("Character face regenerated and saved!")
+        } catch (saveErr) {
+          console.warn("Failed to save to gallery", saveErr)
+          setFormData((prev: any) => ({ ...prev, image: newImageUrl }))
+          setImagePreview(newImageUrl)
+          toast.success("Character face regenerated!")
+        }
+
+        setIsRegenerating(false)
+        return
+      }
+
       const taskId = result.taskId || result.id
 
       if (!taskId) throw new Error("No task ID returned")
 
-      // Poll for completion
+      // Poll for completion (fallback for async generation)
       let attempts = 0
       const maxAttempts = 45 // 90 seconds
 

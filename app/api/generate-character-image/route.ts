@@ -104,34 +104,26 @@ export async function POST(request: NextRequest) {
     // Determine style
     const style = characterDetails.style === 'anime' ? 'anime' : 'realistic';
 
-    // Models
-    const REALISTIC_MODEL = "epicrealism_naturalSinRC1VAE_106430.safetensors";
-    const ANIME_MODEL = "dreamshaper_8_93211.safetensors";
-
-    // Enhanced negative prompts (Trimmed to stay under Novita's 1024 character limit)
-    const REALISTIC_NEGATIVE_PROMPT = "deformed face, distorted face, bad anatomy, extra limbs, extra arms, extra legs, extra fingers, extra toes, missing fingers, fused fingers, broken hands, malformed hands, asymmetrical face, uneven eyes, crossed eyes, lazy eye, misaligned pupils, melting face, warped face, collapsed jaw, floating teeth, uncanny valley, artificial look, plastic skin, waxy skin, rubber skin, doll face, mannequin, cgi, 3d render, airbrushed skin, beauty filter, face retouching, oversharpened, overprocessed, bad lighting, anime, cartoon, illustration, painting, wide angle distortion, long neck, disproportionate body, stretched torso, tiny head, unnatural shoulders, bad legs anatomy, bad feet, floating body parts, low quality, blurry, jpeg artifacts, motion blur, nsfw anatomy error";
-
-    // For anime, we allow 'anime style' and 'illustration' but keep quality filters
-    const ANIME_NEGATIVE_PROMPT = "ugly, deformed, bad anatomy, disfigured, mutated, extra limbs, missing limbs, fused fingers, extra fingers, bad hands, malformed hands, poorly drawn hands, poorly drawn face, blurry, jpeg artifacts, worst quality, low quality, lowres, pixelated, watermarks, signature, censored, grain, long neck, unnatural pose, asymmetrical face, bad feet, extra arms, extra legs, disjointed limbs, unrealistic body, unrealistic face, unnatural skin, glitch, double torso, low detail, photorealistic, photograph, 3d, morbid, mutilated, missing, error, text, logo";
+    // Enhanced negative prompts
+    const REALISTIC_NEGATIVE_PROMPT = "low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, duplicate";
+    const ANIME_NEGATIVE_PROMPT = "low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, duplicate, photorealistic, photography, 3d, digital render";
 
     // Select settings based on style
-    const selectedModel = style === 'anime' ? ANIME_MODEL : REALISTIC_MODEL;
     const selectedNegativePrompt = style === 'anime' ? ANIME_NEGATIVE_PROMPT : REALISTIC_NEGATIVE_PROMPT;
 
-    // Resolution: SD1.5 (epicrealism/dreamshaper) works best at 512x768 (Portrait)
+    // Resolution: Seedream 4.5 works best with 512x768 (Portrait)
     const width = 512;
     const height = 768;
 
-    // Generate the image
+    // Generate the image using Seedream 4.5 (via unified client)
     const generatedImage = await generateImage({
       prompt: enhancedPrompt + (style === 'realistic' ? ", masterpiece, professional photography, raw photo, film grain, highly detailed skin texture, sharp focus, natural lighting, Fujifilm instax, 4k" : ", masterpiece, trending on pixiv, high-quality anime illustration, sharp lines, hyper-detailed, high-resolution style"),
       negativePrompt: selectedNegativePrompt,
       style: style,
       width: width,
       height: height,
-      steps: 45,
-      guidance_scale: 5.0,
-      model: selectedModel
+      steps: 30, // Optimized for Seedream
+      guidance_scale: 7.0 // Optimized for Seedream
     });
 
     const novitaImageUrl = generatedImage.url;

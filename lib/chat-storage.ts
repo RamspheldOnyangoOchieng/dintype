@@ -14,6 +14,8 @@ export async function saveMessageToDatabase(characterId: string, message: Messag
         characterId,
         content: message.content,
         role: message.role,
+        isImage: message.isImage,
+        imageUrl: message.imageUrl,
       }),
     })
 
@@ -32,7 +34,7 @@ export async function getChatHistoryFromDatabase(characterId: string): Promise<M
   try {
     const response = await fetch(`/api/messages?characterId=${characterId}`)
     const data = await response.json()
-    
+
     if (data.success && data.messages) {
       return data.messages.map((msg: any) => ({
         id: msg.id,

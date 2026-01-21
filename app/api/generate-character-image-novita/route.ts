@@ -235,141 +235,27 @@ Return ONLY the improved explicit prompt, no explanations or warnings.`
 
     // IMAGE GENERATION WITH SEEDREAM 4.5 (PRIMARY)
     let bodyImageUrl: string | null = null;
-    const MAX_SEEDREAM_RETRIES = 3;
-    let seedreamError = null;
 
     if (novitaApiKey) {
-      console.log(`🚀 Attempting character generation with Seedream 4.5 (Max ${MAX_SEEDREAM_RETRIES} tries)...`);
-
-      const seedreamNegative = "low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, duplicate";
-
-      for (let attempt = 1; attempt <= MAX_SEEDREAM_RETRIES; attempt++) {
-        try {
-          const seedreamResponse = await fetch('https://api.novita.ai/v3/seedream-4.5', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${novitaApiKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              prompt: enhancedPrompt,
-              negative_prompt: seedreamNegative,
-              size: '512x768',
-              seed: Math.floor(Math.random() * 2147483647),
-              steps: 30,
-              guidance_scale: 7.0,
-              optimize_prompt_options: {
-                mode: 'auto'
-              }
-            }),
-          });
-
-          if (seedreamResponse.ok) {
-            const data = await seedreamResponse.json();
-            if (data.images && data.images.length > 0) {
-              let imageUrl = data.images[0];
-              if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
-                imageUrl = `data:image/jpeg;base64,${imageUrl}`;
-              }
-              bodyImageUrl = imageUrl;
-              console.log(`✅ Seedream 4.5 succeeded on attempt ${attempt}`);
-              break;
-            }
-          } else {
-            const errorText = await seedreamResponse.text();
-            console.warn(`⚠️ Seedream 4.5 attempt ${attempt} failed: ${errorText}`);
-            seedreamError = new Error(`Seedream 4.5 failed: ${errorText}`);
-          }
-        } catch (error: any) {
-          console.warn(`⚠️ Seedream 4.5 attempt ${attempt} exception: ${error.message}`);
-          seedreamError = error;
-        }
-
-        if (attempt < MAX_SEEDREAM_RETRIES) {
-          await new Promise(r => setTimeout(r, 2000));
-        }
-      }
-    }
-
-    // FALLBACK TO SYNC SDXL OR ASYNC IF SEEDREAM FAILED
-    if (!bodyImageUrl) {
-      console.log('📉 Seedream 4.5 failed. Trying fallback to Novita SDXL (async)...');
-
       try {
-        const baseNegative = "deformed face, distorted face, bad anatomy, wrong proportions, extra limbs, extra arms, extra legs, extra fingers, extra toes, missing fingers, fused fingers, long fingers, short fingers, broken hands, malformed hands, twisted wrists, asymmetrical face, uneven eyes, crossed eyes, lazy eye, misaligned pupils, double pupils, melting face, warped face, collapsed jaw, broken mouth, stretched mouth, floating teeth, multiple mouths, open mouth smile, exaggerated smile, uncanny valley, fake human, artificial look, plastic skin, waxy skin, rubber skin, doll face, mannequin, cgi, 3d render, overly smooth skin, airbrushed skin, beauty filter, face retouching, perfect symmetry, hyper symmetry, oversharpened, unreal detail, hdr, overprocessed, bad lighting, harsh studio lighting, ring light, beauty light, anime, cartoon, illustration, painting, stylized, fantasy, wide angle distortion, fisheye, extreme perspective, long neck, short neck, broken neck, disproportionate body, stretched torso, tiny head, big head, unnatural shoulders, broken clavicle, incorrect hip width, warped waist, bad legs anatomy, bow legs, twisted legs, bad feet, malformed feet, missing feet, floating body parts, disconnected limbs, duplicate body parts, cloned face, low quality, blurry, jpeg artifacts, motion blur, depth of field error, wrong shadows, floating shadows, bad pose, unnatural pose, model pose, fashion pose, runway pose, professional photoshoot, nsfw anatomy error";
-        let finalNegative = baseNegative;
+        const { generateImage } = await import('@/lib/novita-api');
 
-        const lowerUserPrompt = prompt.toLowerCase();
-        if (lowerUserPrompt.includes('vagina') || lowerUserPrompt.includes('pussy') || lowerUserPrompt.includes('pusy') || lowerUserPrompt.includes('touching') || lowerUserPrompt.includes('spread')) {
-          finalNegative += ", hands behind head, interlocking fingers behind head, arms raised behind head, generic sexy pose";
-        }
-        if (finalNegative.length > 1000) finalNegative = finalNegative.substring(0, 1000);
+        const seedreamNegative = "low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, duplicate";
 
-        const novitaImageResponse = await fetch('https://api.novita.ai/v3/async/txt2img', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${novitaApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            extra: {
-              response_image_type: 'jpeg',
-              enable_nsfw_detection: false,
-            },
-            request: {
-              prompt: enhancedPrompt,
-              model_name: 'epicrealism_naturalSinRC1VAE_106430.safetensors',
-              negative_prompt: finalNegative,
-              width: 512,
-              height: 768,
-              image_num: 1,
-              steps: 50,
-              seed: -1,
-              sampler_name: 'DPM++ 2M Karras',
-              guidance_scale: 5.0,
-            },
-          }),
+        console.log(`🚀 Generating character image with Seedream 4.5...`);
+        const result = await generateImage({
+          prompt: enhancedPrompt,
+          negativePrompt: seedreamNegative,
+          width: 512,
+          height: 768,
+          style: 'realistic'
         });
 
-        if (novitaImageResponse.ok) {
-          const novitaImageData = await novitaImageResponse.json();
-          const taskId = novitaImageData.task_id;
-
-          if (taskId) {
-            console.log('📋 Polling for Novita fallback task:', taskId);
-            let attempts = 0;
-            const maxAttempts = 30;
-
-            while (attempts < maxAttempts) {
-              await new Promise(resolve => setTimeout(resolve, 2000));
-              attempts++;
-
-              const statusResp = await fetch(`https://api.novita.ai/v3/async/task-result?task_id=${taskId}`, {
-                headers: { 'Authorization': `Bearer ${novitaApiKey}` },
-              });
-
-              if (statusResp.ok) {
-                const statusData = await statusResp.json();
-                const currentStatus = statusData.task ? statusData.task.status : statusData.status;
-
-                if (currentStatus === 'TASK_STATUS_SUCCEED' || currentStatus === 'SUCCEEDED') {
-                  const url = statusData.images?.[0]?.image_url || statusData.task?.images?.[0]?.image_url;
-                  if (url) {
-                    const imgResp = await fetch(url);
-                    const buffer = await imgResp.arrayBuffer();
-                    bodyImageUrl = `data:image/jpeg;base64,${Buffer.from(buffer).toString('base64')}`;
-                    console.log('✅ Novita fallback successful');
-                    break;
-                  }
-                } else if (currentStatus === 'TASK_STATUS_FAILED' || currentStatus === 'FAILED') {
-                  break;
-                }
-              }
-            }
-          }
+        if (result && result.url) {
+          bodyImageUrl = result.url;
         }
-      } catch (fallbackError) {
-        console.error('❌ Fallback failed:', fallbackError);
+      } catch (error: any) {
+        console.warn(`⚠️ Seedream 4.5 generation failed: ${error.message}`);
       }
     }
 
