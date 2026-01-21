@@ -146,8 +146,8 @@ export async function POST(request: NextRequest) {
         const result = await generateImage({
           prompt: enhancedPrompt,
           negativePrompt: seedreamNegative,
-          width: 512,
-          height: 768,
+          width: 1024,
+          height: 1536,
           style: 'realistic'
         });
 

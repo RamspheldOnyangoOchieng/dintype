@@ -282,7 +282,12 @@ export async function POST(req: NextRequest) {
       console.log(`🆓 Free generation for user ${userId.substring(0, 8)} (${isAdmin ? 'Admin override' : '0 tokens required'})`)
     }
 
-    const [width, height] = (size || "512x1024").split("x").map(Number)
+    let [width, height] = (size || "1024x1536").split("x").map(Number);
+    // Enforce minimum resolution for Seedream 4.5
+    if (width * height < 1000000) {
+      width = 1024;
+      height = 1536;
+    }
 
     // --- START PROMPT ENHANCEMENT ---
     console.log("✨ Enhancing prompt for high-end results...");
