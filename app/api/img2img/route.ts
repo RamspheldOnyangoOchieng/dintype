@@ -70,13 +70,13 @@ export async function POST(req: NextRequest) {
     // ControlNet units for character consistency (used in fallback)
     const controlnetUnits = imageBase64 ? [
       {
-        model_name: "ip-adapter_sd15",
+        model_name: "ip-adapter_xl",
         weight: 1.0,
         control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
         module_name: "none"
       },
       {
-        model_name: "ip-adapter_plus_face_sd15",
+        model_name: "ip-adapter_plus_face_xl",
         weight: 0.8,
         control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
         module_name: "none"
