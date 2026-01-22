@@ -37,36 +37,36 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   const {
     prompt,
-    negativePrompt = 'low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, text, watermark, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin',
-    width = 1024,
-    height = 1536,
-    steps = 30,
+    negativePrompt = 'husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, poor background, messy room, cluttered environment, blurry, distorted, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look',
+    width = 1600,
+    height = 2400,
+    steps = 35,
     seed = -1,
     style = 'realistic',
-    guidance_scale = 7.0,
+    guidance_scale = 4.5,
     controlnet_units,
   } = params;
 
-  // Enhance prompt based on style
+  // Enhance prompt based on style - focus on Solitary Intimate Photography
   let enhancedPrompt = style === 'realistic'
-    ? `professional photography, ${prompt}, raw photo, highly detailed, sharp focus, 8k resolution, authentic skin texture, natural lighting, Kodak Portra 400 aesthetic`
-    : `anime style, ${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art`;
+    ? `Solo female solitary intimate shot, extraordinarily beautiful dynamics, soft balanced romantic lighting, soulful expression, lone woman, ${prompt}, dreamy lush nature, highly detailed, sharp focus, 8k UHD, 35mm lens, f/1.4, ethereal bokeh`
+    : `high-end anime style, ${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
 
   if (enhancedPrompt.length > 1000) {
     enhancedPrompt = enhancedPrompt.substring(0, 1000);
   }
 
   // Seedream 4.5 with retry logic
-  const MAX_RETRIES = 3;
+  const MAX_RETRIES = 2;
   let lastError: Error | null = null;
 
   console.log(`🚀 Generating image with Seedream 4.5 (Max ${MAX_RETRIES} attempts)...`);
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      // 45 second timeout per attempt
+      // 90 second timeout per attempt
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 45000);
+      const timeoutId = setTimeout(() => controller.abort(), 90000);
 
       const response = await fetch('https://api.novita.ai/v3/seedream-4.5', {
         method: 'POST',
@@ -82,6 +82,9 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
           steps: steps,
           guidance_scale: guidance_scale,
           controlnet_units: controlnet_units,
+          response_image_type: 'url',
+          add_watermark: false,
+          watermark: false,
           optimize_prompt_options: {
             mode: 'standard'
           }
@@ -123,8 +126,8 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     }
 
     if (attempt < MAX_RETRIES) {
-      console.log(`🔄 Retrying Seedream 4.5 in 2 seconds...`);
-      await new Promise(r => setTimeout(r, 2000));
+      console.log(`🔄 Retrying Seedream 4.5 in 1 second...`);
+      await new Promise(r => setTimeout(r, 1000));
     }
   }
 

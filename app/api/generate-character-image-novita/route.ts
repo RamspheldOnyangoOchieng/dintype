@@ -140,14 +140,16 @@ export async function POST(request: NextRequest) {
       try {
         const { generateImage } = await import('@/lib/novita-api');
 
-        const seedreamNegative = "low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, duplicate";
+        const seedreamNegative = "satin, glossy, plastic, shiny clothes, wrinkles, old, aged, grainy, artifacts, low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, duplicate";
 
         console.log(`🚀 Generating character image with Seedream 4.5...`);
         const result = await generateImage({
           prompt: enhancedPrompt,
           negativePrompt: seedreamNegative,
-          width: 1024,
-          height: 1536,
+          width: 1600,
+          height: 2400,
+          steps: 35,
+          guidance_scale: 3.5,
           style: 'realistic'
         });
 

@@ -869,8 +869,8 @@ export async function POST(request: NextRequest) {
                             const result = await generateImage({
                                 prompt: enhancedPrompt,
                                 negativePrompt: baseNegative,
-                                width: 512,
-                                height: 768,
+                                width: 1600,
+                                height: 2400,
                                 style: 'realistic'
                             });
 
@@ -879,28 +879,27 @@ export async function POST(request: NextRequest) {
                                 await sendTelegramPhoto(chatId, imageUrl, `Here's what I made for you... do you like it? 💕`);
                                 await incrementImageUsage(linkedAccount.user_id);
 
-                                // Auto-save to database (Telegram session)
+                                // Record completion in generation_tasks (NOT generated_images) temporarily
                                 try {
-                                    console.log("💾 [Telegram] Auto-saving image for user:", linkedAccount.user_id);
+                                    console.log("💾 [Telegram] Logging generation task completion...");
+                                    const taskId = `tg_sync_${Math.random().toString(36).substring(7)}`;
 
-                                    const { error: saveError } = await supabase.from('generated_images').insert({
+                                    await supabase.from('generation_tasks').insert({
                                         user_id: linkedAccount.user_id,
                                         character_id: linkedAccount.character_id,
-                                        image_url: imageUrl,
                                         prompt: enhancedPrompt,
-                                        source: 'telegram',
-                                        created_at: new Date().toISOString(),
                                         model: 'seedream-4.5',
-                                        status: 'completed'
+                                        status: 'completed',
+                                        task_id: taskId,
+                                        novita_image_urls: [imageUrl],
+                                        tokens_deducted: 0,
+                                        metadata: {
+                                            source: 'telegram'
+                                        }
                                     });
-
-                                    if (saveError) {
-                                        console.error("❌ [Telegram] Auto-save failed:", saveError);
-                                    } else {
-                                        console.log("✅ [Telegram] Image auto-saved to collection");
-                                    }
+                                    console.log("✅ [Telegram] Task completion logged to generation_tasks");
                                 } catch (saveErr) {
-                                    console.error("❌ [Telegram] Auto-save exception:", saveErr);
+                                    console.error("❌ [Telegram] Task logging exception:", saveErr);
                                 }
 
                                 return NextResponse.json({ ok: true });

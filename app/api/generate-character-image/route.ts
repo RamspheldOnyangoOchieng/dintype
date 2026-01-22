@@ -113,9 +113,9 @@ export async function POST(request: NextRequest) {
     // Select settings based on style
     const selectedNegativePrompt = style === 'anime' ? ANIME_NEGATIVE_PROMPT : REALISTIC_NEGATIVE_PROMPT;
 
-    // Resolution: Seedream 4.5 requires high resolution (1024x1536)
-    const width = 1024;
-    const height = 1536;
+    // Resolution: Seedream 4.5 requires high resolution (1600x2400 > 3.6MP)
+    const width = 1600;
+    const height = 2400;
 
     // Generate the image using Seedream 4.5 (via unified client)
     const generatedImage = await generateImage({

@@ -56,6 +56,26 @@ export async function GET(request: NextRequest) {
         // Handle Seedream results that are already stored in the DB
         if (id.startsWith('seedream_')) {
           if (supabaseAdmin) {
+            // 1. Check if the task itself is marked as completed and has Novita URLs
+            const { data: taskRecord } = await supabaseAdmin
+              .from('generation_tasks')
+              .select('status, error_message, novita_image_urls')
+              .eq('task_id', taskId)
+              .maybeSingle()
+
+            if (taskRecord && taskRecord.status === 'completed' && taskRecord.novita_image_urls) {
+              const urls = Array.isArray(taskRecord.novita_image_urls)
+                ? taskRecord.novita_image_urls
+                : [taskRecord.novita_image_urls];
+
+              return {
+                id,
+                task: { status: "TASK_STATUS_SUCCEED", progress_percent: 100 },
+                images: urls.map(url => ({ image_url: url }))
+              }
+            }
+
+            // 2. Fallback: Check if images are already saved in the permanent collection
             const { data: dbImages } = await supabaseAdmin
               .from('generated_images')
               .select('image_url')
@@ -66,6 +86,16 @@ export async function GET(request: NextRequest) {
                 id,
                 task: { status: "TASK_STATUS_SUCCEED", progress_percent: 100 },
                 images: dbImages.map(img => ({ image_url: img.image_url }))
+              }
+            }
+
+            if (taskRecord && taskRecord.status === 'failed') {
+              return {
+                id,
+                task: {
+                  status: "TASK_STATUS_FAILED",
+                  reason: taskRecord.error_message || "Synchronous generation failed or task not found."
+                }
               }
             }
           }
@@ -91,7 +121,7 @@ export async function GET(request: NextRequest) {
 
     const allSucceeded = results.every(r => r.task?.status === "TASK_STATUS_SUCCEED")
     const anyFailed = results.some(r => r.task?.status === "TASK_STATUS_FAILED" || (r as any).status === 'FAILED')
-    const anyProcessing = results.some(r => r.task?.status === "TASK_STATUS_QUEUED" || r.task?.status === "TASK_STATUS_EXECUTING" || r.task?.status === "TASK_STATUS_PROCESSING")
+    const anyProcessing = results.some(r => r.task?.status === "TASK_STATUS_QUEUED" || r.task?.status === "TASK_STATUS_EXECUTING" || r.task?.status === "TASK_STATUS_PROCESSING" || r.task?.status === "TASK_STATUS_WAITING")
 
     // Aggregate images
     const allImages = results.flatMap(r => r.images || []).map(img => img.image_url)
@@ -105,7 +135,7 @@ export async function GET(request: NextRequest) {
       if (supabaseAdmin) {
         await supabaseAdmin
           .from("generation_tasks")
-          .update({ status: "succeeded" })
+          .update({ status: "completed" })
           .eq("task_id", taskId)
       }
 
@@ -125,7 +155,9 @@ export async function GET(request: NextRequest) {
             character_id: characterId || null,
             image_url: imageUrl,
             prompt: prompt || "Chat image",
-            source: "chat",
+            metadata: {
+              source: "chat"
+            },
             created_at: new Date().toISOString()
           }))
 

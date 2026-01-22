@@ -19,8 +19,8 @@ async function generateImageWithNovita(prompt: string, negativePrompt: string, s
     prompt,
     negativePrompt,
     style,
-    width: 1024,
-    height: 1536
+    width: 1600,
+    height: 2400
   });
   return result.url;
 }

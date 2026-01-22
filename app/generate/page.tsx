@@ -57,6 +57,8 @@ function GenerateContent() {
   const { refreshCharacters, characters } = useCharacters()
   const searchParams = useSearchParams()
   const promptParam = searchParams.get('prompt') || ""
+  const [statusCheckCount, setStatusCheckCount] = useState<number>(0)
+  const MAX_POLL_ATTEMPTS = 40 // ~2 minutes with 3s interval
   const characterId = searchParams.get('characterId') || null
   const [prompt, setPrompt] = useState(promptParam)
   const [isMounted, setIsMounted] = useState(false)
@@ -217,14 +219,16 @@ function GenerateContent() {
 
       progressInterval = setInterval(() => {
         setGenerationProgress((prev) => {
+          if (prev >= 99) return 99 // Cap at 99% until finish
           if (prev >= 90) {
-            // Show timeout warning after 20 seconds
-            if (prev >= 95) {
+            // Show timeout warning after 45 seconds through slower increments
+            if (prev >= 97) {
               setTimeoutWarning(true)
             }
-            return prev + 0.5 // Slow down near the end
+            return Math.min(99, prev + 0.2) // Significantly slow down near the end
           }
-          return prev + Math.random() * 3 + 1 // Random progress increments
+          // Smaller random increments: average ~1.3% per second (reaches 90% in ~70s)
+          return Math.min(99, prev + Math.random() * 1.5 + 0.5)
         })
       }, 1000)
     } else {
@@ -319,7 +323,7 @@ function GenerateContent() {
         prompt,
         negativePrompt,
         response_format: "url",
-        size: "512x1024",
+        size: "1600x2400",
         seed: -1,
         guidance_scale: 7.0, // Seedream 4.5 optimized
         watermark: true,
@@ -335,7 +339,7 @@ function GenerateContent() {
         controller.abort()
         setError("Request timed out. Please try again with a simpler prompt or fewer images.")
         setIsGenerating(false)
-      }, 45000) // 45 second timeout on frontend
+      }, 150000) // 150 second timeout on frontend
 
       try {
         // Get the current session token for authentication
@@ -538,6 +542,9 @@ function GenerateContent() {
       clearInterval(statusCheckInterval.current)
     }
 
+    // Reset check count
+    setStatusCheckCount(0)
+
     // Check status immediately, then start interval
     checkGenerationStatus(taskId)
     statusCheckInterval.current = setInterval(() => {
@@ -547,6 +554,17 @@ function GenerateContent() {
 
   const checkGenerationStatus = async (taskId: string) => {
     try {
+      // Check poll limit
+      setStatusCheckCount(prev => {
+        const next = prev + 1
+        if (next >= MAX_POLL_ATTEMPTS && statusCheckInterval.current) {
+          clearInterval(statusCheckInterval.current)
+          setError("Generation is taking too long. Please check your Collection later or try again.")
+          setIsGenerating(false)
+        }
+        return next
+      })
+
       const response = await fetch(`/api/check-generation?taskId=${taskId}`)
       if (!response.ok) {
         // Stop polling on non-transient errors
