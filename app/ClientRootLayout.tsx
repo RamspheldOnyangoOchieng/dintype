@@ -49,7 +49,7 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
   }
 
   const noHeaderPaths = ["/chat", "/generate", "/premium", "/affiliate", "/admin"]
-  const noFooterPaths = ["/chat"]
+  const noFooterPaths = ["/chat", "/admin"]
   const showHeader = !noHeaderPaths.some((path) => pathname.startsWith(path))
   const showFooter = !noFooterPaths.some((path) => pathname.startsWith(path))
 

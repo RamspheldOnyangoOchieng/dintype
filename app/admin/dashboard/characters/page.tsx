@@ -60,7 +60,7 @@ export default function AdminCharactersPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#141414]">
+      <div className="h-[400px] flex items-center justify-center bg-[#141414]">
         <div className="text-white">Loading...</div>
       </div>
     )
@@ -71,9 +71,9 @@ export default function AdminCharactersPage() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-[#141414] text-white">
+    <div className="bg-[#141414] text-white">
       {/* Main Content */}
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0">
         <header className="bg-[#1A1A1A] border-b border-[#252525] p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
           <h2 className="text-xl font-bold">Character Management</h2>
           <Button variant="outline" onClick={() => router.push("/")} className="w-full sm:w-auto">
