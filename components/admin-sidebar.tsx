@@ -72,7 +72,7 @@ export default function AdminSidebar({
           )} />
         </button>
       </div>
-      <div className="flex-1 space-y-1 px-3 py-4 overflow-y-auto no-scrollbar relative">
+      <div className="flex-1 space-y-1 px-3 py-4 overflow-y-auto relative">
         <div className="mb-2 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-widest h-4 overflow-hidden">
           {!isCollapsed && "Overview"}
         </div>

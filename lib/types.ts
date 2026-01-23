@@ -27,6 +27,10 @@ export type Character = {
   pose?: string
   background?: string
   mood?: string
+  // Storyline fields
+  storyConflict?: string
+  storySetting?: string
+  storyPlot?: string
   // Other fields
   language: string
   relationship: string
@@ -37,10 +41,17 @@ export type Character = {
   category?: string
   tags?: string[]
   isPublic?: boolean
-  metadata?: any
-  story_conflict?: string
-  story_setting?: string
-  story_plot?: string
+  metadata?: {
+    face_reference_url?: string
+    anatomy_reference_url?: string
+    preferred_poses?: string
+    preferred_environments?: string
+    preferred_moods?: string
+    negative_prompt_restrictions?: string
+    default_prompt?: string
+    negative_prompt?: string
+    characterDetails?: any
+  }
 }
 
 export type CharacterInsert = Omit<Character, "id" | "createdAt">

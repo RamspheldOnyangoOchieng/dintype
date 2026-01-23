@@ -37,11 +37,11 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     <AdminGuard>
       <div
         className={cn(
-          "grid min-h-screen w-full transition-all duration-300 ease-in-out",
+          "grid h-screen w-full overflow-hidden transition-all duration-300 ease-in-out",
           isCollapsed ? "lg:grid-cols-[80px_1fr]" : "lg:grid-cols-[280px_1fr]"
         )}
       >
-        <div className="hidden border-r bg-card text-card-foreground lg:block overflow-hidden">
+        <div className="hidden border-r bg-card text-card-foreground lg:block overflow-hidden h-screen">
           <AdminSidebar isCollapsed={isCollapsed} onToggle={toggleSidebar} />
         </div>
         <div className="flex flex-col min-w-0 h-screen overflow-hidden">

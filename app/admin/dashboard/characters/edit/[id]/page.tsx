@@ -519,7 +519,9 @@ export default function EditCharacterPage() {
       name, age, image, videoUrl, description,
       personality, occupation, hobbies, body,
       ethnicity, language, relationship,
-      systemPrompt, isNew, category, images
+      systemPrompt, isNew, category, images,
+      hairColor, eyeColor, skinTone, characterStyle,
+      story_conflict, story_setting, story_plot
     } = data
 
     return {
@@ -527,6 +529,10 @@ export default function EditCharacterPage() {
       personality, occupation, hobbies, body,
       ethnicity, language, relationship,
       systemPrompt, isNew, category, images,
+      hairColor, eyeColor, skinTone, characterStyle,
+      storyConflict: story_conflict,
+      storySetting: story_setting,
+      storyPlot: story_plot,
       metadata: {
         ...(data.metadata || {}),
         face_reference_url: data.face_reference_url,
@@ -965,6 +971,90 @@ export default function EditCharacterPage() {
                           placeholder="e.g., Reading, Hiking, Photography"
                         />
                       </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="ethnicity" className="block text-sm font-medium text-gray-300">
+                          Ethnicity
+                        </label>
+                        <Input
+                          id="ethnicity"
+                          name="ethnicity"
+                          value={formData.ethnicity}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="Character ethnicity"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="hairColor" className="block text-sm font-medium text-gray-300">
+                          Hair Color
+                        </label>
+                        <Input
+                          id="hairColor"
+                          name="hairColor"
+                          value={formData.hairColor}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Brown, Blue, Blonde"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="eyeColor" className="block text-sm font-medium text-gray-300">
+                          Eye Color
+                        </label>
+                        <Input
+                          id="eyeColor"
+                          name="eyeColor"
+                          value={formData.eyeColor}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Brown, Blue, Green"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="characterStyle" className="block text-sm font-medium text-gray-300">
+                          Visual Style
+                        </label>
+                        <Input
+                          id="characterStyle"
+                          name="characterStyle"
+                          value={formData.characterStyle}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., realistic, anime, semi_realistic"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="language" className="block text-sm font-medium text-gray-300">
+                          Language
+                        </label>
+                        <Input
+                          id="language"
+                          name="language"
+                          value={formData.language}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., English, Spanish, Mandarin"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="relationship" className="block text-sm font-medium text-gray-300">
+                          Relationship Status
+                        </label>
+                        <Input
+                          id="relationship"
+                          name="relationship"
+                          value={formData.relationship}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Single, Married, Complicated"
+                        />
+                      </div>
                     </div>
 
                     {/* Additional Details */}
@@ -1138,89 +1228,6 @@ export default function EditCharacterPage() {
                         </RadioGroup>
                       </div>
 
-                      <div className="space-y-2">
-                        <label htmlFor="ethnicity" className="block text-sm font-medium text-gray-300">
-                          Ethnicity
-                        </label>
-                        <Input
-                          id="ethnicity"
-                          name="ethnicity"
-                          value={formData.ethnicity}
-                          onChange={handleChange}
-                          className="bg-[#252525] border-[#333] text-white"
-                          placeholder="Character ethnicity"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="hairColor" className="block text-sm font-medium text-gray-300">
-                          Hair Color
-                        </label>
-                        <Input
-                          id="hairColor"
-                          name="hairColor"
-                          value={formData.hairColor}
-                          onChange={handleChange}
-                          className="bg-[#252525] border-[#333] text-white"
-                          placeholder="e.g., Brown, Blue, Blonde"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="eyeColor" className="block text-sm font-medium text-gray-300">
-                          Eye Color
-                        </label>
-                        <Input
-                          id="eyeColor"
-                          name="eyeColor"
-                          value={formData.eyeColor}
-                          onChange={handleChange}
-                          className="bg-[#252525] border-[#333] text-white"
-                          placeholder="e.g., Brown, Blue, Green"
-                        />
-                      </div>
-
-                      <div className="space-y-2 md:col-span-2">
-                        <label htmlFor="characterStyle" className="block text-sm font-medium text-gray-300">
-                          Visual Style
-                        </label>
-                        <Input
-                          id="characterStyle"
-                          name="characterStyle"
-                          value={formData.characterStyle}
-                          onChange={handleChange}
-                          className="bg-[#252525] border-[#333] text-white"
-                          placeholder="e.g., realistic, anime, semi_realistic"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="language" className="block text-sm font-medium text-gray-300">
-                          Language
-                        </label>
-                        <Input
-                          id="language"
-                          name="language"
-                          value={formData.language}
-                          onChange={handleChange}
-                          className="bg-[#252525] border-[#333] text-white"
-                          placeholder="e.g., English, Spanish, Mandarin"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label htmlFor="relationship" className="block text-sm font-medium text-gray-300">
-                          Relationship Status
-                        </label>
-                        <Input
-                          id="relationship"
-                          name="relationship"
-                          value={formData.relationship}
-                          onChange={handleChange}
-                          className="bg-[#252525] border-[#333] text-white"
-                          placeholder="e.g., Single, Married, Complicated"
-                        />
-                      </div>
 
                       <div className="space-y-2">
                         <div className="flex items-center">
