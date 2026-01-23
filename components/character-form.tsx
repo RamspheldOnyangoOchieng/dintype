@@ -112,6 +112,72 @@ export function CharacterForm({ character, isEditing = false }: CharacterFormPro
             <Switch id="isPublic" name="isPublic" defaultChecked={character?.is_public || false} value="true" />
             <Label htmlFor="isPublic">Make this character public</Label>
           </div>
+
+          <div className="pt-4 border-t border-white/10">
+            <h3 className="text-lg font-medium text-white mb-4">Advanced Generation References</h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="faceReference">Face Reference Photo</Label>
+                <Input id="faceReference" name="faceReference" type="file" accept="image/*" />
+                {character?.face_reference_url && (
+                  <p className="text-xs text-muted-foreground mt-1">Current: <a href={character.face_reference_url} target="_blank" className="text-primary hover:underline">View Image</a></p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="anatomyReference">Anatomy/Genital Reference</Label>
+                <Input id="anatomyReference" name="anatomyReference" type="file" accept="image/*" />
+                {character?.anatomy_reference_url && (
+                  <p className="text-xs text-muted-foreground mt-1">Current: <a href={character.anatomy_reference_url} target="_blank" className="text-primary hover:underline">View Image</a></p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2 mt-4">
+              <Label htmlFor="preferredPoses">Common Personality Poses</Label>
+              <Textarea
+                id="preferredPoses"
+                name="preferredPoses"
+                defaultValue={character?.preferred_poses || ""}
+                placeholder="e.g. crossing legs, hand behind head, leaning forward..."
+                rows={2}
+              />
+            </div>
+
+            <div className="space-y-2 mt-4">
+              <Label htmlFor="preferredEnvironments">Common Environments</Label>
+              <Textarea
+                id="preferredEnvironments"
+                name="preferredEnvironments"
+                defaultValue={character?.preferred_environments || ""}
+                placeholder="e.g. cozy bedroom, sun-drenched balcony, neon-lit alley..."
+                rows={2}
+              />
+            </div>
+
+            <div className="space-y-2 mt-4">
+              <Label htmlFor="preferredMoods">Common Moods & Expressions</Label>
+              <Textarea
+                id="preferredMoods"
+                name="preferredMoods"
+                defaultValue={character?.preferred_moods || ""}
+                placeholder="e.g. seductive smirk, playful wink, shy gaze..."
+                rows={2}
+              />
+            </div>
+
+            <div className="space-y-2 mt-4">
+              <Label htmlFor="negativeRestrictions">Restrictions & Common No-Go's</Label>
+              <Textarea
+                id="negativeRestrictions"
+                name="negativeRestrictions"
+                defaultValue={character?.negative_prompt_restrictions || ""}
+                placeholder="e.g. no glasses, no tattoos, never smiling with teeth..."
+                rows={2}
+              />
+            </div>
+          </div>
         </CardContent>
 
         <CardFooter className="flex justify-between">

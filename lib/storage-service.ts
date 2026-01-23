@@ -16,6 +16,13 @@ export type CharacterProfile = {
   user_id: string
   is_public?: boolean
   tags?: string[]
+  face_reference_url?: string
+  anatomy_reference_url?: string
+  preferred_poses?: string
+  preferred_environments?: string
+  preferred_moods?: string
+  negative_prompt_restrictions?: string
+  metadata?: any
 }
 
 export type SavedPrompt = {
@@ -94,6 +101,7 @@ export class StorageService {
   // Character Profiles CRUD
   static async createCharacter(character: CharacterProfile) {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
     const userId = await this.getUserId()
 
     const { data, error } = await supabaseAdmin
@@ -112,6 +120,7 @@ export class StorageService {
 
   static async getCharactersOld(includePublic = true) {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
     const userId = await this.getUserId()
 
     let query = supabaseAdmin.from("character_profiles").select("*")
@@ -130,6 +139,7 @@ export class StorageService {
 
   static async getCharacter(id: string) {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
     const userId = await this.getUserId()
 
     // Try to get from characters table first (new system)
@@ -146,7 +156,13 @@ export class StorageService {
         image_url: character.image_url || character.image || '',
         images: character.images || [],
         video_url: character.video_url || '',
-        user_id: character.user_id || character.userId || ''
+        user_id: character.user_id || character.userId || '',
+        face_reference_url: character.metadata?.face_reference_url || '',
+        anatomy_reference_url: character.metadata?.anatomy_reference_url || '',
+        preferred_poses: character.metadata?.preferred_poses || '',
+        preferred_environments: character.metadata?.preferred_environments || '',
+        preferred_moods: character.metadata?.preferred_moods || '',
+        negative_prompt_restrictions: character.metadata?.negative_prompt_restrictions || ''
       }
     }
 
@@ -165,12 +181,19 @@ export class StorageService {
       image_url: data.image_url || data.image || '',
       images: data.images || [],
       video_url: data.video_url || '',
-      user_id: data.user_id || data.userId || ''
+      user_id: data.user_id || data.userId || '',
+      face_reference_url: data.metadata?.face_reference_url || '',
+      anatomy_reference_url: data.metadata?.anatomy_reference_url || '',
+      preferred_poses: data.metadata?.preferred_poses || '',
+      preferred_environments: data.metadata?.preferred_environments || '',
+      preferred_moods: data.metadata?.preferred_moods || '',
+      negative_prompt_restrictions: data.metadata?.negative_prompt_restrictions || ''
     }
   }
 
   static async updateCharacter(id: string, updates: Partial<CharacterProfile>) {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
     const userId = await this.getUserId()
 
     // First check if user owns this character
@@ -193,6 +216,7 @@ export class StorageService {
 
   static async deleteCharacter(id: string) {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
     const userId = await this.getUserId()
 
     // First check if user owns this character
@@ -211,6 +235,7 @@ export class StorageService {
   // Saved Prompts CRUD
   static async savePrompt(prompt: SavedPrompt) {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
     const userId = await this.getUserId()
 
     const { data, error } = await supabaseAdmin
@@ -229,6 +254,7 @@ export class StorageService {
 
   static async getPrompts(characterId?: string) {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
     const userId = await this.getUserId()
 
     let query = supabaseAdmin.from("saved_prompts").select("*").eq("user_id", userId)
@@ -245,6 +271,7 @@ export class StorageService {
 
   static async updatePrompt(id: string, updates: Partial<SavedPrompt>) {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
     const userId = await this.getUserId()
 
     const { data, error } = await supabaseAdmin
@@ -261,6 +288,7 @@ export class StorageService {
 
   static async deletePrompt(id: string) {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
     const userId = await this.getUserId()
 
     const { error } = await supabaseAdmin.from("saved_prompts").delete().eq("id", id).eq("user_id", userId)
@@ -272,6 +300,7 @@ export class StorageService {
   // Tags CRUD
   static async createTag(name: string) {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
     const userId = await this.getUserId()
 
     const { data, error } = await supabaseAdmin
@@ -289,6 +318,7 @@ export class StorageService {
 
   static async getTags() {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
     const userId = await this.getUserId()
 
     const { data, error } = await supabaseAdmin.from("tags").select("*").eq("user_id", userId)
@@ -299,6 +329,7 @@ export class StorageService {
 
   static async deleteTag(id: string) {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
     const userId = await this.getUserId()
 
     const { error } = await supabaseAdmin.from("tags").delete().eq("id", id).eq("user_id", userId)
@@ -310,6 +341,7 @@ export class StorageService {
   // Character-Tag Relationships
   static async addTagToCharacter(characterId: string, tagId: string) {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
 
     const { error } = await supabaseAdmin.from("character_tags").insert({
       character_id: characterId,
@@ -322,6 +354,7 @@ export class StorageService {
 
   static async removeTagFromCharacter(characterId: string, tagId: string) {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
 
     const { error } = await supabaseAdmin
       .from("character_tags")
@@ -336,6 +369,7 @@ export class StorageService {
   // Favorites
   static async toggleFavorite(promptId: string) {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
     const userId = await this.getUserId()
 
     // Get current favorite status
@@ -362,6 +396,7 @@ export class StorageService {
 
   static async getFavorites() {
     const supabaseAdmin = await getAdminClient()
+    if (!supabaseAdmin) throw new Error("Database admin client initialization failed")
     const userId = await this.getUserId()
 
     const { data, error } = await supabaseAdmin

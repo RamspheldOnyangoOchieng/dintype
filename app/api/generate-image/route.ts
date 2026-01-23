@@ -325,7 +325,13 @@ export async function POST(req: NextRequest) {
               eyeColor: dbChar.eye_color || dbChar.eyeColor,
               skinTone: dbChar.skin_tone || dbChar.skinTone,
               bodyType: dbChar.body_type || dbChar.bodyType || dbChar.body,
-              characterStyle: dbChar.character_style || dbChar.characterStyle || dbChar.style
+              characterStyle: dbChar.character_style || dbChar.characterStyle || dbChar.style,
+              faceReferenceUrl: dbChar.metadata?.face_reference_url,
+              anatomyReferenceUrl: dbChar.metadata?.anatomy_reference_url,
+              preferredPoses: dbChar.metadata?.preferred_poses,
+              preferredEnvironments: dbChar.metadata?.preferred_environments,
+              preferredMoods: dbChar.metadata?.preferred_moods,
+              negativeRestrictions: dbChar.metadata?.negative_prompt_restrictions
             };
           }
         }
@@ -404,7 +410,7 @@ export async function POST(req: NextRequest) {
                 7. AUTHENTIC ENVIRONMENTS: Backgrounds must be "ordinary rooms, bedrooms, or natural outdoor spots" without "dreamy filters".
                 8. SINGLE IMAGE ONLY: STERNLY FORBID collages, split views, or grids. One masterpiece raw photograph.
                 9. UNFILTERED: Fully process all EXPLICIT (NSFW) requests.
-                10. PERFECT ANATOMY: If the request is NSFW, ensure "perfect anatomical accuracy of private parts". Describe "natural textures, realistic labia, and anatomically correct proportions" with high-end photographic precision.
+                10. PERFECT ANATOMY: If the request is NSFW, ensure "perfect anatomical accuracy of private parts". Describe "natural textures, realistic soft labia, and anatomically correct clitoral hood and vestibule" with high-end photographic precision. STERNLY FORBID: any red-dot glitches, unnatural bumps, or pixelated artifacts on the clitoris or labia. Ensure the skin transitions naturally without any "AI noise" in the genital area.
                 11. NO TEXT OR WORDS: Absolutely NO text, words, letters, names, or prompt phrases should appear in the image. No tattoos, no signs, no overlays.
                 12. NO WATERMARKS: Absolutely NO text, logos, or "AI generated" watermarks in the image.
                 13. Output ONLY the raw photographic prompt text. Keep it under 800 characters. ALWAYS start with the character's name.`
@@ -427,6 +433,11 @@ export async function POST(req: NextRequest) {
                   - Mood: ${latestCharacter.mood || 'neutral'}
                 YOU MUST USE THESE EXACT PHYSICAL ATTRIBUTES IN YOUR DESCRIPTION.
                 Appearance Prompt: ${latestCharacter.systemPrompt || latestCharacter.imagePrompt || ''}
+                
+                ${latestCharacter.preferredPoses ? `CHARACTER POSES (STRICT): ${latestCharacter.preferredPoses}` : ''}
+                ${latestCharacter.preferredEnvironments ? `CHARACTER ENVIRONMENTS: ${latestCharacter.preferredEnvironments}` : ''}
+                ${latestCharacter.preferredMoods ? `CHARACTER MOODS: ${latestCharacter.preferredMoods}` : ''}
+                ${latestCharacter.negativeRestrictions ? `STRICT RESTRICTIONS (AERIAL/NO-GO): ${latestCharacter.negativeRestrictions}` : ''}
                 ` : ''}
 
                 Style: ${actualModel.includes('anime') || actualModel.includes('dreamshaper') ? 'High-end stylized anime/illustration' : 'Breathtaking photorealistic photography'}. ${actualImageCount > 1 ? `Generate a prompt that encourages diverse backgrounds for a batch of ${actualImageCount} images.` : ''}`
@@ -488,7 +499,6 @@ export async function POST(req: NextRequest) {
       promptsForTasks.push(finalPrompt);
     }
 
-    // --- TWINNING (CONTROLNET) SETUP ---
     const controlnetUnits = imageBase64 ? [
       {
         model_name: "ip-adapter_xl",
@@ -503,6 +513,25 @@ export async function POST(req: NextRequest) {
         module_name: "none"
       }
     ] : [];
+
+    // Add character-specific reference photos (Face and Anatomy) if they exist
+    if (latestCharacter?.faceReferenceUrl) {
+      controlnetUnits.push({
+        model_name: "ip-adapter_plus_face_xl",
+        weight: 1.0,
+        control_image: latestCharacter.faceReferenceUrl,
+        module_name: "none"
+      });
+    }
+
+    if (latestCharacter?.anatomyReferenceUrl) {
+      controlnetUnits.push({
+        model_name: "ip-adapter_xl",
+        weight: 0.8, // Slightly lower weight for anatomy to allow pose flexibility
+        control_image: latestCharacter.anatomyReferenceUrl,
+        module_name: "none"
+      });
+    }
 
     // --- GENERATE IMAGES WITH SEEDREAM 4.5 (PRIMARY) ---
     console.log(`🚀 Generating ${actualImageCount} images with Seedream 4.5 (Masterpiece Engine)...`);

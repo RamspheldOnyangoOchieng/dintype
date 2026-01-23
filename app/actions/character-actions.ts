@@ -5,6 +5,14 @@ import { getAdminClient } from "@/lib/supabase-admin"
 import { createClient } from "@/lib/supabase-server"
 import type { CharacterProfile } from "@/lib/storage-service"
 import { isUserAdmin } from "@/lib/admin-auth"
+import { uploadImageToCloudinary } from "@/lib/cloudinary-upload"
+
+// Helper to convert File to base64 for Cloudinary upload
+async function fileToBase64(file: File): Promise<string> {
+  const bytes = await file.arrayBuffer()
+  const buffer = Buffer.from(bytes)
+  return `data:${file.type};base64,${buffer.toString("base64")}`
+}
 
 export async function getCharacters() {
   try {
@@ -88,8 +96,14 @@ export async function createCharacter(formData: FormData) {
     const name = formData.get("name") as string
     const description = formData.get("description") as string
     const promptTemplate = formData.get("promptTemplate") as string
+    const faceFile = formData.get("faceReference") as File
+    const anatomyFile = formData.get("anatomyReference") as File
     const isPublic = formData.get("isPublic") === "true"
     const imageUrl = formData.get("imageUrl") as string
+    const preferredPoses = formData.get("preferredPoses") as string
+    const preferredEnvironments = formData.get("preferredEnvironments") as string
+    const preferredMoods = formData.get("preferredMoods") as string
+    const negativeRestrictions = formData.get("negativeRestrictions") as string
 
     if (!name) {
       return { error: "Character name is required" }
@@ -107,19 +121,39 @@ export async function createCharacter(formData: FormData) {
       return { error: "Failed to create admin client" }
     }
 
+    // Handle reference images
+    let faceUrl = ""
+    let anatomyUrl = ""
+
+    if (faceFile && faceFile.size > 0) {
+      const b64 = await fileToBase64(faceFile)
+      faceUrl = await uploadImageToCloudinary(b64, "face-refs")
+    }
+
+    if (anatomyFile && anatomyFile.size > 0) {
+      const b64 = await fileToBase64(anatomyFile)
+      anatomyUrl = await uploadImageToCloudinary(b64, "anatomy-refs")
+    }
+
     const { data, error } = await supabaseAdmin
       .from("characters")
       .insert({
         name,
         description,
-        system_prompt: promptTemplate, // Using system_prompt which maps well to characters table
+        system_prompt: promptTemplate,
         is_public: isPublic,
-        isPublic: isPublic,
         user_id: user.id,
-        userId: user.id,
         image: imageUrl || undefined,
         image_url: imageUrl || undefined,
         created_at: new Date().toISOString(),
+        metadata: {
+          face_reference_url: faceUrl,
+          anatomy_reference_url: anatomyUrl,
+          preferred_poses: preferredPoses,
+          preferred_environments: preferredEnvironments,
+          preferred_moods: preferredMoods,
+          negative_prompt_restrictions: negativeRestrictions
+        }
       })
       .select()
       .single()
@@ -142,8 +176,14 @@ export async function updateCharacter(id: string, formData: FormData) {
     const name = formData.get("name") as string
     const description = formData.get("description") as string
     const promptTemplate = formData.get("promptTemplate") as string
+    const faceFile = formData.get("faceReference") as File
+    const anatomyFile = formData.get("anatomyReference") as File
     const isPublic = formData.get("isPublic") === "true"
     const imageUrl = formData.get("imageUrl") as string
+    const preferredPoses = formData.get("preferredPoses") as string
+    const preferredEnvironments = formData.get("preferredEnvironments") as string
+    const preferredMoods = formData.get("preferredMoods") as string
+    const negativeRestrictions = formData.get("negativeRestrictions") as string
 
     if (!name) {
       return { error: "Character name is required" }
@@ -164,15 +204,29 @@ export async function updateCharacter(id: string, formData: FormData) {
     // First check if user owns this character
     const { data: character } = await supabaseAdmin
       .from("characters")
-      .select("user_id, userId")
+      .select("user_id, userId, metadata")
       .eq("id", id)
       .single()
 
     // Check for ownership or admin status
-    const isAdmin = await isUserAdmin(supabase, user.id)
+    const isAdmin = await isUserAdmin(supabase as any, user.id)
 
     if (!isAdmin && character?.user_id !== user.id && character?.userId !== user.id) {
       return { error: "You do not have permission to update this character" }
+    }
+
+    // Handle reference images
+    let faceUrl = character?.metadata?.face_reference_url || ""
+    let anatomyUrl = character?.metadata?.anatomy_reference_url || ""
+
+    if (faceFile && faceFile.size > 0) {
+      const b64 = await fileToBase64(faceFile)
+      faceUrl = await uploadImageToCloudinary(b64, "face-refs")
+    }
+
+    if (anatomyFile && anatomyFile.size > 0) {
+      const b64 = await fileToBase64(anatomyFile)
+      anatomyUrl = await uploadImageToCloudinary(b64, "anatomy-refs")
     }
 
     const updates: any = {
@@ -180,7 +234,15 @@ export async function updateCharacter(id: string, formData: FormData) {
       description,
       system_prompt: promptTemplate,
       is_public: isPublic,
-      isPublic: isPublic,
+      metadata: {
+        ...(character?.metadata || {}),
+        face_reference_url: faceUrl,
+        anatomy_reference_url: anatomyUrl,
+        preferred_poses: preferredPoses,
+        preferred_environments: preferredEnvironments,
+        preferred_moods: preferredMoods,
+        negative_prompt_restrictions: negativeRestrictions
+      }
     }
 
     if (imageUrl) {
@@ -230,7 +292,7 @@ export async function deleteCharacter(id: string) {
       .eq("id", id)
       .single()
 
-    const isAdmin = await isUserAdmin(supabase, user.id)
+    const isAdmin = await isUserAdmin(supabase as any, user.id)
 
     if (!isAdmin && character?.user_id !== user.id && character?.userId !== user.id) {
       return { error: "You do not have permission to delete this character" }
