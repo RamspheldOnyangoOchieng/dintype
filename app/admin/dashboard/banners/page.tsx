@@ -87,17 +87,17 @@ export default function AdminBannersPage() {
       setError(null)
 
       try {
-        const { data, error } = await supabaseClient
-          .from("banners")
-          .select("*")
-          .order("created_at", { ascending: false })
+        const response = await fetch("/api/admin/banners")
+        const result = await response.json()
 
-        if (error) {
-          throw error
+        if (!response.ok) {
+          throw new Error(result.error || "Failed to fetch banners")
         }
 
+        const data = result.banners
+
         // Convert snake_case to camelCase
-        const formattedData = data.map((banner) => ({
+        const formattedData = data.map((banner: any) => ({
           id: banner.id,
           imageUrl: banner.image_url,
           title: banner.title,
@@ -110,9 +110,9 @@ export default function AdminBannersPage() {
         }))
 
         setBanners(formattedData)
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error fetching banners:", err)
-        setError("Failed to load banners. Please try again.")
+        setError(err.message || "Failed to load banners. Please try again.")
       } finally {
         setIsLoading(false)
       }
@@ -186,7 +186,7 @@ export default function AdminBannersPage() {
         data: { publicUrl },
       } = supabaseClient.storage.from(bucketName).getPublicUrl(filePath)
 
-      setFormData((prev) => ({ ...prev, imageUrl: publicUrl }))
+      setFormData((prev: any) => ({ ...prev, imageUrl: publicUrl }))
 
       toast({
         title: "Image uploaded",
@@ -215,11 +215,11 @@ export default function AdminBannersPage() {
     }
 
     try {
-      // Convert camelCase to snake_case for Supabase
-      const { data, error } = await supabaseClient
-        .from("banners")
-        .insert([
-          {
+      const response = await fetch("/api/admin/banners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          banner: {
             image_url: formData.imageUrl,
             title: formData.title,
             subtitle: formData.subtitle || null,
@@ -227,31 +227,29 @@ export default function AdminBannersPage() {
             button_link: formData.buttonLink || null,
             link_url: formData.linkUrl,
             is_active: true,
-          },
-        ])
-        .select()
+          }
+        })
+      })
 
-      if (error) {
-        console.error("Supabase error:", error)
-        throw error
-      }
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || "Failed to add banner")
+
+      const data = result.banner
 
       // Convert the returned data back to camelCase
-      if (data && data.length > 0) {
-        const newBanner: Banner = {
-          id: data[0].id,
-          imageUrl: data[0].image_url,
-          title: data[0].title,
-          subtitle: data[0].subtitle,
-          buttonText: data[0].button_text,
-          buttonLink: data[0].button_link,
-          linkUrl: data[0].link_url,
-          isActive: data[0].is_active,
-          createdAt: data[0].created_at,
-        }
-
-        setBanners((prev) => [newBanner, ...prev])
+      const newBanner: Banner = {
+        id: data.id,
+        imageUrl: data.image_url,
+        title: data.title,
+        subtitle: data.subtitle,
+        buttonText: data.button_text,
+        buttonLink: data.button_link,
+        linkUrl: data.link_url,
+        isActive: data.is_active,
+        createdAt: data.created_at,
       }
+
+      setBanners((prev: Banner[]) => [newBanner, ...prev])
 
       setIsAdding(false)
       setFormData({
@@ -290,27 +288,28 @@ export default function AdminBannersPage() {
     }
 
     try {
-      // Convert camelCase to snake_case for Supabase
-      const { error } = await supabaseClient
-        .from("banners")
-        .update({
-          image_url: formData.imageUrl,
-          title: formData.title,
-          subtitle: formData.subtitle || null,
-          button_text: formData.buttonText || null,
-          button_link: formData.buttonLink || null,
-          link_url: formData.linkUrl,
-          updated_at: new Date().toISOString(),
+      const response = await fetch("/api/admin/banners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: isEditing,
+          banner: {
+            image_url: formData.imageUrl,
+            title: formData.title,
+            subtitle: formData.subtitle || null,
+            button_text: formData.buttonText || null,
+            button_link: formData.buttonLink || null,
+            link_url: formData.linkUrl,
+            updated_at: new Date().toISOString(),
+          }
         })
-        .eq("id", isEditing)
+      })
 
-      if (error) {
-        console.error("Supabase error:", error)
-        throw error
-      }
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || "Failed to update banner")
 
       // Update local state
-      setBanners((prev) =>
+      setBanners((prev: Banner[]) =>
         prev.map((banner) =>
           banner.id === isEditing
             ? {
@@ -352,14 +351,13 @@ export default function AdminBannersPage() {
 
   const handleDeleteBanner = async (id: string) => {
     try {
-      const { error } = await supabaseClient.from("banners").delete().eq("id", id)
+      const response = await fetch(`/api/admin/banners?id=${id}`, {
+        method: "DELETE"
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || "Failed to delete banner")
 
-      if (error) {
-        console.error("Supabase error:", error)
-        throw error
-      }
-
-      setBanners((prev) => prev.filter((banner) => banner.id !== id))
+      setBanners((prev: Banner[]) => prev.filter((banner) => banner.id !== id))
 
       toast({
         title: "Banner deleted",
@@ -392,13 +390,19 @@ export default function AdminBannersPage() {
       const banner = banners.find((b) => b.id === id)
       if (!banner) return
 
-      const { error } = await supabaseClient.from("banners").update({ is_active: !banner.isActive }).eq("id", id)
+      const response = await fetch("/api/admin/banners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          banner: { is_active: !banner.isActive }
+        })
+      })
 
-      if (error) {
-        throw error
-      }
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || "Failed to toggle banner")
 
-      setBanners((prev) =>
+      setBanners((prev: Banner[]) =>
         prev.map((banner) => (banner.id === id ? { ...banner, isActive: !banner.isActive } : banner)),
       )
 

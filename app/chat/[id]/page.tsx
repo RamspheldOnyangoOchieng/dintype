@@ -398,7 +398,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
             // If chapter has images, send one too
             // Filter out any null/undefined/empty strings from chapter images to prevent broken images
-            const chImages = (chapter?.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0);
+            // Strictly check for URLs starting with http to avoid broken local filenames
+            const chImages = (chapter?.content?.chapter_images || []).filter((img: any) =>
+              typeof img === 'string' && img.length > 0 && img.startsWith('http')
+            );
+
             if (chImages.length > 0) {
               const randomImg = chImages[Math.floor(Math.random() * chImages.length)];
               const imgMsg: Message = {
