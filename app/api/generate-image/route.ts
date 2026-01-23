@@ -416,12 +416,13 @@ export async function POST(req: NextRequest) {
             let cleanedPrompt = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
             // Ensure character traits are included even in the enhanced prompt - BE VERY AGGRESSIVE WITH TWINNING
             if (character) {
-              const characterPrefix = `${character.name}, a woman with ${character.hairColor || 'natural'} hair and ${character.eyeColor || 'beautiful'} eyes, ${character.skinTone || ''} skin, `;
+              const characterPrefix = `### MASTER TRAITS (MATCH EXACTLY): ${character.name}, a woman with ${character.hairColor || 'natural'} hair, ${character.eyeColor || 'beautiful'} eyes, and ${character.skinTone || ''} skin. ### `;
+              const characterSuffix = ` (Remember: ${character.name} MUST have ${character.hairColor || 'natural'} hair and ${character.eyeColor || 'beautiful'} eyes).`;
+
               if (!cleanedPrompt.toLowerCase().includes(character.name.toLowerCase())) {
-                cleanedPrompt = characterPrefix + cleanedPrompt;
+                cleanedPrompt = characterPrefix + cleanedPrompt + characterSuffix;
               } else {
-                // Even if name is present, boost traits
-                cleanedPrompt = characterPrefix + cleanedPrompt;
+                cleanedPrompt = characterPrefix + cleanedPrompt + characterSuffix;
               }
             }
             // Truncate to 900 characters to leave room for environment additions

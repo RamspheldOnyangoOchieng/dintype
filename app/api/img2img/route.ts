@@ -118,12 +118,8 @@ export async function POST(req: NextRequest) {
 
     // Aggressive Twinning: Prepend core visual traits to ensure facial similarity
     if (character) {
-      const characterPrefix = `${character.name}, a woman with ${character.hairColor || 'natural'} hair, ${character.eyeColor || 'beautiful'} eyes, and ${character.skinTone || ''} skin, `;
-      if (!finalPrompt.toLowerCase().includes(characterName.toLowerCase())) {
-        finalPrompt = characterPrefix + finalPrompt;
-      } else {
-        finalPrompt = characterPrefix + finalPrompt;
-      }
+      const characterPrefix = `### MASTER TRAITS (MATCH EXACTLY): ${character.name}, a woman with ${character.hairColor || 'natural'} hair, ${character.eyeColor || 'beautiful'} eyes, and ${character.skinTone || ''} skin. ### `;
+      finalPrompt = characterPrefix + finalPrompt;
     }
 
     // ControlNet units for character consistency (Twinning)

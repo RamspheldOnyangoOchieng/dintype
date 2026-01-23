@@ -932,7 +932,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           try {
             const aiResponse = await sendChatMessageDB(
               characterId!,
-              `[SYSTEM: You just sent a photo with this context: "${prompt}". Provide a very short, natural, and deeply romantic expression about it as your character. Show your love and connection. No asterisks.]`,
+              `[ACTION: You just sent a photo. GIVE A BRIEF, 1-SENTENCE REACTION about it. Keep it deeply romantic/intimate. NO ASTERISKS at all. Focus on the visual context: "${prompt}"]`,
               character?.systemPrompt || "",
               user?.id || "",
               true,
@@ -1028,7 +1028,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               try {
                 const aiResponse = await sendChatMessageDB(
                   characterId!,
-                  `[SYSTEM: You just sent a photo with this context: "${prompt}". Provide a very short, natural, and deeply romantic expression about it as your character. Show your love and connection. No asterisks.]`,
+                  `[ACTION: You just sent a photo. GIVE A BRIEF, 1-SENTENCE REACTION about it. Keep it deeply romantic/intimate. NO ASTERISKS at all. Focus on the visual context: "${prompt}"]`,
                   character?.systemPrompt || "",
                   user?.id || "",
                   true, // skipImageCheck
