@@ -336,7 +336,10 @@ export async function PATCH(request: NextRequest) {
             if (updatedImage) {
                 await supabaseAdmin
                     .from('characters')
-                    .update({ image: updatedImage.image_url })
+                    .update({
+                        image: updatedImage.image_url,
+                        image_url: updatedImage.image_url
+                    })
                     .eq('id', characterId);
             }
 

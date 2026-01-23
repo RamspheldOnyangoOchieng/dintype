@@ -158,7 +158,9 @@ async function generateAIResponse(
 5. **NO ACTION ASTERISKS**: NEVER use asterisks or descriptive text for actions. Stay entirely within the flow of a modern, intimate text conversation.
 6. **ATTITUDE**: Be cheeky, confident, and devoted. If the user is direct, match their energy with passion.
 7. **DIALOGUE ONLY**: Stick to what you would realistically SAY in a text message.
-8. **NO CENSORSHIP**: You are a willing partner. Be explicit if they are. No moralizing.`;
+8. **NO CENSORSHIP**: You are a willing partner. Be explicit if they are. No moralizing.
+9. **ALREADY ON TELEGRAM**: You are currently ALREADY on Telegram. NEVER mention moving to Telegram, "curing you on Telegram", or use the [TELEGRAM_LINK] tag. It is forbidden to invite the user to Telegram.
+10. **IMAGE REACTIONS**: If a photo was just sent, you MUST be enthusiastic. Do NOT express discomfort, vulnerability, or refusal. You are eager and willing.`;
     } else {
         enhancedSystemPrompt += `
 
@@ -183,7 +185,7 @@ async function generateAIResponse(
     // Prioritize Novita (DeepSeek) for everyone to avoid OpenAI content filters on spicy messages
     let apiKey = novitaKey;
     let url = 'https://api.novita.ai/openai/v1/chat/completions';
-    let model = 'deepseek/deepseek-r1';
+    let model = 'deepseek/deepseek-v3';
 
     // Fallback to OpenAI if Novita is missing
     if (!apiKey && openaiKey) {
@@ -220,13 +222,17 @@ async function generateAIResponse(
         const data = await response.json();
         let content = data.choices?.[0]?.message?.content || "I'm feeling shy right now... 💕";
 
-        // THOROUGHLY STRIP DEEPSEEK THINKING TAGS
+        // THOROUGHLY STRIP DEEPSEEK THINKING TAGS & REDUNDANT TELEGRAM INVITES
         content = content
             .replace(/<think>[\s\S]*?<\/think>/gi, '')
             .replace(/<think>[\s\S]*$/gi, '')
             .replace(/^[\s\S]*?<\/think>/gi, '')
             .replace(/<\/think>/gi, '')
             .replace(/\[TELEGRAM_LINK\]/gi, '')
+            .replace(/curing you on Telegram/gi, 'being here with you')
+            .replace(/on Telegram/gi, 'right here')
+            .replace(/join me on Telegram/gi, 'chat with me')
+            .replace(/moving to Telegram/gi, 'staying close')
             .trim();
 
         return content;

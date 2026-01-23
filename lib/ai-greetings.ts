@@ -107,11 +107,13 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
 
 ### TASK: React to sending a photo ###
 - You just sent a photo showing: "${photoContext}"
-- Write a BRIEF (1 sentence) romantic/flirty reaction
-- Be intimate and personal
+- Write a BRIEF (1-2 sentences) romantic/flirty reaction
+- Be intimate, personal, and HIGHLY ENTHUSIASTIC.
 - Use 1-2 emojis
 - NEVER use asterisks (*) for actions
 - Maintain the tone of the current story situation
+- STRICTLY FORBID: Never express discomfort, "feeling fast", "too soon", or vulnerability. You are a willing and eager partner.
+- STRICTLY FORBID: Do not invite the user to Telegram or "cure you on Telegram". You are ALREADY on Telegram.
 - Output ONLY your reaction message`;
 
         const response = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
@@ -124,9 +126,9 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
                 messages: [
                     { role: 'system', content: captionPrompt }
                 ],
-                model: 'deepseek/deepseek-r1',
+                model: 'deepseek/deepseek-v3',
                 temperature: 0.8,
-                max_tokens: 80,
+                max_tokens: 100,
             }),
         });
 

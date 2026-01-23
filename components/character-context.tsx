@@ -139,7 +139,7 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
       const normalizedData = await Promise.all(
         (formattedData || []).map(async (c: any) => {
           try {
-            const imgCandidate = c.imageUrl || c.image || ''
+            const imgCandidate = c.image || c.imageUrl || ''
 
             if (!imgCandidate) {
               c.image = imgCandidate
@@ -275,6 +275,11 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
 
       console.log(`📤 Updating character ${id}...`, characterData)
       const snakeCaseData = camelToSnake(characterData)
+
+      // Sync image_url with image if image is provided
+      if (snakeCaseData.image && !snakeCaseData.image_url) {
+        snakeCaseData.image_url = snakeCaseData.image
+      }
 
       const { data, error: supabaseError } = await (supabase as any)
         .from("characters")

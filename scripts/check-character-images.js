@@ -3,7 +3,7 @@ const { Client } = require('pg');
 
 const POSTGRES_URL = process.env.POSTGRES_URL;
 
-async function inspectColumns() {
+async function checkImages() {
     const client = new Client({
         connectionString: POSTGRES_URL,
         ssl: { rejectUnauthorized: false }
@@ -13,14 +13,10 @@ async function inspectColumns() {
         await client.connect();
         console.log('🚀 Connected to DB');
 
-        const res = await client.query(`
-            SELECT column_name, data_type 
-            FROM information_schema.columns 
-            WHERE table_name = 'characters'
-        `);
-        console.log('Character Table Columns:');
+        const res = await client.query('SELECT id, name, image FROM characters');
+        console.log('Current Character Images:');
         res.rows.forEach(row => {
-            console.log(`- ${row.column_name} (${row.data_type})`);
+            console.log(`- ${row.name}: ${row.image}`);
         });
 
     } catch (err) {
@@ -30,4 +26,4 @@ async function inspectColumns() {
     }
 }
 
-inspectColumns();
+checkImages();
