@@ -149,14 +149,34 @@ export async function GET(request: NextRequest) {
         console.log("💾 Auto-saving generated images for user:", userId)
 
         try {
-          // Save each generated image to the database
-          const imagesToSave = allImages.map(imageUrl => ({
+          // Import Cloudinary upload function
+          const { uploadImageToCloudinary } = await import("@/lib/cloudinary-upload");
+
+          // Upload each image to Cloudinary first for permanent storage
+          const permanentUrls = await Promise.all(
+            allImages.map(async (imageUrl) => {
+              try {
+                console.log("💾 [Auto-save] Uploading to Cloudinary...");
+                const permanentUrl = await uploadImageToCloudinary(imageUrl, 'chat-images');
+                console.log("✅ [Auto-save] Cloudinary upload success:", permanentUrl);
+                return permanentUrl;
+              } catch (err) {
+                console.error("⚠️ [Auto-save] Cloudinary upload failed, using original URL:", err);
+                return imageUrl; // Fallback to original URL
+              }
+            })
+          );
+
+          // Save each generated image to the database with permanent URLs
+          const imagesToSave = permanentUrls.map(imageUrl => ({
             user_id: userId,
             character_id: characterId || null,
             image_url: imageUrl,
             prompt: prompt || "Chat image",
+            model_used: "seedream-4.5",
             metadata: {
-              source: "chat"
+              source: "chat",
+              auto_saved: true
             },
             created_at: new Date().toISOString()
           }))

@@ -115,26 +115,71 @@ export async function POST(req: NextRequest) {
         imageUrl = `data:image/jpeg;base64,${imageUrl}`;
       }
 
-      // Persist to generation_tasks (NOT generated_images) temporarily
       const supabaseAdmin = await createAdminClient();
+      const userId = character?.userId || character?.user_id || null;
+      const charId = character?.id && !character.id.startsWith("custom-") ? character.id : null;
+
+      // CHAT IMAGES: Automatically save to Cloudinary for permanent storage
+      let permanentImageUrl = imageUrl;
+      try {
+        console.log("💾 [Chat Image] Auto-saving to Cloudinary for permanent storage...");
+        const { uploadImageToCloudinary } = await import("@/lib/cloudinary-upload");
+        permanentImageUrl = await uploadImageToCloudinary(imageUrl, 'chat-images');
+        console.log("✅ [Chat Image] Saved to Cloudinary:", permanentImageUrl);
+      } catch (cloudinaryError) {
+        console.error("⚠️ [Chat Image] Cloudinary upload failed, using original URL:", cloudinaryError);
+        // Continue with original URL as fallback
+      }
+
+      // Persist to generation_tasks
       if (supabaseAdmin) {
         await supabaseAdmin.from('generation_tasks').insert({
-          user_id: character?.userId || character?.user_id || null,
-          character_id: character?.id && !character.id.startsWith("custom-") ? character.id : null,
+          user_id: userId,
+          character_id: charId,
           prompt: prompt,
           model: 'seedream-4.5',
           status: 'completed',
           task_id: taskId,
-          novita_image_urls: [imageUrl],
+          novita_image_urls: [permanentImageUrl],
           tokens_deducted: 0,
         });
+
+        // CHAT IMAGES: Also save to generated_images table for permanent collection
+        if (userId) {
+          try {
+            console.log("💾 [Chat Image] Saving to generated_images collection...");
+            const { error: saveError } = await supabaseAdmin
+              .from("generated_images")
+              .insert({
+                user_id: userId,
+                character_id: charId,
+                image_url: permanentImageUrl,
+                prompt: prompt || "Chat image",
+                model_used: "seedream-4.5",
+                metadata: {
+                  source: "chat",
+                  task_id: taskId,
+                  auto_saved: true
+                },
+                created_at: new Date().toISOString()
+              });
+
+            if (saveError) {
+              console.error("⚠️ [Chat Image] Failed to save to collection:", saveError);
+            } else {
+              console.log("✅ [Chat Image] Saved to permanent collection!");
+            }
+          } catch (dbError) {
+            console.error("⚠️ [Chat Image] Database save error:", dbError);
+          }
+        }
       }
 
       // Return both taskId AND images so frontend can use immediately without polling
       return NextResponse.json({
         taskId,
         status: "TASK_STATUS_SUCCEED",
-        images: [imageUrl]
+        images: [permanentImageUrl]
       });
     }
 

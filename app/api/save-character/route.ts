@@ -117,21 +117,37 @@ export async function POST(request: NextRequest) {
 
         console.log(`✅ Active girlfriend check passed: ${activeCheck.currentUsage}/${activeCheck.limit}`);
 
-        // Download and upload image to Supabase Storage
-        console.log('📥 Downloading and uploading image to Supabase Storage...');
+        // Download and upload image to permanent storage (Cloudinary)
+        console.log('📥 Ensuring character image is saved to permanent storage...');
         let permanentImageUrl = imageUrl;
 
         try {
-            // Check if imageUrl is an external URL (Novita, etc.)
-            if (imageUrl.includes('novita.ai') || !imageUrl.includes(supabaseUrl)) {
-                permanentImageUrl = await uploadImageToSupabase(imageUrl);
-                console.log('✅ Image uploaded to Supabase Storage:', permanentImageUrl);
+            // Check if imageUrl needs to be uploaded to permanent storage
+            const isCloudinary = imageUrl.includes('cloudinary.com');
+            const isNovita = imageUrl.includes('novita.ai') || imageUrl.includes('task-result');
+            const isBase64 = imageUrl.startsWith('data:');
+
+            if (!isCloudinary && (isNovita || isBase64 || !imageUrl.includes(supabaseUrl))) {
+                console.log('[Character Save] Uploading image to Cloudinary for permanent storage...');
+                const { uploadImageToCloudinary } = await import("@/lib/cloudinary-upload");
+                permanentImageUrl = await uploadImageToCloudinary(imageUrl, 'character-images');
+                console.log('✅ [Character Save] Image uploaded to Cloudinary:', permanentImageUrl);
+            } else if (isCloudinary) {
+                console.log('✅ [Character Save] Image already in Cloudinary:', permanentImageUrl);
             } else {
-                console.log('✅ Image already in Supabase Storage:', permanentImageUrl);
+                // Fallback to Supabase storage as backup
+                console.log('[Character Save] Attempting Supabase storage fallback...');
+                try {
+                    permanentImageUrl = await uploadImageToSupabase(imageUrl);
+                    console.log('✅ [Character Save] Image uploaded to Supabase Storage:', permanentImageUrl);
+                } catch (supabaseError) {
+                    console.error('⚠️ [Character Save] Supabase upload failed:', supabaseError);
+                }
             }
         } catch (uploadError) {
-            console.error('⚠️ Failed to upload image to Supabase Storage, using original URL:', uploadError);
-            // Continue with original URL if upload fails
+            console.error('⚠️ [Character Save] Failed to upload image to permanent storage:', uploadError);
+            // Continue with original URL if upload fails, but log warning
+            console.warn('⚠️ [Character Save] Using temporary URL - image may expire!');
         }
 
         // Extract age from characterDetails (convert "20s" to 25, "30s" to 35, etc.)
