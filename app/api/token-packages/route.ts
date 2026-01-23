@@ -18,11 +18,13 @@ export async function GET() {
         }
 
         // Format for frontend if needed (e.g. adding priceDisplay if missing)
-        const formattedPackages = data.map(pkg => ({
+        const formattedPackages = (data as any[] || []).map(pkg => ({
             ...pkg,
             // Fallback for UI if specific fields aren't present
-            priceDisplay: pkg.price_display || `${pkg.price} kr`,
+            priceDisplay: pkg.price_display || `$ ${pkg.price}`,
         }))
+
+
 
         return NextResponse.json({ success: true, packages: formattedPackages })
     } catch (error: any) {

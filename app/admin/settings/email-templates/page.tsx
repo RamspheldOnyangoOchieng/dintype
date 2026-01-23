@@ -549,15 +549,16 @@ export default function EmailTemplatesPage() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              All pricing is currently displayed in <strong>Swedish Krona (SEK)</strong>.
+              All pricing is currently displayed in <strong>US Dollars (USD)</strong>.
             </p>
             <div className="bg-white dark:bg-zinc-900 p-4 rounded-lg border border-zinc-200 dark:border-zinc-700">
               <h4 className="font-semibold mb-2 text-zinc-800 dark:text-white">Price Formatting Examples:</h4>
               <ul className="space-y-1 text-sm text-zinc-600 dark:text-zinc-400">
-                <li>• 99 SEK → {formatSEK(99)}</li>
-                <li>• 249 SEK → {formatSEK(249)}</li>
-                <li>• 1,499 SEK → {formatSEK(1499)}</li>
+                <li>• $ 9.99 → {formatSEK(9.99)}</li>
+                <li>• $ 24.99 → {formatSEK(24.99)}</li>
+                <li>• $ 149.99 → {formatSEK(149.99)}</li>
               </ul>
+
               <p className="text-xs text-muted-foreground mt-3 italic">
                 The {`{{amount}}`} variable is automatically formatted based on the payment provider settings.
               </p>

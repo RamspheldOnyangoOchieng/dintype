@@ -10,22 +10,22 @@ import { Plus, Edit, Trash2, Save } from 'lucide-react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Label } from '@/components/ui/label';
 
@@ -70,7 +70,7 @@ export default function AdminPremiumPage() {
 
             if (packagesError) throw packagesError;
             setTokenPackages(packages || []);
-            
+
             setSelectedPackages([]);
 
             const { data: costs, error: costsError } = await supabase
@@ -90,12 +90,13 @@ export default function AdminPremiumPage() {
 
     async function savePackage(pkg: TokenPackage) {
         try {
-            const { error } = await supabase
-                .from('token_packages')
+            const { error } = await (supabase
+                .from('token_packages') as any)
                 .upsert({
                     ...pkg,
                     updated_at: new Date().toISOString()
                 });
+
 
             if (error) throw error;
 
@@ -128,12 +129,13 @@ export default function AdminPremiumPage() {
 
     async function saveCost(cost: TokenCost) {
         try {
-            const { error } = await supabase
-                .from('token_costs')
+            const { error } = await (supabase
+                .from('token_costs') as any)
                 .upsert({
                     ...cost,
                     updated_at: new Date().toISOString()
                 });
+
 
             if (error) throw error;
 
@@ -185,14 +187,14 @@ export default function AdminPremiumPage() {
                     </div>
                     <div className="flex items-center gap-2">
                         {selectedPackages.length > 0 && (
-                             <Button
+                            <Button
                                 variant="destructive"
                                 size="sm"
                                 onClick={() => setPackageToDelete(selectedPackages)}
-                             >
+                            >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Delete Selected ({selectedPackages.length})
-                             </Button>
+                            </Button>
                         )}
                         <Button
                             onClick={() => setEditingPackage({
@@ -222,7 +224,8 @@ export default function AdminPremiumPage() {
                                     </th>
                                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Name</th>
                                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Tokens</th>
-                                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Price (kr)</th>
+                                    <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Price ($)</th>
+
                                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Description</th>
                                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Status</th>
                                     <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Actions</th>
@@ -239,7 +242,8 @@ export default function AdminPremiumPage() {
                                         </td>
                                         <td className="p-4 align-middle font-medium">{pkg.name}</td>
                                         <td className="p-4 align-middle">{pkg.tokens}</td>
-                                        <td className="p-4 align-middle">{pkg.price} kr</td>
+                                        <td className="p-4 align-middle">$ {pkg.price}</td>
+
                                         <td className="p-4 align-middle">{pkg.description}</td>
                                         <td className="p-4 align-middle">
                                             <Badge variant={pkg.active ? "default" : "secondary"} className={pkg.active ? "bg-green-600 hover:bg-green-700" : ""}>
@@ -335,7 +339,7 @@ export default function AdminPremiumPage() {
                             Configure the details for this token package.
                         </DialogDescription>
                     </DialogHeader>
-                    
+
                     {editingPackage && (
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
@@ -357,7 +361,7 @@ export default function AdminPremiumPage() {
                                     />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="price">Price (kr)</Label>
+                                    <Label htmlFor="price">Price ($)</Label>
                                     <Input
                                         id="price"
                                         type="number"
@@ -453,17 +457,17 @@ export default function AdminPremiumPage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete 
-                            {packageToDelete && packageToDelete.length > 1 
-                                ? ` ${packageToDelete.length} packages` 
-                                : ' this package'} 
+                            This action cannot be undone. This will permanently delete
+                            {packageToDelete && packageToDelete.length > 1
+                                ? ` ${packageToDelete.length} packages`
+                                : ' this package'}
                             from the database.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction 
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+                        <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             onClick={() => packageToDelete && executeDelete(packageToDelete)}
                         >
                             Delete

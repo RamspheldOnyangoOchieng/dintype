@@ -85,6 +85,87 @@ export async function getUserPlanInfo(userId: string): Promise<UserPlanInfo> {
   };
 }
 
+// Check if user can use specific AI models based on plan restrictions
+export async function checkModelAccess(userId: string, model: string): Promise<{ allowed: boolean; message?: string }> {
+  try {
+    // ADMIN BYPASS: Admins can use all models
+    const adminPrivileges = await getAdminPrivileges(userId);
+    if (adminPrivileges.isAdmin) {
+      return { allowed: true };
+    }
+
+    const planInfo = await getUserPlanInfo(userId);
+    const restrictions = planInfo.restrictions;
+
+    // Normalize model name
+    const modelLower = model.toLowerCase();
+
+    // Check Seedream access
+    if (modelLower.includes('seedream')) {
+      const canUseSeedream = restrictions.can_use_seedream;
+      if (canUseSeedream === 'false') {
+        return {
+          allowed: false,
+          message: `Seedream model is not available on the ${planInfo.planType} plan. Upgrade to Premium to access this model.`
+        };
+      }
+    }
+
+    // Check Flux access
+    if (modelLower.includes('flux')) {
+      const canUseFlux = restrictions.can_use_flux;
+      if (canUseFlux === 'false') {
+        return {
+          allowed: false,
+          message: `Flux model is not available on the ${planInfo.planType} plan. Upgrade to Premium to access this model.`
+        };
+      }
+    }
+
+    // Check Stability access
+    if (modelLower.includes('stability') || modelLower.includes('sdxl') || modelLower.includes('stable')) {
+      const canUseStability = restrictions.can_use_stability;
+      if (canUseStability === 'false') {
+        return {
+          allowed: false,
+          message: `Stability AI models are not available on the ${planInfo.planType} plan. Upgrade to Premium to access this model.`
+        };
+      }
+    }
+
+    return { allowed: true };
+  } catch (error) {
+    console.error('Error checking model access:', error);
+    return { allowed: true }; // Fail open if error
+  }
+}
+
+// Check if user can generate NSFW content
+export async function checkNsfwAccess(userId: string): Promise<{ allowed: boolean; message?: string }> {
+  try {
+    // ADMIN BYPASS: Admins can generate NSFW
+    const adminPrivileges = await getAdminPrivileges(userId);
+    if (adminPrivileges.isAdmin) {
+      return { allowed: true };
+    }
+
+    const planInfo = await getUserPlanInfo(userId);
+    const canGenerateNsfw = planInfo.restrictions.can_generate_nsfw;
+
+    if (canGenerateNsfw === 'false') {
+      return {
+        allowed: false,
+        message: `NSFW content generation is not available on the ${planInfo.planType} plan. Upgrade to Premium to unlock this feature.`
+      };
+    }
+
+    return { allowed: true };
+  } catch (error) {
+    console.error('Error checking NSFW access:', error);
+    return { allowed: true }; // Fail open if error
+  }
+}
+
 // Check if user can send a message
 export async function checkMessageLimit(userId: string): Promise<UsageCheck> {
   console.log('🔍 Checking message limit for user:', userId);

@@ -3,6 +3,9 @@ import { logApiCost } from "@/lib/budget-monitor"
 import { createAdminClient } from "@/lib/supabase-admin"
 import { generateImage } from "@/lib/novita-api"
 import { getUnifiedNovitaKey } from "@/lib/unified-api-keys"
+import { createClient } from "@/lib/supabase-server"
+import { checkModelAccess, checkNsfwAccess } from "@/lib/subscription-limits"
+import { containsNSFW } from "@/lib/nsfw-filter"
 
 export const maxDuration = 300;
 
@@ -13,6 +16,37 @@ export async function POST(req: NextRequest) {
 
     if (!apiKey) {
       return NextResponse.json({ error: "API key not configured" }, { status: 500 })
+    }
+
+    // Get authenticated user
+    let userId: string | undefined
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (user) {
+      userId = user.id
+
+      // Check model access (Seedream is default for img2img)
+      const modelAccess = await checkModelAccess(userId, 'seedream-4.5')
+      if (!modelAccess.allowed) {
+        return NextResponse.json({
+          error: modelAccess.message,
+          upgrade_required: true,
+          upgradeUrl: "/premium"
+        }, { status: 403 })
+      }
+
+      // Check NSFW access if prompt contains NSFW content
+      if (containsNSFW(prompt)) {
+        const nsfwAccess = await checkNsfwAccess(userId)
+        if (!nsfwAccess.allowed) {
+          return NextResponse.json({
+            error: nsfwAccess.message,
+            upgrade_required: true,
+            upgradeUrl: "/premium"
+          }, { status: 403 })
+        }
+      }
     }
 
     const characterName = character?.name || "the character";

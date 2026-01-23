@@ -27,6 +27,46 @@ export default function RestrictionsPage() {
   const [saving, setSaving] = useState(false)
   const { toast } = useToast()
 
+  // Predefined restrictions that should exist for full site control
+  const DEFAULT_RESTRICTIONS: Record<string, { description: string; defaultFree: string; defaultPremium: string }> = {
+    'can_generate_nsfw': { description: 'Whether users can generate NSFW content', defaultFree: 'true', defaultPremium: 'true' },
+    'can_use_flux': { description: 'Whether users can use the Flux model', defaultFree: 'true', defaultPremium: 'true' },
+    'can_use_stability': { description: 'Whether users can use Stability AI models', defaultFree: 'true', defaultPremium: 'true' },
+    'can_use_seedream': { description: 'Whether users can use the Seedream 4.5 model', defaultFree: 'true', defaultPremium: 'true' },
+    'daily_free_messages': { description: 'Number of free messages per day', defaultFree: 'null', defaultPremium: 'null' },
+    'weekly_image_generation': { description: 'Weekly image generation limit', defaultFree: '5', defaultPremium: 'null' },
+    'active_girlfriends_limit': { description: 'Maximum active AI companions', defaultFree: '1', defaultPremium: '3' },
+    'monthly_tokens': { description: 'Monthly token allocation', defaultFree: '50', defaultPremium: '200' },
+    'tokens_per_image': { description: 'Tokens cost per image generation', defaultFree: '0', defaultPremium: '5' },
+  }
+
+  // Ensure all default restrictions exist in the loaded data
+  const ensureDefaultRestrictions = (restrictions: PlanRestriction[], planType: 'free' | 'premium'): PlanRestriction[] => {
+    const existingKeys = new Set(restrictions.map(r => r.restriction_key))
+    const updatedRestrictions = [...restrictions]
+
+    Object.entries(DEFAULT_RESTRICTIONS).forEach(([key, config]) => {
+      if (!existingKeys.has(key)) {
+        updatedRestrictions.push({
+          id: Math.random().toString(36).substring(7),
+          plan_type: planType,
+          restriction_key: key,
+          restriction_value: planType === 'free' ? config.defaultFree : config.defaultPremium,
+          description: config.description,
+          updated_at: new Date().toISOString()
+        })
+      } else {
+        // Ensure description is set for existing restrictions
+        const existingIdx = updatedRestrictions.findIndex(r => r.restriction_key === key)
+        if (existingIdx !== -1 && !updatedRestrictions[existingIdx].description) {
+          updatedRestrictions[existingIdx].description = config.description
+        }
+      }
+    })
+
+    return updatedRestrictions
+  }
+
   // Load restrictions
   const loadRestrictions = async () => {
     setLoading(true)
@@ -35,8 +75,12 @@ export default function RestrictionsPage() {
       const data = await response.json()
 
       if (data.success) {
-        setFreeRestrictions(data.free || [])
-        setPremiumRestrictions(data.premium || [])
+        // Ensure all default restrictions exist
+        const freeWithDefaults = ensureDefaultRestrictions(data.free || [], 'free')
+        const premiumWithDefaults = ensureDefaultRestrictions(data.premium || [], 'premium')
+
+        setFreeRestrictions(freeWithDefaults)
+        setPremiumRestrictions(premiumWithDefaults)
       } else {
         toast({
           title: "Error",

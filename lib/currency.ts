@@ -112,16 +112,16 @@ export const CURRENCY_NAME = 'US Dollars';
  */
 export const PRICING = {
   PREMIUM_MONTHLY_USD: 11.99,
-  PREMIUM_MONTHLY_EUR: 11.99,
-  PREMIUM_MONTHLY_FORMATTED: '$ 11.99 / 11,99 €',
+  PREMIUM_MONTHLY_FORMATTED: '$ 11.99',
 
   TOKEN_PACKAGES: {
-    SMALL: { tokens: 200, price_usd: 9.99, price_eur: 9.99, images: 40 },
-    MEDIUM: { tokens: 550, price_usd: 24.99, price_eur: 24.99, images: 110 },
-    LARGE: { tokens: 1550, price_usd: 49.99, price_eur: 49.99, images: 310 },
-    MEGA: { tokens: 5800, price_usd: 149.99, price_eur: 149.99, images: 1160 },
+    SMALL: { tokens: 200, price_usd: 9.99, images: 40 },
+    MEDIUM: { tokens: 550, price_usd: 24.99, images: 110 },
+    LARGE: { tokens: 1550, price_usd: 49.99, images: 310 },
+    MEGA: { tokens: 5800, price_usd: 149.99, images: 1160 },
   },
 } as const;
+
 
 /**
  * Format price for Stripe (convert to cents)

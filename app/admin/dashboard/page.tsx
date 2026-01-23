@@ -293,12 +293,13 @@ export default function AdminDashboardPage() {
           body: JSON.stringify({
             key: "currency_config",
             value: {
-              code: currency === 'kr' ? 'SEK' : 'USD', // Simple heuristic or we could add a code field
+              code: "USD",
               symbol: currency,
-              rate: currency === 'kr' ? 10.5 : 1.0 // Default rate for SEK if using kr
+              rate: 1.0
             }
           })
         })
+
 
         // Save site identity
         await fetch("/api/admin/settings", {

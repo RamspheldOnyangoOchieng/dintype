@@ -250,7 +250,34 @@ export async function POST(req: NextRequest) {
         }, { status: 403 });
       }
     }
-    // --- END FREE TIER LIMITS ---
+
+    // --- ENFORCE MODEL ACCESS RESTRICTIONS (applies to all users based on plan) ---
+    const { checkModelAccess, checkNsfwAccess } = await import("@/lib/subscription-limits")
+
+    // Check if user can use the selected model
+    const modelAccess = await checkModelAccess(userId as string, actualModel)
+    if (!modelAccess.allowed) {
+      console.log(`🚫 Model access denied for ${userId.substring(0, 8)}: ${actualModel}`)
+      return NextResponse.json({
+        error: modelAccess.message,
+        upgrade_required: true,
+        upgradeUrl: "/premium"
+      }, { status: 403 });
+    }
+
+    // Check NSFW content restriction based on plan (even for premium users if explicitly disabled)
+    if (containsNSFW(prompt)) {
+      const nsfwAccess = await checkNsfwAccess(userId as string)
+      if (!nsfwAccess.allowed) {
+        console.log(`🚫 NSFW access denied for ${userId.substring(0, 8)}`)
+        return NextResponse.json({
+          error: nsfwAccess.message,
+          upgrade_required: true,
+          upgradeUrl: "/premium"
+        }, { status: 403 });
+      }
+    }
+    // --- END MODEL ACCESS RESTRICTIONS ---
 
     // Check token balance before deduction
     // Only deduct if cost is greater than 0 AND user is not an admin

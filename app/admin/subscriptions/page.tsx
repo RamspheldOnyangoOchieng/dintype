@@ -252,7 +252,7 @@ export default function AdminSubscriptionsPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-1">Monthly Revenue</p>
-              <p className="text-3xl font-bold">{stats.monthlyRevenue} kr</p>
+              <p className="text-3xl font-bold">$ {stats.monthlyRevenue}</p>
             </div>
             <div className="p-3 bg-yellow-500/10 rounded-xl">
               <DollarSign className="h-6 w-6 text-yellow-500" />

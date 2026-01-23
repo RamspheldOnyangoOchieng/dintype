@@ -31,6 +31,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check model access (Seedream is used for character generation)
+    const { checkModelAccess } = await import('@/lib/subscription-limits');
+    const modelAccess = await checkModelAccess(user.id, 'seedream-4.5');
+    if (!modelAccess.allowed) {
+      return NextResponse.json(
+        {
+          error: modelAccess.message,
+          upgrade_required: true
+        },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { characterDetails, gender } = body;
     // Default to 'lady' if not specified or invalid

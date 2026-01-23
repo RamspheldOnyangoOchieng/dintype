@@ -19,14 +19,30 @@ import { Settings, Globe, CreditCard, Save, AlertCircle, Plug } from "lucide-rea
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 
+interface AdminSettings {
+  id?: number
+  stripe_secret_key: string
+  stripe_webhook_secret: string
+  updated_at?: string
+  [key: string]: any
+}
+
 export default function AdminSettingsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<AdminSettings>({
     stripe_secret_key: "",
     stripe_webhook_secret: "",
-    // Add other settings as needed
   })
+
+
+  const [currencyConfig, setCurrencyConfig] = useState({
+    code: "USD",
+    symbol: "$",
+    rate: 1.0
+  })
+  const [isSavingCurrency, setIsSavingCurrency] = useState(false)
+
   const router = useRouter()
   const { user } = useAuth() // Use the same auth context as the sidebar
   const supabase = createClient()
@@ -46,13 +62,28 @@ export default function AdminSettingsPage() {
         }
 
         // Load settings regardless of admin status for now
-        const { data: adminSettings, error } = await supabase.from("admin_settings").select("*").single()
+        const { data: adminSettings, error } = await supabase.from("admin_settings").select("*").single() as any
 
         if (error) {
           console.error("Error loading admin settings:", error)
         } else if (adminSettings) {
           setSettings(adminSettings)
         }
+
+        // Also fetch from 'settings' table specifically for currency and site info
+        const { data: globalSettings } = await supabase
+          .from("settings")
+          .select("*")
+          .order("key") as any
+
+
+        if (globalSettings) {
+          const config = globalSettings.find((s: any) => s.key === 'currency_config')
+          if (config && config.value) {
+            setCurrencyConfig(config.value)
+          }
+        }
+
       } catch (error) {
         console.error("Error loading admin settings:", error)
         toast.error("Failed to load settings")
@@ -68,11 +99,12 @@ export default function AdminSettingsPage() {
     try {
       setIsSaving(true)
 
-      const { error } = await supabase.from("admin_settings").upsert({
+      const { error } = await (supabase.from("admin_settings") as any).upsert({
         id: 1, // Assuming there's only one settings record
         ...settings,
         updated_at: new Date().toISOString(),
       })
+
 
       if (error) throw error
 
@@ -82,6 +114,38 @@ export default function AdminSettingsPage() {
       toast.error(t("admin.settingsError"))
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleSaveCurrency = async () => {
+    try {
+      setIsSavingCurrency(true)
+
+      const response = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          key: "currency_config",
+          value: currencyConfig
+        })
+      })
+
+      if (!response.ok) throw new Error("Failed to save currency config")
+
+      toast.success("Currency settings updated successfully")
+
+      // Update site context too
+      updateSiteSettings({
+        pricing: {
+          ...siteSettings.pricing,
+          currency: currencyConfig.symbol
+        }
+      })
+    } catch (error) {
+      console.error("Error saving currency settings:", error)
+      toast.error("Failed to update currency")
+    } finally {
+      setIsSavingCurrency(false)
     }
   }
 
@@ -213,6 +277,79 @@ export default function AdminSettingsPage() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Currency Settings */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <CreditCard className="h-5 w-5 text-green-600" />
+            <span>Currency Settings</span>
+          </CardTitle>
+          <CardDescription>Configure the primary currency for the platform</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="currencyCode">Currency Code</Label>
+              <Input
+                id="currencyCode"
+                placeholder="USD"
+                value={currencyConfig.code}
+                onChange={(e) => setCurrencyConfig({ ...currencyConfig, code: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">ISO 4217 Code (e.g. USD, EUR, SEK)</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="currencySymbol">Currency Symbol</Label>
+              <Input
+                id="currencySymbol"
+                placeholder="$"
+                value={currencyConfig.symbol}
+                onChange={(e) => setCurrencyConfig({ ...currencyConfig, symbol: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">Symbol displayed next to price (e.g. $, €, kr)</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="currencyRate">Exchange Rate (vs USD)</Label>
+              <Input
+                id="currencyRate"
+                type="number"
+                step="0.001"
+                placeholder="1.0"
+                value={currencyConfig.rate}
+                onChange={(e) => setCurrencyConfig({ ...currencyConfig, rate: parseFloat(e.target.value) })}
+              />
+              <p className="text-xs text-muted-foreground">1 USD = ? (Set 1.0 for USD)</p>
+            </div>
+          </div>
+
+          <div className="flex justify-end mt-6 gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setCurrencyConfig({ code: 'USD', symbol: '$', rate: 1.0 })}
+            >
+              Reset to USD ($)
+            </Button>
+            <Button
+              onClick={handleSaveCurrency}
+              disabled={isSavingCurrency}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              {isSavingCurrency ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Currency Settings
+                </>
+              )}
+            </Button>
           </div>
         </CardContent>
       </Card>

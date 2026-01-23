@@ -192,24 +192,10 @@ export default function PricingPage() {
         ) : (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="currency">Currency</Label>
-              <select
-                id="currency"
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2"
-              >
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-              </select>
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="monthly-price">Monthly Price</Label>
               <div className="flex items-center">
-                <span className="mr-2">
-                  {currency === "SEK" ? "kr" : currency === "USD" ? "$" : currency === "EUR" ? "€" : "£"}
-                </span>
+                <span className="mr-2">$</span>
+
                 <Input
                   id="monthly-price"
                   type="number"
@@ -225,9 +211,8 @@ export default function PricingPage() {
             <div className="space-y-2">
               <Label htmlFor="yearly-price">Yearly Price</Label>
               <div className="flex items-center">
-                <span className="mr-2">
-                  {currency === "USD" ? "$" : "€"}
-                </span>
+                <span className="mr-2">$</span>
+
                 <Input
                   id="yearly-price"
                   type="number"
