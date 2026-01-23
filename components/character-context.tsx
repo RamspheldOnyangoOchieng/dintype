@@ -139,7 +139,7 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
       const normalizedData = await Promise.all(
         (formattedData || []).map(async (c: any) => {
           try {
-            const imgCandidate = c.image || c.imageUrl || ''
+            const imgCandidate = c.imageUrl || c.image || ''
 
             if (!imgCandidate) {
               c.image = imgCandidate

@@ -121,7 +121,7 @@ export default function TokenPackagesPage() {
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Display Price</label>
                             <Input
-                                placeholder="$ 9.99 / 9,99 €"
+                                placeholder="$ 9.99"
                                 value={newPackage.price_display}
                                 onChange={(e) => setNewPackage({ ...newPackage, price_display: e.target.value })}
                             />

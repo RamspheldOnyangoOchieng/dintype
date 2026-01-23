@@ -322,9 +322,7 @@ export default function PremiumPage() {
           <Card className="group relative overflow-hidden border-border/40 bg-card/30 backdrop-blur-lg flex flex-col transition-all hover:bg-card/40">
             <CardHeader className="p-6 pb-2">
               <CardTitle className="text-xl font-bold italic">Free Plan</CardTitle>
-              <CardDescription className="text-2xl font-black text-foreground pt-1">
-                $ 0 / 0 € <span className="text-xs font-medium text-muted-foreground italic">per month</span>
-              </CardDescription>
+              $ 0 <span className="text-xs font-medium text-muted-foreground italic">per month</span>
             </CardHeader>
             <CardContent className="p-6 pt-4 space-y-4 flex-grow">
               <div className="space-y-3">
@@ -360,9 +358,7 @@ export default function PremiumPage() {
               <CardTitle className="text-xl font-bold flex items-center gap-2 italic">
                 Premium Plan <Sparkles className="w-4 h-4 text-primary animate-pulse" />
               </CardTitle>
-              <CardDescription className="text-3xl font-black text-foreground pt-1 flex items-baseline gap-2">
-                $ 11.99 / 11,99 € <span className="text-xs font-medium text-muted-foreground italic">per month</span>
-              </CardDescription>
+              $ 11.99 <span className="text-xs font-medium text-muted-foreground italic">per month</span>
             </CardHeader>
 
             <CardContent className="p-6 pt-4 space-y-4 flex-grow">

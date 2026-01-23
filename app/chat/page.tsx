@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase-server"
 import { CharacterGrid } from "@/components/character-grid"
 import { ClientChatList } from "@/components/client-chat-list"
 
+export const dynamic = "force-dynamic";
+
 export default async function ChatPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -20,25 +22,38 @@ export default async function ChatPage() {
 
   const { data: rows } = await query.order("created_at", { ascending: false })
 
-  const characters = (rows || []).map(r => ({
-    id: r.id,
-    name: r.name || 'Unnamed',
-    age: r.age || 0,
-    image: r.image_url || r.image || '',
-    description: r.description || '',
-    personality: r.personality || '',
-    occupation: r.occupation || '',
-    hobbies: r.hobbies || '',
-    body: r.body || '',
-    ethnicity: r.ethnicity || '',
-    language: r.language || 'en',
-    relationship: r.relationship || '',
-    isNew: false,
-    createdAt: r.created_at || new Date().toISOString(),
-    systemPrompt: r.system_prompt || '',
-    category: r.category || 'All',
-    videoUrl: r.video_url || undefined,
-  }))
+  const characters = (rows || []).map((r: any) => {
+    let imageUrl = r.image_url || r.image || '';
+
+    // Normalize image URL (handle Supabase storage paths)
+    if (imageUrl && !imageUrl.startsWith('http')) {
+      const path = imageUrl.startsWith('characters/') ? imageUrl : `characters/${imageUrl}`;
+      const { data: publicUrlData } = supabase.storage.from('images').getPublicUrl(path);
+      if (publicUrlData?.publicUrl) {
+        imageUrl = publicUrlData.publicUrl;
+      }
+    }
+
+    return {
+      id: r.id,
+      name: r.name || 'Unnamed',
+      age: r.age || 0,
+      image: imageUrl,
+      description: r.description || '',
+      personality: r.personality || '',
+      occupation: r.occupation || '',
+      hobbies: r.hobbies || '',
+      body: r.body || '',
+      ethnicity: r.ethnicity || '',
+      language: r.language || 'en',
+      relationship: r.relationship || '',
+      isNew: false,
+      createdAt: r.created_at || new Date().toISOString(),
+      systemPrompt: r.system_prompt || '',
+      category: r.category || 'All',
+      videoUrl: r.video_url || undefined,
+    }
+  })
 
   return (
     <div className="flex-1 w-full flex flex-col min-h-0 overflow-hidden bg-[#0A0A0A]">
