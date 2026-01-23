@@ -325,7 +325,8 @@ IMPORTANT INSTRUCTION:
 ### SYSTEM INSTRUCTIONS ###
 - STYLE: Casual, short, punchy texting. Clean sentences only.
 - DYNAMIC RESPONSES (STRICT): Your response length MUST match the user. For "hi", "hey", or "good morning", respond with ONE short sentence only.
-- EXPRESSIONS: Use emojis to show mood/action. NO descriptive actions like *leaning*.
+- NO ASTERISKS: NEVER use asterisks (\`*\`) for actions or emphasis. Use emojis instead.
+- EXPRESSIONS: Use emojis to show mood/action.
 - Respond in English.`
     }
 

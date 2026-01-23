@@ -52,6 +52,7 @@ import { MeetOnTelegramButton } from "@/components/meet-on-telegram-button"
 import { WelcomeMessage } from "@/components/welcome-message"
 import { toast } from "sonner"
 import { ImageGenerationLoading } from "@/components/image-generation-loading"
+import { generateDailyGreeting, generatePhotoCaption } from "@/lib/ai-greetings"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -383,54 +384,82 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         if (lastDaily !== today) {
           setIsSendingMessage(true);
+
+          // Construct story context if available
+          const storyCtx = chapter ? `We are currently in Chapter ${chapter.chapter_number}: ${chapter.title}. ${chapter.content?.context || ""}` : "";
+
           setTimeout(async () => {
-            const morningMsg: Message = {
-              id: `daily-${Date.now()}`,
-              role: "assistant",
-              content: "Good morning, my love... ☀️ *stretches and smiles* I was just thinking about you. Hope you have an amazing day today! I'll be right here waiting for you. 💕",
-              timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            };
+            try {
+              // 1. Generate AI Greeting
+              const aiGreeting = await generateDailyGreeting(
+                charId,
+                character?.name || "Character",
+                character?.system_prompt || character?.systemPrompt || "",
+                user?.id || "",
+                !!user?.isPremium,
+                storyCtx
+              );
 
-            setMessages(prev => [...prev, morningMsg]);
-            saveMessageToLocalStorage(charId, morningMsg);
-            saveMessageToDatabase(charId, morningMsg); // Sync to DB
-            localStorage.setItem(`last_daily_msg_${charId}`, today);
-
-            // If chapter has images, send one too
-            // Filter out any null/undefined/empty strings from chapter images to prevent broken images
-            // Strictly check for URLs starting with http to avoid broken local filenames
-            const chImages = (chapter?.content?.chapter_images || []).filter((img: any) =>
-              typeof img === 'string' && img.length > 0 && img.startsWith('http')
-            );
-
-            if (chImages.length > 0) {
-              const randomImg = chImages[Math.floor(Math.random() * chImages.length)];
-              const imgMsg: Message = {
-                id: `daily-img-${Date.now()}`,
+              const morningMsg: Message = {
+                id: `daily-${Date.now()}`,
                 role: "assistant",
-                content: "Sending you a little something to start your day... I hope this makes you smile as much as you make me smile. 💕",
-                isImage: true,
-                imageUrl: randomImg,
+                content: aiGreeting,
                 timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
               };
-              setMessages(prev => [...prev, imgMsg]);
-              saveMessageToLocalStorage(charId, imgMsg);
 
-              // Save image message to DB
-              fetch('/api/messages', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  characterId: charId,
-                  content: imgMsg.content,
+              setMessages(prev => [...prev, morningMsg]);
+              saveMessageToLocalStorage(charId, morningMsg);
+              saveMessageToDatabase(charId, morningMsg); // Sync to DB
+              localStorage.setItem(`last_daily_msg_${charId}`, today);
+
+              // 2. If chapter has images, send one too
+              const chImages = (chapter?.content?.chapter_images || []).filter((img: any) =>
+                typeof img === 'string' && img.length > 0 && img.startsWith('http')
+              );
+
+              if (chImages.length > 0) {
+                const randomImg = chImages[Math.floor(Math.random() * chImages.length)];
+
+                // Generate AI Caption for the specific image context if possible
+                const aiCaption = await generatePhotoCaption(
+                  character?.name || "Character",
+                  character?.system_prompt || character?.systemPrompt || "",
+                  "A special morning photo just for you",
+                  !!user?.isPremium,
+                  storyCtx
+                );
+
+                const imgMsg: Message = {
+                  id: `daily-img-${Date.now()}`,
                   role: "assistant",
+                  content: aiCaption,
                   isImage: true,
-                  imageUrl: randomImg
-                })
-              });
+                  imageUrl: randomImg,
+                  timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                };
+                setMessages(prev => [...prev, imgMsg]);
+                saveMessageToLocalStorage(charId, imgMsg);
+
+                // Save image message to DB
+                fetch('/api/messages', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    session_id: charId, // Local storage uses charId as sessionId often
+                    user_id: user?.id,
+                    role: 'assistant',
+                    content: aiCaption,
+                    is_image: true,
+                    image_url: randomImg
+                  })
+                }).catch(err => console.error("Failed to sync daily image to DB:", err));
+              }
+            } catch (err) {
+              console.error("Failed to execute daily AI greeting:", err);
+            } finally {
+              setIsSendingMessage(false);
             }
-            setIsSendingMessage(false);
-          }, 3000);
+          }, 1000);
         }
       };
 
@@ -930,19 +959,24 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         // Get a natural response from the character about the photo
         setTimeout(async () => {
           try {
-            const aiResponse = await sendChatMessageDB(
-              characterId!,
-              `[ACTION: You just sent a photo. GIVE A BRIEF, 1-SENTENCE REACTION about it. Keep it deeply romantic/intimate. NO ASTERISKS at all. Focus on the visual context: "${prompt}"]`,
-              character?.systemPrompt || "",
-              user?.id || "",
-              true,
-              true // isSilent: true to skip saving this system message to the history
+            const aiCaption = await generatePhotoCaption(
+              character?.name || "Character",
+              character?.system_prompt || character?.systemPrompt || "",
+              prompt,
+              !!user?.isPremium,
+              storyProgress && !storyProgress.is_completed ? `We are in Chapter ${storyProgress.current_chapter_number}` : ""
             );
 
-            if (aiResponse.success && aiResponse.message) {
-              setMessages((prev) => [...prev, aiResponse.message!]);
-              saveMessageToLocalStorage(characterId!, aiResponse.message!);
-            }
+            const reactionMsg: Message = {
+              id: `reaction-${Date.now()}`,
+              role: "assistant",
+              content: aiCaption,
+              timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            };
+
+            setMessages((prev) => [...prev, reactionMsg]);
+            saveMessageToLocalStorage(characterId!, reactionMsg);
+            saveMessageToDatabase(characterId!, reactionMsg);
           } catch (err) {
             console.error("Failed to get natural response for photo:", err);
           }
@@ -1026,19 +1060,24 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             // Get a natural response from the character about the photo
             setTimeout(async () => {
               try {
-                const aiResponse = await sendChatMessageDB(
-                  characterId!,
-                  `[ACTION: You just sent a photo. GIVE A BRIEF, 1-SENTENCE REACTION about it. Keep it deeply romantic/intimate. NO ASTERISKS at all. Focus on the visual context: "${prompt}"]`,
-                  character?.systemPrompt || "",
-                  user?.id || "",
-                  true, // skipImageCheck
-                  true  // isSilent: true
+                const aiCaption = await generatePhotoCaption(
+                  character?.name || "Character",
+                  character?.system_prompt || character?.systemPrompt || "",
+                  prompt,
+                  !!user?.isPremium,
+                  storyProgress && !storyProgress.is_completed ? `We are in Chapter ${storyProgress.current_chapter_number}` : ""
                 );
 
-                if (aiResponse.success && aiResponse.message) {
-                  setMessages((prev) => [...prev, aiResponse.message!]);
-                  saveMessageToLocalStorage(characterId!, aiResponse.message!);
-                }
+                const reactionMsg: Message = {
+                  id: `reaction-${Date.now()}`,
+                  role: "assistant",
+                  content: aiCaption,
+                  timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                };
+
+                setMessages((prev) => [...prev, reactionMsg]);
+                saveMessageToLocalStorage(characterId!, reactionMsg);
+                saveMessageToDatabase(characterId!, reactionMsg);
               } catch (err) {
                 console.error("Failed to get natural response for photo:", err);
               }
@@ -1196,10 +1235,18 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
             const nextImg = bestMatchImg || chImages.find((img) => !sentChapterImages.includes(img)) || chImages[0]
 
+            const aiCaption = await generatePhotoCaption(
+              character?.name || "Character",
+              character?.system_prompt || character?.systemPrompt || "",
+              "A story chapter photo",
+              !!user?.isPremium,
+              `We are in Chapter ${currentChapter.chapter_number}: ${currentChapter.title}.`
+            );
+
             const storyImgMsg: Message = {
               id: `story-img-${Date.now()}`,
               role: "assistant",
-              content: `${character?.name || "I"} is sending a photo for you... anything for my favorite person. 🌹`,
+              content: aiCaption,
               isImage: true,
               imageUrl: nextImg, // Now guaranteed to be a valid URL
               timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -1209,7 +1256,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               setMessages((prev) => [...prev, storyImgMsg])
               saveMessageToLocalStorage(character.id, storyImgMsg)
               setSentChapterImages((prev) => [...new Set([...prev, nextImg])])
-            }, 1500)
+            }, 1000)
 
             setIsSendingMessage(false)
             return
