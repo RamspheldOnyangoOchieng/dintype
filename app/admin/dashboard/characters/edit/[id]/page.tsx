@@ -77,6 +77,8 @@ export default function EditCharacterPage() {
   const { characters, getCharacter, updateCharacter, uploadImage } = useCharacters()
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const faceInputRef = useRef<HTMLInputElement>(null)
+  const anatomyInputRef = useRef<HTMLInputElement>(null)
   const multiFileInputRef = useRef<HTMLInputElement>(null)
 
   // Add video URL to the form state
@@ -111,6 +113,15 @@ export default function EditCharacterPage() {
     isNew: false,
     category: "girls", // Add this field
     images: [] as string[], // Add this for multi-image support
+    // NEW ADVANCED METADATA FIELDS
+    face_reference_url: "",
+    anatomy_reference_url: "",
+    preferred_poses: "",
+    preferred_environments: "",
+    preferred_moods: "",
+    negative_prompt_restrictions: "",
+    default_prompt: "",
+    negative_prompt: "",
   })
 
   const [isGenerating, setIsGenerating] = useState(false)
@@ -181,8 +192,17 @@ export default function EditCharacterPage() {
         isNew: !!character.isNew,
         category: (character as any).category || "girls",
         images: character.images || [],
+        // NEW METADATA FIELDS
+        face_reference_url: character.metadata?.face_reference_url || "",
+        anatomy_reference_url: character.metadata?.anatomy_reference_url || "",
+        preferred_poses: character.metadata?.preferred_poses || "",
+        preferred_environments: character.metadata?.preferred_environments || "",
+        preferred_moods: character.metadata?.preferred_moods || "",
+        negative_prompt_restrictions: character.metadata?.negative_prompt_restrictions || "",
+        default_prompt: character.metadata?.default_prompt || "",
+        negative_prompt: character.metadata?.negative_prompt || "",
         // Spread traits from character metadata if available
-        ...((character as any).metadata?.characterDetails || {}),
+        ...(character.metadata?.characterDetails || {}),
       })
 
       // Set image preview if character has an image
@@ -506,7 +526,18 @@ export default function EditCharacterPage() {
       name, age, image, videoUrl, description,
       personality, occupation, hobbies, body,
       ethnicity, language, relationship,
-      systemPrompt, isNew, category, images
+      systemPrompt, isNew, category, images,
+      metadata: {
+        ...(data.metadata || {}),
+        face_reference_url: data.face_reference_url,
+        anatomy_reference_url: data.anatomy_reference_url,
+        preferred_poses: data.preferred_poses,
+        preferred_environments: data.preferred_environments,
+        preferred_moods: data.preferred_moods,
+        negative_prompt_restrictions: data.negative_prompt_restrictions,
+        default_prompt: data.default_prompt,
+        negative_prompt: data.negative_prompt,
+      }
     }
   }
 
@@ -1207,6 +1238,172 @@ export default function EditCharacterPage() {
                         </div>
                         <p className="text-xs text-gray-400">Characters marked as new will display a "New" badge.</p>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Advanced Generation Settings */}
+                  <div className="space-y-4 pt-4 border-t border-[#252525]">
+                    <h3 className="text-lg font-medium text-primary">Advanced AI Generation Settings</h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Face Reference */}
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-300">Face Reference Photo</label>
+                        <div
+                          className="relative aspect-video w-full bg-[#252525] rounded-lg overflow-hidden cursor-pointer border-2 border-dashed border-[#333] hover:border-primary/50 transition-colors"
+                          onClick={() => faceInputRef.current?.click()}
+                        >
+                          <input
+                            type="file"
+                            ref={faceInputRef}
+                            className="hidden"
+                            accept="image/*"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                try {
+                                  setIsUploading(true);
+                                  const url = await uploadImage(file);
+                                  setFormData((prev: any) => ({ ...prev, face_reference_url: url }));
+                                  toast.success("Face reference updated!");
+                                } catch (err) {
+                                  toast.error("Face reference upload failed");
+                                } finally {
+                                  setIsUploading(false);
+                                }
+                              }
+                            }}
+                          />
+                          {formData.face_reference_url ? (
+                            <Image
+                              src={formData.face_reference_url}
+                              alt="Face reference"
+                              fill
+                              className="object-contain"
+                            />
+                          ) : (
+                            <div className="flex flex-col items-center justify-center h-full p-4">
+                              <Upload className="h-6 w-6 mb-1 text-gray-400" />
+                              <p className="text-xs text-gray-500">Upload high-res face reference</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Anatomy/Genitals Reference */}
+                      <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-300">Anatomy / Details Reference</label>
+                        <div
+                          className="relative aspect-video w-full bg-[#252525] rounded-lg overflow-hidden cursor-pointer border-2 border-dashed border-[#333] hover:border-primary/50 transition-colors"
+                          onClick={() => anatomyInputRef.current?.click()}
+                        >
+                          <input
+                            type="file"
+                            ref={anatomyInputRef}
+                            className="hidden"
+                            accept="image/*"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                try {
+                                  setIsUploading(true);
+                                  const url = await uploadImage(file);
+                                  setFormData((prev: any) => ({ ...prev, anatomy_reference_url: url }));
+                                  toast.success("Anatomy reference updated!");
+                                } catch (err) {
+                                  toast.error("Anatomy reference upload failed");
+                                } finally {
+                                  setIsUploading(false);
+                                }
+                              }
+                            }}
+                          />
+                          {formData.anatomy_reference_url ? (
+                            <Image
+                              src={formData.anatomy_reference_url}
+                              alt="Anatomy reference"
+                              fill
+                              className="object-contain"
+                            />
+                          ) : (
+                            <div className="flex flex-col items-center justify-center h-full p-4 text-center">
+                              <Upload className="h-6 w-6 mb-1 text-gray-400" />
+                              <p className="text-xs text-gray-500">Upload anatomy/genital details</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label htmlFor="preferred_poses" className="block text-sm font-medium text-gray-300">Preferred Poses</label>
+                        <Input
+                          id="preferred_poses"
+                          name="preferred_poses"
+                          value={formData.preferred_poses}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white h-9"
+                          placeholder="standing, sitting, spread legs, etc."
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="preferred_environments" className="block text-sm font-medium text-gray-300">Preferred Environments</label>
+                        <Input
+                          id="preferred_environments"
+                          name="preferred_environments"
+                          value={formData.preferred_environments}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white h-9"
+                          placeholder="bedroom, beach, shower, etc."
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="preferred_moods" className="block text-sm font-medium text-gray-300">Preferred Moods</label>
+                        <Input
+                          id="preferred_moods"
+                          name="preferred_moods"
+                          value={formData.preferred_moods}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white h-9"
+                          placeholder="seductive, happy, moaning, etc."
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="negative_prompt_restrictions" className="block text-sm font-medium text-gray-300">Strict Restrictions</label>
+                        <Input
+                          id="negative_prompt_restrictions"
+                          name="negative_prompt_restrictions"
+                          value={formData.negative_prompt_restrictions}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white h-9"
+                          placeholder="no tattoos, no piercings, no glasses, etc."
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="default_prompt" className="block text-sm font-medium text-gray-300">Character Default Prompt Hook (Applied to all gens)</label>
+                      <Textarea
+                        id="default_prompt"
+                        name="default_prompt"
+                        value={formData.default_prompt}
+                        onChange={handleChange}
+                        className="bg-[#252525] border-[#333] text-white min-h-[60px]"
+                        placeholder="Masterpiece, 8k, photorealistic, cinematic lighting..."
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="negative_prompt" className="block text-sm font-medium text-gray-300">Character Negative Prompt Hook</label>
+                      <Textarea
+                        id="negative_prompt"
+                        name="negative_prompt"
+                        value={formData.negative_prompt}
+                        onChange={handleChange}
+                        className="bg-[#252525] border-[#333] text-white min-h-[60px]"
+                        placeholder="cartoon, anime, sketches, bad anatomy, flat chest, etc."
+                      />
                     </div>
                   </div>
 

@@ -104,6 +104,8 @@ export async function createCharacter(formData: FormData) {
     const preferredEnvironments = formData.get("preferredEnvironments") as string
     const preferredMoods = formData.get("preferredMoods") as string
     const negativeRestrictions = formData.get("negativeRestrictions") as string
+    const defaultPrompt = formData.get("defaultPrompt") as string
+    const negativePrompt = formData.get("negativePrompt") as string
 
     if (!name) {
       return { error: "Character name is required" }
@@ -152,7 +154,9 @@ export async function createCharacter(formData: FormData) {
           preferred_poses: preferredPoses,
           preferred_environments: preferredEnvironments,
           preferred_moods: preferredMoods,
-          negative_prompt_restrictions: negativeRestrictions
+          negative_prompt_restrictions: negativeRestrictions,
+          default_prompt: defaultPrompt,
+          negative_prompt: negativePrompt
         }
       })
       .select()
@@ -184,6 +188,8 @@ export async function updateCharacter(id: string, formData: FormData) {
     const preferredEnvironments = formData.get("preferredEnvironments") as string
     const preferredMoods = formData.get("preferredMoods") as string
     const negativeRestrictions = formData.get("negativeRestrictions") as string
+    const defaultPrompt = formData.get("defaultPrompt") as string
+    const negativePrompt = formData.get("negativePrompt") as string
 
     if (!name) {
       return { error: "Character name is required" }
@@ -241,7 +247,9 @@ export async function updateCharacter(id: string, formData: FormData) {
         preferred_poses: preferredPoses,
         preferred_environments: preferredEnvironments,
         preferred_moods: preferredMoods,
-        negative_prompt_restrictions: negativeRestrictions
+        negative_prompt_restrictions: negativeRestrictions,
+        default_prompt: defaultPrompt,
+        negative_prompt: negativePrompt
       }
     }
 

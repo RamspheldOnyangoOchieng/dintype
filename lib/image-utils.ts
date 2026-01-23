@@ -57,3 +57,13 @@ export const imageUrlToBase64 = async (imageUrl: string): Promise<string | null>
     return null
   }
 }
+/**
+ * Server-side compatible URL to base64 converter.
+ */
+export const urlToBase64 = async (imageUrl: string): Promise<string> => {
+  const response = await fetch(imageUrl);
+  if (!response.ok) throw new Error(`Failed to fetch image: ${response.statusText}`);
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  return `data:${response.headers.get("content-type")};base64,${buffer.toString("base64")}`;
+};

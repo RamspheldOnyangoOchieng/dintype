@@ -339,7 +339,7 @@ IMPORTANT INSTRUCTION:
     }
 
     // Check for Telegram intent in user message
-    const telegramRegex = /\b(telegram|tg|app)\b/i; // Added 'app' as well just in case, but 'telegram' is key
+    const telegramRegex = /\b(telegram|tg)\b/i;
     const isTelegramRequest = telegramRegex.test(userMessage);
 
     if (isTelegramRequest) {

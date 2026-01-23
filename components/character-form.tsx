@@ -139,7 +139,7 @@ export function CharacterForm({ character, isEditing = false }: CharacterFormPro
               <Textarea
                 id="preferredPoses"
                 name="preferredPoses"
-                defaultValue={character?.preferred_poses || ""}
+                defaultValue={character?.metadata?.preferred_poses || ""}
                 placeholder="e.g. crossing legs, hand behind head, leaning forward..."
                 rows={2}
               />
@@ -150,7 +150,7 @@ export function CharacterForm({ character, isEditing = false }: CharacterFormPro
               <Textarea
                 id="preferredEnvironments"
                 name="preferredEnvironments"
-                defaultValue={character?.preferred_environments || ""}
+                defaultValue={character?.metadata?.preferred_environments || ""}
                 placeholder="e.g. cozy bedroom, sun-drenched balcony, neon-lit alley..."
                 rows={2}
               />
@@ -161,7 +161,7 @@ export function CharacterForm({ character, isEditing = false }: CharacterFormPro
               <Textarea
                 id="preferredMoods"
                 name="preferredMoods"
-                defaultValue={character?.preferred_moods || ""}
+                defaultValue={character?.metadata?.preferred_moods || ""}
                 placeholder="e.g. seductive smirk, playful wink, shy gaze..."
                 rows={2}
               />
@@ -172,8 +172,30 @@ export function CharacterForm({ character, isEditing = false }: CharacterFormPro
               <Textarea
                 id="negativeRestrictions"
                 name="negativeRestrictions"
-                defaultValue={character?.negative_prompt_restrictions || ""}
+                defaultValue={character?.metadata?.negative_prompt_restrictions || ""}
                 placeholder="e.g. no glasses, no tattoos, never smiling with teeth..."
+                rows={2}
+              />
+            </div>
+
+            <div className="space-y-2 mt-4">
+              <Label htmlFor="defaultPrompt">Character Default Prompt Hook (Applied to all gens)</Label>
+              <Textarea
+                id="defaultPrompt"
+                name="defaultPrompt"
+                defaultValue={character?.metadata?.default_prompt || ""}
+                placeholder="Masterpiece, 8k, photorealistic, cinematic lighting..."
+                rows={2}
+              />
+            </div>
+
+            <div className="space-y-2 mt-4">
+              <Label htmlFor="negativePrompt">Character Negative Prompt Hook</Label>
+              <Textarea
+                id="negativePrompt"
+                name="negativePrompt"
+                defaultValue={character?.metadata?.negative_prompt || ""}
+                placeholder="cartoon, anime, sketches, bad anatomy, flat chest, etc."
                 rows={2}
               />
             </div>

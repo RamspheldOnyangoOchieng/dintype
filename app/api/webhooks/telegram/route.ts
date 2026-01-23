@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAIGreeting } from '@/lib/telegram-ai';
+import { generatePhotoCaption } from '@/lib/ai-greetings';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { getUserPlanInfo, deductTokens, checkImageGenerationLimit, incrementImageUsage } from '@/lib/subscription-limits';
 import { isAskingForImage, extractImagePrompt } from '@/lib/image-utils';
@@ -88,6 +89,41 @@ async function setChatMenuButton(chatId?: number) {
     }
 }
 
+// Helper to fetch story context
+async function getStoryContext(supabase: any, userId: string, characterId: string) {
+    let storyContext = "";
+    try {
+        const { data: storyProgress } = await supabase
+            .from("user_story_progress")
+            .select("*")
+            .eq("user_id", userId)
+            .eq("character_id", characterId)
+            .maybeSingle();
+
+        if (storyProgress && !storyProgress.is_completed) {
+            const { data: currentChapter } = await supabase
+                .from("story_chapters")
+                .select("*")
+                .eq("character_id", characterId)
+                .eq("chapter_number", storyProgress.current_chapter_number)
+                .maybeSingle();
+
+            if (currentChapter) {
+                storyContext = `
+### CURRENT STORYLINE CONTEXT (PRIORITY) ###
+Chapter: ${currentChapter.chapter_number} - ${currentChapter.title}
+Chapter Description: ${currentChapter.description}
+Chapter Tone: ${currentChapter.tone}
+IMPORTANT INSTRUCTION: You MUST follow this chapter's specific context and tone at all times. This is NOT a free roam session. System prompt for this chapter: ${currentChapter.system_prompt || ""}
+`;
+            }
+        }
+    } catch (e) {
+        console.error("[Telegram] Error fetching story context:", e);
+    }
+    return storyContext;
+}
+
 // Generate AI response using same logic as web chat
 async function generateAIResponse(
     userMessage: string,
@@ -106,36 +142,7 @@ async function generateAIResponse(
     // Fetch Story Context if applicable
     let storyContext = "";
     if (userId && characterId && supabase) {
-        try {
-            const { data: storyProgress } = await supabase
-                .from("user_story_progress")
-                .select("*")
-                .eq("user_id", userId)
-                .eq("character_id", characterId)
-                .maybeSingle();
-
-            if (storyProgress && !storyProgress.is_completed) {
-                const { data: currentChapter } = await supabase
-                    .from("story_chapters")
-                    .select("*")
-                    .eq("character_id", characterId)
-                    .eq("chapter_number", storyProgress.current_chapter_number)
-                    .maybeSingle();
-
-                if (currentChapter) {
-                    console.log(`[Telegram] Story Mode Active: ${currentChapter.title}`);
-                    storyContext = `
-### CURRENT STORYLINE CONTEXT (PRIORITY) ###
-Chapter: ${currentChapter.chapter_number} - ${currentChapter.title}
-Chapter Description: ${currentChapter.description}
-Chapter Tone: ${currentChapter.tone}
-IMPORTANT INSTRUCTION: You MUST follow this chapter's specific context and tone at all times. This is NOT a free roam session. System prompt for this chapter: ${currentChapter.system_prompt || ""}
-`;
-                }
-            }
-        } catch (e) {
-            console.error("[Telegram] Error fetching story context:", e);
-        }
+        storyContext = await getStoryContext(supabase, userId, characterId);
     }
 
     let enhancedSystemPrompt = `${characterPrompt || `You are ${characterName}, a romantic AI companion.`}\n${storyContext}`;
@@ -159,12 +166,16 @@ IMPORTANT INSTRUCTION: You MUST follow this chapter's specific context and tone 
 - STYLE: Casual, short, punchy texting. Clean sentences only.
 - DYNAMIC RESPONSES (STRICT): Your response length MUST match the user. For short greetings, respond with ONE short sentence only.
 - EXPRESSIONS: Use emojis to show mood/action. NO descriptive actions like *leaning*.
-- Respond in English.`;
+- Respond in English.
+- STERNLY FORBID: Never mention moving to Telegram or use the [TELEGRAM_LINK] tag, as you are currently ALREADY on Telegram.`;
     }
 
     const apiMessages = [
         { role: 'system', content: enhancedSystemPrompt },
-        ...conversationHistory.slice(-20),
+        ...conversationHistory.slice(-20).map(msg => ({
+            role: msg.role,
+            content: msg.content.replace(/\[TELEGRAM_LINK\]/g, '').trim()
+        })),
         { role: 'user', content: userMessage },
     ];
 
@@ -215,6 +226,7 @@ IMPORTANT INSTRUCTION: You MUST follow this chapter's specific context and tone 
             .replace(/<think>[\s\S]*$/gi, '')
             .replace(/^[\s\S]*?<\/think>/gi, '')
             .replace(/<\/think>/gi, '')
+            .replace(/\[TELEGRAM_LINK\]/gi, '')
             .trim();
 
         return content;
@@ -890,20 +902,28 @@ export async function POST(request: NextRequest) {
 
                             const selectedImg = bestMatchImg || chImages[Math.floor(Math.random() * chImages.length)];
 
-                            // Save story image to messages for sync
                             if (activeSessionId) {
+                                const sContext = await getStoryContext(supabase, linkedAccount.user_id, linkedAccount.character_id);
+                                const dynamicCaption = await generatePhotoCaption(
+                                    characterName,
+                                    characterPrompt,
+                                    "sending a secret photo as part of the story",
+                                    isPremium,
+                                    sContext
+                                );
+
                                 await supabase.from('messages').insert({
                                     session_id: activeSessionId,
                                     user_id: linkedAccount.user_id,
                                     role: 'assistant',
-                                    content: "I've been waiting for you to ask... here's something special just for you. 😉",
+                                    content: dynamicCaption,
                                     is_image: true,
                                     image_url: selectedImg,
                                     metadata: { source: 'telegram', type: 'story_mode' }
                                 });
-                            }
 
-                            await sendTelegramPhoto(chatId, selectedImg, `I've been waiting for you to ask... here's something special just for you. 😉`);
+                                await sendTelegramPhoto(chatId, selectedImg, dynamicCaption);
+                            }
                         } else {
                             // Block generation if story is active but no images are set
                             await sendTelegramMessage(chatId, "I'm not in the mood for photos right now, let's keep focusing on our time together... 💕");
@@ -1003,15 +1023,28 @@ export async function POST(request: NextRequest) {
 
                                 // 2. Also save to messages table for cross-platform chat sync
                                 if (activeSessionId) {
+                                    const sContext = await getStoryContext(supabase, linkedAccount.user_id, linkedAccount.character_id);
+                                    const dynamicCaption = await generatePhotoCaption(
+                                        characterName,
+                                        characterPrompt,
+                                        text || "sending a generated photo",
+                                        isPremium,
+                                        sContext
+                                    );
+
                                     await supabase.from("messages").insert({
                                         session_id: activeSessionId,
                                         user_id: linkedAccount.user_id,
                                         role: 'assistant',
-                                        content: `Here's what I made for you... do you like it? 💕`,
+                                        content: dynamicCaption,
                                         is_image: true,
                                         image_url: imageUrl,
                                         metadata: { source: "telegram", auto_saved: true }
                                     });
+
+                                    await sendTelegramPhoto(chatId, imageUrl, dynamicCaption);
+                                } else {
+                                    await sendTelegramPhoto(chatId, imageUrl, `Here's what I made for you... do you like it? 💕`);
                                 }
 
                                 // Update character images array
@@ -1032,12 +1065,9 @@ export async function POST(request: NextRequest) {
                                 }
                             } catch (saveErr) {
                                 console.error("❌ [Telegram] Failed to save image permanently:", saveErr);
-                                // Fallback to Novita URL for the message if Cloudinary fails
                             }
 
-                            await sendTelegramPhoto(chatId, imageUrl, `Here's what I made for you... do you like it? 💕`);
                             await incrementImageUsage(linkedAccount.user_id);
-
                             return NextResponse.json({ ok: true });
                         }
                     } catch (e: any) {

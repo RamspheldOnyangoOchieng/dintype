@@ -97,7 +97,12 @@ export async function POST(req: NextRequest) {
       latestCharacter?.age ? `${latestCharacter.age} years old` : null,
       latestCharacter?.mood ? `${latestCharacter.mood} expression` : null,
       latestCharacter?.personality,
-      latestCharacter?.description
+      latestCharacter?.description,
+      // NEW METADATA PREFERENCES
+      latestCharacter?.metadata?.preferred_poses ? `preferred poses: ${latestCharacter.metadata.preferred_poses}` : null,
+      latestCharacter?.metadata?.preferred_environments ? `preferred environments: ${latestCharacter.metadata.preferred_environments}` : null,
+      latestCharacter?.metadata?.preferred_moods ? `preferred moods: ${latestCharacter.metadata.preferred_moods}` : null,
+      latestCharacter?.metadata?.negative_prompt_restrictions ? `strict restrictions: ${latestCharacter.metadata.negative_prompt_restrictions}` : null,
     ].filter(Boolean).join(", ");
 
     // Enhance prompt
@@ -150,29 +155,80 @@ export async function POST(req: NextRequest) {
     if (latestCharacter) {
       const characterPrefix = `### MASTER TRAITS (MATCH EXACTLY): ${latestCharacter.name}, a woman with ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, and ${latestCharacter.skinTone || ''} skin. ### `;
       finalPrompt = characterPrefix + finalPrompt;
+
+      // Apply Default Prompt Hook
+      if (latestCharacter.metadata?.default_prompt) {
+        finalPrompt += `, ${latestCharacter.metadata.default_prompt}`;
+      }
     }
 
     // ControlNet units for character consistency (Twinning)
-    const controlnetUnits = imageBase64 ? [
-      {
+    const controlnetUnits: any[] = [];
+
+    // 1. PRIMARY: If user provided a specific image for img2img/twinning
+    if (imageBase64) {
+      const cleanB64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+      controlnetUnits.push({
         model_name: "ip-adapter_xl",
-        weight: 1.0,
-        control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
+        weight: 0.8,
+        control_image: cleanB64,
         module_name: "none"
-      },
-      {
+      });
+      controlnetUnits.push({
         model_name: "ip-adapter_plus_face_xl",
-        weight: 1.0, // Boosted for better twinning
-        control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
+        weight: 0.9,
+        control_image: cleanB64,
         module_name: "none"
+      });
+    }
+
+    // 2. FACE REFERENCE (from Character Metadata)
+    if (latestCharacter?.metadata?.face_reference_url) {
+      try {
+        const { urlToBase64 } = await import("@/lib/image-utils"); // Use internal helper
+        const b64 = await urlToBase64(latestCharacter.metadata.face_reference_url);
+        controlnetUnits.push({
+          model_name: "ip-adapter_plus_face_xl",
+          weight: imageBase64 ? 0.4 : 1.0, // Blend if user image exists, otherwise full weight
+          control_image: b64.replace(/^data:image\/\w+;base64,/, ""),
+          module_name: "none"
+        });
+      } catch (e) {
+        console.warn("Failed to load face reference ControlNet:", e);
       }
-    ] : [];
+    }
+
+    // 3. ANATOMY REFERENCE (from Character Metadata)
+    if (latestCharacter?.metadata?.anatomy_reference_url) {
+      try {
+        const { urlToBase64 } = await import("@/lib/image-utils");
+        const b64 = await urlToBase64(latestCharacter.metadata.anatomy_reference_url);
+        controlnetUnits.push({
+          model_name: "ip-adapter_xl",
+          weight: 0.5, // Lower weight for details to allow scene flexibility
+          control_image: b64.replace(/^data:image\/\w+;base64,/, ""),
+          module_name: "none"
+        });
+      } catch (e) {
+        console.warn("Failed to load anatomy reference ControlNet:", e);
+      }
+    }
+
+    const negativePromptBase = `husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust`;
+
+    let finalNegativePrompt = negativePromptBase;
+    if (latestCharacter?.metadata?.negative_prompt) {
+      finalNegativePrompt = `${latestCharacter.metadata.negative_prompt}, ${finalNegativePrompt}`;
+    }
+    if (negativePrompt) {
+      finalNegativePrompt = `${negativePrompt}, ${finalNegativePrompt}`;
+    }
 
     // Generate image using the unified library (handles Seedream 4.5 + retry + fallback)
     console.log("🚀 Starting generation via unified library...");
     const result = await generateImage({
       prompt: finalPrompt,
-      negativePrompt: `husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust${negativePrompt ? `, ${negativePrompt}` : ""}`,
+      negativePrompt: finalNegativePrompt,
       width: 1600,
       height: 2400,
       steps: 25,
