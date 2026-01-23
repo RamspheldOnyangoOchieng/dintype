@@ -227,7 +227,7 @@ IMPORTANT INSTRUCTION: You MUST follow this chapter's specific context and tone 
 
 
 // Enhance image prompt
-async function enhanceImagePrompt(userPrompt: string, characterDescription: string) {
+async function enhanceImagePrompt(userPrompt: string, characterDescription: string, metadata: any = {}) {
     const apiKey = await getNovitaApiKey();
     if (!apiKey) return userPrompt;
 
@@ -259,7 +259,11 @@ async function enhanceImagePrompt(userPrompt: string, characterDescription: stri
                     },
                     {
                         role: "user",
-                        content: `User prompt: "${userPrompt}"\n\nCharacter Info: "${characterDescription}"`,
+                        content: `User prompt: "${userPrompt}"\n\nCharacter Info: "${characterDescription}"
+                        ${metadata?.preferred_poses ? `Character Poses: ${metadata.preferred_poses}` : ""}
+                        ${metadata?.preferred_environments ? `Character Environments: ${metadata.preferred_environments}` : ""}
+                        ${metadata?.preferred_moods ? `Character Moods: ${metadata.preferred_moods}` : ""}
+                        ${metadata?.negative_prompt_restrictions ? `Strict Restrictions: ${metadata.negative_prompt_restrictions}` : ""}`,
                     },
                 ],
                 max_tokens: 300,
@@ -814,7 +818,7 @@ export async function POST(request: NextRequest) {
             // Get character info
             const { data: character } = await supabase
                 .from('characters')
-                .select('name, system_prompt, description, image, image_url')
+                .select('name, system_prompt, description, image, image_url, metadata')
                 .eq('id', linkedAccount.character_id)
                 .maybeSingle();
 
@@ -914,7 +918,7 @@ export async function POST(request: NextRequest) {
                 // --- END STORY MODE REDIRECT ---
 
                 const prompt = extractImagePrompt(text);
-                const enhancedPrompt = await enhanceImagePrompt(prompt, characterPrompt);
+                const enhancedPrompt = await enhanceImagePrompt(prompt, characterPrompt, character?.metadata || {});
                 const apiKey = await getNovitaApiKey();
                 const baseNegative = "ugly, deformed, disfigured, mutated, extra limbs, fused fingers, extra fingers, mutated hands, bad anatomy, malformed, blurry, jpeg artifacts, lowres, pixelated, out of frame, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, bad feet, distorted eyes, asymmetrical eyes, iris distortion, extra arms, extra legs, distorted body, unrealistic, unnatural skin, glitch, double torso, bad posture, plastic skin, plastic clothing, glossy plastic fabric, CG fabric, shiny synthetic fabric, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clouds, distorted bikini, missing nipples, bad anatomy genitals, hands covering breasts, hands on chest, generic sexy pose, hand-breast bias, extra digit, fewer digits, finger webbing, melted hands, claw-like hands";
 
@@ -942,16 +946,28 @@ export async function POST(request: NextRequest) {
                                     weight: 0.8,
                                     control_image: base64String,
                                     module_name: "none"
-                                },
-                                {
-                                    model_name: "ip-adapter_plus_face_xl",
-                                    weight: 0.8,
-                                    control_image: base64String,
-                                    module_name: "none"
                                 }
                             ];
                         }
 
+                        // Add character-specific reference photos (Face and Anatomy) from metadata
+                        const metadata = character?.metadata || {};
+                        if (metadata.face_reference_url) {
+                            controlnetUnits.push({
+                                model_name: "ip-adapter_plus_face_xl",
+                                weight: 1.0,
+                                control_image: metadata.face_reference_url,
+                                module_name: "none"
+                            });
+                        }
+                        if (metadata.anatomy_reference_url) {
+                            controlnetUnits.push({
+                                model_name: "ip-adapter_xl",
+                                weight: 0.8,
+                                control_image: metadata.anatomy_reference_url,
+                                module_name: "none"
+                            });
+                        }
                         const result = await generateImage({
                             prompt: enhancedPrompt,
                             negativePrompt: baseNegative,
