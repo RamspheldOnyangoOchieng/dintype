@@ -925,6 +925,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         setMessages((prev) => [...prev, imageMessage])
         saveMessageToLocalStorage(characterId!, imageMessage)
         saveMessageToDatabase(characterId!, imageMessage) // Ensure it's saved to DB
+        handleSaveImage(imageMessage.imageUrl!, imageMessage.imagePrompt, true) // Auto-save silently to collection
 
         // Get a natural response from the character about the photo
         setTimeout(async () => {
@@ -1020,6 +1021,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             setMessages((prev) => [...prev, imageMessage])
             saveMessageToLocalStorage(characterId!, imageMessage)
             saveMessageToDatabase(characterId!, imageMessage) // Ensure it's saved to DB
+            handleSaveImage(imageMessage.imageUrl!, imageMessage.imagePrompt, true) // Auto-save silently to collection
 
             // Get a natural response from the character about the photo
             setTimeout(async () => {
@@ -1096,7 +1098,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     }
   }
 
-  const handleSaveImage = async (imageUrl: string, prompt?: string) => {
+  const handleSaveImage = async (imageUrl: string, prompt?: string, isSilent: boolean = false) => {
     if (!user || !characterId) {
       toast.error("You must be logged in to save images")
       return
@@ -1122,7 +1124,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       }
 
       const result = await response.json()
-      toast.success("Image saved to your collection and profile!")
+      if (!isSilent) toast.success("Image saved to your collection and profile!")
 
       // Special handling for custom characters (localStorage)
       if (characterId.startsWith('custom-') && character) {
@@ -1211,8 +1213,24 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
             setIsSendingMessage(false)
             return
+          } else {
+            // Block generation if story is active but no images are set
+            console.log(`🚫 [Story Mode] Blocking AI generation for character with active storyline.`);
+            const storyRefusalMsg: Message = {
+              id: `story-refusal-${Date.now()}`,
+              role: "assistant",
+              content: "I'm not in the mood for photos right now, let's keep focusing on our time together... 💕",
+              timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            }
+
+            setTimeout(() => {
+              setMessages((prev) => [...prev, storyRefusalMsg])
+              saveMessageToLocalStorage(character.id, storyRefusalMsg)
+            }, 1000)
+
+            setIsSendingMessage(false)
+            return
           }
-          // If no valid story images found, FALL THROUGH to normal generation
         }
 
         // Normal image generation (outside Story Mode or if story images missing)

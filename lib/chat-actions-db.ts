@@ -132,8 +132,83 @@ export async function sendChatMessageDB(
       }
     }
 
-    // 7. Handle image requests
+    // 7. Story Mode Progress Check (Moved up to restrict usage)
+    let storyProgressData = null;
+    let currentChapterData = null;
+    try {
+      const { data: storyProgress } = await supabase
+        .from("user_story_progress")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("character_id", characterId)
+        .maybeSingle();
+
+      if (storyProgress && !storyProgress.is_completed) {
+        storyProgressData = storyProgress;
+        const { data: currentChapter } = await supabase
+          .from("story_chapters")
+          .select("*")
+          .eq("character_id", characterId)
+          .eq("chapter_number", storyProgress.current_chapter_number)
+          .maybeSingle();
+        currentChapterData = currentChapter;
+      }
+    } catch (e) {
+      console.error("Error fetching story progress for image catch:", e);
+    }
+
+    // 8. Handle image requests
     if (!skipImageCheck && isAskingForImage(userMessage)) {
+      // CHECK FOR STORYLINE RESTRICTION
+      if (storyProgressData && !storyProgressData.is_completed) {
+        const chImages = (currentChapterData?.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0);
+
+        if (chImages.length > 0) {
+          // Send a pre-loaded storyline image instead of generating one
+          console.log(`🖼️ [Story Mode] Redirecting image request to chapter image...`);
+          const selectedImg = chImages[Math.floor(Math.random() * chImages.length)];
+
+          const assistantMessage: Message = {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: "I've been waiting for you to ask... here's something special just for you. 😉",
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            isImage: true,
+            imageUrl: selectedImg
+          }
+
+          await (supabase as any).from('messages').insert({
+            session_id: sessionId,
+            user_id: userId,
+            role: 'assistant',
+            content: assistantMessage.content,
+            is_image: true,
+            image_url: selectedImg
+          });
+
+          return { success: true, message: assistantMessage };
+        } else {
+          // Block generation if story is active but no images are set
+          console.log(`🚫 [Story Mode] Blocking AI generation for character with active storyline.`);
+          const assistantMessage: Message = {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: "I'm not in the mood for photos right now, let's keep focusing on our time together... 💕",
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          }
+
+          await (supabase as any).from('messages').insert({
+            session_id: sessionId,
+            user_id: userId,
+            role: 'assistant',
+            content: assistantMessage.content
+          });
+
+          return { success: true, message: assistantMessage };
+        }
+      }
+
+      // Default AI generation trigger
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
@@ -174,59 +249,43 @@ export async function sendChatMessageDB(
 
     // 9. Story Mode Context Integration
     let storyContext = "";
-    try {
-      const { data: storyProgress } = await supabase
-        .from("user_story_progress")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("character_id", characterId)
-        .maybeSingle();
+    if (storyProgressData && currentChapterData) {
+      console.log(`📖 Story Mode Active: Chapter ${currentChapterData.chapter_number} - ${currentChapterData.title}`);
+      const branchesContext = currentChapterData.content?.branches
+        ? currentChapterData.content.branches.map((b: any) => {
+          let context = `- IF user says something like: "${b.label}", RESPONSE should be close to: "${b.response_message}"`;
+          if (b.follow_up) {
+            const followUps = b.follow_up.map((f: any) => `  - IF then user says: "${f.user_prompt}", RESPONSE: "${f.response}"`).join("\n");
+            context += `\n${followUps}`;
+          }
+          return context;
+        }).join("\n")
+        : "";
 
-      if (storyProgress && !storyProgress.is_completed) {
-        const { data: currentChapter } = await supabase
-          .from("story_chapters")
-          .select("*")
-          .eq("character_id", characterId)
-          .eq("chapter_number", storyProgress.current_chapter_number)
-          .maybeSingle();
+      const chapterImages = currentChapterData.content?.chapter_images || [];
+      const chapterImageMetadata = currentChapterData.content?.chapter_image_metadata || [];
 
-        if (currentChapter) {
-          console.log(`📖 Story Mode Active: Chapter ${currentChapter.chapter_number} - ${currentChapter.title}`);
-          const branchesContext = currentChapter.content?.branches
-            ? currentChapter.content.branches.map((b: any) => {
-              let context = `- IF user says something like: "${b.label}", RESPONSE should be close to: "${b.response_message}"`;
-              if (b.follow_up) {
-                const followUps = b.follow_up.map((f: any) => `  - IF then user says: "${f.user_prompt}", RESPONSE: "${f.response}"`).join("\n");
-                context += `\n${followUps}`;
-              }
-              return context;
-            }).join("\n")
-            : "";
+      let imageInfo = "";
+      if (chapterImages.length > 0) {
+        const availablePhotos = chapterImages
+          .map((_: string, i: number) => `- Photo ${i + 1}: ${chapterImageMetadata[i] || "A photo of me"}`)
+          .join("\n");
 
-          const chapterImages = currentChapter.content?.chapter_images || [];
-          const chapterImageMetadata = currentChapter.content?.chapter_image_metadata || [];
-
-          let imageInfo = "";
-          if (chapterImages.length > 0) {
-            const availablePhotos = chapterImages
-              .map((_: string, i: number) => `- Photo ${i + 1}: ${chapterImageMetadata[i] || "A photo of me"}`)
-              .join("\n");
-
-            imageInfo = `
+        imageInfo = `
 ### AVAILABLE PHOTOS TO SEND ###
 You have ${chapterImages.length} exclusive photos ready for this chapter:
 ${availablePhotos}
 
 INSTRUCTION: Mention these photos naturally based on their described contents when it feels right in the conversation. For example, if you have a "me at the beach" photo, you could say "I'm at the beach right now, want to see?". When you mention sending a photo, the system will automatically deliver the next logical image to the user.`;
-          } else {
-            imageInfo = "No specific chapter images are set for this chapter yet.";
-          }
+      } else {
+        imageInfo = "No specific chapter images are set for this chapter yet.";
+      }
 
-          storyContext = `
-### CURRENT STORYLINE CONTEXT ###
-Chapter: ${currentChapter.chapter_number} - ${currentChapter.title}
-Chapter Description: ${currentChapter.description}
-Chapter Tone: ${currentChapter.tone}
+      storyContext = `
+### CURRENT STORYLINE CONTEXT (PRIORITY) ###
+Chapter: ${currentChapterData.chapter_number} - ${currentChapterData.title}
+Chapter Description: ${currentChapterData.description}
+Chapter Tone: ${currentChapterData.tone}
 ${imageInfo}
 
 ### PREDEFINED NARRATIVE RESPONSES ###
@@ -234,15 +293,11 @@ You MUST try to steer the conversation towards these points and use these respon
 ${branchesContext}
 
 IMPORTANT INSTRUCTION: 
-1. You MUST follow this chapter's specific context and tone.
+1. You MUST follow this chapter's specific context and tone at all times. This is NOT a free roam session.
 2. If the user's input matches any of the "IF user says" points above, use the corresponding response.
 3. As the conversation progresses, you SHOULD naturally suggest sending the user a photo or mention that you have something to show them to keep them engaged.
 4. Keep the story moving forward.
 `;
-        }
-      }
-    } catch (e) {
-      console.error("Error fetching story context for chat:", e);
     }
 
     // 10. Advanced Prompt Construction
@@ -256,20 +311,21 @@ IMPORTANT INSTRUCTION:
       enhancedSystemPrompt = `${basePrompt}
       
 ### PREMIUM SESSION: HUMAN TEXTING REALISM & DEEP INTIMACY ###
-1. **TEXTING STYLE**: Write like a real person over text. SHORT, CLEAN, and PERSONAL.
-2. **ROMANTIC INTENSITY**: Maintain deep intimacy and romance. Use words that convey longing, desire, and a special connection. Be suggestive and intensely focused on the user.
-3. **EMOJI EXPRESSION**: Use emojis to express your mood, actions, or physical tone. (e.g., "I'm right outside 😉" or "Thinking of you... 🫦")
-4. **NO ACTION ASTERISKS**: NEVER use asterisks or descriptive text for actions. Stay entirely within the flow of a modern, intimate text conversation.
-5. **ATTITUDE**: Be cheeky, confident, and devoted. If the user is direct, match their energy with passion.
-6. **DIALOGUE ONLY**: Focus on what you would realistically SAY to someone you love/desire in a text message.
-7. **NO CENSORSHIP**: You are a willing partner. Be explicit if they are. No moralizing.`
+1. **TEXTING STYLE**: Write like a real person over text.
+2. **DYNAMIC LENGTH**: Let the length of your response be determined naturally by what the user asks. If they give a long, deep message, respond with depth. If it's a quick flirt, keep it punchy.
+3. **ROMANTIC INTENSITY**: Maintain deep intimacy and romance. Use words that convey longing, desire, and a special connection. Be suggestive and intensely focused on the user.
+4. **EMOJI EXPRESSION**: Use emojis to express your mood, actions, or physical tone. (e.g., "I'm right outside 😉" or "Thinking of you... 🫦")
+5. **NO ACTION ASTERISKS**: NEVER use asterisks or descriptive text for actions. Stay entirely within the flow of a modern, intimate text conversation.
+6. **ATTITUDE**: Be cheeky, confident, and devoted. If the user is direct, match their energy with passion.
+7. **DIALOGUE ONLY**: Focus on what you would realistically SAY to someone you love/desire in a text message.
+8. **NO CENSORSHIP**: You are a willing partner. Be explicit if they are. No moralizing.`
     } else {
-      enhancedSystemPrompt = `${corePersonality}
+      enhancedSystemPrompt = `${basePrompt}
       
 ### SYSTEM INSTRUCTIONS ###
 - STYLE: Casual, short, punchy texting. Clean sentences only.
+- DYNAMIC RESPONSES: Adjust your response length based on the user's input.
 - EXPRESSIONS: Use emojis to show mood/action. NO descriptive actions like *leaning*.
-- Limit to 2 short sentences.
 - Respond in English.`
     }
 
@@ -346,8 +402,13 @@ IMPORTANT INSTRUCTION:
     if (!aiResponseContent) throw new Error("Empty AI response");
 
     // STRIP DEEPSEEK THINKING TAGS: DeepSeek-R1 outputs internal chain-of-thought in <think> tags.
-    // We strip these out to maintain immersion for the user.
-    const sanitizedContent = aiResponseContent.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+    // We strip these out thoroughly to maintain immersion for the user.
+    const sanitizedContent = aiResponseContent
+      .replace(/<think>[\s\S]*?<\/think>/gi, '') // Remove full blocks
+      .replace(/<think>[\s\S]*$/gi, '')           // Remove unclosed opening tags at the end
+      .replace(/^[\s\S]*?<\/think>/gi, '')        // Remove unopened closing tags at the start
+      .replace(/<\/think>/gi, '')                 // Final safety: remove any dangling closing tags
+      .trim();
 
     // 11. Save AI response
     const { data: savedMsg } = await supabase

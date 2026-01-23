@@ -37,7 +37,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   const {
     prompt,
-    negativePrompt = 'sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, poor background, messy room, cluttered environment, blurry, distorted, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look',
+    negativePrompt = 'sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurry, distorted, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy',
     width = 1600,
     height = 2400,
     steps = 35,
@@ -210,12 +210,12 @@ export function buildAttributePrompt(attributes: {
 
   // Professional photography details for realistic style
   if (style === 'realistic') {
-    parts.push('professional portrait photography');
-    parts.push('natural lighting, natural skin texture');
-    parts.push('wearing elegant fashionable outfit');
-    parts.push('upper body shot, three-quarter view');
-    parts.push('professional makeup, tasteful styling');
-    parts.push('raw photo, film grain, 4k, Fujifilm instax');
+    parts.push('unprocessed raw mobile phone selfie');
+    parts.push('natural indoor lighting, authentic skin texture with slight imperfections');
+    parts.push('lone woman taking a photo of herself');
+    parts.push('raw digital look, slight camera shake, realistic room background');
+    parts.push('unfiltered, sharp focus on face, non-studio lighting');
+    parts.push('raw photo, film grain, 4k, Fujifilm instax, NO SHINING, NO BOKEH, NO TEXT');
   } else {
     parts.push('professional anime illustration');
     parts.push('detailed face and eyes, clean lines');

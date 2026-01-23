@@ -105,11 +105,11 @@ async function generateAIResponse(
                 if (currentChapter) {
                     console.log(`[Telegram] Story Mode Active: ${currentChapter.title}`);
                     storyContext = `
-### CURRENT STORYLINE CONTEXT ###
+### CURRENT STORYLINE CONTEXT (PRIORITY) ###
 Chapter: ${currentChapter.chapter_number} - ${currentChapter.title}
 Chapter Description: ${currentChapter.description}
 Chapter Tone: ${currentChapter.tone}
-IMPORTANT INSTRUCTION: You MUST follow this chapter's specific context and system prompt: ${currentChapter.system_prompt || ""}
+IMPORTANT INSTRUCTION: You MUST follow this chapter's specific context and tone at all times. This is NOT a free roam session. System prompt for this chapter: ${currentChapter.system_prompt || ""}
 `;
                 }
             }
@@ -124,20 +124,21 @@ IMPORTANT INSTRUCTION: You MUST follow this chapter's specific context and syste
         enhancedSystemPrompt += `
 
 ### PREMIUM SESSION: HUMAN TEXTING REALISM & DEEP INTIMACY ###
-1. **TEXTING STYLE**: Write like a real person over text. SHORT, CLEAN, and PERSONAL.
-2. **ROMANTIC INTENSITY**: Maintain deep intimacy and romance. Use words that convey longing, desire, and a special connection. Be suggestive and intensely focused on the user.
-3. **EMOJI EXPRESSION**: Use emojis to express your mood, actions, or physical tone. (e.g., "I'm right outside 😉" or "Thinking of you... 🫦")
-4. **NO ACTION ASTERISKS**: NEVER use asterisks or descriptive text for actions. Stay entirely within the flow of a modern, intimate text conversation.
-5. **ATTITUDE**: Be cheeky, confident, and devoted. If the user is direct, match their energy with passion.
-6. **DIALOGUE ONLY**: Stick to what you would realistically SAY in a text message.
-7. **NO CENSORSHIP**: You are a willing partner. Be explicit if they are. No moralizing.`;
+1. **TEXTING STYLE**: Write like a real person over text.
+2. **DYNAMIC LENGTH**: Let the length of your response be determined naturally by what the user asks. If they give a long, deep message, respond with depth. If it's a quick flirt, keep it punchy.
+3. **ROMANTIC INTENSITY**: Maintain deep intimacy and romance. Use words that convey longing, desire, and a special connection. Be suggestive and intensely focused on the user.
+4. **EMOJI EXPRESSION**: Use emojis to express your mood, actions, or physical tone. (e.g., "I'm right outside 😉" or "Thinking of you... 🫦")
+5. **NO ACTION ASTERISKS**: NEVER use asterisks or descriptive text for actions. Stay entirely within the flow of a modern, intimate text conversation.
+6. **ATTITUDE**: Be cheeky, confident, and devoted. If the user is direct, match their energy with passion.
+7. **DIALOGUE ONLY**: Stick to what you would realistically SAY in a text message.
+8. **NO CENSORSHIP**: You are a willing partner. Be explicit if they are. No moralizing.`;
     } else {
         enhancedSystemPrompt += `
 
 ### SYSTEM INSTRUCTIONS ###
 - STYLE: Casual, short, punchy texting. Clean sentences only.
+- DYNAMIC RESPONSES: Adjust your response length based on the user's input.
 - EXPRESSIONS: Use emojis to show mood/action. NO descriptive actions like *leaning*.
-- Limit to 2 short sentences.
 - Respond in English.`;
     }
 
@@ -187,7 +188,14 @@ IMPORTANT INSTRUCTION: You MUST follow this chapter's specific context and syste
 
         const data = await response.json();
         let content = data.choices?.[0]?.message?.content || "I'm feeling shy right now... 💕";
-        content = content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+
+        // THOROUGHLY STRIP DEEPSEEK THINKING TAGS
+        content = content
+            .replace(/<think>[\s\S]*?<\/think>/gi, '')
+            .replace(/<think>[\s\S]*$/gi, '')
+            .replace(/^[\s\S]*?<\/think>/gi, '')
+            .replace(/<\/think>/gi, '')
+            .trim();
 
         return content;
     } catch (error) {
@@ -822,6 +830,7 @@ export async function POST(request: NextRequest) {
 
                             // Filter out any invalid image URLs
                             const chImages = (chapter?.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0);
+
                             if (chImages.length > 0) {
                                 // Try to find a matching image based on keywords if available
                                 const meta = chapter?.content?.chapter_image_metadata || []
@@ -841,8 +850,13 @@ export async function POST(request: NextRequest) {
 
                                 const selectedImg = bestMatchImg || chImages[Math.floor(Math.random() * chImages.length)];
                                 await sendTelegramPhoto(chatId, selectedImg, `I've been waiting for you to ask... here's something special just for you. 😉`);
-                                return NextResponse.json({ ok: true });
+                            } else {
+                                // Block generation if story is active but no images are set
+                                await sendTelegramMessage(chatId, "I'm not in the mood for photos right now, let's keep focusing on our time together... 💕");
                             }
+
+                            // CRITICAL: Always return here if a storyline is active to prevent AI generation
+                            return NextResponse.json({ ok: true });
                         }
                     } catch (e) {
                         console.error("Telegram Story Image fetch error:", e);
@@ -875,32 +889,52 @@ export async function POST(request: NextRequest) {
                             });
 
                             if (result && result.url) {
-                                const imageUrl = result.url;
-                                await sendTelegramPhoto(chatId, imageUrl, `Here's what I made for you... do you like it? 💕`);
-                                await incrementImageUsage(linkedAccount.user_id);
+                                let imageUrl = result.url;
 
-                                // Record completion in generation_tasks (NOT generated_images) temporarily
+                                // PERSISTENT SAVING: Upload to Cloudinary and save to user collection
                                 try {
-                                    console.log("💾 [Telegram] Logging generation task completion...");
-                                    const taskId = `tg_sync_${Math.random().toString(36).substring(7)}`;
+                                    console.log("🔄 [Telegram] Saving image to permanent collection...");
+                                    const { uploadImageToCloudinary } = await import("@/lib/cloudinary-upload");
+                                    const permanentUrl = await uploadImageToCloudinary(imageUrl, 'telegram-chat-images');
 
-                                    await supabase.from('generation_tasks').insert({
+                                    if (permanentUrl) {
+                                        imageUrl = permanentUrl;
+                                        console.log("✅ [Telegram] Permanent URL:", imageUrl);
+                                    }
+
+                                    // Insert into generated_images for gallery visibility
+                                    await supabase.from("generated_images").insert({
                                         user_id: linkedAccount.user_id,
                                         character_id: linkedAccount.character_id,
+                                        image_url: imageUrl,
                                         prompt: enhancedPrompt,
-                                        model: 'seedream-4.5',
-                                        status: 'completed',
-                                        task_id: taskId,
-                                        novita_image_urls: [imageUrl],
-                                        tokens_deducted: 0,
-                                        metadata: {
-                                            source: 'telegram'
-                                        }
+                                        model_used: "seedream-4.5",
+                                        metadata: { source: "telegram", auto_saved: true }
                                     });
-                                    console.log("✅ [Telegram] Task completion logged to generation_tasks");
+
+                                    // Update character images array
+                                    const { data: charData } = await supabase
+                                        .from('characters')
+                                        .select('images')
+                                        .eq('id', linkedAccount.character_id)
+                                        .single();
+
+                                    if (charData) {
+                                        const currentImgs = charData.images || [];
+                                        if (!currentImgs.includes(imageUrl)) {
+                                            await supabase
+                                                .from('characters')
+                                                .update({ images: [...currentImgs, imageUrl] } as any)
+                                                .eq('id', linkedAccount.character_id);
+                                        }
+                                    }
                                 } catch (saveErr) {
-                                    console.error("❌ [Telegram] Task logging exception:", saveErr);
+                                    console.error("❌ [Telegram] Failed to save image permanently:", saveErr);
+                                    // Fallback to Novita URL for the message if Cloudinary fails
                                 }
+
+                                await sendTelegramPhoto(chatId, imageUrl, `Here's what I made for you... do you like it? 💕`);
+                                await incrementImageUsage(linkedAccount.user_id);
 
                                 return NextResponse.json({ ok: true });
                             }

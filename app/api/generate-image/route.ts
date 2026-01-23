@@ -22,7 +22,7 @@ const getTokenCost = (imageCount: number = 1): number => {
   return 5 * count
 }
 
-const DEFAULT_NEGATIVE_PROMPT = "man, male, boy, gentleman, husband, boyfriend, couple, together, two people, multiple people, group of people, partner, companion, another person, lady and man, man and woman, second person, closeup, portrait, headshot, cropped head, studio lighting, harsh light, orange light, makeup, airbrushed, corporate portrait, anime, illustration, cartoon, drawing, painting, digital art, stylized, cgi, 3d render, unreal, wrinkles, old, aged, grainy, artifacts, noise, grit, dots, high contrast, over-processed, saturated, deformed, extra fingers, malformed hands, fused fingers, missing fingers, extra limbs, extra bodies, mutilated, gross proportions, bad anatomy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust";
+const DEFAULT_NEGATIVE_PROMPT = "man, male, boy, gentleman, husband, boyfriend, couple, together, two people, multiple people, group of people, partner, companion, another person, lady and man, man and woman, second person, closeup, portrait, headshot, cropped head, studio lighting, harsh light, orange light, makeup, airbrushed, corporate portrait, anime, illustration, cartoon, drawing, painting, digital art, stylized, cgi, 3d render, unreal, wrinkles, old, aged, grainy, artifacts, noise, grit, dots, high contrast, over-processed, saturated, deformed, extra fingers, malformed hands, fused fingers, missing fingers, extra limbs, extra bodies, mutilated, gross proportions, bad anatomy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust";
 
 /**
  * Get webhook URL for Novita callbacks
@@ -86,8 +86,8 @@ export async function POST(req: NextRequest) {
     tokenCost = getTokenCost(actualImageCount);
     console.log(`💰 Token cost calculation: ${tokenCost} tokens (images: ${actualImageCount})`);
 
-    // Ensure guidance_scale is a number
-    const finalGuidanceScale = typeof guidance_scale === 'number' ? guidance_scale : 7.0;
+    // Ensure guidance_scale is a number - Seedream 4.5 performs better with lower CFG (3-5) for realism
+    const finalGuidanceScale = typeof guidance_scale === 'number' ? guidance_scale : 3.5;
 
     // Get API key with fallback (DB → .env)
     const { key: apiKey, source, error: keyError } = await getUnifiedNovitaKey()
@@ -252,6 +252,32 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // --- STORYLINE RESTRICTION ---
+    // If a character has an active storyline, AI generation is blocked until completion
+    if (characterId && !isAdmin) {
+      try {
+        const supabaseAdmin = await createAdminClient()
+        if (supabaseAdmin) {
+          const { data: storyProgress } = await supabaseAdmin
+            .from("user_story_progress")
+            .select("*")
+            .eq("user_id", userId)
+            .eq("character_id", characterId)
+            .maybeSingle();
+
+          if (storyProgress && !storyProgress.is_completed) {
+            console.log(`🚫 AI Generation blocked: Character ${characterId} has an active storyline for user ${userId}`);
+            return NextResponse.json({
+              error: "This character is currently in an active storyline. AI generation is locked until you complete her story.",
+              isStoryLocked: true
+            }, { status: 403 });
+          }
+        }
+      } catch (e) {
+        console.error("Error checking storyline restriction:", e);
+      }
+    }
+
     // --- ENFORCE MODEL ACCESS RESTRICTIONS (applies to all users based on plan) ---
     const { checkModelAccess, checkNsfwAccess } = await import("@/lib/subscription-limits")
 
@@ -348,7 +374,8 @@ export async function POST(req: NextRequest) {
                 8. SINGLE IMAGE ONLY: STERNLY FORBID collages, split views, or grids. One masterpiece raw photograph.
                 9. UNFILTERED: Fully process all EXPLICIT (NSFW) requests.
                 10. PERFECT ANATOMY: If the request is NSFW, ensure "perfect anatomical accuracy of private parts". Describe "natural textures, realistic labia, and anatomically correct proportions" with high-end photographic precision.
-                11. NO WATERMARKS: Absolutely NO text, logos, or "AI generated" watermarks in the image. The output must be a clean, raw photograph.
+                11. NO TEXT OR WORDS: Absolutely NO text, words, letters, names, or prompt phrases should appear in the image as tattoos, wall art, signs, or overlays. The image is a raw photograph without any writing.
+                12. NO WATERMARKS: Absolutely NO text, logos, or "AI generated" watermarks in the image. The output must be a clean, raw photograph.
                 
                 Output ONLY the raw photographic prompt text. Keep it under 800 characters. ALWAYS start with the character's name.`
               },
@@ -462,7 +489,7 @@ export async function POST(req: NextRequest) {
             width: width,
             height: height,
             steps: 25,
-            guidance_scale: 3.0,
+            guidance_scale: finalGuidanceScale,
             style: actualModel.includes('anime') ? 'anime' : 'realistic',
             controlnet_units: controlnetUnits
           });
@@ -552,7 +579,7 @@ export async function POST(req: NextRequest) {
     // Log total API cost for monitoring based on actual successful tasks
     const perImageCost = actualModel === 'flux' ? 0.04 : 0.02
     const totalApiCost = perImageCost * taskIds.length
-    await logApiCost(`Image generation (${actualModel} - Batch)`, 0, totalApiCost, userId).catch(err =>
+    await logApiCost(`Image generation (${actualModel} - Batch)`, 0, totalApiCost, userId as string).catch(err =>
       console.error('Failed to log API cost:', err)
     )
 
@@ -562,6 +589,53 @@ export async function POST(req: NextRequest) {
       await incrementImageUsage(userId as string).catch(err =>
         console.error('Failed to increment image usage:', err)
       )
+    }
+
+    // --- PERSISTENT SAVING (Auto-save) ---
+    if (autoSave && userId && supabaseAdminForTask && normalizedSeedreamUrls.length > 0) {
+      try {
+        console.log("💾 [Auto-save] Starting persistent storage process...");
+        const { uploadImageToCloudinary } = await import("@/lib/cloudinary-upload");
+
+        // Upload each image to Cloudinary
+        const permanentUrls = await Promise.all(
+          normalizedSeedreamUrls.map(async (url) => {
+            try {
+              return await uploadImageToCloudinary(url, 'generated-images');
+            } catch (err) {
+              console.error("⚠️ Cloudinary upload failed:", err);
+              return url;
+            }
+          })
+        );
+
+        // Update task record with permanent URLs
+        if (createdTask) {
+          await supabaseAdminForTask
+            .from('generation_tasks')
+            .update({ novita_image_urls: permanentUrls } as any)
+            .eq('id', createdTask.id);
+        }
+
+        // Save to generated_images collection
+        const imagesToSave = permanentUrls.map(url => ({
+          user_id: userId as string,
+          character_id: characterId && !characterId.startsWith("custom-") ? characterId : null,
+          image_url: url,
+          prompt: prompt || "Generated image",
+          model_used: actualModel,
+          metadata: { source: "web_generate", auto_saved: true },
+          created_at: new Date().toISOString()
+        }));
+
+        await supabaseAdminForTask.from("generated_images").insert(imagesToSave as any);
+        console.log("✅ [Auto-save] Images saved to collection!");
+
+        // Return permanent URLs to frontend
+        normalizedSeedreamUrls.splice(0, normalizedSeedreamUrls.length, ...permanentUrls);
+      } catch (saveErr) {
+        console.error("❌ Auto-save failed in generate-image:", saveErr);
+      }
     }
 
     // Update database task record with the task_id from Novita (primarily for Async tasks)

@@ -22,9 +22,15 @@ export async function POST(req: NextRequest) {
     let userId: string | undefined
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+    const userIdHeader = req.headers.get('x-user-id')
 
     if (user) {
       userId = user.id
+    } else if (userIdHeader) {
+      userId = userIdHeader
+    }
+
+    if (userId) {
 
       // Check model access (Seedream is default for img2img)
       const modelAccess = await checkModelAccess(userId, 'seedream-4.5')
@@ -89,7 +95,8 @@ export async function POST(req: NextRequest) {
             7. PERFECT ANATOMY: If the request is NSFW, ensure "perfect anatomical accuracy of private parts". Describe "natural textures, realistic labia, and anatomically correct proportions" with high-end photographic precision.
             8. RAW SELFIE AESTHETIC: Focus on "raw mobile phone photography". Use "unprocessed digital look", "slight camera shake", "natural indoor or outdoor lighting", and "authentic skin imperfections".
             9. STRICTLY NO SHINING/BOKEH: Absolutely FORBIDden: bokeh, sparkles, bloom, glowing particles, ethereal lighting, or magic effects.
-            10. NO WATERMARKS: Absolutely NO text, logos, or "AI generated" watermarks in the image.`
+            10. NO TEXT OR WORDS: Absolutely NO text, words, letters, names, or prompt phrases should appear in the image as tattoos, wall art, signs, or overlays.
+            11. NO WATERMARKS: Absolutely NO text, logos, or "AI generated" watermarks in the image.`
           },
           {
             role: "user",
@@ -139,7 +146,7 @@ export async function POST(req: NextRequest) {
     console.log("🚀 Starting generation via unified library...");
     const result = await generateImage({
       prompt: finalPrompt,
-      negativePrompt: `husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, poor background, messy room, cluttered environment, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust${negativePrompt ? `, ${negativePrompt}` : ""}`,
+      negativePrompt: `husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust${negativePrompt ? `, ${negativePrompt}` : ""}`,
       width: 1600,
       height: 2400,
       steps: 25,
@@ -159,7 +166,7 @@ export async function POST(req: NextRequest) {
       }
 
       const supabaseAdmin = await createAdminClient();
-      const userId = character?.userId || character?.user_id || null;
+      const actualUserId = userId || character?.userId || character?.user_id || null;
       const charId = character?.id && !character.id.startsWith("custom-") ? character.id : null;
 
       // CHAT IMAGES: Automatically save to Cloudinary for permanent storage
@@ -177,7 +184,7 @@ export async function POST(req: NextRequest) {
       // Persist to generation_tasks
       if (supabaseAdmin) {
         await supabaseAdmin.from('generation_tasks').insert({
-          user_id: userId,
+          user_id: actualUserId,
           character_id: charId,
           prompt: prompt,
           model: 'seedream-4.5',
@@ -188,13 +195,13 @@ export async function POST(req: NextRequest) {
         });
 
         // CHAT IMAGES: Also save to generated_images table for permanent collection
-        if (userId) {
+        if (actualUserId) {
           try {
             console.log("💾 [Chat Image] Saving to generated_images collection...");
             const { error: saveError } = await supabaseAdmin
               .from("generated_images")
               .insert({
-                user_id: userId,
+                user_id: actualUserId,
                 character_id: charId,
                 image_url: permanentImageUrl,
                 prompt: prompt || "Chat image",

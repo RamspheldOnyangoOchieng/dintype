@@ -144,6 +144,7 @@ export async function GET(request: NextRequest) {
       const autoSave = searchParams.get("autoSave") === "true"
       const characterId = searchParams.get("characterId")
       const prompt = searchParams.get("prompt")
+      let permanentUrls: string[] = []
 
       if (autoSave && userId && supabaseAdmin && allImages.length > 0) {
         console.log("💾 Auto-saving generated images for user:", userId)
@@ -153,7 +154,7 @@ export async function GET(request: NextRequest) {
           const { uploadImageToCloudinary } = await import("@/lib/cloudinary-upload");
 
           // Upload each image to Cloudinary first for permanent storage
-          const permanentUrls = await Promise.all(
+          permanentUrls = await Promise.all(
             allImages.map(async (imageUrl) => {
               try {
                 console.log("💾 [Auto-save] Uploading to Cloudinary...");
@@ -197,7 +198,7 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json({
         status: "TASK_STATUS_SUCCEED",
-        images: allImages,
+        images: permanentUrls.length > 0 ? permanentUrls : allImages,
       })
     } else if (anyFailed && !anyProcessing) {
       // If some failed and none are processing anymore, it's a failure (or partial success)
