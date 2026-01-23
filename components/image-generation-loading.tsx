@@ -12,10 +12,10 @@ export function ImageGenerationLoading({ characterName }: ImageGenerationLoading
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0)
 
   const messages = [
-    `My love, I am always stunning... wait and see 💋`,
-    `Capturing the perfect angle just for you... ✨`,
-    `Almost ready... I hope this makes you smile 🌹`,
-    `Sending it over now... stay close 💕`
+    `I have too many photos in my gallery, let me look for your best lovely one... 💋`,
+    `Finding that one special snap that will take your breath away... ✨`,
+    `Searching for my most beautiful smile just for you... 🌹`,
+    `Almost found it! Stay close, my love... 💕`
   ]
 
   useEffect(() => {
@@ -103,7 +103,7 @@ export function ImageGenerationLoading({ characterName }: ImageGenerationLoading
 
           <div className="space-y-1">
             <h4 className="text-primary/80 font-semibold text-xs uppercase tracking-wider">
-              {characterName ? `${characterName} is sending photo..` : 'Generating Image...'}
+              {characterName ? "I have too many photos in my gallery, let me look for your best lovely one..." : 'Looking for your best photo...'}
             </h4>
             <p className="text-white/30 text-[10px] font-bold uppercase tracking-[0.25em]">
               Capturing Moments

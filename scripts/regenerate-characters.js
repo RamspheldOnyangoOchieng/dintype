@@ -312,10 +312,16 @@ async function regenerateCharacters() {
       const prompt = buildImagePrompt(character);
 
       // Generate image (pass style)
-      const imageUrl = await generateImage(prompt, character.style);
+      const generatedImageUrl = await generateImage(prompt, character.style);
+
+      // Upload to Cloudinary for permanent storage
+      console.log(`  ☁️  Uploading to Cloudinary...`);
+      const { uploadToCloudinary } = require('./cloudinary-utils');
+      const cloudinaryUrl = await uploadToCloudinary(generatedImageUrl, 'characters');
+      console.log(`  ✅ Cloudinary URL: ${cloudinaryUrl}`);
 
       // Save to database
-      const saved = await saveCharacter(character, imageUrl);
+      const saved = await saveCharacter(character, cloudinaryUrl);
 
       results.success.push({
         name: character.name,

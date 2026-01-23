@@ -96,12 +96,23 @@ export async function POST(request: NextRequest) {
         console.log('📝 Generated prompt:', prompt);
 
         // Generate image
-        const imageUrl = await generateImageWithNovita(prompt, negativePrompt, customization.style);
-        console.log('✅ Character image generated:', imageUrl);
+        const generatedImageUrl = await generateImageWithNovita(prompt, negativePrompt, customization.style);
+        console.log('✅ Character image generated:', generatedImageUrl);
+
+        // Upload to Cloudinary for permanent storage
+        let finalImageUrl = generatedImageUrl;
+        try {
+            console.log('💾 Uploading character image to Cloudinary...');
+            const { uploadImageToCloudinary } = await import('@/lib/cloudinary-upload');
+            finalImageUrl = await uploadImageToCloudinary(generatedImageUrl, 'characters');
+            console.log('✅ Character image uploaded to Cloudinary:', finalImageUrl);
+        } catch (cloudinaryError) {
+            console.error('⚠️ Cloudinary upload failed, using original URL:', cloudinaryError);
+        }
 
         return NextResponse.json({
             success: true,
-            image_url: imageUrl,
+            image_url: finalImageUrl,
             customization: customization,
         });
     } catch (error) {

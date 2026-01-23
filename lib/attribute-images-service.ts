@@ -74,11 +74,22 @@ export async function generateAndCacheImage(
     // Build prompt based on category and value
     const attributes: any = { style };
     attributes[category === 'body' ? 'bodyType' : category] = value;
-    
+
     const prompt = buildAttributePrompt(attributes);
 
     // Generate image
     const generatedImage = await generateImage({ prompt, style });
+
+    // Upload to Cloudinary for permanent storage
+    let finalImageUrl = generatedImage.url;
+    try {
+      console.log(`💾 Uploading attribute image to Cloudinary for ${category}:${value}...`);
+      const { uploadImageToCloudinary } = await import('@/lib/cloudinary-upload');
+      finalImageUrl = await uploadImageToCloudinary(generatedImage.url, 'attribute-images');
+      console.log('✅ Attribute image uploaded to Cloudinary:', finalImageUrl);
+    } catch (cloudinaryError) {
+      console.error('⚠️ Cloudinary upload failed for attribute image, using original URL:', cloudinaryError);
+    }
 
     // Save to database
     const { data, error } = await supabase
@@ -87,7 +98,7 @@ export async function generateAndCacheImage(
         category,
         value,
         style,
-        image_url: generatedImage.url,
+        image_url: finalImageUrl,
         seed: generatedImage.seed,
         width: generatedImage.width,
         height: generatedImage.height,
@@ -100,7 +111,7 @@ export async function generateAndCacheImage(
       throw error;
     }
 
-    console.log(`Successfully generated and cached image for ${category}:${value}:${style}`);
+    console.log(`Successfully generated, uploaded, and cached image for ${category}:${value}:${style}`);
     return data;
   } catch (error) {
     console.error('Error generating and caching image:', error);
@@ -149,7 +160,7 @@ export async function batchGenerateImages(
 
   for (let i = 0; i < values.length; i++) {
     const value = values[i];
-    
+
     if (onProgress) {
       onProgress(i + 1, values.length, value);
     }

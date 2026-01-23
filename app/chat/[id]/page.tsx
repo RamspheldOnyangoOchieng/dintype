@@ -408,7 +408,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               const imgMsg: Message = {
                 id: `daily-img-${Date.now()}`,
                 role: "assistant",
-                content: "Sending you a little something to start your day...",
+                content: "Sending you a little something to start your day... I hope this makes you smile as much as you make me smile. 💕",
                 isImage: true,
                 imageUrl: randomImg,
                 timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -839,6 +839,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "X-User-ID": user?.id || "",
           },
           body: JSON.stringify({
             prompt: prompt,
@@ -917,12 +918,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           content: ".",
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           isImage: true,
-          imageUrl: responseData.images,
+          imageUrl: Array.isArray(responseData.images) ? responseData.images[0] : responseData.images,
           imagePrompt: prompt,
         }
 
         setMessages((prev) => [...prev, imageMessage])
         saveMessageToLocalStorage(characterId!, imageMessage)
+        saveMessageToDatabase(characterId!, imageMessage) // Ensure it's saved to DB
 
         // Get a natural response from the character about the photo
         setTimeout(async () => {
@@ -932,7 +934,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               `[SYSTEM: You just sent a photo with this context: "${prompt}". Provide a very short, natural, and deeply romantic expression about it as your character. Show your love and connection. No asterisks.]`,
               character?.systemPrompt || "",
               user?.id || "",
-              true
+              true,
+              true // isSilent: true to skip saving this system message to the history
             );
 
             if (aiResponse.success && aiResponse.message) {
@@ -958,12 +961,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       const checkEndpoint = useMockApi ? "/api/mock-check-generation" : "/api/check-generation"
 
       // Instead of using setInterval, we'll use a recursive setTimeout approach
-      // This ensures we only have one check running at a time and can completely
-      // control when the next check happens
       const checkImageStatus = async () => {
         // If component is unmounted or we're already processing, don't continue
-        if (!isMounted || isProcessingImageRef.current || !currentTaskIdRef.current) {
-          console.log("Skipping image check - component unmounted, already processing, or no current task")
+        if (!isMounted || !currentTaskIdRef.current) {
+          console.log("Skipping image check - component unmounted or no current task")
           return
         }
 
@@ -978,33 +979,20 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           const autoSaveEnabled = localStorage.getItem('chat_auto_save_enabled') === 'true'
           const shouldAutoSave = isChatSessionActive && autoSaveEnabled
 
-          // Build query params with userId, autoSave flag, and other metadata
+          // Build query params
           const queryParams = new URLSearchParams({
             taskId: currentTaskIdRef.current,
             autoSave: shouldAutoSave.toString(),
           })
 
-          if (user?.id) {
-            queryParams.append('userId', user.id)
-          }
+          if (user?.id) queryParams.append('userId', user.id)
+          if (characterId) queryParams.append('characterId', characterId)
+          if (prompt) queryParams.append('prompt', prompt)
 
-          if (characterId) {
-            queryParams.append('characterId', characterId)
-          }
+          const pollRes = await fetch(`${checkEndpoint}?${queryParams.toString()}`)
+          if (!pollRes.ok) throw new Error("Failed to check image status")
 
-          if (prompt) {
-            queryParams.append('prompt', prompt)
-          }
-
-          console.log("💾 Status check with auto-save:", shouldAutoSave)
-
-          const response = await fetch(`${checkEndpoint}?${queryParams.toString()}`)
-
-          if (!response.ok) {
-            throw new Error("Failed to check image status")
-          }
-
-          const data = await response.json()
+          const data = await pollRes.json()
           console.log("Image status check result:", data.status)
 
           if (!isMounted) {
@@ -1025,12 +1013,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               content: ".",
               timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
               isImage: true,
-              imageUrl: data.images,
+              imageUrl: Array.isArray(data.images) ? data.images[0] : data.images,
               imagePrompt: prompt,
             }
 
             setMessages((prev) => [...prev, imageMessage])
             saveMessageToLocalStorage(characterId!, imageMessage)
+            saveMessageToDatabase(characterId!, imageMessage) // Ensure it's saved to DB
 
             // Get a natural response from the character about the photo
             setTimeout(async () => {
@@ -1040,7 +1029,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   `[SYSTEM: You just sent a photo with this context: "${prompt}". Provide a very short, natural, and deeply romantic expression about it as your character. Show your love and connection. No asterisks.]`,
                   character?.systemPrompt || "",
                   user?.id || "",
-                  true // skipImageCheck: true to avoid re-triggering the image loading message
+                  true, // skipImageCheck
+                  true  // isSilent: true
                 );
 
                 if (aiResponse.success && aiResponse.message) {
@@ -1052,18 +1042,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               }
             }, 1000);
 
-            // Clear task ID and processing flag
             currentTaskIdRef.current = null
             isProcessingImageRef.current = false
-
-            // Don't schedule another check
             return
           } else if (data.status === "TASK_STATUS_FAILED") {
-            // Image generation failed
             console.log("Image generation failed")
             setIsGeneratingImage(false)
 
-            // Add error message to chat
             const errorMessage: Message = {
               id: Math.random().toString(36).substring(2, 15),
               role: "assistant",
@@ -1073,41 +1058,20 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
             setMessages((prev) => [...prev, errorMessage])
             saveMessageToLocalStorage(characterId!, errorMessage)
-
-            // Clear task ID and processing flag
             currentTaskIdRef.current = null
             isProcessingImageRef.current = false
-
-            // Don't schedule another check
             return
           }
 
-          // For other statuses (PENDING, RUNNING), continue polling
+          // Continue polling
           isProcessingImageRef.current = false
-
-          // Schedule the next check only if we still have a valid task ID and component is mounted
           if (currentTaskIdRef.current && isMounted) {
             setTimeout(checkImageStatus, 2000)
           }
         } catch (error) {
           console.error("Error checking image status:", error)
-
           if (!isMounted) return
-
-          // Add error message to chat
-          const errorMessage: Message = {
-            id: Math.random().toString(36).substring(2, 15),
-            role: "assistant",
-            content: "Sorry, I had trouble generating that image. Let's try something else.",
-            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          }
-
-          setMessages((prev) => [...prev, errorMessage])
-          saveMessageToLocalStorage(characterId!, errorMessage)
-
           setIsGeneratingImage(false)
-
-          // Clear task ID and processing flag
           currentTaskIdRef.current = null
           isProcessingImageRef.current = false
         }
@@ -1117,21 +1081,16 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       setTimeout(checkImageStatus, 2000)
     } catch (error) {
       console.error("Error generating image:", error)
-
       if (!isMounted) return
-
       setIsGeneratingImage(false)
       currentTaskIdRef.current = null
       isProcessingImageRef.current = false
-
-      // Add error message to chat
       const errorMessage: Message = {
         id: Math.random().toString(36).substring(2, 15),
         role: "assistant",
         content: "Sorry, I couldn't generate that image. There was a technical issue with the image processing.",
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }
-
       setMessages((prev) => [...prev, errorMessage])
       saveMessageToLocalStorage(characterId!, errorMessage)
     }
@@ -1218,7 +1177,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
           if (chImages.length > 0) {
             // Try to find a matching image based on prompt keywords if available
-            const meta = currentChapter?.content?.chapter_image_metadata || []
+            const meta = (currentChapter?.content as any)?.chapter_image_metadata || []
             const lowercasePrompt = combinedContent.toLowerCase()
             let bestMatchImg = null
 
@@ -1238,7 +1197,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             const storyImgMsg: Message = {
               id: `story-img-${Date.now()}`,
               role: "assistant",
-              content: `${character?.name || "I"} is sending a photo for you...`,
+              content: `${character?.name || "I"} is sending a photo for you... anything for my favorite person. 🌹`,
               isImage: true,
               imageUrl: nextImg, // Now guaranteed to be a valid URL
               timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -1314,7 +1273,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         if (shouldSendImage && chImages.length > 0) {
           // Try to find a matching image based on keywords if available
-          const meta = currentChapter?.content?.chapter_image_metadata || []
+          const meta = (currentChapter?.content as any)?.chapter_image_metadata || []
           const lowercaseAiText = aiText.toLowerCase()
           let bestMatchImg = null
 
@@ -1334,7 +1293,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             const storyImgMsg: Message = {
               id: `story-auto-img-${Date.now()}`,
               role: "assistant",
-              content: "📷 *Sent you a photo*",
+              content: "📷 *Sent you a photo* ...just for you. I hope it reminds you how much you mean to me. ✨",
               isImage: true,
               imageUrl: nextImg,
               timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),

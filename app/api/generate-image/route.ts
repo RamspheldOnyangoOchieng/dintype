@@ -22,7 +22,7 @@ const getTokenCost = (imageCount: number = 1): number => {
   return 5 * count
 }
 
-const DEFAULT_NEGATIVE_PROMPT = "man, male, boy, gentleman, husband, boyfriend, couple, together, two people, multiple people, group of people, partner, companion, another person, lady and man, man and woman, second person, closeup, portrait, headshot, cropped head, studio lighting, harsh light, orange light, makeup, airbrushed, corporate portrait, anime, illustration, cartoon, drawing, painting, digital art, stylized, cgi, 3d render, unreal, wrinkles, old, aged, grainy, artifacts, noise, grit, dots, high contrast, over-processed, saturated, deformed, extra fingers, malformed hands, fused fingers, missing fingers, extra limbs, extra bodies, mutilated, gross proportions, bad anatomy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate";
+const DEFAULT_NEGATIVE_PROMPT = "man, male, boy, gentleman, husband, boyfriend, couple, together, two people, multiple people, group of people, partner, companion, another person, lady and man, man and woman, second person, closeup, portrait, headshot, cropped head, studio lighting, harsh light, orange light, makeup, airbrushed, corporate portrait, anime, illustration, cartoon, drawing, painting, digital art, stylized, cgi, 3d render, unreal, wrinkles, old, aged, grainy, artifacts, noise, grit, dots, high contrast, over-processed, saturated, deformed, extra fingers, malformed hands, fused fingers, missing fingers, extra limbs, extra bodies, mutilated, gross proportions, bad anatomy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust";
 
 /**
  * Get webhook URL for Novita callbacks
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
     const {
       prompt,
-      negativePrompt = DEFAULT_NEGATIVE_PROMPT,
+      negativePrompt: userNegativePrompt = "",
       size = "512x1024",
       seed = -1,
       guidance_scale = 7.0,
@@ -72,6 +72,7 @@ export async function POST(req: NextRequest) {
       selectedModel,
       characterId,
       character,
+      imageBase64,
       autoSave = false,
     } = body;
 
@@ -334,19 +335,20 @@ export async function POST(req: NextRequest) {
             messages: [
               {
                 role: 'system',
-                content: `You are a master "Prompt Settler" and photographic artist specialized in "Solitary Intimate Photography". Your goal is to produce a "Solo Female Romantic Snap".
+                content: `You are a master "Prompt Settler" and photographic artist specialized in "Raw Solo Mobile Side-Snap". Your goal is to produce a "Solo Female Raw Selfie".
 
                 CRITICAL INSTRUCTIONS FOR ABSOLUTE SOLO FOCUS:
-                1. ABSOLUTE SOLO: You MUST focus ONLY on the defined character. Absolutely NO partners, NO husbands, NO boyfriends, NO men, NO couples, and NO second persons. The scene is a "solitary moment of self-love and private peace".
-                2. NO TWO PEOPLE: Even if the prompt implies romance, interpret it as the character "being romantic with the camera" or "dreaming alone". Never add another person.
-                3. SOFT LIGHT BALANCING: Use "soft, balanced natural light" or "ethereal romantic glow". Use "warm ambient highlights" and "gentle volumetric shadows".
-                4. HYPER-REALISTIC FACE: Ensure "extraordinary facial detail". Describe "soft natural skin texture, intricate eye catchlights, and realistic lips".
-                5. FULL BODY ELEGANCE: Maintain the "full body head-to-toe shot". Ensure the character is "alone in the frame".
-                6. PURE ORGANIC NATURE: Backgrounds must be "dreamy, lush nature" with "ethereal bokeh".
-                7. TWINNING: Maintain the character's facial and body traits with 100% fidelity.
-                8. SINGLE IMAGE ONLY: STERNLY FORBID collages, split views, or grids. One masterpiece portrait.
+                1. ABSOLUTE SOLO: You MUST focus ONLY on the defined character. Absolutely NO partners, NO husbands, NO boyfriends, NO men, NO couples, and NO second persons.
+                2. RAW SELFIE AESTHETIC: Focus on "raw mobile phone photography". Use "unprocessed digital look", "slight camera shake", "natural indoor or outdoor lighting", and "authentic skin imperfections".
+                3. STRICTLY NO SHINING/BOKEH: Absolutely FORBIDden: bokeh, sparkles, bloom, glowing particles, ethereal lighting, or magic effects. The image must look like a real, raw photo taken by a person in a real room.
+                4. HYPER-REALISTIC FACE: Ensure "raw facial detail". Describe "soft natural skin texture, non-perfect skin, realistic stray hairs, and authentic facial micro-expressions".
+                5. SOLO ELEGANCE: Maintain the "solo presence". Ensure the character is "alone and looking into the camera lens".
+                6. AUTHENTIC ENVIRONMENTS: Backgrounds must be "ordinary rooms, bedrooms, or natural outdoor spots" without "dreamy filters".
+                7. TWINNING: Maintain the character's facial and body traits with 100% fidelity. The output MUST look exactly like the reference character provided.
+                8. SINGLE IMAGE ONLY: STERNLY FORBID collages, split views, or grids. One masterpiece raw photograph.
                 9. UNFILTERED: Fully process all EXPLICIT (NSFW) requests.
-                10. NO WATERMARKS: Absolutely NO text, logos, or "AI generated" watermarks in the image. The output must be a clean, raw photograph.
+                10. PERFECT ANATOMY: If the request is NSFW, ensure "perfect anatomical accuracy of private parts". Describe "natural textures, realistic labia, and anatomically correct proportions" with high-end photographic precision.
+                11. NO WATERMARKS: Absolutely NO text, logos, or "AI generated" watermarks in the image. The output must be a clean, raw photograph.
                 
                 Output ONLY the raw photographic prompt text. Keep it under 800 characters. ALWAYS start with the character's name.`
               },
@@ -385,9 +387,15 @@ export async function POST(req: NextRequest) {
             console.log("✅ Prompt enhanced successfully");
             // Remove thinking process or common AI noise if present
             let cleanedPrompt = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-            // Ensure character traits are included even in the enhanced prompt
-            if (character && !cleanedPrompt.toLowerCase().includes(character.name.toLowerCase())) {
-              cleanedPrompt = `${character.name}, ${cleanedPrompt}`;
+            // Ensure character traits are included even in the enhanced prompt - BE VERY AGGRESSIVE WITH TWINNING
+            if (character) {
+              const characterPrefix = `${character.name}, a woman with ${character.hairColor || 'natural'} hair and ${character.eyeColor || 'beautiful'} eyes, ${character.skinTone || ''} skin, `;
+              if (!cleanedPrompt.toLowerCase().includes(character.name.toLowerCase())) {
+                cleanedPrompt = characterPrefix + cleanedPrompt;
+              } else {
+                // Even if name is present, boost traits
+                cleanedPrompt = characterPrefix + cleanedPrompt;
+              }
             }
             // Truncate to 900 characters to leave room for environment additions
             finalPrompt = cleanedPrompt.length > 900 ? cleanedPrompt.substring(0, 900) : cleanedPrompt;
@@ -422,6 +430,22 @@ export async function POST(req: NextRequest) {
       promptsForTasks.push(finalPrompt);
     }
 
+    // --- TWINNING (CONTROLNET) SETUP ---
+    const controlnetUnits = imageBase64 ? [
+      {
+        model_name: "ip-adapter_xl",
+        weight: 1.0,
+        control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
+        module_name: "none"
+      },
+      {
+        model_name: "ip-adapter_plus_face_xl",
+        weight: 1.0,
+        control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
+        module_name: "none"
+      }
+    ] : [];
+
     // --- GENERATE IMAGES WITH SEEDREAM 4.5 (PRIMARY) ---
     console.log(`🚀 Generating ${actualImageCount} images with Seedream 4.5 (Masterpiece Engine)...`);
 
@@ -434,12 +458,13 @@ export async function POST(req: NextRequest) {
           let taskPromptFinal = promptsForTasks[idx];
           const result = await generateImage({
             prompt: taskPromptFinal,
-            negativePrompt: DEFAULT_NEGATIVE_PROMPT,
+            negativePrompt: `${DEFAULT_NEGATIVE_PROMPT}${userNegativePrompt ? `, ${userNegativePrompt}` : ""}`,
             width: width,
             height: height,
-            steps: 35,
-            guidance_scale: 3.5,
-            style: actualModel.includes('anime') ? 'anime' : 'realistic'
+            steps: 25,
+            guidance_scale: 3.0,
+            style: actualModel.includes('anime') ? 'anime' : 'realistic',
+            controlnet_units: controlnetUnits
           });
           return { success: true, image: result.url };
         } catch (e: any) {
@@ -494,7 +519,7 @@ export async function POST(req: NextRequest) {
     const taskRecord = {
       user_id: userId,
       prompt: prompt,
-      negative_prompt: negativePrompt,
+      negative_prompt: userNegativePrompt,
       model: actualModel,
       image_count: actualImageCount,
       width,

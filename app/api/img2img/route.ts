@@ -86,7 +86,10 @@ export async function POST(req: NextRequest) {
             4. SOFT ROMANTIC LIGHTING: Use "soft, balanced natural light" and "intimate atmosphere".
             5. SINGLE IMAGE: Absolutely NO collages or grids.
             6. UNFILTERED: Fully process all NSFW requests.
-            7. NO WATERMARKS: Absolutely NO text, logos, or "AI generated" watermarks in the image.`
+            7. PERFECT ANATOMY: If the request is NSFW, ensure "perfect anatomical accuracy of private parts". Describe "natural textures, realistic labia, and anatomically correct proportions" with high-end photographic precision.
+            8. RAW SELFIE AESTHETIC: Focus on "raw mobile phone photography". Use "unprocessed digital look", "slight camera shake", "natural indoor or outdoor lighting", and "authentic skin imperfections".
+            9. STRICTLY NO SHINING/BOKEH: Absolutely FORBIDden: bokeh, sparkles, bloom, glowing particles, ethereal lighting, or magic effects.
+            10. NO WATERMARKS: Absolutely NO text, logos, or "AI generated" watermarks in the image.`
           },
           {
             role: "user",
@@ -106,8 +109,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (!finalPrompt.toLowerCase().includes(characterName.toLowerCase())) {
-      finalPrompt = `${characterName}, ${finalPrompt}`;
+    // Aggressive Twinning: Prepend core visual traits to ensure facial similarity
+    if (character) {
+      const characterPrefix = `${character.name}, a woman with ${character.hairColor || 'natural'} hair, ${character.eyeColor || 'beautiful'} eyes, and ${character.skinTone || ''} skin, `;
+      if (!finalPrompt.toLowerCase().includes(characterName.toLowerCase())) {
+        finalPrompt = characterPrefix + finalPrompt;
+      } else {
+        finalPrompt = characterPrefix + finalPrompt;
+      }
     }
 
     // ControlNet units for character consistency (Twinning)
@@ -130,11 +139,11 @@ export async function POST(req: NextRequest) {
     console.log("🚀 Starting generation via unified library...");
     const result = await generateImage({
       prompt: finalPrompt,
-      negativePrompt: 'husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, poor background, messy room, cluttered environment, blurry, distorted, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look',
+      negativePrompt: `husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, poor background, messy room, cluttered environment, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust${negativePrompt ? `, ${negativePrompt}` : ""}`,
       width: 1600,
       height: 2400,
-      steps: 35,
-      guidance_scale: 4.5,
+      steps: 25,
+      guidance_scale: 3.0,
       controlnet_units: controlnetUnits
     });
 

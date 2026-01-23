@@ -37,7 +37,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   const {
     prompt,
-    negativePrompt = 'husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, poor background, messy room, cluttered environment, blurry, distorted, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look',
+    negativePrompt = 'sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, poor background, messy room, cluttered environment, blurry, distorted, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look',
     width = 1600,
     height = 2400,
     steps = 35,
@@ -49,7 +49,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   // Enhance prompt based on style - focus on Solitary Intimate Photography
   let enhancedPrompt = style === 'realistic'
-    ? `Solo female solitary intimate shot, extraordinarily beautiful dynamics, soft balanced romantic lighting, soulful expression, lone woman, ${prompt}, dreamy lush nature, highly detailed, sharp focus, 8k UHD, 35mm lens, f/1.4, ethereal bokeh`
+    ? `Solo female raw mobile selfie, unprocessed digital photography, authentic skin texture, lone woman, ${prompt}, natural lighting, ordinary room background, highly detailed, sharp focus, 8k UHD, wide angle lens, authentic raw photo`
     : `high-end anime style, ${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
 
   if (enhancedPrompt.length > 1000) {

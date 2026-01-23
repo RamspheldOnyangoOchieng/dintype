@@ -219,8 +219,15 @@ async function main() {
 
     try {
       const prompt = buildImagePrompt(character);
-      const imageUrl = await generateImage(prompt, character.style);
-      const saved = await saveCharacter(character, imageUrl);
+      const generatedImageUrl = await generateImage(prompt, character.style);
+
+      // Upload to Cloudinary for permanent storage
+      console.log(`  ☁️  Uploading to Cloudinary...`);
+      const { uploadToCloudinary } = require('./cloudinary-utils');
+      const cloudinaryUrl = await uploadToCloudinary(generatedImageUrl, 'characters');
+      console.log(`  ✅ Cloudinary URL: ${cloudinaryUrl}`);
+
+      const saved = await saveCharacter(character, cloudinaryUrl);
 
       results.success.push({
         name: character.name,

@@ -32,7 +32,8 @@ export async function sendChatMessageDB(
   userMessage: string,
   systemPromptFromChar: string,
   userId: string,
-  skipImageCheck: boolean = false
+  skipImageCheck: boolean = false,
+  isSilent: boolean = false
 ): Promise<{
   success: boolean
   message?: Message
@@ -114,19 +115,21 @@ export async function sendChatMessageDB(
     const memoryLevel = characterData?.metadata?.memoryLevel || 1;
 
     // 6. Save user message
-    const { error: userMsgError } = await (supabase as any)
-      .from('messages')
-      .insert({
-        session_id: sessionId,
-        user_id: userId,
-        role: 'user',
-        content: userMessage,
-        is_image: false
-      })
+    if (!isSilent) {
+      const { error: userMsgError } = await (supabase as any)
+        .from('messages')
+        .insert({
+          session_id: sessionId,
+          user_id: userId,
+          role: 'user',
+          content: userMessage,
+          is_image: false
+        })
 
-    if (userMsgError) {
-      console.error("User Message Insert Error:", userMsgError);
-      throw new Error("Failed to save message to database");
+      if (userMsgError) {
+        console.error("User Message Insert Error:", userMsgError);
+        throw new Error("Failed to save message to database");
+      }
     }
 
     // 7. Handle image requests
