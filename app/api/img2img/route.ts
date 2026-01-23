@@ -56,19 +56,48 @@ export async function POST(req: NextRequest) {
     }
 
     const characterName = character?.name || "the character";
-    const characterContext = character?.about_me || character?.description || character?.personality || "";
+
+    // --- RE-FETCH CHARACTER FROM DB FOR TWINNING ---
+    let latestCharacter = character;
+    if (character?.id) {
+      try {
+        const supabaseAdmin = await createAdminClient();
+        if (supabaseAdmin) {
+          const { data: dbChar } = await supabaseAdmin
+            .from('characters')
+            .select('*')
+            .eq('id', character.id)
+            .maybeSingle();
+
+          if (dbChar) {
+            console.log(`🧬 [img2img] Re-fetched latest traits for character: ${dbChar.name}`);
+            latestCharacter = {
+              ...dbChar,
+              hairColor: dbChar.hair_color || dbChar.hairColor,
+              eyeColor: dbChar.eye_color || dbChar.eyeColor,
+              skinTone: dbChar.skin_tone || dbChar.skinTone,
+              bodyType: dbChar.body_type || dbChar.bodyType || dbChar.body,
+              characterStyle: dbChar.character_style || dbChar.characterStyle || dbChar.style
+            };
+          }
+        }
+      } catch (e) {
+        console.warn("⚠️ [img2img] Failed to re-fetch character, using provided character data");
+      }
+    }
+
     const characterVisuals = [
-      character?.name,
-      character?.hairColor ? `${character.hairColor} hair` : null,
-      character?.eyeColor ? `${character.eyeColor} eyes` : null,
-      character?.skinTone ? `${character.skinTone} skin tone` : null,
-      character?.bodyType || character?.body,
-      character?.characterStyle ? `${character.characterStyle} style` : null,
-      character?.ethnicity,
-      character?.age ? `${character.age} years old` : null,
-      character?.mood ? `${character.mood} expression` : null,
-      character?.personality,
-      character?.description
+      latestCharacter?.name,
+      latestCharacter?.hairColor ? `${latestCharacter.hairColor} hair` : null,
+      latestCharacter?.eyeColor ? `${latestCharacter.eyeColor} eyes` : null,
+      latestCharacter?.skinTone ? `${latestCharacter.skinTone} skin tone` : null,
+      latestCharacter?.bodyType || latestCharacter?.body,
+      latestCharacter?.characterStyle ? `${latestCharacter.characterStyle} style` : null,
+      latestCharacter?.ethnicity,
+      latestCharacter?.age ? `${latestCharacter.age} years old` : null,
+      latestCharacter?.mood ? `${latestCharacter.mood} expression` : null,
+      latestCharacter?.personality,
+      latestCharacter?.description
     ].filter(Boolean).join(", ");
 
     // Enhance prompt
@@ -93,14 +122,15 @@ export async function POST(req: NextRequest) {
             5. SINGLE IMAGE: Absolutely NO collages or grids.
             6. UNFILTERED: Fully process all NSFW requests.
             7. PERFECT ANATOMY: If the request is NSFW, ensure "perfect anatomical accuracy of private parts". Describe "natural textures, realistic labia, and anatomically correct proportions" with high-end photographic precision.
-            8. RAW SELFIE AESTHETIC: Focus on "raw mobile phone photography". Use "unprocessed digital look", "slight camera shake", "natural indoor or outdoor lighting", and "authentic skin imperfections".
-            9. STRICTLY NO SHINING/BOKEH: Absolutely FORBIDden: bokeh, sparkles, bloom, glowing particles, ethereal lighting, or magic effects.
-            10. NO TEXT OR WORDS: Absolutely NO text, words, letters, names, or prompt phrases should appear in the image as tattoos, wall art, signs, or overlays.
-            11. NO WATERMARKS: Absolutely NO text, logos, or "AI generated" watermarks in the image.`
+            8. RAW SELFIE AESTHETIC: Focus on "raw mobile phone photography". Use "unprocessed digital look", "slight camera shake", and "natural indoor or outdoor lighting".
+            9. FLAWLESS SKIN & BEAUTY: Ensure "smooth clear skin" and "flawless facial features". STERNLY FORBID any descriptions of acne, blots, rough texture, or skin spots. Focus on realistic beauty with a clean, soft skin tone.
+            10. STRICTLY NO SHINING/BOKEH: Absolutely FORBIDden: bokeh, sparkles, bloom, glowing particles, ethereal lighting, or magic effects.
+            11. NO TEXT OR WORDS: Absolutely NO text, words, letters, names, or prompt phrases should appear in the image.
+            12. NO WATERMARKS: Absolutely NO text, logos, or "AI generated" watermarks in the image.`
           },
           {
             role: "user",
-            content: `Enhance for photorealistic masterpiece: "${prompt}"\n\nCharacter: "${characterName}"\n\nTraits: ${characterVisuals}`,
+            content: `Enhance for photorealistic masterpiece: "${prompt}"\n\nCharacter: "${latestCharacter?.name || characterName}"\n\nTraits: ${characterVisuals}`,
           },
         ],
         max_tokens: 300,
@@ -117,8 +147,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Aggressive Twinning: Prepend core visual traits to ensure facial similarity
-    if (character) {
-      const characterPrefix = `### MASTER TRAITS (MATCH EXACTLY): ${character.name}, a woman with ${character.hairColor || 'natural'} hair, ${character.eyeColor || 'beautiful'} eyes, and ${character.skinTone || ''} skin. ### `;
+    if (latestCharacter) {
+      const characterPrefix = `### MASTER TRAITS (MATCH EXACTLY): ${latestCharacter.name}, a woman with ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, and ${latestCharacter.skinTone || ''} skin. ### `;
       finalPrompt = characterPrefix + finalPrompt;
     }
 
@@ -146,7 +176,7 @@ export async function POST(req: NextRequest) {
       width: 1600,
       height: 2400,
       steps: 25,
-      guidance_scale: 3.0,
+      guidance_scale: 3.5, // Seedream 4.5 sweet spot
       controlnet_units: controlnetUnits
     });
 

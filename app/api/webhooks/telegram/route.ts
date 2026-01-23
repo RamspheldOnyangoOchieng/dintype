@@ -801,7 +801,7 @@ export async function POST(request: NextRequest) {
 
                 // --- NEW: Image Generation Handler ---
                 if (isAskingForImage(text)) {
-                    await sendTelegramMessage(chatId, `I'm designing that image for you. Give me just a moment... 🎨`);
+                    // Character is designing an image - removing the intermediate message as requested by user
                     await sendTypingAction(chatId, 'upload_photo');
 
                     // Check limits

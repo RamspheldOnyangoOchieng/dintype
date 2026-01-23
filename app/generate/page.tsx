@@ -325,7 +325,7 @@ function GenerateContent() {
         response_format: "url",
         size: "1600x2400",
         seed: -1,
-        guidance_scale: 7.0, // Seedream 4.5 optimized
+        guidance_scale: 3.5, // Seedream 4.5 optimized sweet spot for realism
         watermark: true,
         selectedCount,
         characterId,

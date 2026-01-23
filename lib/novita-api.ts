@@ -40,16 +40,16 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     negativePrompt = 'sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurry, distorted, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy',
     width = 1600,
     height = 2400,
-    steps = 35,
+    steps = 25,
     seed = -1,
     style = 'realistic',
-    guidance_scale = 4.5,
+    guidance_scale = 3.5,
     controlnet_units,
   } = params;
 
   // Enhance prompt based on style - focus on Solitary Intimate Photography
   let enhancedPrompt = style === 'realistic'
-    ? `Solo female raw mobile selfie, unprocessed digital photography, authentic skin texture, lone woman, ${prompt}, natural lighting, ordinary room background, highly detailed, sharp focus, 8k UHD, wide angle lens, authentic raw photo`
+    ? `Solo female raw mobile selfie, unprocessed digital photography, smooth clear skin, lone woman, ${prompt}, natural lighting, ordinary room background, flawless facial features, highly detailed, sharp focus, 8k UHD, wide angle lens, authentic raw photo`
     : `high-end anime style, ${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
 
   if (enhancedPrompt.length > 1000) {
@@ -211,7 +211,7 @@ export function buildAttributePrompt(attributes: {
   // Professional photography details for realistic style
   if (style === 'realistic') {
     parts.push('unprocessed raw mobile phone selfie');
-    parts.push('natural indoor lighting, authentic skin texture with slight imperfections');
+    parts.push('natural indoor lighting, smooth clear skin with flawless features');
     parts.push('lone woman taking a photo of herself');
     parts.push('raw digital look, slight camera shake, realistic room background');
     parts.push('unfiltered, sharp focus on face, non-studio lighting');

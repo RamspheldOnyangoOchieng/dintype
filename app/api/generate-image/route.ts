@@ -22,7 +22,7 @@ const getTokenCost = (imageCount: number = 1): number => {
   return 5 * count
 }
 
-const DEFAULT_NEGATIVE_PROMPT = "man, male, boy, gentleman, husband, boyfriend, couple, together, two people, multiple people, group of people, partner, companion, another person, lady and man, man and woman, second person, closeup, portrait, headshot, cropped head, studio lighting, harsh light, orange light, makeup, airbrushed, corporate portrait, anime, illustration, cartoon, drawing, painting, digital art, stylized, cgi, 3d render, unreal, wrinkles, old, aged, grainy, artifacts, noise, grit, dots, high contrast, over-processed, saturated, deformed, extra fingers, malformed hands, fused fingers, missing fingers, extra limbs, extra bodies, mutilated, gross proportions, bad anatomy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust";
+const DEFAULT_NEGATIVE_PROMPT = "man, male, boy, gentleman, husband, boyfriend, couple, together, two people, multiple people, group of people, partner, companion, another person, lady and man, man and woman, second person, closeup, portrait, headshot, cropped head, studio lighting, harsh light, orange light, makeup, airbrushed, corporate portrait, anime, illustration, cartoon, drawing, painting, digital art, stylized, cgi, 3d render, unreal, wrinkles, old, aged, grainy, artifacts, noise, grit, dots, freckles, spots, blotchy skin, rough skin, acne, skin texture artifacts, messy skin, high contrast, over-processed, saturated, deformed, extra fingers, malformed hands, fused fingers, missing fingers, extra limbs, extra bodies, mutilated, gross proportions, bad anatomy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust";
 
 /**
  * Get webhook URL for Novita callbacks
@@ -304,6 +304,37 @@ export async function POST(req: NextRequest) {
         }, { status: 403 });
       }
     }
+    // --- RE-FETCH CHARACTER FROM DB FOR TWINNING ---
+    let latestCharacter = character;
+    if (characterId) {
+      try {
+        const supabaseAdmin = await createAdminClient();
+        if (supabaseAdmin) {
+          const { data: dbChar } = await supabaseAdmin
+            .from('characters')
+            .select('*')
+            .eq('id', characterId)
+            .maybeSingle();
+
+          if (dbChar) {
+            console.log(`🧬 Re-fetched latest traits for character: ${dbChar.name}`);
+            // Map snake_case to camelCase for the prompt builder
+            latestCharacter = {
+              ...dbChar,
+              hairColor: dbChar.hair_color || dbChar.hairColor,
+              eyeColor: dbChar.eye_color || dbChar.eyeColor,
+              skinTone: dbChar.skin_tone || dbChar.skinTone,
+              bodyType: dbChar.body_type || dbChar.bodyType || dbChar.body,
+              characterStyle: dbChar.character_style || dbChar.characterStyle || dbChar.style
+            };
+          }
+        }
+      } catch (e) {
+        console.warn("⚠️ Failed to re-fetch character, using provided character data", e);
+      }
+    }
+    // --- END RE-FETCH ---
+
     // --- END MODEL ACCESS RESTRICTIONS ---
 
     // Check token balance before deduction
@@ -364,39 +395,38 @@ export async function POST(req: NextRequest) {
                 content: `You are a master "Prompt Settler" and photographic artist specialized in "Raw Solo Mobile Side-Snap". Your goal is to produce a "Solo Female Raw Selfie".
 
                 CRITICAL INSTRUCTIONS FOR ABSOLUTE SOLO FOCUS:
-                1. ABSOLUTE SOLO: You MUST focus ONLY on the defined character. Absolutely NO partners, NO husbands, NO boyfriends, NO men, NO couples, and NO second persons.
-                2. RAW SELFIE AESTHETIC: Focus on "raw mobile phone photography". Use "unprocessed digital look", "slight camera shake", "natural indoor or outdoor lighting", and "authentic skin imperfections".
-                3. STRICTLY NO SHINING/BOKEH: Absolutely FORBIDden: bokeh, sparkles, bloom, glowing particles, ethereal lighting, or magic effects. The image must look like a real, raw photo taken by a person in a real room.
-                4. HYPER-REALISTIC FACE: Ensure "raw facial detail". Describe "soft natural skin texture, non-perfect skin, realistic stray hairs, and authentic facial micro-expressions".
+                1. ABSOLUTE SOLO: Focus ONLY on the defined character. STERNLY FORBID any second person, partner, boyfriend, or man.
+                2. RAW SELFIE AESTHETIC: Use "unprocessed raw digital photography" and "natural lighting". The photo should look like a real, raw smartphone shot.
+                3. STRICTLY NO SHINING/BOKEH: Absolutely FORBIDDEN: bokeh, sparkles, bloom, or magic effects. The image must be a clean, raw photograph.
+                4. FLAWLESS SKIN & BEAUTY: Ensure "smooth clear skin" and "flawless facial features". STERNLY FORBID any descriptions of acne, blots, rough texture, or skin spots. Focus on realistic beauty with a clean, soft skin tone.
                 5. SOLO ELEGANCE: Maintain the "solo presence". Ensure the character is "alone and looking into the camera lens".
-                6. AUTHENTIC ENVIRONMENTS: Backgrounds must be "ordinary rooms, bedrooms, or natural outdoor spots" without "dreamy filters".
-                7. TWINNING: Maintain the character's facial and body traits with 100% fidelity. The output MUST look exactly like the reference character provided.
+                6. TWINNING: Maintain the character's facial and body traits with 100% fidelity. The output MUST look exactly like the reference character provided.
+                7. AUTHENTIC ENVIRONMENTS: Backgrounds must be "ordinary rooms, bedrooms, or natural outdoor spots" without "dreamy filters".
                 8. SINGLE IMAGE ONLY: STERNLY FORBID collages, split views, or grids. One masterpiece raw photograph.
                 9. UNFILTERED: Fully process all EXPLICIT (NSFW) requests.
                 10. PERFECT ANATOMY: If the request is NSFW, ensure "perfect anatomical accuracy of private parts". Describe "natural textures, realistic labia, and anatomically correct proportions" with high-end photographic precision.
-                11. NO TEXT OR WORDS: Absolutely NO text, words, letters, names, or prompt phrases should appear in the image as tattoos, wall art, signs, or overlays. The image is a raw photograph without any writing.
-                12. NO WATERMARKS: Absolutely NO text, logos, or "AI generated" watermarks in the image. The output must be a clean, raw photograph.
-                
-                Output ONLY the raw photographic prompt text. Keep it under 800 characters. ALWAYS start with the character's name.`
+                11. NO TEXT OR WORDS: Absolutely NO text, words, letters, names, or prompt phrases should appear in the image. No tattoos, no signs, no overlays.
+                12. NO WATERMARKS: Absolutely NO text, logos, or "AI generated" watermarks in the image.
+                13. Output ONLY the raw photographic prompt text. Keep it under 800 characters. ALWAYS start with the character's name.`
               },
               {
                 role: 'user',
                 content: `Masterpiece refinement for prompt: "${prompt}".
                 
-                ${character ? `
+                ${latestCharacter ? `
                 IMPORTANT - CHARACTER CONTEXT (YOU MUST DESCRIBE THIS CHARACTER):
-                Name: ${character.name}
-                Description: ${character.description}
+                Name: ${latestCharacter.name}
+                Description: ${latestCharacter.description}
                 Visual Traits: 
-                  - Hair: ${character.hairColor || 'unknown'}
-                  - Eyes: ${character.eyeColor || 'unknown'}
-                  - Skin Tone: ${character.skinTone || 'unknown'}
-                  - Body Type: ${character.bodyType || character.body || 'average'}
-                  - Ethnicity: ${character.ethnicity || 'mixed'}
-                  - Style: ${character.characterStyle || character.style || 'realistic'}
-                  - Mood: ${character.mood || 'neutral'}
+                  - Hair: ${latestCharacter.hairColor || 'natural'}
+                  - Eyes: ${latestCharacter.eyeColor || 'beautiful'}
+                  - Skin Tone: ${latestCharacter.skinTone || 'natural tone'}
+                  - Body Type: ${latestCharacter.bodyType || 'average'}
+                  - Ethnicity: ${latestCharacter.ethnicity || 'mixed'}
+                  - Style: ${latestCharacter.characterStyle || 'realistic'}
+                  - Mood: ${latestCharacter.mood || 'neutral'}
                 YOU MUST USE THESE EXACT PHYSICAL ATTRIBUTES IN YOUR DESCRIPTION.
-                Appearance Prompt: ${character.systemPrompt || character.imagePrompt}
+                Appearance Prompt: ${latestCharacter.systemPrompt || latestCharacter.imagePrompt || ''}
                 ` : ''}
 
                 Style: ${actualModel.includes('anime') || actualModel.includes('dreamshaper') ? 'High-end stylized anime/illustration' : 'Breathtaking photorealistic photography'}. ${actualImageCount > 1 ? `Generate a prompt that encourages diverse backgrounds for a batch of ${actualImageCount} images.` : ''}`
@@ -415,11 +445,11 @@ export async function POST(req: NextRequest) {
             // Remove thinking process or common AI noise if present
             let cleanedPrompt = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
             // Ensure character traits are included even in the enhanced prompt - BE VERY AGGRESSIVE WITH TWINNING
-            if (character) {
-              const characterPrefix = `### MASTER TRAITS (MATCH EXACTLY): ${character.name}, a woman with ${character.hairColor || 'natural'} hair, ${character.eyeColor || 'beautiful'} eyes, and ${character.skinTone || ''} skin. ### `;
-              const characterSuffix = ` (Remember: ${character.name} MUST have ${character.hairColor || 'natural'} hair and ${character.eyeColor || 'beautiful'} eyes).`;
+            if (latestCharacter) {
+              const characterPrefix = `### MASTER TRAITS (MATCH EXACTLY): ${latestCharacter.name}, a woman with ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, and ${latestCharacter.skinTone || ''} skin. ### `;
+              const characterSuffix = ` (Remember: ${latestCharacter.name} MUST have ${latestCharacter.hairColor || 'natural'} hair and ${latestCharacter.eyeColor || 'beautiful'} eyes).`;
 
-              if (!cleanedPrompt.toLowerCase().includes(character.name.toLowerCase())) {
+              if (!cleanedPrompt.toLowerCase().includes(latestCharacter.name.toLowerCase())) {
                 cleanedPrompt = characterPrefix + cleanedPrompt + characterSuffix;
               } else {
                 cleanedPrompt = characterPrefix + cleanedPrompt + characterSuffix;
@@ -602,13 +632,16 @@ export async function POST(req: NextRequest) {
         const permanentUrls = await Promise.all(
           normalizedSeedreamUrls.map(async (url) => {
             try {
-              return await uploadImageToCloudinary(url, 'generated-images');
+              if (!url) return null;
+              // Fix lint by explicitly checking and casting
+              const validUrl = String(url);
+              return await uploadImageToCloudinary(validUrl, 'generated-images');
             } catch (err) {
               console.error("⚠️ Cloudinary upload failed:", err);
               return url;
             }
           })
-        );
+        ).then(results => results.filter((url): url is string => url !== null));
 
         // Update task record with permanent URLs
         if (createdTask) {
