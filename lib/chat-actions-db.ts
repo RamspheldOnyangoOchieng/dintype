@@ -105,6 +105,14 @@ export async function sendChatMessageDB(
       throw new Error(`Session Error: ${sessionError?.message || "Unknown"}`);
     }
 
+    // 5b. SYNC TO TELEGRAM: Ensure linked TG bot switches to this character automatically
+    supabase
+      .from('telegram_links')
+      .update({ character_id: characterId })
+      .eq('user_id', userId)
+      .then(() => console.log("✅ [Sync] Telegram character updated"))
+      .catch((err: any) => console.error("⚠️ [Sync] Telegram sync failed:", err));
+
     // Fetch character metadata for memory settings
     const { data: characterData } = await supabase
       .from('characters')

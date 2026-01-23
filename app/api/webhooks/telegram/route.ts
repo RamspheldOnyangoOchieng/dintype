@@ -48,6 +48,26 @@ async function sendTelegramPhoto(chatId: number, photoUrl: string, caption?: str
     return response.json();
 }
 
+// Helper to get file from Telegram and convert to base64
+async function getTelegramFileBase64(fileId: string): Promise<string | null> {
+    if (!TELEGRAM_BOT_TOKEN) return null;
+    try {
+        const fileRes = await fetch(`${TELEGRAM_API_URL}/getFile?file_id=${fileId}`);
+        const fileData = await fileRes.json();
+        if (fileData.ok) {
+            const filePath = fileData.result.file_path;
+            const downloadUrl = `https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${filePath}`;
+            const imageRes = await fetch(downloadUrl);
+            const arrayBuffer = await imageRes.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            return `data:image/jpeg;base64,${buffer.toString('base64')}`;
+        }
+    } catch (e) {
+        console.error("Error getting telegram file:", e);
+    }
+    return null;
+}
+
 // Helper to set the persistent Menu Button (The blue "Menu" button)
 async function setChatMenuButton(chatId?: number) {
     try {
@@ -441,13 +461,13 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Handle regular messages
         if (update.message) {
             const message = update.message;
             const chatId = message.chat.id;
             const telegramUserId = message.from.id;
-            const text = message.text || '';
+            const text = message.text || message.caption || '';
             const firstName = message.from.first_name || 'Beautiful';
+            const photos = message.photo; // Array of PhotoSize objects
 
             // Check for existing link
             const { data: linkedAccount } = await supabase
@@ -455,6 +475,56 @@ export async function POST(request: NextRequest) {
                 .select('user_id, character_id, is_guest')
                 .eq('telegram_id', telegramUserId.toString())
                 .maybeSingle();
+
+            // Handle Photo Uploads for Sync
+            let userUploadedImageUrl = null;
+            if (photos && photos.length > 0) {
+                // Get the largest photo
+                const largestPhoto = photos[photos.length - 1];
+                const base64 = await getTelegramFileBase64(largestPhoto.file_id);
+                if (base64) {
+                    try {
+                        const { uploadImageToCloudinary } = await import("@/lib/cloudinary-upload");
+                        userUploadedImageUrl = await uploadImageToCloudinary(base64, 'user-uploads-telegram');
+                        console.log("📸 [Telegram] User photo synced to Cloudinary:", userUploadedImageUrl);
+                    } catch (e) {
+                        console.error("Cloudinary sync error:", e);
+                    }
+                }
+            }
+
+            // Use the RPC to get or create a session (ensures 100% sync)
+            let activeSessionId = null;
+            if (linkedAccount?.user_id && linkedAccount?.character_id) {
+                const { data: sid } = await supabase.rpc('get_or_create_conversation_session', {
+                    p_user_id: linkedAccount.user_id,
+                    p_character_id: linkedAccount.character_id
+                });
+                activeSessionId = sid;
+            }
+
+            // Save user message (text or image)
+            if (activeSessionId && linkedAccount?.user_id) {
+                if (userUploadedImageUrl) {
+                    await supabase.from('messages').insert({
+                        session_id: activeSessionId,
+                        user_id: linkedAccount.user_id,
+                        role: 'user',
+                        content: text || 'Photo uploaded',
+                        is_image: true,
+                        image_url: userUploadedImageUrl,
+                        metadata: { source: 'telegram', telegram_message_id: message.message_id }
+                    });
+                } else if (text) {
+                    await supabase.from('messages').insert({
+                        session_id: activeSessionId,
+                        user_id: linkedAccount.user_id,
+                        role: 'user',
+                        content: text,
+                        metadata: { source: 'telegram', telegram_message_id: message.message_id }
+                    });
+                }
+            }
 
             // Handle /start command
             if (text.startsWith('/start')) {
@@ -751,273 +821,246 @@ export async function POST(request: NextRequest) {
             const characterName = character?.name || 'Your Companion';
             const characterPrompt = character?.system_prompt || character?.description || '';
 
-            // Get conversation history
+            // Load conversation history for context
             let conversationHistory: { role: string; content: string }[] = [];
+            if (activeSessionId) {
+                const { data: messages } = await supabase
+                    .from('messages')
+                    .select('role, content')
+                    .eq('session_id', activeSessionId)
+                    .order('created_at', { ascending: true })
+                    .limit(30);
+                conversationHistory = messages || [];
+            }
 
-            if (linkedAccount.user_id) {
-                const { data: session } = await supabase
-                    .from('conversation_sessions')
-                    .select('id')
-                    .eq('user_id', linkedAccount.user_id)
-                    .eq('character_id', linkedAccount.character_id)
-                    .eq('is_active', true)
-                    .maybeSingle();
+            // (Session management and user message saving already handled above)
 
-                let sessionId = session?.id;
+            // --- IMAGE GENERATION HANDLER (img2img supported) ---
+            if (isAskingForImage(text)) {
+                // Character is designing an image - removing the intermediate message as requested by user
+                await sendTypingAction(chatId, 'upload_photo');
 
-                if (sessionId) {
-                    const { data: messages } = await supabase
-                        .from('messages')
-                        .select('role, content')
-                        .eq('session_id', sessionId)
-                        .order('created_at', { ascending: true })
-                        .limit(30);
-
-                    conversationHistory = messages || [];
-                } else {
-                    const { data: newSession } = await supabase
-                        .from('conversation_sessions')
-                        .insert({
-                            user_id: linkedAccount.user_id,
-                            character_id: linkedAccount.character_id,
-                            is_active: true,
-                        })
-                        .select('id')
-                        .single();
-
-                    sessionId = newSession?.id;
+                // Check limits
+                const limitCheck = await checkImageGenerationLimit(linkedAccount.user_id);
+                if (!limitCheck.allowed) {
+                    await sendTelegramMessage(chatId, limitCheck.message || "You've reached your image limit. 💔");
+                    return NextResponse.json({ ok: true });
                 }
 
-                // Save user message
-                if (sessionId) {
-                    await supabase.from('messages').insert({
-                        session_id: sessionId,
-                        user_id: linkedAccount.user_id,
-                        role: 'user',
-                        content: text,
-                        metadata: { source: 'telegram', telegram_message_id: message.message_id },
-                    });
-                }
+                // --- STORY MODE IMAGE REDIRECT ---
+                try {
+                    const { data: storyProgress } = await supabase
+                        .from("user_story_progress")
+                        .select("*")
+                        .eq("user_id", linkedAccount.user_id)
+                        .eq("character_id", linkedAccount.character_id)
+                        .maybeSingle();
 
-                // --- NEW: Image Generation Handler ---
-                if (isAskingForImage(text)) {
-                    // Character is designing an image - removing the intermediate message as requested by user
-                    await sendTypingAction(chatId, 'upload_photo');
-
-                    // Check limits
-                    const limitCheck = await checkImageGenerationLimit(linkedAccount.user_id);
-                    if (!limitCheck.allowed) {
-                        await sendTelegramMessage(chatId, limitCheck.message || "You've reached your image limit. 💔");
-                        return NextResponse.json({ ok: true });
-                    }
-
-                    // --- STORY MODE IMAGE REDIRECT ---
-                    try {
-                        const { data: storyProgress } = await supabase
-                            .from("user_story_progress")
+                    if (storyProgress && !storyProgress.is_completed) {
+                        const { data: chapter } = await supabase
+                            .from("story_chapters")
                             .select("*")
-                            .eq("user_id", linkedAccount.user_id)
                             .eq("character_id", linkedAccount.character_id)
+                            .eq("chapter_number", storyProgress.current_chapter_number)
                             .maybeSingle();
 
-                        if (storyProgress && !storyProgress.is_completed) {
-                            const { data: chapter } = await supabase
-                                .from("story_chapters")
-                                .select("*")
-                                .eq("character_id", linkedAccount.character_id)
-                                .eq("chapter_number", storyProgress.current_chapter_number)
-                                .maybeSingle();
+                        // Filter out any invalid image URLs
+                        const chImages = (chapter?.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0);
 
-                            // Filter out any invalid image URLs
-                            const chImages = (chapter?.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0);
+                        if (chImages.length > 0) {
+                            // Try to find a matching image based on keywords if available
+                            const meta = chapter?.content?.chapter_image_metadata || []
+                            const lowercasePrompt = text.toLowerCase()
+                            let bestMatchImg = null
 
-                            if (chImages.length > 0) {
-                                // Try to find a matching image based on keywords if available
-                                const meta = chapter?.content?.chapter_image_metadata || []
-                                const lowercasePrompt = text.toLowerCase()
-                                let bestMatchImg = null
-
-                                if (meta.length > 0) {
-                                    for (const imgUrl of chImages) {
-                                        const originalIdx = (chapter?.content?.chapter_images || []).indexOf(imgUrl);
-                                        const imgMeta = (meta[originalIdx] || "").toLowerCase();
-                                        if (imgMeta && lowercasePrompt.split(' ').some((word: string) => word.length > 3 && imgMeta.includes(word))) {
-                                            bestMatchImg = imgUrl;
-                                            break;
-                                        }
+                            if (meta.length > 0) {
+                                for (const imgUrl of chImages) {
+                                    const originalIdx = (chapter?.content?.chapter_images || []).indexOf(imgUrl);
+                                    const imgMeta = (meta[originalIdx] || "").toLowerCase();
+                                    if (imgMeta && lowercasePrompt.split(' ').some((word: string) => word.length > 3 && imgMeta.includes(word))) {
+                                        bestMatchImg = imgUrl;
+                                        break;
                                     }
                                 }
-
-                                const selectedImg = bestMatchImg || chImages[Math.floor(Math.random() * chImages.length)];
-                                await sendTelegramPhoto(chatId, selectedImg, `I've been waiting for you to ask... here's something special just for you. 😉`);
-                            } else {
-                                // Block generation if story is active but no images are set
-                                await sendTelegramMessage(chatId, "I'm not in the mood for photos right now, let's keep focusing on our time together... 💕");
                             }
 
-                            // CRITICAL: Always return here if a storyline is active to prevent AI generation
-                            return NextResponse.json({ ok: true });
+                            const selectedImg = bestMatchImg || chImages[Math.floor(Math.random() * chImages.length)];
+
+                            // Save story image to messages for sync
+                            if (activeSessionId) {
+                                await supabase.from('messages').insert({
+                                    session_id: activeSessionId,
+                                    user_id: linkedAccount.user_id,
+                                    role: 'assistant',
+                                    content: "I've been waiting for you to ask... here's something special just for you. 😉",
+                                    is_image: true,
+                                    image_url: selectedImg,
+                                    metadata: { source: 'telegram', type: 'story_mode' }
+                                });
+                            }
+
+                            await sendTelegramPhoto(chatId, selectedImg, `I've been waiting for you to ask... here's something special just for you. 😉`);
+                        } else {
+                            // Block generation if story is active but no images are set
+                            await sendTelegramMessage(chatId, "I'm not in the mood for photos right now, let's keep focusing on our time together... 💕");
                         }
-                    } catch (e) {
-                        console.error("Telegram Story Image fetch error:", e);
+
+                        // CRITICAL: Always return here if a storyline is active to prevent AI generation
+                        return NextResponse.json({ ok: true });
                     }
-                    // --- END STORY MODE REDIRECT ---
+                } catch (e) {
+                    console.error("Telegram Story Image fetch error:", e);
+                }
+                // --- END STORY MODE REDIRECT ---
 
-                    const prompt = extractImagePrompt(text);
-                    const enhancedPrompt = await enhanceImagePrompt(prompt, characterPrompt);
-                    const apiKey = await getNovitaApiKey();
-                    const baseNegative = "ugly, deformed, disfigured, mutated, extra limbs, fused fingers, extra fingers, mutated hands, bad anatomy, malformed, blurry, jpeg artifacts, lowres, pixelated, out of frame, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, bad feet, distorted eyes, asymmetrical eyes, iris distortion, extra arms, extra legs, distorted body, unrealistic, unnatural skin, glitch, double torso, bad posture, plastic skin, plastic clothing, glossy plastic fabric, CG fabric, shiny synthetic fabric, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clouds, distorted bikini, missing nipples, bad anatomy genitals, hands covering breasts, hands on chest, generic sexy pose, hand-breast bias, extra digit, fewer digits, finger webbing, melted hands, claw-like hands";
+                const prompt = extractImagePrompt(text);
+                const enhancedPrompt = await enhanceImagePrompt(prompt, characterPrompt);
+                const apiKey = await getNovitaApiKey();
+                const baseNegative = "ugly, deformed, disfigured, mutated, extra limbs, fused fingers, extra fingers, mutated hands, bad anatomy, malformed, blurry, jpeg artifacts, lowres, pixelated, out of frame, watermarks, signature, censored, distortion, grain, long neck, unnatural pose, asymmetrical face, bad feet, distorted eyes, asymmetrical eyes, iris distortion, extra arms, extra legs, distorted body, unrealistic, unnatural skin, glitch, double torso, bad posture, plastic skin, plastic clothing, glossy plastic fabric, CG fabric, shiny synthetic fabric, fused clothing, unreal fabric, badly fitted bikini, fused body and clothes, floating clouds, distorted bikini, missing nipples, bad anatomy genitals, hands covering breasts, hands on chest, generic sexy pose, hand-breast bias, extra digit, fewer digits, finger webbing, melted hands, claw-like hands";
 
-                    if (apiKey) {
-                        try {
-                            const { generateImage } = await import('@/lib/novita-api');
+                if (apiKey) {
+                    try {
+                        const { generateImage } = await import('@/lib/novita-api');
 
-                            // Deduct tokens first
-                            const tokensToDeduct = isPremium ? 5 : 0;
-                            if (isPremium) {
-                                await deductTokens(linkedAccount.user_id, tokensToDeduct, 'telegram_image_gen');
-                            }
+                        // Deduct tokens first
+                        const tokensToDeduct = isPremium ? 5 : 0;
+                        if (isPremium) {
+                            await deductTokens(linkedAccount.user_id, tokensToDeduct, 'telegram_image_gen');
+                        }
 
-                            console.log(`🚀 [Telegram] Generating image with Seedream 4.5 for user: ${linkedAccount.user_id}`);
+                        console.log(`🚀 [Telegram] Generating image${userUploadedImageUrl ? ' (img2img)' : ''} with Seedream 4.5 for user: ${linkedAccount.user_id}`);
 
-                            const result = await generateImage({
-                                prompt: enhancedPrompt,
-                                negativePrompt: baseNegative,
-                                width: 1600,
-                                height: 2400,
-                                style: 'realistic'
-                            });
+                        // Prepare ControlNet if image provided (img2img)
+                        let controlnetUnits: any[] = [];
+                        if (userUploadedImageUrl) {
+                            const base64Res = await fetch(userUploadedImageUrl);
+                            const arrayBuffer = await base64Res.arrayBuffer();
+                            const base64String = Buffer.from(arrayBuffer).toString('base64');
+                            controlnetUnits = [
+                                {
+                                    model_name: "ip-adapter_xl",
+                                    weight: 0.8,
+                                    control_image: base64String,
+                                    module_name: "none"
+                                },
+                                {
+                                    model_name: "ip-adapter_plus_face_xl",
+                                    weight: 0.8,
+                                    control_image: base64String,
+                                    module_name: "none"
+                                }
+                            ];
+                        }
 
-                            if (result && result.url) {
-                                let imageUrl = result.url;
+                        const result = await generateImage({
+                            prompt: enhancedPrompt,
+                            negativePrompt: baseNegative,
+                            width: 1600,
+                            height: 2400,
+                            style: 'realistic',
+                            controlnet_units: controlnetUnits
+                        });
 
-                                // PERSISTENT SAVING: Upload to Cloudinary and save to user collection
-                                try {
-                                    console.log("🔄 [Telegram] Saving image to permanent collection...");
-                                    const { uploadImageToCloudinary } = await import("@/lib/cloudinary-upload");
-                                    const permanentUrl = await uploadImageToCloudinary(imageUrl, 'telegram-chat-images');
+                        if (result && result.url) {
+                            let imageUrl = result.url;
 
-                                    if (permanentUrl) {
-                                        imageUrl = permanentUrl;
-                                        console.log("✅ [Telegram] Permanent URL:", imageUrl);
-                                    }
+                            // PERSISTENT SAVING: Upload to Cloudinary and save to user collection
+                            try {
+                                console.log("🔄 [Telegram] Saving image to permanent collection...");
+                                const { uploadImageToCloudinary } = await import("@/lib/cloudinary-upload");
+                                const permanentUrl = await uploadImageToCloudinary(imageUrl, 'telegram-chat-images');
 
-                                    // Insert into generated_images for gallery visibility
-                                    await supabase.from("generated_images").insert({
+                                if (permanentUrl) {
+                                    imageUrl = permanentUrl;
+                                    console.log("✅ [Telegram] Permanent URL:", imageUrl);
+                                }
+
+                                // Insert into generated_images for gallery visibility
+                                await supabase.from("generated_images").insert({
+                                    user_id: linkedAccount.user_id,
+                                    character_id: linkedAccount.character_id,
+                                    image_url: imageUrl,
+                                    prompt: enhancedPrompt,
+                                    model_used: "seedream-4.5",
+                                    metadata: { source: "telegram", auto_saved: true }
+                                });
+
+                                // 2. Also save to messages table for cross-platform chat sync
+                                if (activeSessionId) {
+                                    await supabase.from("messages").insert({
+                                        session_id: activeSessionId,
                                         user_id: linkedAccount.user_id,
-                                        character_id: linkedAccount.character_id,
+                                        role: 'assistant',
+                                        content: `Here's what I made for you... do you like it? 💕`,
+                                        is_image: true,
                                         image_url: imageUrl,
-                                        prompt: enhancedPrompt,
-                                        model_used: "seedream-4.5",
                                         metadata: { source: "telegram", auto_saved: true }
                                     });
-
-                                    // Update character images array
-                                    const { data: charData } = await supabase
-                                        .from('characters')
-                                        .select('images')
-                                        .eq('id', linkedAccount.character_id)
-                                        .single();
-
-                                    if (charData) {
-                                        const currentImgs = charData.images || [];
-                                        if (!currentImgs.includes(imageUrl)) {
-                                            await supabase
-                                                .from('characters')
-                                                .update({ images: [...currentImgs, imageUrl] } as any)
-                                                .eq('id', linkedAccount.character_id);
-                                        }
-                                    }
-                                } catch (saveErr) {
-                                    console.error("❌ [Telegram] Failed to save image permanently:", saveErr);
-                                    // Fallback to Novita URL for the message if Cloudinary fails
                                 }
 
-                                await sendTelegramPhoto(chatId, imageUrl, `Here's what I made for you... do you like it? 💕`);
-                                await incrementImageUsage(linkedAccount.user_id);
+                                // Update character images array
+                                const { data: charData } = await supabase
+                                    .from('characters')
+                                    .select('images')
+                                    .eq('id', linkedAccount.character_id)
+                                    .single();
 
-                                return NextResponse.json({ ok: true });
+                                if (charData) {
+                                    const currentImgs = charData.images || [];
+                                    if (!currentImgs.includes(imageUrl)) {
+                                        await supabase
+                                            .from('characters')
+                                            .update({ images: [...currentImgs, imageUrl] } as any)
+                                            .eq('id', linkedAccount.character_id);
+                                    }
+                                }
+                            } catch (saveErr) {
+                                console.error("❌ [Telegram] Failed to save image permanently:", saveErr);
+                                // Fallback to Novita URL for the message if Cloudinary fails
                             }
-                        } catch (e: any) {
-                            console.error("Telegram image gen error:", e);
-                            await sendTelegramMessage(chatId, `I'm sorry, I hit a snag: ${e.message || 'Generation failed'}. Let's keep chatting? 💕`);
+
+                            await sendTelegramPhoto(chatId, imageUrl, `Here's what I made for you... do you like it? 💕`);
+                            await incrementImageUsage(linkedAccount.user_id);
+
                             return NextResponse.json({ ok: true });
                         }
+                    } catch (e: any) {
+                        console.error("Telegram image gen error:", e);
+                        await sendTelegramMessage(chatId, `I'm sorry, I hit a snag: ${e.message || 'Generation failed'}. Let's keep chatting? 💕`);
+                        return NextResponse.json({ ok: true });
                     }
-
-                    await sendTelegramMessage(chatId, "I'm sorry, I couldn't generate the image right now. Let's keep chatting instead? 💕");
-                    return NextResponse.json({ ok: true });
-                }
-                // --- END: Image Generation Handler ---
-
-                // Generate AI response
-                const aiResponse = await generateAIResponse(
-                    text,
-                    characterName,
-                    characterPrompt,
-                    conversationHistory,
-                    isPremium,
-                    linkedAccount.user_id,
-                    linkedAccount.character_id
-                );
-
-                // Story branch buttons removed as requested by user to keep chat clean
-
-                // Save AI response
-                if (sessionId) {
-                    await supabase.from('messages').insert({
-                        session_id: sessionId,
-                        user_id: linkedAccount.user_id,
-                        role: 'assistant',
-                        content: aiResponse,
-                        metadata: { source: 'telegram', model: isPremium ? 'deepseek-r1' : 'gpt-4o-mini' },
-                    });
                 }
 
-                await sendTelegramMessage(chatId, aiResponse, { reply_markup: replyMarkup });
-            } else if (linkedAccount?.user_id) {
-                // Linked user (authenticated)
-                const aiResponse = await generateAIResponse(
-                    text,
-                    characterName,
-                    characterPrompt,
-                    conversationHistory,
-                    isPremium,
-                    linkedAccount.user_id,
-                    linkedAccount.character_id
-                );
+                await sendTelegramMessage(chatId, "I'm sorry, I couldn't generate the image right now. Let's keep chatting instead? 💕");
+                return NextResponse.json({ ok: true });
+            }
+            // --- END: Image Generation Handler ---
 
-                await sendTelegramMessage(chatId, aiResponse, { reply_markup: replyMarkup });
-            } else {
-                // Guest user (unauthenticated) - handle image generation for guest if allowed
-                if (isAskingForImage(text)) {
-                    await sendTelegramMessage(chatId, "You need to link your Pocketlove account to generate images! 💕", {
-                        reply_markup: {
-                            inline_keyboard: [[
-                                { text: '🔗 Link Account', url: `${SITE_URL}/chat/${linkedAccount?.character_id}` }
-                            ]]
-                        }
-                    });
-                    return NextResponse.json({ ok: true });
-                }
+            // Generate AI response
+            const aiResponse = await generateAIResponse(
+                text,
+                characterName,
+                characterPrompt,
+                conversationHistory,
+                isPremium,
+                linkedAccount.user_id,
+                linkedAccount.character_id
+            );
 
-                // Guest user chat
-                const aiResponse = await generateAIResponse(
-                    text,
-                    characterName,
-                    characterPrompt,
-                    [],
-                    false
-                );
+            // Story branch buttons removed as requested by user to keep chat clean
 
-                await sendTelegramMessage(chatId, aiResponse, {
-                    reply_markup: {
-                        inline_keyboard: [[
-                            { text: '🔗 Link Account for Full Experience', url: `${SITE_URL}/chat/${linkedAccount?.character_id}` }
-                        ]]
-                    }
+            // Save AI response
+            if (activeSessionId) {
+                await supabase.from('messages').insert({
+                    session_id: activeSessionId,
+                    user_id: linkedAccount.user_id,
+                    role: 'assistant',
+                    content: aiResponse,
+                    metadata: { source: 'telegram', model: isPremium ? 'deepseek-r1' : 'gpt-4o-mini' },
                 });
             }
+
+            await sendTelegramMessage(chatId, aiResponse, { reply_markup: replyMarkup });
         }
 
         return NextResponse.json({ ok: true });
