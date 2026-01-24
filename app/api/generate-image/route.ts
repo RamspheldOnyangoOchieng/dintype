@@ -406,7 +406,7 @@ export async function POST(req: NextRequest) {
                 3. STRICTLY NO SHINING/BOKEH: Absolutely FORBIDDEN: bokeh, sparkles, bloom, or magic effects. The image must be a clean, raw photograph.
                 4. FLAWLESS SKIN & BEAUTY: Ensure "smooth clear skin" and "flawless facial features". STERNLY FORBID any descriptions of acne, blots, rough texture, or skin spots. Focus on realistic beauty with a clean, soft skin tone.
                 5. SOLO ELEGANCE: Maintain the "solo presence". Ensure the character is "alone and looking into the camera lens".
-                6. TWINNING: Maintain the character's facial and body traits with 100% fidelity. The output MUST look exactly like the reference character provided.
+                6. ABSOLUTE TWINNING: Maintain the character's facial features, hair style, eye color, and body proportions with 100% mathematical fidelity. The face MUST look identical to the reference character provided. No deviations are allowed.
                 7. AUTHENTIC ENVIRONMENTS: Backgrounds must be "ordinary rooms, bedrooms, or natural outdoor spots" without "dreamy filters".
                 8. SINGLE IMAGE ONLY: STERNLY FORBID collages, split views, or grids. One masterpiece raw photograph.
                 9. UNFILTERED: Fully process all EXPLICIT (NSFW) requests.
@@ -457,8 +457,8 @@ export async function POST(req: NextRequest) {
             let cleanedPrompt = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
             // Ensure character traits are included even in the enhanced prompt - BE VERY AGGRESSIVE WITH TWINNING
             if (latestCharacter) {
-              const characterPrefix = `### MASTER TRAITS (MATCH EXACTLY): ${latestCharacter.name}, a woman with ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, and ${latestCharacter.skinTone || ''} skin. ### `;
-              const characterSuffix = ` (Remember: ${latestCharacter.name} MUST have ${latestCharacter.hairColor || 'natural'} hair and ${latestCharacter.eyeColor || 'beautiful'} eyes).`;
+              const characterPrefix = `### MASTER TRAITS (MATCH EXACTLY): ${latestCharacter.name}, a woman with ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, and ${latestCharacter.skinTone || ''} skin. IDENTICAL FACE LOCK ENABLED. ### `;
+              const characterSuffix = ` (Remember: ${latestCharacter.name} MUST have ${latestCharacter.hairColor || 'natural'} hair and ${latestCharacter.eyeColor || 'beautiful'} eyes. FACE MUST BE IDENTICAL TO REFERENCE).`;
 
               if (!cleanedPrompt.toLowerCase().includes(latestCharacter.name.toLowerCase())) {
                 cleanedPrompt = characterPrefix + cleanedPrompt + characterSuffix;
@@ -499,36 +499,42 @@ export async function POST(req: NextRequest) {
       promptsForTasks.push(finalPrompt);
     }
 
-    const controlnetUnits = imageBase64 ? [
-      {
-        model_name: "ip-adapter_xl",
-        weight: 1.0,
-        control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
-        module_name: "none"
-      },
-      {
-        model_name: "ip-adapter_plus_face_xl",
-        weight: 1.0,
-        control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
-        module_name: "none"
-      }
-    ] : [];
+    const controlnetUnits: any[] = [];
 
-    // Add character-specific reference photos (Face and Anatomy) if they exist
+    // 1. FACE CONSISTENCY (Priority: Golden Reference URL > Image Base64)
     if (latestCharacter?.faceReferenceUrl) {
+      console.log("🧬 Using golden face reference URL for twinning...");
       controlnetUnits.push({
         model_name: "ip-adapter_plus_face_xl",
         weight: 1.0,
         control_image: latestCharacter.faceReferenceUrl,
         module_name: "none"
       });
+    } else if (imageBase64) {
+      console.log("📸 Using profile image base64 for face twinning...");
+      controlnetUnits.push({
+        model_name: "ip-adapter_plus_face_xl",
+        weight: 1.0,
+        control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
+        module_name: "none"
+      });
     }
 
+    // 2. BODY/ANATOMY/VIBE CONSISTENCY
     if (latestCharacter?.anatomyReferenceUrl) {
+      console.log("🧬 Using anatomy reference URL...");
       controlnetUnits.push({
         model_name: "ip-adapter_xl",
-        weight: 0.8, // Slightly lower weight for anatomy to allow pose flexibility
+        weight: 0.8, // Slightly lower to allow pose flexibility
         control_image: latestCharacter.anatomyReferenceUrl,
+        module_name: "none"
+      });
+    } else if (imageBase64) {
+      // Use profile image as general style/pose hint if no specific anatomy ref
+      controlnetUnits.push({
+        model_name: "ip-adapter_xl",
+        weight: 0.7,
+        control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
         module_name: "none"
       });
     }

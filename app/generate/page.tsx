@@ -819,6 +819,13 @@ function GenerateContent() {
                   </div>
                 )}
 
+                {characterId && (
+                  <div className="ml-2 flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-400 animate-pulse-slow">
+                    <Lock className="w-3 h-3" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Locked Face Twinning Active</span>
+                  </div>
+                )}
+
                 {/* Debug: Show premium status */}
                 {!isCheckingPremium && isPremium && (
                   <span className="ml-2 text-xs bg-primary/20 text-primary px-2 py-1 rounded-full">

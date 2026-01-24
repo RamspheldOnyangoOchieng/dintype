@@ -273,35 +273,23 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
         throw new Error("Database not initialized. Please set up the database first.")
       }
 
-      console.log(`📤 Updating character ${id}...`, characterData)
-      const snakeCaseData = camelToSnake(characterData)
+      console.log(`📤 Updating character ${id} via API...`, characterData)
 
-      // Sync image_url with image if image is provided
-      if (snakeCaseData.image && !snakeCaseData.image_url) {
-        snakeCaseData.image_url = snakeCaseData.image
+      // Use the API route instead of direct Supabase to handle permissions/admin bypass
+      const response = await fetch(`/api/characters/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(characterData),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
+        throw new Error(errorData.error || `Update failed with status ${response.status}`)
       }
 
-      const { data, error: supabaseError } = await (supabase as any)
-        .from("characters")
-        .update(snakeCaseData)
-        .eq("id", id)
-        .select()
-        .maybeSingle()
-
-      if (supabaseError) {
-        // If it's an auth error, we might want to let the caller handle refresh
-        // but we can also log more details here
-        console.error("Supabase update error:", supabaseError)
-        throw supabaseError
-      }
-
-      if (!data) {
-        throw new Error("Character not found or you don't have permission to update it. Note: Sample characters (IDs 1, 2, etc.) cannot be updated in the database.")
-      }
-
-      const formattedData = snakeToCamel(data) as Character
-      setCharacters((prev) => prev.map((char) => (char.id === id ? formattedData : char)))
-      return formattedData
+      const updatedData = await response.json()
+      setCharacters((prev) => prev.map((char) => (char.id === id ? updatedData : char)))
+      return updatedData
     } catch (error) {
       console.error("Error updating character:", error)
       throw error

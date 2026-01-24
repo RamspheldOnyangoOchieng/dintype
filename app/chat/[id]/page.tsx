@@ -576,7 +576,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       personality: character.personality,
     }
 
-    const promptBase = `${character.name}, ${details.age || ''} ${details.ethnicity || ''} ${character.category === 'anime' ? 'anime style' : 'realistic photo'}. ${character.description?.substring(0, 100) || ''}`
+    const promptBase = `LOCKED FACE: ${character.name}, ${details.age || ''} ${details.ethnicity || ''} ${character.category === 'anime' ? 'anime style' : 'realistic photo'}. ${character.description?.substring(0, 100) || ''}`
 
     // Check Story Mode lock
     if (storyProgress && !storyProgress.is_completed) {
@@ -1240,7 +1240,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               character?.system_prompt || character?.systemPrompt || "",
               "A story chapter photo",
               !!user?.isPremium,
-              `We are in Chapter ${currentChapter.chapter_number}: ${currentChapter.title}.`
+              `We are in Chapter ${currentChapter?.chapter_number || 1}: ${currentChapter?.title || 'Current Chapter'}.`
             );
 
             const storyImgMsg: Message = {
