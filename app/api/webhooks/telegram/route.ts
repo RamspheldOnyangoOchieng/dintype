@@ -134,9 +134,6 @@ async function generateAIResponse(
     userId: string | null = null,
     characterId: string | null = null
 ) {
-    const novitaKey = process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY;
-    const openaiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_KEY;
-
     const supabase = await createAdminClient();
 
     // Fetch Story Context if applicable
@@ -172,32 +169,39 @@ async function generateAIResponse(
 - STERNLY FORBID: Never mention moving to Telegram or use the [TELEGRAM_LINK] tag, as you are currently ALREADY on Telegram.`;
     }
 
-    const apiMessages = [
-        { role: 'system', content: enhancedSystemPrompt },
-        ...conversationHistory.slice(-20).map(msg => ({
-            role: msg.role,
-            content: msg.content.replace(/\[TELEGRAM_LINK\]/g, '').trim()
-        })),
-        { role: 'user', content: userMessage },
+    // Prepare message history, removing current user message if it's already in the history array
+    // and ensuring alternating roles (User/Assistant)
+    const historyToUse = conversationHistory
+        .filter(msg => msg.content !== userMessage) // Prevent duplication
+        .slice(-15); // Use last 15 messages for context
+
+    const apiMessages: any[] = [
+        { role: 'system', content: enhancedSystemPrompt }
     ];
 
-    // Select API and model
-    // Prioritize Novita (DeepSeek) for everyone to avoid OpenAI content filters on spicy messages
-    let apiKey = novitaKey;
-    let url = 'https://api.novita.ai/openai/v1/chat/completions';
-    let model = 'deepseek/deepseek-v3';
+    // Add history
+    historyToUse.forEach(msg => {
+        // OpenAI format requires 'assistant' for bot responses
+        const role = msg.role === 'bot' ? 'assistant' : msg.role;
+        apiMessages.push({
+            role: role,
+            content: msg.content.replace(/\[TELEGRAM_LINK\]/g, '').trim()
+        });
+    });
 
-    // Fallback to OpenAI if Novita is missing
-    if (!apiKey && openaiKey) {
-        apiKey = openaiKey;
-        url = 'https://api.openai.com/v1/chat/completions';
-        model = 'gpt-4o-mini';
-    }
+    // Add current user message
+    apiMessages.push({ role: 'user', content: userMessage });
+
+    const { getUnifiedNovitaKey } = await import('@/lib/unified-api-keys');
+    const { key: apiKey, error: keyError } = await getUnifiedNovitaKey();
 
     if (!apiKey) {
-        console.error('No AI API keys configured');
+        console.error('No Novita API key configured:', keyError);
         return "I'm having trouble connecting right now. Please try again later. 💔";
     }
+
+    const url = 'https://api.novita.ai/v3/openai/chat/completions';
+    const model = 'deepseek/deepseek-v3';
 
     try {
         const response = await fetch(url, {
@@ -206,16 +210,38 @@ async function generateAIResponse(
             body: JSON.stringify({
                 messages: apiMessages,
                 model: model,
-                temperature: 0.85, // Higher creativity for everyone
-                max_tokens: 300,
-                presence_penalty: 0.2,
-                frequency_penalty: 0.3,
+                temperature: 0.8,
+                max_tokens: 250,
+                // Removed penalties for better compatibility
             }),
         });
 
         if (!response.ok) {
             const errorText = await response.text();
             console.error('AI API error:', errorText);
+
+            // Fallback to simpler request if history caused the issue
+            if (response.status === 400) {
+                console.log("Retrying with simple prompt...");
+                const retryRes = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        messages: [
+                            { role: 'system', content: enhancedSystemPrompt },
+                            { role: 'user', content: userMessage }
+                        ],
+                        model: model,
+                        temperature: 0.8,
+                        max_tokens: 150,
+                    }),
+                });
+                if (retryRes.ok) {
+                    const retryData = await retryRes.json();
+                    return retryData.choices?.[0]?.message?.content || "I'm here... 💕";
+                }
+            }
+
             return "I got a bit overwhelmed... could you say that again? 💕";
         }
 

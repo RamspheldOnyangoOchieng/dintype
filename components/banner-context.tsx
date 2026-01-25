@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { usePathname } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
 
 export interface Banner {
@@ -40,7 +41,7 @@ export function BannerProvider({ children }: { children: ReactNode }) {
 
     try {
       // For public access, we only need active banners
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("banners")
         .select("*")
         .eq("is_active", true)
@@ -58,7 +59,7 @@ export function BannerProvider({ children }: { children: ReactNode }) {
 
       // Convert snake_case to camelCase
       const formattedData =
-        data?.map((banner) => ({
+        data?.map((banner: any) => ({
           id: banner.id,
           imageUrl: banner.image_url,
           title: banner.title,
@@ -116,7 +117,7 @@ export function BannerProvider({ children }: { children: ReactNode }) {
   const addBanner = async (banner: Omit<Banner, "id" | "createdAt">) => {
     try {
       // Convert camelCase to snake_case for Supabase
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("banners")
         .insert([
           {
@@ -173,7 +174,7 @@ export function BannerProvider({ children }: { children: ReactNode }) {
       if (data.isActive !== undefined) updateData.is_active = data.isActive
       updateData.updated_at = new Date().toISOString()
 
-      const { error } = await supabase.from("banners").update(updateData).eq("id", id)
+      const { error } = await (supabase as any).from("banners").update(updateData).eq("id", id)
 
       if (error) {
         throw error
@@ -192,7 +193,7 @@ export function BannerProvider({ children }: { children: ReactNode }) {
 
   const deleteBanner = async (id: string) => {
     try {
-      const { error } = await supabase.from("banners").delete().eq("id", id)
+      const { error } = await (supabase as any).from("banners").delete().eq("id", id)
 
       if (error) {
         throw error
@@ -211,9 +212,12 @@ export function BannerProvider({ children }: { children: ReactNode }) {
     await fetchBanners()
   }
 
+  const pathname = usePathname()
+
+  // Refresh banners when pathname changes (e.g. returning from admin)
   useEffect(() => {
     fetchBanners()
-  }, [])
+  }, [pathname])
 
   return (
     <BannerContext.Provider

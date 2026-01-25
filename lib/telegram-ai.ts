@@ -17,8 +17,8 @@ export async function generateAIGreeting(
         contextInstruction = `The user (${userName}) followed a special link to find you. Surprise them with a very romantic and eager welcome.`;
     }
 
-    const novitaKey = process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY;
-    const apiKey = novitaKey;
+    const { getNovitaApiKey } = await import('./api-keys');
+    const apiKey = await getNovitaApiKey();
     if (!apiKey) return `💕 Oh, hey! I was just thinking about you, ${userName}...`;
 
     try {
@@ -32,7 +32,7 @@ export async function generateAIGreeting(
         - STRICTLY FORBID: Do not invite the user to Telegram or say "join me on Telegram". You are ALREADY on Telegram.
         - Output ONLY the message.`;
 
-        const response = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
+        const response = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({

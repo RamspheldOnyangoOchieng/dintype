@@ -17,7 +17,8 @@ export async function generateDailyGreeting(
     const fallbackGreeting = `Good morning! ☀️ I was just thinking about you. Hope you have an amazing day! 💕`;
 
     try {
-        const novitaKey = process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY;
+        const { getNovitaApiKey } = await import('./api-keys');
+        const novitaKey = await getNovitaApiKey();
 
         if (!novitaKey) {
             console.warn("No API key for daily greeting, using fallback");
@@ -37,7 +38,7 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
 - Match your character's personality and the current story situation
 - Output ONLY the greeting message, nothing else`;
 
-        const response = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
+        const response = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${novitaKey}`,
@@ -90,12 +91,14 @@ export async function generatePhotoCaption(
     systemPrompt: string,
     photoContext: string,
     isPremium: boolean = false,
-    storyContext: string = ""
+    storyContext: string = "",
+    imageUrl?: string
 ): Promise<string> {
     const fallbackCaption = `Here's a little something for you... 😘`;
 
     try {
-        const novitaKey = process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY;
+        const { getNovitaApiKey } = await import('./api-keys');
+        const novitaKey = await getNovitaApiKey();
 
         if (!novitaKey) {
             return fallbackCaption;
@@ -106,8 +109,8 @@ export async function generatePhotoCaption(
 ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
 
 ### TASK: React to sending a photo ###
-- You just sent a photo showing: "${photoContext}"
-- Write a BRIEF (1-2 sentences) romantic/flirty reaction
+- You just sent a photo. ${imageUrl ? "Look closely at the image provided." : `It shows: "${photoContext}"`}
+- Write a BRIEF (1-2 sentences) romantic/flirty reaction based on what is in the photo.
 - Be intimate, personal, and HIGHLY ENTHUSIASTIC.
 - Use 1-2 emojis
 - NEVER use asterisks (*) for actions
@@ -116,30 +119,50 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
 - STRICTLY FORBID: Do not invite the user to Telegram or "cure you on Telegram". You are ALREADY on Telegram.
 - Output ONLY your reaction message`;
 
-        const response = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
+        const messages: any[] = [
+            { role: 'system', content: captionPrompt }
+        ];
+
+        if (imageUrl) {
+            messages.push({
+                role: 'user',
+                content: [
+                    { type: 'text', text: 'Check out this photo I just sent you!' },
+                    { type: 'image_url', image_url: { url: imageUrl } }
+                ]
+            });
+        } else {
+            messages.push({
+                role: 'user',
+                content: `React to sending this photo: ${photoContext}`
+            });
+        }
+
+        const response = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${novitaKey}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                messages: [
-                    { role: 'system', content: captionPrompt }
-                ],
-                model: 'deepseek/deepseek-v3',
+                messages,
+                model: imageUrl ? 'meta-llama/llama-3.2-11b-vision-instruct' : 'deepseek/deepseek-v3',
                 temperature: 0.8,
-                max_tokens: 100,
+                max_tokens: 150,
             }),
         });
 
         if (!response.ok) {
+            console.error("Photo caption API error:", await response.text());
             return fallbackCaption;
         }
 
         const data = await response.json();
         let content = data.choices?.[0]?.message?.content || "";
 
+        // Strip any thinking tags if present
         content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+        // Remove asterisks
         content = content.replace(/\*[^*]+\*/g, '').trim();
 
         if (!content || content.length < 5) {

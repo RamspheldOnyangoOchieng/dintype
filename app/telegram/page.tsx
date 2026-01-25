@@ -536,7 +536,7 @@ export default function TelegramRootPage() {
 
             {renderHeader()}
 
-            <div className="flex-1 overflow-hidden relative">
+            <div className="flex-1 overflow-hidden relative flex flex-col">
                 {activeTab === 'home' && renderHome()}
                 {activeTab === 'generate' && renderGenerate()}
                 {activeTab === 'create' && renderCreate()}

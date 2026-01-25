@@ -168,6 +168,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   // Message aggregation buffer for debouncing (respond once to multiple messages)
   const messageBufferRef = useRef<string[]>([])
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const isSubmittingRef = useRef(false)
 
   // Add debug state
   const [debugInfo, setDebugInfo] = useState({
@@ -964,7 +965,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               character?.system_prompt || character?.systemPrompt || "",
               prompt,
               !!user?.isPremium,
-              storyProgress && !storyProgress.is_completed ? `We are in Chapter ${storyProgress.current_chapter_number}` : ""
+              storyProgress && !storyProgress.is_completed ? `We are in Chapter ${storyProgress.current_chapter_number}` : "",
+              imageMessage.imageUrl
             );
 
             const reactionMsg: Message = {
@@ -1065,7 +1067,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   character?.system_prompt || character?.systemPrompt || "",
                   prompt,
                   !!user?.isPremium,
-                  storyProgress && !storyProgress.is_completed ? `We are in Chapter ${storyProgress.current_chapter_number}` : ""
+                  storyProgress && !storyProgress.is_completed ? `We are in Chapter ${storyProgress.current_chapter_number}` : "",
+                  imageMessage.imageUrl
                 );
 
                 const reactionMsg: Message = {
@@ -1240,7 +1243,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               character?.system_prompt || character?.systemPrompt || "",
               "A story chapter photo",
               !!user?.isPremium,
-              `We are in Chapter ${currentChapter?.chapter_number || 1}: ${currentChapter?.title || 'Current Chapter'}.`
+              `We are in Chapter ${currentChapter?.chapter_number || 1}: ${currentChapter?.title || 'Current Chapter'}.`,
+              nextImg
             );
 
             const storyImgMsg: Message = {
@@ -1449,12 +1453,18 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
   // Handle sending a message
   const handleSendMessage = async () => {
-    if (!isMounted) return
+    if (!isMounted || isSubmittingRef.current) return
 
-    if (inputValue.trim() && !isLoading) {
+    const content = inputValue.trim()
+    if (content && !isLoading) {
+      isSubmittingRef.current = true
+      setInputValue("")
+      setIsSendingMessage(true) // Show typing indicator
+
       // Check message limit before sending
       if (user?.isExpired) {
         setShowExpiredModal(true)
+        isSubmittingRef.current = false
         return
       }
 
@@ -1470,6 +1480,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             setPremiumModalMode("message-limit")
             setIsPremiumModalOpen(true)
             setDebugInfo((prev) => ({ ...prev, lastAction: "messageLimitReached" }))
+            isSubmittingRef.current = false
             return
           }
         } catch (error) {
@@ -1479,14 +1490,17 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
       if (!character) {
         console.error("Cannot send message: Character is null")
+        isSubmittingRef.current = false
         return
       }
+
+      setDebugInfo((prev) => ({ ...prev, messagesCount: prev.messagesCount + 1, lastAction: "sendingMessage" }))
 
       // Create new user message
       const newMessage: Message = {
         id: Math.random().toString(36).substring(2, 15),
         role: "user",
-        content: inputValue.trim(),
+        content: content,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }
 
@@ -1494,10 +1508,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       setMessages((prev) => [...prev, newMessage])
 
       // Push content to buffer for AI processing
-      messageBufferRef.current.push(inputValue.trim())
-
-      setInputValue("")
-      setIsSendingMessage(true) // Show typing indicator
+      messageBufferRef.current.push(content)
 
       // Save user message locally (for persistence)
       saveMessageToLocalStorage(character.id, newMessage)
@@ -1507,6 +1518,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         clearTimeout(debounceTimerRef.current)
       }
       debounceTimerRef.current = setTimeout(processMessageBuffer, 2000)
+
+      // Release the submission lock after a short delay to prevent double-clicks
+      // but allow sending multiple messages quickly.
+      setTimeout(() => {
+        isSubmittingRef.current = false
+      }, 250)
     }
   }
 

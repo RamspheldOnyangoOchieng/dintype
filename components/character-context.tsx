@@ -275,11 +275,14 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
 
       console.log(`📤 Updating character ${id} via API...`, characterData)
 
+      // Convert camelCase to snake_case for the database
+      const snakeCaseData = camelToSnake(characterData)
+
       // Use the API route instead of direct Supabase to handle permissions/admin bypass
       const response = await fetch(`/api/characters/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(characterData),
+        body: JSON.stringify(snakeCaseData),
       })
 
       if (!response.ok) {
@@ -287,7 +290,10 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
         throw new Error(errorData.error || `Update failed with status ${response.status}`)
       }
 
-      const updatedData = await response.json()
+      const updatedDataRaw = await response.json()
+      // Convert snake_case back to camelCase for the frontend state
+      const updatedData = snakeToCamel(updatedDataRaw)
+
       setCharacters((prev) => prev.map((char) => (char.id === id ? updatedData : char)))
       return updatedData
     } catch (error) {
