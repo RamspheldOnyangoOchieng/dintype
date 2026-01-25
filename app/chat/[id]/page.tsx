@@ -183,13 +183,15 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const [galleryItems, setGalleryItems] = useState<any[]>([])
   const [isGalleryLoading, setIsGalleryLoading] = useState(false)
 
-  // Auto-focus input when AI finish responding
+  // Auto-focus input when AI finish responding or generating image
   useEffect(() => {
     if (!isSendingMessage && !isGeneratingImage && isMounted) {
-      // Small delay to ensure the disabled state has been updated in the DOM
+      // Small delay to ensure the DOM has updated and element is enabled
       const timer = setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
+        if (inputRef.current && !inputRef.current.disabled) {
+          inputRef.current.focus();
+        }
+      }, 200);
       return () => clearTimeout(timer);
     }
   }, [isSendingMessage, isGeneratingImage, isMounted]);
@@ -1447,6 +1449,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     } finally {
       if (isMounted) {
         setIsSendingMessage(false)
+        // Fallback focus to ensure input is active
+        setTimeout(() => {
+          if (inputRef.current && !inputRef.current.disabled) {
+            inputRef.current.focus()
+          }
+        }, 300)
       }
     }
   }

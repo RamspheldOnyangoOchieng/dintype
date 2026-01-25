@@ -170,40 +170,49 @@ async function generateAIResponse(
         .filter(msg => msg.content.trim() !== userMessage.trim())
         .slice(-10); // Keep it compact for faster response
 
-    const apiMessages: any[] = [
-        { role: 'system', content: enhancedSystemPrompt }
-    ];
+    // --- STRICT SEQUENCE SANITIZATION ---
+    // Rule: System -> User -> Assistant -> User ...
+    const apiMessages: any[] = [{ role: 'system', content: enhancedSystemPrompt }];
 
-    // If no history exists, provide a small context of the first greeting to help the AI
-    if (filteredHistory.length === 0) {
-        apiMessages.push({ role: 'user', content: "Hi!" });
-        apiMessages.push({ role: 'assistant', content: `Hey! I'm ${characterName}. So glad you found me here... 💕` });
-    } else {
-        // Group consecutive messages from same role and ensure sequence
-        let lastRole = '';
-        filteredHistory.forEach(msg => {
-            let role = (msg.role === 'bot' || msg.role === 'assistant') ? 'assistant' : 'user';
+    // Prepare a temporary history array with normalized roles
+    let normalizedHistory = filteredHistory.map(msg => ({
+        role: (msg.role === 'bot' || msg.role === 'assistant') ? 'assistant' : 'user',
+        content: msg.content.replace(/\[TELEGRAM_LINK\]/g, '').trim()
+    }));
 
-            if (role === lastRole) {
-                // Combine consecutive messages from same role
-                apiMessages[apiMessages.length - 1].content += "\n" + msg.content.trim();
-            } else {
-                apiMessages.push({
-                    role: role,
-                    content: msg.content.replace(/\[TELEGRAM_LINK\]/g, '').trim()
-                });
-                lastRole = role;
-            }
-        });
+    // ENSURE START: History must start with 'user'
+    while (normalizedHistory.length > 0 && normalizedHistory[0].role !== 'user') {
+        normalizedHistory.shift();
     }
 
-    // Final message MUST be 'user' and last history message MUST be 'assistant'
-    if (apiMessages[apiMessages.length - 1].role === 'user') {
-        // If history ended with user, we need an assistant turn before adding current user message
+    // GROUP & SEQUENCE
+    if (normalizedHistory.length > 0) {
+        let currentGroup: any = null;
+
+        normalizedHistory.forEach(msg => {
+            if (!currentGroup || currentGroup.role !== msg.role) {
+                if (currentGroup) apiMessages.push(currentGroup);
+                currentGroup = { role: msg.role, content: msg.content };
+            } else {
+                currentGroup.content += "\n" + msg.content;
+            }
+        });
+        if (currentGroup) apiMessages.push(currentGroup);
+    }
+
+    // ENSURE ALTERNATION: If last message in history is 'user', add a filler assistant response
+    // so we can follow up with the current user message.
+    if (apiMessages.length > 1 && apiMessages[apiMessages.length - 1].role === 'user') {
         apiMessages.push({ role: 'assistant', content: "Mmm, tell me more... 💕" });
     }
 
-    // Add current user message
+    // If no history exists or was all trimmed, add a placeholder start if needed
+    if (apiMessages.length === 1) {
+        apiMessages.push({ role: 'user', content: "Hey!" });
+        apiMessages.push({ role: 'assistant', content: `Hey! I'm ${characterName}. So glad you're here... 💕` });
+    }
+
+    // Final turn: Current user message
     apiMessages.push({ role: 'user', content: userMessage });
 
     const { getUnifiedNovitaKey } = await import('@/lib/unified-api-keys');
@@ -220,18 +229,19 @@ async function generateAIResponse(
             headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: apiMessages,
-                model: 'deepseek/deepseek-v3',
+                model: 'deepseek/deepseek-v3', // Most stable choice for now
                 temperature: 0.8,
-                max_tokens: 200, // Shorter for Telegram
+                max_tokens: 300,
             }),
         });
 
         if (!response.ok) {
-            const errBody = await response.text();
-            console.error(`[Telegram] API Error (${response.status}):`, errBody);
+            const errStatus = response.status;
+            const errText = await response.text();
+            console.error(`[Telegram] API ${errStatus}:`, errText);
 
-            // Minimal fallback
-            if (response.status === 400 || response.status === 422) {
+            // If still failing with 400, try the ultimate fallback (no history)
+            if (errStatus === 400 || errStatus === 422) {
                 const fallbackRes = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
@@ -241,27 +251,24 @@ async function generateAIResponse(
                             { role: 'user', content: userMessage }
                         ],
                         model: 'deepseek/deepseek-v3',
-                        temperature: 0.7,
-                        max_tokens: 150
+                        max_tokens: 200
                     }),
                 });
                 if (fallbackRes.ok) {
                     const fallbackData = await fallbackRes.json();
-                    return fallbackData.choices?.[0]?.message?.content || "I'm here... 💕";
+                    return fallbackData.choices?.[0]?.message?.content || "I'm here for you... 💕";
                 }
             }
-            return "I got a bit overwhelmed... could you say that again? 💕";
+            return `I hit a small snag (Error ${errStatus}). Let's try again? 💕`;
         }
 
         const data = await response.json();
         let content = data.choices?.[0]?.message?.content || "I'm feeling a bit shy... 💕";
-
-        // Cleanup deepseek-specific tags
         content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
         return content;
-    } catch (error) {
-        console.error('[Telegram] AI Error:', error);
-        return "I couldn't think of what to say... Try messaging me again? 💕";
+    } catch (error: any) {
+        console.error('[Telegram] Fetch Error:', error);
+        return "I'm having a hard time reaching the server. Try again in a moment? 💕";
     }
 }
 

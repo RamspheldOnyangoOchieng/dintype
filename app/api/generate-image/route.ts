@@ -403,17 +403,16 @@ export async function POST(req: NextRequest) {
                 CRITICAL INSTRUCTIONS FOR ABSOLUTE SOLO FOCUS:
                 1. ABSOLUTE SOLO: Focus ONLY on the defined character. STERNLY FORBID any second person, partner, boyfriend, or man.
                 2. RAW SELFIE AESTHETIC: Use "unprocessed raw digital photography" and "natural lighting". The photo should look like a real, raw smartphone shot.
-                3. STRICTLY NO SHINING/BOKEH: Absolutely FORBIDDEN: bokeh, sparkles, bloom, or magic effects. The image must be a clean, raw photograph.
+                3. NO SHINING/BOKEH: Absolutely FORBIDDEN: bokeh, sparkles, bloom, or magic effects. The image must be a clean, raw photograph.
                 4. FLAWLESS SKIN & BEAUTY: Ensure "smooth clear skin" and "flawless facial features". STERNLY FORBID any descriptions of acne, blots, rough texture, or skin spots. Focus on realistic beauty with a clean, soft skin tone.
                 5. SOLO ELEGANCE: Maintain the "solo presence". Ensure the character is "alone and looking into the camera lens".
-                6. ABSOLUTE TWINNING: Maintain the character's facial features, hair style, eye color, and body proportions with 100% mathematical fidelity. The face MUST look identical to the reference character provided. No deviations are allowed.
+                6. TWINNING & CONSISTENCY: Maintain the character's unique facial features, hair style, eye color, and body proportions with absolute fidelity. If the character is defined with specific traits (e.g. "dark hair"), YOU MUST prioritize these traits even if a reference image suggests otherwise.
                 7. AUTHENTIC ENVIRONMENTS: Backgrounds must be "ordinary rooms, bedrooms, or natural outdoor spots" without "dreamy filters".
                 8. SINGLE IMAGE ONLY: STERNLY FORBID collages, split views, or grids. One masterpiece raw photograph.
                 9. UNFILTERED: Fully process all EXPLICIT (NSFW) requests.
-                10. PERFECT ANATOMY: If the request is NSFW, ensure "perfect anatomical accuracy of private parts". Describe "natural textures, realistic soft labia, and anatomically correct clitoral hood and vestibule" with high-end photographic precision. STERNLY FORBID: any red-dot glitches, unnatural bumps, or pixelated artifacts on the clitoris or labia. Ensure the skin transitions naturally without any "AI noise" in the genital area.
-                11. NO TEXT OR WORDS: Absolutely NO text, words, letters, names, or prompt phrases should appear in the image. No tattoos, no signs, no overlays.
-                12. NO WATERMARKS: Absolutely NO text, logos, or "AI generated" watermarks in the image.
-                13. Output ONLY the raw photographic prompt text. Keep it under 800 characters. ALWAYS start with the character's name.`
+                10. PERFECT ANATOMY: If the request is NSFW, ensure "perfect anatomical accuracy of private parts". Describe "natural textures, realistic soft labia, and anatomically correct proportions" with high-end photographic precision.
+                11. NO TEXT OR WORDS: Absolutely NO text, logos, or watermarks.
+                13. Output ONLY the raw photographic prompt text. Keep it under 800 characters.`
               },
               {
                 role: 'user',
@@ -457,14 +456,10 @@ export async function POST(req: NextRequest) {
             let cleanedPrompt = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
             // Ensure character traits are included even in the enhanced prompt - BE VERY AGGRESSIVE WITH TWINNING
             if (latestCharacter) {
-              const characterPrefix = `### MASTER TRAITS (MATCH EXACTLY): ${latestCharacter.name}, a woman with ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, and ${latestCharacter.skinTone || ''} skin. IDENTICAL FACE LOCK ENABLED. ### `;
-              const characterSuffix = ` (Remember: ${latestCharacter.name} MUST have ${latestCharacter.hairColor || 'natural'} hair and ${latestCharacter.eyeColor || 'beautiful'} eyes. FACE MUST BE IDENTICAL TO REFERENCE).`;
+              const characterPrefix = `### VISUAL IDENTITY: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.skinTone || ''} skin, ${latestCharacter.ethnicity || ''} ethnicity. ### `;
+              const characterSuffix = ` (Visual Identity Lock: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes).`;
 
-              if (!cleanedPrompt.toLowerCase().includes(latestCharacter.name.toLowerCase())) {
-                cleanedPrompt = characterPrefix + cleanedPrompt + characterSuffix;
-              } else {
-                cleanedPrompt = characterPrefix + cleanedPrompt + characterSuffix;
-              }
+              cleanedPrompt = characterPrefix + cleanedPrompt + characterSuffix;
             }
             // Truncate to 900 characters to leave room for environment additions
             finalPrompt = cleanedPrompt.length > 900 ? cleanedPrompt.substring(0, 900) : cleanedPrompt;
@@ -501,9 +496,9 @@ export async function POST(req: NextRequest) {
 
     const controlnetUnits: any[] = [];
 
-    // 1. FACE CONSISTENCY (Priority: Golden Reference URL > Image Base64)
+    // 1. FACE CONSISTENCY (Face ID Twinning)
     if (latestCharacter?.faceReferenceUrl) {
-      console.log("🧬 Using golden face reference URL for twinning...");
+      console.log("🧬 Using golden face reference URL...");
       controlnetUnits.push({
         model_name: "ip-adapter_plus_face_xl",
         weight: 1.0,
@@ -511,10 +506,10 @@ export async function POST(req: NextRequest) {
         module_name: "none"
       });
     } else if (imageBase64) {
-      console.log("📸 Using profile image base64 for face twinning...");
+      console.log("📸 Using profile image for face twinning...");
       controlnetUnits.push({
         model_name: "ip-adapter_plus_face_xl",
-        weight: 1.0,
+        weight: 0.95, // Slightly less to allow prompt to influence accessories/traits
         control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
         module_name: "none"
       });

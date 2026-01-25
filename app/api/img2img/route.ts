@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
             content: `You are a master "Prompt Settler" and photographic artist specialized in "Solitary Intimate Photography". Your goal is to produce a "Solo Female Romantic Snap".
 
             CRITICAL FOR ABSOLUTE SOLO FOCUS:
-            1. ABSOLUTE SOLO: Focus ONLY on the defined character "${characterVisuals}". Absolutely NO husbands, boyfriends, partners, or second persons.
+            1. ABSOLUTE SOLO: Focus ONLY on the defined character. Absolutely NO husbands, boyfriends, partners, or second persons.
             2. NO COUPLERS: Even if the prompt is romantic, it is a "solitary romantic moment". Never add a man or another woman.
             3. FULL BODY SHOT: Every description MUST focus on a "head-to-toe full body shot" of the solo character.
             4. SOFT ROMANTIC LIGHTING: Use "soft, balanced natural light" and "intimate atmosphere".
@@ -129,9 +129,8 @@ export async function POST(req: NextRequest) {
             7. PERFECT ANATOMY: If the request is NSFW, ensure "perfect anatomical accuracy of private parts". Describe "natural textures, realistic labia, and anatomically correct proportions" with high-end photographic precision.
             8. RAW SELFIE AESTHETIC: Focus on "raw mobile phone photography". Use "unprocessed digital look", "slight camera shake", and "natural indoor or outdoor lighting".
             9. FLAWLESS SKIN & BEAUTY: Ensure "smooth clear skin" and "flawless facial features". STERNLY FORBID any descriptions of acne, blots, rough texture, or skin spots. Focus on realistic beauty with a clean, soft skin tone.
-            10. STRICTLY NO SHINING/BOKEH: Absolutely FORBIDden: bokeh, sparkles, bloom, glowing particles, ethereal lighting, or magic effects.
-            11. NO TEXT OR WORDS: Absolutely NO text, words, letters, names, or prompt phrases should appear in the image.
-            12. NO WATERMARKS: Absolutely NO text, logos, or "AI generated" watermarks in the image.`
+            10. TWINNING & CONSISTENCY: Maintain the character's unique facial features, hair style, eye color, and body proportions with absolute fidelity. If the character is defined with specific traits (e.g. "dark hair"), YOU MUST prioritize these traits even if a reference image suggests otherwise.
+            11. NO TEXT OR WORDS: Absolutely NO text, logos, or watermarks.`
           },
           {
             role: "user",
@@ -153,8 +152,10 @@ export async function POST(req: NextRequest) {
 
     // Aggressive Twinning: Prepend core visual traits to ensure facial similarity
     if (latestCharacter) {
-      const characterPrefix = `### MASTER TRAITS (MATCH EXACTLY): ${latestCharacter.name}, a woman with ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, and ${latestCharacter.skinTone || ''} skin. ### `;
-      finalPrompt = characterPrefix + finalPrompt;
+      const characterPrefix = `### VISUAL IDENTITY: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.skinTone || ''} skin, ${latestCharacter.ethnicity || ''} ethnicity. ### `;
+      const characterSuffix = ` (Visual Identity Lock: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes).`;
+
+      finalPrompt = characterPrefix + finalPrompt + characterSuffix;
 
       // Apply Default Prompt Hook
       if (latestCharacter.metadata?.default_prompt) {
@@ -170,13 +171,13 @@ export async function POST(req: NextRequest) {
       const cleanB64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
       controlnetUnits.push({
         model_name: "ip-adapter_xl",
-        weight: 0.8,
+        weight: 0.7, // Lower style weight to avoid color bleeding
         control_image: cleanB64,
         module_name: "none"
       });
       controlnetUnits.push({
         model_name: "ip-adapter_plus_face_xl",
-        weight: 0.9,
+        weight: 0.95, // High face weight
         control_image: cleanB64,
         module_name: "none"
       });
