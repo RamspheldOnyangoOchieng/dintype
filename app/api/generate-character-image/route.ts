@@ -103,11 +103,11 @@ export async function POST(request: NextRequest) {
             6. AGE-APPROPRIATE PHYSIQUE & SKIN: 
                - If Age < 25: Ensure "firm, plump, youthful skin", "soft features", "natural collagen".
                - If Age > 35: Ensure "refined features", "mature elegance", "slightly more defined bone structure", "realistic skin maturity".
-               - If Age > 50: Ensure "distinguished look", "natural laugh lines", "realistic aging signs", "bony hands/structure".
-               STERNLY FORBID "plastic" or "airbrushed" skin. Skin must look like REAL HUMAN SKIN with pores and texture appropriate for a person of ${characterDetails.age} years old.
-            7. ANATOMY: Describe hands as "anatomically perfect, five fingers".
-            8. WORD COUNT: Under 150 words.
-            9. FORMAT: Provide ONLY the raw photographic prompt text.`
+               STERNLY FORBID "plastic" or "airbrushed" skin. Skin must look like REAL HUMAN SKIN with pores.
+            7. CLEAN & MATTE FACE (STRICT): Ensure the face is "clean, clear, and matte". STERNLY FORBID "oily skin", "sweaty skin", "shiny forehead", "harsh sun glare", or "strong reflections" on the face. Even in bright light, the face must have "soft diffused lighting" and "even skin tone" with NO sunspots or heavy shadow artifacts.
+            8. ANATOMY: Describe hands as "anatomically perfect, five fingers".
+            9. WORD COUNT: Under 150 words.
+            10. FORMAT: Provide ONLY the raw photographic prompt text.`
           },
           {
             role: 'user',
