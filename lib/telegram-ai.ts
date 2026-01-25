@@ -25,11 +25,11 @@ export async function generateAIGreeting(
         const prompt = `You are ${characterName}. ${characterPrompt}. 
         
         INSTRUCTION: ${contextInstruction}
-        - Keep it under 2 sentences.
-        - Be very in-character, romantic, and intimate.
-        - NO text actions (e.g., don't use *leaning* or *smiling*).
-        - Use emojis to express your mood/passion.
-        - STRICTLY FORBID: Do not invite the user to Telegram or say "join me on Telegram". You are ALREADY on Telegram.
+        - Be highly in-character, romantic, and immersive.
+        - NATURAL CONTEXT: Use asterisks (*) for flirty actions or setting the scene (e.g. *giggles*, *looks at you with a soft smile*).
+        - Use emojis to show passion.
+        - LENGTH: Be expressive but concise. Reason if you need a short or slightly longer greeting.
+        - STAY IMMERSED: You are ALREADY on Telegram. NEVER say "join me on Telegram".
         - Output ONLY the message.`;
 
         const response = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
@@ -37,9 +37,9 @@ export async function generateAIGreeting(
             headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: [{ role: 'system', content: prompt }],
-                model: 'deepseek/deepseek-v3',
-                temperature: 0.9,
-                max_tokens: 150,
+                model: 'deepseek/deepseek-r1',
+                temperature: 0.85,
+                max_tokens: 250,
             }),
         });
 
