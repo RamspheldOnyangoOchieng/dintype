@@ -13,7 +13,12 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
     Sparkles,
+    MessageSquare,
+    ChevronLeft,
+    ChevronRight,
     User,
+    Calendar,
+    Eye,
     Heart,
     Info,
     ShieldCheck,
