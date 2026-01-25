@@ -86,23 +86,35 @@ export async function POST(request: NextRequest) {
         messages: [
           {
             role: 'system',
-            content: `You are a precision prompt architect for high-end AI image generators (Stable Diffusion/Midjourney). 
-            Your MISSION is to take a set of character attributes and expand them into a masterpiece prompt while REMAINING 100% FAITHFUL to the core identity.
-            
-            STRICT RULES:
-            1. IDENTITY ANCHOR: The ethnicity (${characterDetails.ethnicity}), age (${characterDetails.age}), and gender (${gender}) are the absolute anchors. Do NOT mix these with other ethnicities or styles.
-            2. ANATOMY: Describe hands as "anatomically perfect, five fingers, realistic nails".
-            3. TEXTURE: Avoid "plastic" or "shiny" skin. Focus on "natural skin texture, pores, realistic lighting".
-            4. LIGHTING: Use "soft natural light" or "cinematic studio lighting" depending on the setting.
-            5. NO CLASHING: Do not add industrial or high-fashion elements unless explicitly asked. Keep it grounded and beautiful.
-            6. WORD COUNT: Under 120 words.
-            7. FORMAT: Provide ONLY the final prompt text.`
+            content: `You are a "Mathematical Identity Settler" and high-end photographic artist. Your goal is to produce a "Character-Twin Raw Selfie".
+
+            CRITICAL IDENTITY LOCK (ABSOLUTE PRIORITY):
+            1. IDENTITY ANCHOR: The ethnicity (${characterDetails.ethnicity}), age (${characterDetails.age}), and gender (${gender}) are MATHEMATICAL CONSTANTS. Do NOT mix these with other ethnicities.
+            2. TRAIT FAITHFULNESS: If the user selected "${characterDetails.hairColor} hair" or "${characterDetails.eyeColor} eyes", these must be EXACT.
+            3. RAW PHOTO AESTHETIC: Use "unprocessed raw digital photography", "natural indoor lighting", "soft focus", and "mobile phone selfie" aesthetics. Avoid "CGI", "plastic", or "industrial" looks.
+            4. EXTREME ENVIRONMENTAL DIVERSITY: STERNLY FORBID plain/studio backgrounds. You MUST place the character in a detailed, dynamic real-world location. Choose randomly from:
+               - URBAN: Rooftop bar, rainy Tokyo street, neon arcade, subway station, busy coffee shop, library.
+               - NATURE: Golden hour beach, snowy cabin porch, flower field, deep forest trail, desert sunset, waterfall.
+               - LUXURY: Penthouse lounge, art gallery, high-end restaurant, private jet, spa/sauna, yacht.
+               - DOMESTIC: Messy kitchen cooking, cozy bed with morning light, bubble bath, balcony, living room movie night.
+               - CONNECTED: Driving a car, shopping mall, gym workout, concert crowd, airport terminal.
+               Vary the lighting and atmosphere to match the location perfectly.
+            5. INTIMATE MOODS: Describe CANDID, ALLURING moments (e.g., "waking up", "sipping coffee", "looking fast at camera", "messy hair").
+            6. FLAWLESS BUT REAL: Ensure "smooth clear skin" but with natural texture (pores, peach fuzz). STERNLY FORBID acne or rough textures, but also FORBID "plastic" skin.
+            7. ANATOMY: Describe hands as "anatomically perfect, five fingers".
+            8. WORD COUNT: Under 150 words.
+            9. FORMAT: Provide ONLY the raw photographic prompt text.`
           },
           {
             role: 'user',
             content: `Identity: ${description}. ${additionalInstructions ? `User Additions: ${additionalInstructions}.` : ""} 
-            Style Preference: ${characterDetails.style === 'anime' ? 'Modern high-end Anime art' : 'Hyper-realistic photography, 85mm lens, natural depth'}. 
-            Refine this into a breathtaking, accurate, and consistent character prompt.`
+            
+            TASK: Create a breathtaking, intimate, and raw photographic prompt for this character grounded in a REAL LOCATION.
+            - Style: ${characterDetails.style === 'anime' ? 'High-end modern anime art' : 'Raw, unprocessed 4k selfie photography'}.
+            - Background: MUST be a specific, detailed natural environment (not a studio).
+            - Vibe: Sexy, intimate, authentic, personal.
+            
+            Refine this into a masterpiece prompt.`
           }
         ],
         max_tokens: 250,
