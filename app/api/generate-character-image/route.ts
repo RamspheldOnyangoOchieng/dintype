@@ -61,9 +61,9 @@ export async function POST(request: NextRequest) {
     let description = '';
 
     if (isMale) {
-      description = `A ${characterDetails.style || 'realistic'} style image of a ${characterDetails.age || 'young'} ${characterDetails.ethnicity || ''} ${subjectTerm}. He has a ${characterDetails.bodyType || 'average'} body type. His personality is ${characterDetails.personality || 'friendly'} and he's your ${characterDetails.relationship || 'friend'}.`;
+      description = `A ${characterDetails.style || 'realistic'} ${characterDetails.age || 'young'} ${characterDetails.ethnicity || ''} man. Body: ${characterDetails.bodyType || 'average'}. Personality: ${characterDetails.personality || 'friendly'}.`;
     } else {
-      description = `A ${characterDetails.style || 'realistic'} style image of a ${characterDetails.age || 'young'} ${characterDetails.ethnicity || ''} ${subjectTerm}. She has ${characterDetails.eyeColor || 'brown'} eyes, ${characterDetails.hairColor || 'brown'} ${characterDetails.hairStyle || 'long'} hair. Her body type is ${characterDetails.bodyType || 'slim'} with ${characterDetails.breastSize || 'medium'} breasts and ${characterDetails.buttSize || 'medium'} butt. Her personality is ${characterDetails.personality || 'friendly'} and she's your ${characterDetails.relationship || 'friend'}.`;
+      description = `A ${characterDetails.style || 'realistic'} ${characterDetails.age || 'young'} ${characterDetails.ethnicity || ''} woman. Eyes: ${characterDetails.eyeColor || 'brown'}. Hair: ${characterDetails.hairColor || 'brown'} ${characterDetails.hairStyle || 'long'}. Body: ${characterDetails.bodyType || 'slim'} with ${characterDetails.breastSize || 'medium'} breasts and ${characterDetails.buttSize || 'medium'} curves.`;
     }
 
     // Step 2: Enhance the description using Novità API
@@ -86,15 +86,27 @@ export async function POST(request: NextRequest) {
         messages: [
           {
             role: 'system',
-            content: 'You are an elite prompt engineer for state-of-the-art AI image generators. Your specialty is creating masterpiece-quality prompts for characters. You focus on: 1) Physical features with micro-details like skin texture, eye highlights, and ANATOMICAL PERFECTION. Specifically describe hands as "slender, well-defined fingers with EXACTLY 5 FINGERS PER HAND, and clear, beautiful nails with elegant high-gloss polish". STERNLY AVOID malformations. 2) Composition and cinematic lighting. 3) High-fashion or thematic attire. 4) Atmospheric settings. Use artistic keywords like "hyper-detailed", "8k resolution", "cinematic". Keep it poetic yet technically precise. Under 110 words.'
+            content: `You are a precision prompt architect for high-end AI image generators (Stable Diffusion/Midjourney). 
+            Your MISSION is to take a set of character attributes and expand them into a masterpiece prompt while REMAINING 100% FAITHFUL to the core identity.
+            
+            STRICT RULES:
+            1. IDENTITY ANCHOR: The ethnicity (${characterDetails.ethnicity}), age (${characterDetails.age}), and gender (${gender}) are the absolute anchors. Do NOT mix these with other ethnicities or styles.
+            2. ANATOMY: Describe hands as "anatomically perfect, five fingers, realistic nails".
+            3. TEXTURE: Avoid "plastic" or "shiny" skin. Focus on "natural skin texture, pores, realistic lighting".
+            4. LIGHTING: Use "soft natural light" or "cinematic studio lighting" depending on the setting.
+            5. NO CLASHING: Do not add industrial or high-fashion elements unless explicitly asked. Keep it grounded and beautiful.
+            6. WORD COUNT: Under 120 words.
+            7. FORMAT: Provide ONLY the final prompt text.`
           },
           {
             role: 'user',
-            content: `Masterpiece request for a ${gender} character: ${description}. ${additionalInstructions ? `ADDITIONAL USER REQUIREMENTS: ${additionalInstructions}.` : ""} Style: ${characterDetails.style === 'anime' ? 'High-end modern anime art/illustration with saturated colors and intricate linework' : 'Ultra-photorealistic photography, 85mm lens, f/1.8, bokeh background'}. Enhance this into a breathtaking, fine-detailed prompt.`
+            content: `Identity: ${description}. ${additionalInstructions ? `User Additions: ${additionalInstructions}.` : ""} 
+            Style Preference: ${characterDetails.style === 'anime' ? 'Modern high-end Anime art' : 'Hyper-realistic photography, 85mm lens, natural depth'}. 
+            Refine this into a breathtaking, accurate, and consistent character prompt.`
           }
         ],
         max_tokens: 250,
-        temperature: 0.75,
+        temperature: 0.7,
         response_format: { type: 'text' }
       }),
     });
