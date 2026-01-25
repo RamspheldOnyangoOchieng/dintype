@@ -200,75 +200,72 @@ async function generateAIResponse(
         if (currentGroup) apiMessages.push(currentGroup);
     }
 
-    // ENSURE ALTERNATION: If last message in history is 'user', add a filler assistant response
-    // so we can follow up with the current user message.
+    // ENSURE ALTERNATION
     if (apiMessages.length > 1 && apiMessages[apiMessages.length - 1].role === 'user') {
         apiMessages.push({ role: 'assistant', content: "Mmm, tell me more... 💕" });
     }
 
-    // If no history exists or was all trimmed, add a placeholder start if needed
+    // Placeholder if no history
     if (apiMessages.length === 1) {
         apiMessages.push({ role: 'user', content: "Hey!" });
         apiMessages.push({ role: 'assistant', content: `Hey! I'm ${characterName}. So glad you're here... 💕` });
     }
 
-    // Final turn: Current user message
+    // Final user turn
     apiMessages.push({ role: 'user', content: userMessage });
 
     const { getUnifiedNovitaKey } = await import('@/lib/unified-api-keys');
-    const { key: apiKey, error: keyError } = await getUnifiedNovitaKey();
+    const { key: apiKey } = await getUnifiedNovitaKey();
 
-    if (!apiKey) {
-        console.error('[Telegram] No API key found');
-        return "I'm having trouble connecting right now... 💕";
-    }
+    if (!apiKey) return "I'm having trouble connecting right now... 💕";
 
     try {
+        // Attempt 1: DeepSeek R1 (Proven stable in greetings)
         const response = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            headers: { 'Authorization': `Bearer ${apiKey.trim()}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: apiMessages,
-                model: 'deepseek/deepseek-v3', // Most stable choice for now
+                model: 'deepseek/deepseek-r1',
                 temperature: 0.8,
-                max_tokens: 300,
+                max_tokens: 350,
             }),
         });
 
         if (!response.ok) {
             const errStatus = response.status;
-            const errText = await response.text();
-            console.error(`[Telegram] API ${errStatus}:`, errText);
+            console.error(`[Telegram] Primary AI Error (${errStatus})`);
 
-            // If still failing with 400, try the ultimate fallback (no history)
-            if (errStatus === 400 || errStatus === 422) {
-                const fallbackRes = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        messages: [
-                            { role: 'system', content: enhancedSystemPrompt },
-                            { role: 'user', content: userMessage }
-                        ],
-                        model: 'deepseek/deepseek-v3',
-                        max_tokens: 200
-                    }),
-                });
-                if (fallbackRes.ok) {
-                    const fallbackData = await fallbackRes.json();
-                    return fallbackData.choices?.[0]?.message?.content || "I'm here for you... 💕";
-                }
+            // AUTOMATIC FAILOVER: Try Meta Llama 3.1 (High Reliability)
+            const fallbackRes = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${apiKey.trim()}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: [
+                        { role: 'system', content: enhancedSystemPrompt },
+                        { role: 'user', content: userMessage }
+                    ],
+                    model: 'meta-llama/llama-3.1-70b-instruct',
+                    temperature: 0.7,
+                    max_tokens: 250
+                }),
+            });
+
+            if (fallbackRes.ok) {
+                const fbData = await fallbackRes.json();
+                let fbContent = fbData.choices?.[0]?.message?.content || "I'm here... 💕";
+                return fbContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
             }
+
             return `I hit a small snag (Error ${errStatus}). Let's try again? 💕`;
         }
 
         const data = await response.json();
         let content = data.choices?.[0]?.message?.content || "I'm feeling a bit shy... 💕";
-        content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-        return content;
+        return content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
     } catch (error: any) {
-        console.error('[Telegram] Fetch Error:', error);
-        return "I'm having a hard time reaching the server. Try again in a moment? 💕";
+        console.error('[Telegram] Network Error:', error);
+        return "I'm having a hard time reaching the server. 💕";
     }
 }
 
