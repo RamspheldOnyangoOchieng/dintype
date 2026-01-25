@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
             CRITICAL IDENTITY LOCK (ABSOLUTE PRIORITY):
             1. IDENTITY ANCHOR: The ethnicity (${characterDetails.ethnicity}), age (${characterDetails.age}), and gender (${gender}) are MATHEMATICAL CONSTANTS. Do NOT mix these with other ethnicities.
             2. TRAIT FAITHFULNESS: If the user selected "${characterDetails.hairColor} hair" or "${characterDetails.eyeColor} eyes", these must be EXACT.
-            3. RAW PHOTO AESTHETIC: Use "unprocessed raw digital photography", "natural indoor lighting", "soft focus", and "mobile phone selfie" aesthetics. Avoid "CGI", "plastic", or "industrial" looks.
-            4. EXTREME ENVIRONMENTAL DIVERSITY: STERNLY FORBID plain/studio backgrounds. You MUST place the character in a detailed, dynamic real-world location. Choose randomly from:
+            3. RAW PHOTO AESTHETIC: Use "unprocessed raw digital photography", "natural indoor lighting", "deep depth of field", and "mobile phone selfie" aesthetics. Avoid "CGI", "plastic", or "industrial" looks.
+            4. EXTREME ENVIRONMENTAL DIVERSITY: STERNLY FORBID plain/studio backgrounds. You MUST place the character in a detailed, dynamic real-world location. All background elements must be "sharp, clear, and distinguishable". Choose randomly from:
                - URBAN: Rooftop bar, rainy Tokyo street, neon arcade, subway station, busy coffee shop, library.
                - NATURE: Golden hour beach, snowy cabin porch, flower field, deep forest trail, desert sunset, waterfall.
                - LUXURY: Penthouse lounge, art gallery, high-end restaurant, private jet, spa/sauna, yacht.
@@ -114,8 +114,8 @@ export async function POST(request: NextRequest) {
             content: `Identity: ${description}. ${additionalInstructions ? `User Additions: ${additionalInstructions}.` : ""} 
             
             TASK: Create a breathtaking, intimate, and raw photographic prompt for this character grounded in a REAL LOCATION.
-            - Style: ${characterDetails.style === 'anime' ? 'High-end modern anime art' : 'Raw, unprocessed 4k selfie photography'}.
-            - Background: MUST be a specific, detailed natural environment (not a studio).
+            - Style: ${characterDetails.style === 'anime' ? 'High-end modern anime art' : 'Raw, unprocessed 4k selfie photography, deep depth of field'}.
+            - Background: MUST be a specific, detailed natural environment (not a studio) with "crystal clear clarity".
             - Vibe: Sexy, intimate, authentic, personal.
             
             Refine this into a masterpiece prompt.`
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
 
     // Generate the image using Seedream 4.5 (via unified client)
     const generatedImage = await generateImage({
-      prompt: enhancedPrompt + (style === 'realistic' ? ", masterpiece, professional photography, raw photo, film grain, highly detailed skin texture, sharp focus, natural lighting, Fujifilm instax, 4k" : ", masterpiece, trending on pixiv, high-quality anime illustration, sharp lines, hyper-detailed, high-resolution style"),
+      prompt: enhancedPrompt + (style === 'realistic' ? ", masterpiece, professional photography, raw photo, film grain, highly detailed skin texture, sharp focus, natural lighting, Fujifilm instax, 4k, deep depth of field, sharp background, extremely detailed environment" : ", masterpiece, trending on pixiv, high-quality anime illustration, sharp lines, hyper-detailed, high-resolution style, detailed background"),
       negativePrompt: selectedNegativePrompt,
       style: style,
       width: width,

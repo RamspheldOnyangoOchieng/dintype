@@ -1078,7 +1078,7 @@ function GenerateContent() {
                 ) : (
                   <>
                     <Wand2 className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                    Generate Image ({user?.isAdmin ? 'Free' : (displayTokens === 0 ? 'Free' : `${displayTokens} tokens`)})
+                    Generate Image ({tokensRequired === 0 ? 'Free' : `${tokensRequired} tokens`})
                   </>
                 )}
               </Button>
