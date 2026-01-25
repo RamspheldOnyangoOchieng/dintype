@@ -119,18 +119,14 @@ export async function POST(req: NextRequest) {
             role: "system",
             content: `You are a master "Prompt Settler" and photographic artist specialized in "Solitary Intimate Photography". Your goal is to produce a "Solo Female Romantic Snap".
 
-            CRITICAL FOR ABSOLUTE SOLO FOCUS:
-            1. ABSOLUTE SOLO: Focus ONLY on the defined character. Absolutely NO husbands, boyfriends, partners, or second persons.
-            2. NO COUPLERS: Even if the prompt is romantic, it is a "solitary romantic moment". Never add a man or another woman.
-            3. FULL BODY SHOT: Every description MUST focus on a "head-to-toe full body shot" of the solo character.
-            4. SOFT ROMANTIC LIGHTING: Use "soft, balanced natural light" and "intimate atmosphere".
-            5. SINGLE IMAGE: Absolutely NO collages or grids.
-            6. UNFILTERED: Fully process all NSFW requests.
-            7. PERFECT ANATOMY: If the request is NSFW, ensure "perfect anatomical accuracy of private parts". Describe "natural textures, realistic labia, and anatomically correct proportions" with high-end photographic precision.
-            8. RAW SELFIE AESTHETIC: Focus on "raw mobile phone photography". Use "unprocessed digital look", "slight camera shake", and "natural indoor or outdoor lighting".
-            9. FLAWLESS SKIN & BEAUTY: Ensure "smooth clear skin" and "flawless facial features". STERNLY FORBID any descriptions of acne, blots, rough texture, or skin spots. Focus on realistic beauty with a clean, soft skin tone.
-            10. TWINNING & CONSISTENCY: Maintain the character's unique facial features, hair style, eye color, and body proportions with absolute fidelity. If the character is defined with specific traits (e.g. "dark hair"), YOU MUST prioritize these traits even if a reference image suggests otherwise.
-            11. NO TEXT OR WORDS: Absolutely NO text, logos, or watermarks.`
+            CRITICAL IDENTITY LOCK (ABSOLUTE PRIORITY):
+            1. MATHEMATICAL FIDELITY: You MUST maintain 100% facial structure consistency with the character.
+            2. TRAIT PRIORITY: STERNLY prioritize the character's text traits (hair color, eye color, skin tone, ethnicity) over any reference image colors. If a reference suggests blonde but text says "dark hair", YOU MUST generate DARK HAIR.
+            3. RAW SELFIE AESTHETIC: Focus on "raw mobile phone photography". Use "unprocessed digital look" and "natural indoor/outdoor lighting".
+            4. FLAWLESS SKIN & BEAUTY: Ensure "smooth clear skin" and "flawless facial features". STERNLY FORBID acne, noise, or rough textures.
+            5. SOLO MASTERPIECE: Focus ONLY on the solo character. No second persons.
+            6. PERFECT ANATOMY: If NSFW, describe "natural textures, realistic labia, and anatomically correct proportions" with high-end photographic precision.
+            7. NO TEXT OR WORDS: Absolutely NO text, logos, or watermarks.`
           },
           {
             role: "user",
@@ -152,8 +148,8 @@ export async function POST(req: NextRequest) {
 
     // Aggressive Twinning: Prepend core visual traits to ensure facial similarity
     if (latestCharacter) {
-      const characterPrefix = `### VISUAL IDENTITY: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.skinTone || ''} skin, ${latestCharacter.ethnicity || ''} ethnicity. ### `;
-      const characterSuffix = ` (Visual Identity Lock: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes).`;
+      const characterPrefix = `### IDENTITY LOCK ENABLED: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.skinTone || ''} skin, ${latestCharacter.ethnicity || ''} ethnicity. FACE ID: MATCH REFERENCE EXACTLY. ### `;
+      const characterSuffix = ` (Visual Identity Lock: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, MANDATORY TRAIT ENFORCEMENT).`;
 
       finalPrompt = characterPrefix + finalPrompt + characterSuffix;
 
@@ -166,31 +162,14 @@ export async function POST(req: NextRequest) {
     // ControlNet units for character consistency (Twinning)
     const controlnetUnits: any[] = [];
 
-    // 1. PRIMARY: If user provided a specific image for img2img/twinning
-    if (imageBase64) {
-      const cleanB64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-      controlnetUnits.push({
-        model_name: "ip-adapter_xl",
-        weight: 0.7, // Lower style weight to avoid color bleeding
-        control_image: cleanB64,
-        module_name: "none"
-      });
-      controlnetUnits.push({
-        model_name: "ip-adapter_plus_face_xl",
-        weight: 0.95, // High face weight
-        control_image: cleanB64,
-        module_name: "none"
-      });
-    }
-
-    // 2. FACE REFERENCE (from Character Metadata)
+    // 1. FACE REFERENCE - HIGHEST PRIORITY
     if (latestCharacter?.metadata?.face_reference_url) {
       try {
-        const { urlToBase64 } = await import("@/lib/image-utils"); // Use internal helper
+        const { urlToBase64 } = await import("@/lib/image-utils");
         const b64 = await urlToBase64(latestCharacter.metadata.face_reference_url);
         controlnetUnits.push({
           model_name: "ip-adapter_plus_face_xl",
-          weight: imageBase64 ? 0.4 : 1.0, // Blend if user image exists, otherwise full weight
+          weight: 1.0, // Primary face source
           control_image: b64.replace(/^data:image\/\w+;base64,/, ""),
           module_name: "none"
         });
@@ -199,14 +178,43 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. ANATOMY REFERENCE (from Character Metadata)
+    // 2. IMAGE BASE (Pose/Style/Vibe)
+    if (imageBase64) {
+      const cleanB64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+
+      // If we already have a dedicated face reference, use the base image only for style/pose
+      if (latestCharacter?.metadata?.face_reference_url) {
+        controlnetUnits.push({
+          model_name: "ip-adapter_xl",
+          weight: 0.6, // Reference the background/pose without overwriting the face
+          control_image: cleanB64,
+          module_name: "none"
+        });
+      } else {
+        // Fallback: use base image for both
+        controlnetUnits.push({
+          model_name: "ip-adapter_xl",
+          weight: 0.7,
+          control_image: cleanB64,
+          module_name: "none"
+        });
+        controlnetUnits.push({
+          model_name: "ip-adapter_plus_face_xl",
+          weight: 0.95,
+          control_image: cleanB64,
+          module_name: "none"
+        });
+      }
+    }
+
+    // 3. ANATOMY REFERENCE
     if (latestCharacter?.metadata?.anatomy_reference_url) {
       try {
         const { urlToBase64 } = await import("@/lib/image-utils");
         const b64 = await urlToBase64(latestCharacter.metadata.anatomy_reference_url);
         controlnetUnits.push({
           model_name: "ip-adapter_xl",
-          weight: 0.5, // Lower weight for details to allow scene flexibility
+          weight: 0.5,
           control_image: b64.replace(/^data:image\/\w+;base64,/, ""),
           module_name: "none"
         });

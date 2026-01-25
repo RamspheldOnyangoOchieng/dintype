@@ -398,21 +398,18 @@ export async function POST(req: NextRequest) {
             messages: [
               {
                 role: 'system',
-                content: `You are a master "Prompt Settler" and photographic artist specialized in "Raw Solo Mobile Side-Snap". Your goal is to produce a "Solo Female Raw Selfie".
+                content: `You are a "Mathematical Identity Settler" and ultra-realistic photographic artist. Your goal is to produce a "Character-Twin Raw Selfie".
 
-                CRITICAL INSTRUCTIONS FOR ABSOLUTE SOLO FOCUS:
-                1. ABSOLUTE SOLO: Focus ONLY on the defined character. STERNLY FORBID any second person, partner, boyfriend, or man.
-                2. RAW SELFIE AESTHETIC: Use "unprocessed raw digital photography" and "natural lighting". The photo should look like a real, raw smartphone shot.
-                3. NO SHINING/BOKEH: Absolutely FORBIDDEN: bokeh, sparkles, bloom, or magic effects. The image must be a clean, raw photograph.
-                4. FLAWLESS SKIN & BEAUTY: Ensure "smooth clear skin" and "flawless facial features". STERNLY FORBID any descriptions of acne, blots, rough texture, or skin spots. Focus on realistic beauty with a clean, soft skin tone.
-                5. SOLO ELEGANCE: Maintain the "solo presence". Ensure the character is "alone and looking into the camera lens".
-                6. TWINNING & CONSISTENCY: Maintain the character's unique facial features, hair style, eye color, and body proportions with absolute fidelity. If the character is defined with specific traits (e.g. "dark hair"), YOU MUST prioritize these traits even if a reference image suggests otherwise.
-                7. AUTHENTIC ENVIRONMENTS: Backgrounds must be "ordinary rooms, bedrooms, or natural outdoor spots" without "dreamy filters".
-                8. SINGLE IMAGE ONLY: STERNLY FORBID collages, split views, or grids. One masterpiece raw photograph.
-                9. UNFILTERED: Fully process all EXPLICIT (NSFW) requests.
-                10. PERFECT ANATOMY: If the request is NSFW, ensure "perfect anatomical accuracy of private parts". Describe "natural textures, realistic soft labia, and anatomically correct proportions" with high-end photographic precision.
-                11. NO TEXT OR WORDS: Absolutely NO text, logos, or watermarks.
-                13. Output ONLY the raw photographic prompt text. Keep it under 800 characters.`
+                CRITICAL IDENTITY LOCK (ABSOLUTE PRIORITY):
+                1. MATHEMATICAL FIDELITY: You MUST maintain 100% facial structure consistency with the character. 
+                2. TRAIT PRIORITY: STERNLY prioritize the character's text traits (hair color, eye color, ethnicity) over any reference image colors. If a reference suggests blonde but text says "dark hair", generate DARK HAIR.
+                3. SOLO ONLY: Absolutely FORBID any second person. Solo female only.
+                4. RAW PHOTO AESTHETIC: Use "unprocessed raw digital photography", "natural indoor lighting", and "mobile phone selfie" look.
+                5. NO SHINING/BOKEH: Absolutely FORBIDDEN: bokeh, sparkles, or filters.
+                6. FLAWLESS SKIN: Ensure "smooth clear skin" and "flawless beauty". STERNLY FORBID acne, noise, or rough textures.
+                7. ANATOMICAL PRECISION: If NSFW, describe "natural textures, realistic labia, and perfect anatomical proportions" with high-end photographic precision.
+                8. NO TEXT: Absolutely NO words or watermarks.
+                9. Output ONLY the raw photographic prompt text. Keep it under 800 characters.`
               },
               {
                 role: 'user',
@@ -456,8 +453,8 @@ export async function POST(req: NextRequest) {
             let cleanedPrompt = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
             // Ensure character traits are included even in the enhanced prompt - BE VERY AGGRESSIVE WITH TWINNING
             if (latestCharacter) {
-              const characterPrefix = `### VISUAL IDENTITY: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.skinTone || ''} skin, ${latestCharacter.ethnicity || ''} ethnicity. ### `;
-              const characterSuffix = ` (Visual Identity Lock: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes).`;
+              const characterPrefix = `### IDENTITY LOCK ENABLED: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.skinTone || ''} skin, ${latestCharacter.ethnicity || ''} ethnicity. FACE ID: MATCH REFERENCE EXACTLY. ### `;
+              const characterSuffix = ` (Visual Identity Lock: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, MANDATORY TRAIT ENFORCEMENT).`;
 
               cleanedPrompt = characterPrefix + cleanedPrompt + characterSuffix;
             }
@@ -497,11 +494,12 @@ export async function POST(req: NextRequest) {
     const controlnetUnits: any[] = [];
 
     // 1. FACE CONSISTENCY (Face ID Twinning)
+    // Priority: 1. faceReferenceUrl (Golden Face) > 2. imageBase64 (Profile Pic)
     if (latestCharacter?.faceReferenceUrl) {
-      console.log("🧬 Using golden face reference URL...");
+      console.log("🧬 Using golden face reference URL (Twinning Mode)...");
       controlnetUnits.push({
         model_name: "ip-adapter_plus_face_xl",
-        weight: 1.0,
+        weight: 1.0, // Maximum weight for golden reference
         control_image: latestCharacter.faceReferenceUrl,
         module_name: "none"
       });
@@ -509,27 +507,28 @@ export async function POST(req: NextRequest) {
       console.log("📸 Using profile image for face twinning...");
       controlnetUnits.push({
         model_name: "ip-adapter_plus_face_xl",
-        weight: 0.95, // Slightly less to allow prompt to influence accessories/traits
+        weight: 0.95,
         control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
         module_name: "none"
       });
     }
 
-    // 2. BODY/ANATOMY/VIBE CONSISTENCY
-    if (latestCharacter?.anatomyReferenceUrl) {
+    // 2. STYLE/VIBE CONSISTENCY (Optional secondary unit)
+    // Only use profile pic as style hint if it wasn't the primary face source
+    if (latestCharacter?.faceReferenceUrl && imageBase64) {
+      console.log("🎨 Adding secondary style unit for environment/vibe...");
+      controlnetUnits.push({
+        model_name: "ip-adapter_xl",
+        weight: 0.5, // Low weight to avoid overriding the Golden Face
+        control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
+        module_name: "none"
+      });
+    } else if (latestCharacter?.anatomyReferenceUrl) {
       console.log("🧬 Using anatomy reference URL...");
       controlnetUnits.push({
         model_name: "ip-adapter_xl",
-        weight: 0.8, // Slightly lower to allow pose flexibility
-        control_image: latestCharacter.anatomyReferenceUrl,
-        module_name: "none"
-      });
-    } else if (imageBase64) {
-      // Use profile image as general style/pose hint if no specific anatomy ref
-      controlnetUnits.push({
-        model_name: "ip-adapter_xl",
         weight: 0.7,
-        control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
+        control_image: latestCharacter.anatomyReferenceUrl,
         module_name: "none"
       });
     }

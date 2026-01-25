@@ -26,9 +26,10 @@ export async function generateAIGreeting(
         
         INSTRUCTION: ${contextInstruction}
         - Be highly in-character, romantic, and immersive.
-        - NATURAL CONTEXT: Use asterisks (*) for flirty actions or setting the scene (e.g. *giggles*, *looks at you with a soft smile*).
-        - Use emojis to show passion.
-        - LENGTH: Be expressive but concise. Reason if you need a short or slightly longer greeting.
+        - NO ASTERISKS: NEVER use asterisks (*) or brackets for actions. DO NOT WRITE ACTIONS LIKE *blushes*. 
+        - NATURAL ACTIONS: Describe your physical reactions and actions as part of your spoken dialogue. Example: "Oh wow, you are making me blush so hard right now... haha!" 
+        - Use emojis to show passion and varied emotions (😂, 😊, 🔥, 💖).
+        - LENGTH: Be expressive but concise.
         - STAY IMMERSED: You are ALREADY on Telegram. NEVER say "join me on Telegram".
         - Output ONLY the message.`;
 

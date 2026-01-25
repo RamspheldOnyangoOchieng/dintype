@@ -12,19 +12,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
-    Sparkles,
-    MessageSquare,
-    ChevronLeft,
-    ChevronRight,
-    User,
-    Calendar,
-    Eye,
     Heart,
     Info,
-    ShieldCheck
+    ShieldCheck,
+    Loader2,
+    RefreshCw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserTokenBalance } from "@/components/user-token-balance";
+import { refineCharacterAttributes } from "@/lib/openai";
 
 export default function CreateCharacterPage() {
     const searchParams = useSearchParams();
@@ -48,6 +44,8 @@ export default function CreateCharacterPage() {
     const [selectedOutfit, setSelectedOutfit] = useState<string | null>(null);
     const [isPublic, setIsPublic] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isRefining, setIsRefining] = useState(false);
+    const [hasRefined, setHasRefined] = useState(false);
     const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
     const [enhancedPrompt, setEnhancedPrompt] = useState<string | null>(null);
     const [showImage, setShowImage] = useState(false);
@@ -446,11 +444,47 @@ export default function CreateCharacterPage() {
     // Auto-start generation when reaching the generation step
     // Lady: step 7 (8th step), Gent: step 4 (5th step)
     const generationStep = gender === 'lady' ? 7 : 4;
+    const summaryStep = gender === 'lady' ? 6 : 3;
+
     useEffect(() => {
         if (currentStep === generationStep && !generatedImageUrl && !isGenerating) {
             handleGenerateImage();
         }
     }, [currentStep]);
+
+    // Fast-thinking Refinement Hook
+    useEffect(() => {
+        if (currentStep === summaryStep && !hasRefined && !isRefining) {
+            handleRefineDescription();
+        }
+    }, [currentStep, summaryStep]);
+
+    const handleRefineDescription = async () => {
+        if (isRefining) return;
+        setIsRefining(true);
+        try {
+            console.log("🧠 AI is refining character intent...");
+            const refined = await refineCharacterAttributes({
+                gender,
+                ethnicity: selectedEthnicity || 'mixed',
+                age: selectedAge,
+                eyeColor: selectedEyeColor || 'brown',
+                hairStyle: selectedHairStyle || 'short',
+                hairColor: selectedHairColor || 'dark',
+                bodyType: selectedBodyType || 'average',
+                breastSize: selectedBreastSize || 'medium',
+                buttSize: selectedButtSize || 'medium',
+                personality: selectedPersonality || 'friendly',
+                relationship: selectedRelationship || 'friend'
+            });
+            setCharacterDescription(refined);
+            setHasRefined(true);
+        } catch (error) {
+            console.error("Refine failed:", error);
+        } finally {
+            setIsRefining(false);
+        }
+    };
 
     // Helper function to get the step mapping based on gender
     // Lady: 0=Ethnicity/Age/Eyes, 1=Hair, 2=Body/Breast/Butt, 3=Personality, 4=Relationship, 5=Summary, 6=Generation
@@ -497,16 +531,25 @@ export default function CreateCharacterPage() {
     const [activeTab, setActiveTab] = useState<'appearance' | 'character'>('appearance');
 
     const renderStepSummary = () => {
-        if (gender === 'gent') {
-            return (
-                <div className="space-y-8">
-                    <div className="text-center">
-                        <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent mb-2">Review Your AI Character</h2>
-                        <p className="text-muted-foreground">Everything looks perfect!</p>
-                    </div>
-                </div>
-            );
-        }
+        // Shared Preview Image for Both Genders
+        const previewImage = gender === 'gent'
+            ? "https://res.cloudinary.com/ddg02aqiw/image/upload/v1770381678/previews/male_character_preview.jpg"
+            : "https://res.cloudinary.com/ddg02aqiw/image/upload/v1766907081/previews/character_selection_preview_premium.jpg";
+
+        const attributes = gender === 'lady' ? [
+            { label: 'Ethnicity', value: selectedEthnicity, type: 'ethnicity' },
+            { label: 'Age', value: `${selectedAge}yo` },
+            { label: 'Eye Color', value: selectedEyeColor, type: 'eyeColor' },
+            { label: 'Body Type', value: selectedBodyType, type: 'bodyType' },
+            { label: 'Breast Size', value: selectedBreastSize, type: 'breastSize' },
+            { label: 'Hair Style', value: selectedHairStyle, type: 'hairStyle' },
+            { label: 'Hair Color', value: selectedHairColor, type: 'hairColor' }
+        ] : [
+            { label: 'Body Type', value: selectedBodyType, type: 'bodyType' },
+            { label: 'Age', value: `${selectedAge}yo` },
+            { label: 'Personality', value: selectedPersonality, type: 'personality' },
+            { label: 'Relationship', value: selectedRelationship, type: 'relationship' }
+        ];
 
         return (
             <div className="max-w-5xl mx-auto bg-[#0a0a0a] rounded-xl sm:rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10 flex flex-col md:flex-row min-h-0 md:min-h-[600px] relative">
@@ -517,7 +560,7 @@ export default function CreateCharacterPage() {
                 <div className="w-full md:w-[45%] p-4 sm:p-6 md:p-8">
                     <div className="relative h-full w-full rounded-lg sm:rounded-[2rem] overflow-hidden aspect-[4/5] md:aspect-auto">
                         <img
-                            src="https://res.cloudinary.com/ddg02aqiw/image/upload/v1766907081/previews/character_selection_preview_premium.jpg"
+                            src={previewImage}
                             alt="Preview"
                             className="w-full h-full object-cover"
                         />
@@ -527,15 +570,17 @@ export default function CreateCharacterPage() {
                 <div className="w-full md:w-[55%] p-6 md:p-12 md:pl-0 flex flex-col">
                     <div className="mb-6 md:mb-8">
                         <div className="flex items-center gap-2 mb-2">
-                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">AI Partner, {selectedAge}</h2>
+                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">
+                                {gender === 'lady' ? 'AI Partner' : 'AI Companion'}, {selectedAge}
+                            </h2>
                         </div>
                         <div className="flex items-center gap-3 sm:gap-4">
                             <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-white/10">
-                                <span className="text-white/40"><User size={14} className="sm:size-16" /></span>
+                                <span className="text-white/40"><User size={14} /></span>
                                 <span className="text-white font-medium text-xs sm:text-sm">{getDisplayValue(selectedRelationship || 'stranger', 'relationship')}</span>
                             </div>
                             <button className="bg-white/5 p-1.5 sm:p-2 rounded-full border border-white/10 text-white/60 hover:text-white hover:bg-white/10 transition-all">
-                                <Sparkles size={18} className="sm:size-20" />
+                                <Heart size={18} />
                             </button>
                         </div>
                     </div>
@@ -547,7 +592,7 @@ export default function CreateCharacterPage() {
                                 "px-4 sm:px-8 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all",
                                 activeTab === 'appearance' ? "bg-white/20 text-white shadow-lg" : "text-white/40 hover:text-white/60"
                             )}>
-                            Appearance
+                            Attributes
                         </button>
                         <button
                             onClick={() => setActiveTab('character')}
@@ -555,22 +600,14 @@ export default function CreateCharacterPage() {
                                 "px-4 sm:px-8 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all",
                                 activeTab === 'character' ? "bg-white/20 text-white shadow-lg" : "text-white/40 hover:text-white/60"
                             )}>
-                            Character
+                            Identity
                         </button>
                     </div>
 
                     <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[40vh] md:max-h-none">
                         {activeTab === 'appearance' ? (
                             <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-8 md:mb-12">
-                                {[
-                                    { label: 'Ethnicity', value: selectedEthnicity, type: 'ethnicity' },
-                                    { label: 'Age', value: `${selectedAge}yo` },
-                                    { label: 'Eye Color', value: selectedEyeColor, type: 'eyeColor' },
-                                    { label: 'Body Type', value: selectedBodyType, type: 'bodyType' },
-                                    { label: 'Breast Size', value: selectedBreastSize, type: 'breastSize' },
-                                    { label: 'Hair Style', value: selectedHairStyle, type: 'hairStyle' },
-                                    { label: 'Hair Color', value: selectedHairColor, type: 'hairColor' }
-                                ].map((attr, i) => (
+                                {attributes.map((attr, i) => (
                                     <div key={i} className="group relative h-20 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden border border-white/5 bg-white/5 hover:border-primary/50 transition-all duration-300">
                                         <div className="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity duration-300 hidden sm:block">
                                             <img
@@ -589,23 +626,50 @@ export default function CreateCharacterPage() {
                         ) : (
                             <div className="space-y-3 sm:space-y-4 mb-2">
                                 <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-white/10">
-                                    <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1 sm:mb-2">Personality</h4>
+                                    <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1 sm:mb-2">Base Personality</h4>
                                     <p className="text-white text-xs sm:text-base font-medium">{getDisplayValue(selectedPersonality || '', 'personality')}</p>
                                 </div>
+                                <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-white/10 relative">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest flex items-center gap-2">
+                                            Soul & Persona
+                                            {isRefining && <Loader2 className="w-3 h-3 animate-spin text-primary" />}
+                                        </h4>
+                                        <button
+                                            onClick={handleRefineDescription}
+                                            disabled={isRefining}
+                                            className="text-[10px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1 font-bold"
+                                        >
+                                            <RefreshCw className={cn("w-3 h-3", isRefining && "animate-spin")} />
+                                            Re-Refine
+                                        </button>
+                                    </div>
+
+                                    {isRefining && !hasRefined ? (
+                                        <div className="h-24 flex items-center justify-center space-x-2">
+                                            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                                            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                                            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce"></div>
+                                        </div>
+                                    ) : (
+                                        <textarea
+                                            value={characterDescription}
+                                            onChange={(e) => setCharacterDescription(e.target.value)}
+                                            placeholder="What makes them special?"
+                                            className={cn(
+                                                "w-full h-24 sm:h-28 bg-transparent border-none text-white text-xs sm:text-sm focus:ring-0 resize-none p-0 outline-none leading-relaxed transition-opacity duration-500",
+                                                isRefining ? "opacity-30" : "opacity-100"
+                                            )}
+                                        />
+                                    )}
+                                </div>
+
                                 <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-white/10">
                                     <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1 sm:mb-2">Public status</h4>
                                     <div className="flex items-center justify-between">
                                         <span className="text-white text-xs sm:text-base font-medium">{isPublic ? 'Public' : 'Private'}</span>
                                         <Switch checked={isPublic} onCheckedChange={setIsPublic} />
                                     </div>
-                                </div>
-                                <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-white/10">
-                                    <textarea
-                                        value={characterDescription}
-                                        onChange={(e) => setCharacterDescription(e.target.value)}
-                                        placeholder="Describe her character..."
-                                        className="w-full h-20 sm:h-24 bg-transparent border-none text-white text-xs sm:text-sm focus:ring-0 resize-none p-0 outline-none"
-                                    />
                                 </div>
 
                                 {user?.isPremium && (
@@ -628,11 +692,6 @@ export default function CreateCharacterPage() {
                                                 step={1}
                                                 className="py-4"
                                             />
-                                            <p className="text-[10px] text-white/40 italic leading-relaxed">
-                                                {memoryLevel === 1 ? 'Last 20 messages in context' :
-                                                    memoryLevel === 2 ? 'Last 100 messages in context' :
-                                                        'Full conversation history (Unlimited)'}
-                                            </p>
                                         </div>
                                     </div>
                                 )}

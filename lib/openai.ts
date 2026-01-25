@@ -22,7 +22,8 @@ export async function generateCharacterDescription(params: GenerateCharacterPara
     // Only try database if environment variables are not available
     if (!apiKey) {
       try {
-        apiKey = await getApiKey("novita_api_key")
+        const dbKey = await getApiKey("novita_api_key");
+        if (dbKey) apiKey = dbKey;
       } catch (error) {
         console.warn("Could not fetch API key from database:", error)
       }
@@ -112,14 +113,15 @@ export async function generateSystemPrompt(character: {
     // PRIORITY: Use OPENAI_API_KEY from .env first, then fallback to NOVITA
     const openaiApiKey = process.env.OPENAI_API_KEY
     const novitaApiKey = process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY
-    
+
     const useOpenAI = !!openaiApiKey
     let apiKey = openaiApiKey || novitaApiKey
 
     // Only try database if environment variables are not available
     if (!apiKey) {
       try {
-        apiKey = await getApiKey("novita_api_key")
+        const dbKey = await getApiKey("novita_api_key");
+        if (dbKey) apiKey = dbKey;
       } catch (error) {
         console.warn("Could not fetch API key from database:", error)
       }
@@ -200,3 +202,68 @@ export async function generateSystemPrompt(character: {
   }
 }
 
+export async function refineCharacterAttributes(params: {
+  gender: string;
+  ethnicity: string;
+  age: number;
+  eyeColor: string;
+  hairStyle: string;
+  hairColor: string;
+  bodyType: string;
+  breastSize?: string;
+  buttSize?: string;
+  personality: string;
+  relationship: string;
+}): Promise<string> {
+  try {
+    const novitaApiKey = process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY;
+    if (!novitaApiKey) throw new Error("API key missing");
+
+    const subject = params.gender === "gent" ? "man" : "woman";
+    const pronoun = params.gender === "gent" ? "He" : "She";
+    const possessive = params.gender === "gent" ? "His" : "Her";
+
+    const prompt = `
+      Consolidate these character traits into a beautiful, coherent 2-3 sentence personality and appearance summary.
+      
+      Biological: ${params.ethnicity} ${subject}, ${params.age} years old.
+      Eyes: ${params.eyeColor}
+      Hair: ${params.hairColor}, ${params.hairStyle} style.
+      Body: ${params.bodyType} ${params.gender === 'lady' ? `with ${params.breastSize} breasts and ${params.buttSize} curves` : ''}.
+      Personality: ${params.personality}.
+      Relationship: ${params.relationship}.
+      
+      Instructions: 
+      - Start with a poetic hook about their aura or beauty.
+      - Seamlessly blend their physical appearance with their personality trait.
+      - Make them sound like a real, desirable personality.
+      - Keep it under 60 words.
+      - NO bullet points. 
+      - Language: English.
+    `;
+
+    const response = await fetch("https://api.novita.ai/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${novitaApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messages: [
+          { role: "system", content: "You are a master storyteller and character designer." },
+          { role: "user", content: prompt }
+        ],
+        model: "meta-llama/llama-3.1-8b-instruct",
+        max_tokens: 150,
+        temperature: 0.8,
+      }),
+    });
+
+    if (!response.ok) throw new Error("Novita error");
+    const completion = await response.json();
+    return completion.choices[0].message.content.trim() || "A mysterious and beautiful soul.";
+  } catch (error) {
+    console.error("Refine error:", error);
+    return "A captivating soul with a unique presence.";
+  }
+}
