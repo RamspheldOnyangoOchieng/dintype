@@ -34,10 +34,14 @@ export function CharacterDetailModal({ characterId, open, onOpenChange }: Charac
   async function fetchCharacter(id: string) {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/characters/${id}`)
+      const response = await fetch(`/api/characters/${id}?t=${Date.now()}`, {
+        cache: 'no-store'
+      })
       if (response.ok) {
         const data = await response.json()
-        setCharacter(data)
+        // API returns { character: ... } or just character object based on other files, 
+        // checking data.character first
+        setCharacter(data.character || data)
       } else {
         console.error('Failed to fetch character')
       }

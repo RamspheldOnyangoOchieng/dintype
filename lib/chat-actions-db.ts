@@ -6,6 +6,7 @@ import { checkMonthlyBudget, logApiCost } from "./budget-monitor"
 import { isAskingForImage } from "./image-utils"
 import { checkMessageLimit, getUserPlanInfo, incrementMessageUsage } from "./subscription-limits"
 import { deductTokens } from "./token-utils"
+import { generatePhotoCaption } from "./ai-greetings"
 
 export type Message = {
   id: string
@@ -116,7 +117,7 @@ export async function sendChatMessageDB(
     // Fetch character metadata for memory settings
     const { data: characterData } = await supabase
       .from('characters')
-      .select('metadata')
+      .select('name, system_prompt, metadata')
       .eq('id', characterId)
       .single();
 
@@ -176,10 +177,21 @@ export async function sendChatMessageDB(
           console.log(`🖼️ [Story Mode] Redirecting image request to chapter image...`);
           const selectedImg = chImages[Math.floor(Math.random() * chImages.length)];
 
+          // Generate a dynamic caption for the storyline image
+          console.log(`🖼️ [Story Mode] Generating dynamic caption for chapter photo...`);
+          const aiCaption = await generatePhotoCaption(
+            characterData?.name || "Character",
+            systemPromptFromChar || characterData?.system_prompt || "",
+            "A special storyline photo for you",
+            isPremium,
+            `We are in Chapter ${currentChapterData.chapter_number}: ${currentChapterData.title}.`,
+            selectedImg
+          );
+
           const assistantMessage: Message = {
             id: crypto.randomUUID(),
             role: "assistant",
-            content: "I've been waiting for you to ask... here's something special just for you. 😉",
+            content: aiCaption,
             timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             isImage: true,
             imageUrl: selectedImg

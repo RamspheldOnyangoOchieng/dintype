@@ -123,7 +123,13 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
   // Fetch characters using our internal API (which handles admin overrides)
   async function fetchCharacters() {
     try {
-      const response = await fetch("/api/characters")
+      const response = await fetch(`/api/characters?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      })
       if (!response.ok) {
         throw new Error("Failed to fetch characters from API")
       }

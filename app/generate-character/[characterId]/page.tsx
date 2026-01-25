@@ -58,8 +58,10 @@ export default function GenerateCharacterPage({ params }: GenerateCharacterPageP
       try {
         const resolvedParams = await params;
 
-        // Load specific character first (priority)
-        const characterResponse = await fetch(`/api/characters/${resolvedParams.characterId}`);
+        // Load specific character first (priority) - uses cache busting for freshness
+        const characterResponse = await fetch(`/api/characters/${resolvedParams.characterId}?t=${Date.now()}`, {
+          cache: 'no-store'
+        });
         if (characterResponse.ok) {
           const characterData = await characterResponse.json();
           setCharacter(characterData.character);

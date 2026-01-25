@@ -162,37 +162,39 @@ export default function EditCharacterPage() {
     const character = getCharacter(id)
     if (character) {
       setFormData({
+        // Start with traits from character metadata (lowest priority)
+        ...(character.metadata?.characterDetails || {}),
+        // Then add top-level character record fields (highest priority)
         name: character.name,
         age: character.age,
         image: character.image,
-        videoUrl: character.videoUrl || "", // Add this field
+        videoUrl: character.videoUrl || "",
         description: character.description,
         personality: character.personality || "",
         occupation: character.occupation || "",
         hobbies: character.hobbies || "",
         body: character.body || "Average",
         ethnicity: character.ethnicity || "Mixed",
-        // Character appearance traits
-        characterGender: character.characterGender || "female",
-        characterAge: character.characterAge || "young_adult",
-        bodyType: character.bodyType || "average",
-        characterStyle: character.characterStyle || "realistic",
-        artStyle: character.artStyle || "digital_art",
-        hairColor: character.hairColor || "brown",
-        eyeColor: character.eyeColor || "brown",
-        skinTone: character.skinTone || "fair",
-        clothing: character.clothing || "casual",
-        pose: character.pose || "portrait",
-        background: character.background || "simple",
-        mood: character.mood || "neutral",
-        // Other fields
+        // Appearance traits (defaults if not in characterDetails)
+        characterGender: character.characterGender || (character.metadata?.characterDetails?.characterGender) || "female",
+        characterAge: character.characterAge || (character.metadata?.characterDetails?.characterAge) || "young_adult",
+        bodyType: character.bodyType || (character.metadata?.characterDetails?.bodyType) || "average",
+        characterStyle: character.characterStyle || (character.metadata?.characterDetails?.characterStyle) || "realistic",
+        artStyle: character.artStyle || (character.metadata?.characterDetails?.artStyle) || "digital_art",
+        hairColor: character.hairColor || (character.metadata?.characterDetails?.hairColor) || "brown",
+        eyeColor: character.eyeColor || (character.metadata?.characterDetails?.eyeColor) || "brown",
+        skinTone: character.skinTone || (character.metadata?.characterDetails?.skinTone) || "fair",
+        clothing: character.clothing || (character.metadata?.characterDetails?.clothing) || "casual",
+        pose: character.pose || (character.metadata?.characterDetails?.pose) || "portrait",
+        background: character.background || (character.metadata?.characterDetails?.background) || "simple",
+        mood: character.mood || (character.metadata?.characterDetails?.mood) || "neutral",
         language: character.language || "English",
         relationship: character.relationship || "Single",
         systemPrompt: character.systemPrompt || "",
         isNew: !!character.isNew,
         category: (character as any).category || "girls",
         images: character.images || [],
-        // NEW METADATA FIELDS
+        // Advanced metadata fields (direct mapping)
         face_reference_url: character.metadata?.face_reference_url || "",
         anatomy_reference_url: character.metadata?.anatomy_reference_url || "",
         preferred_poses: character.metadata?.preferred_poses || "",
@@ -201,8 +203,6 @@ export default function EditCharacterPage() {
         negative_prompt_restrictions: character.metadata?.negative_prompt_restrictions || "",
         default_prompt: character.metadata?.default_prompt || "",
         negative_prompt: character.metadata?.negative_prompt || "",
-        // Spread traits from character metadata if available
-        ...(character.metadata?.characterDetails || {}),
       })
 
       // Set image preview if character has an image
@@ -524,17 +524,38 @@ export default function EditCharacterPage() {
       story_conflict, story_setting, story_plot
     } = data
 
+    // Build characterDetails from current formData traits
+    const characterDetails = {
+      characterGender: data.characterGender,
+      characterAge: data.characterAge,
+      bodyType: data.bodyType,
+      characterStyle: data.characterStyle,
+      artStyle: data.artStyle,
+      hairColor: data.hairColor,
+      eyeColor: data.eyeColor,
+      skinTone: data.skinTone,
+      clothing: data.clothing,
+      pose: data.pose,
+      background: data.background,
+      mood: data.mood,
+      // Sync story fields if present
+      story_conflict: data.story_conflict || data.storyConflict,
+      story_setting: data.story_setting || data.storySetting,
+      story_plot: data.story_plot || data.storyPlot,
+    }
+
     return {
       name, age, image, videoUrl, description,
       personality, occupation, hobbies, body,
       ethnicity, language, relationship,
       systemPrompt, isNew, category, images,
       hairColor, eyeColor, skinTone, characterStyle,
-      storyConflict: story_conflict,
-      storySetting: story_setting,
-      storyPlot: story_plot,
+      storyConflict: story_conflict || data.storyConflict,
+      storySetting: story_setting || data.storySetting,
+      storyPlot: story_plot || data.storyPlot,
       metadata: {
         ...(data.metadata || {}),
+        characterDetails, // Overwrite with fresh traits
         face_reference_url: data.face_reference_url,
         anatomy_reference_url: data.anatomy_reference_url,
         preferred_poses: data.preferred_poses,

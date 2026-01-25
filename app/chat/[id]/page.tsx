@@ -289,25 +289,22 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     let isMounted = true;
 
     async function loadCharacter() {
-      // Don't run if loading context or no ID
-      if (charactersLoading || !characterId) return;
-
-      // If character already set, we consider lookup complete (though we could refine this)
-      if (character) {
-        if (isMounted) setIsLookupComplete(true);
-        return;
-      }
-
       const charId = String(characterId);
-      console.log('🔍 Looking for character:', charId);
+      console.log('🔍 Syncing character details:', charId);
 
-      // 1. Try to find in characters context
+      // 1. Try to find in global characters context (the most up-to-date source)
       const foundInContext = characters.find((char) => char.id === charId);
       if (foundInContext) {
-        console.log("✅ Found character in context:", foundInContext.name);
-        if (isMounted) {
-          setCharacter(foundInContext);
-          setIsLookupComplete(true);
+        // Compare current character with context character to avoid infinite loops if using deep objects
+        // but simple assignment is usually fine for state updates
+        if (JSON.stringify(foundInContext) !== JSON.stringify(character)) {
+          console.log("✅ Syncing character from global context:", foundInContext.name);
+          if (isMounted) {
+            setCharacter(foundInContext);
+            setIsLookupComplete(true);
+          }
+        } else {
+          if (isMounted) setIsLookupComplete(true);
         }
         return;
       }
@@ -1361,10 +1358,20 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
           const nextImg = bestMatchImg || chImages.find((img) => !sentChapterImages.includes(img))
           if (nextImg) {
+            // Generate dynamic caption for the auto-sent storyline photo
+            const aiCaption = await generatePhotoCaption(
+              character?.name || "Character",
+              character?.system_prompt || character?.systemPrompt || "",
+              "An automated story update photo",
+              !!user?.isPremium,
+              `We are in Chapter ${currentChapter?.chapter_number}: ${currentChapter?.title}.`,
+              nextImg
+            );
+
             const storyImgMsg: Message = {
               id: `story-auto-img-${Date.now()}`,
               role: "assistant",
-              content: "📷 *Sent you a photo* ...just for you. I hope it reminds you how much you mean to me. ✨",
+              content: aiCaption,
               isImage: true,
               imageUrl: nextImg,
               timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),

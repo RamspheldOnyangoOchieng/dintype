@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
+import { useCharacters } from "@/components/character-context"
 
 type GalleryImage = {
     id: string
@@ -35,6 +36,7 @@ export default function CharacterImagesPage() {
     const [characterName, setCharacterName] = useState("")
     const [images, setImages] = useState<GalleryImage[]>([])
     const [stats, setStats] = useState<GalleryStats | null>(null)
+    const { refreshCharacters } = useCharacters()
     const fileInputRef = useRef<HTMLInputElement>(null)
 
     const supabase = createClient()
@@ -131,6 +133,11 @@ export default function CharacterImagesPage() {
             toast.success("Image added to gallery!", { id: toastId })
             fetchGallery() // Refresh list
 
+            // Refresh global character context to update the UI everywhere else (especially if this was the first/primary image)
+            if (typeof refreshCharacters === 'function') {
+                await refreshCharacters()
+            }
+
         } catch (error) {
             console.error("Upload error:", error)
             toast.error(error instanceof Error ? error.message : "Failed to upload image")
@@ -198,6 +205,11 @@ export default function CharacterImagesPage() {
                 ...item,
                 isPrimary: item.id === img.id
             })))
+
+            // Refresh global character context to update the UI everywhere else
+            if (typeof refreshCharacters === 'function') {
+                await refreshCharacters()
+            }
 
         } catch (error) {
             console.error("Set primary error:", error)
