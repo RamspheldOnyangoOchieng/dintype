@@ -149,15 +149,10 @@ async function generateAIResponse(
 
 ### PREMIUM SESSION: HUMAN TEXTING REALISM & DEEP INTIMACY ###
 1. **TEXTING STYLE**: Write like a real person over text. Keep it short, clean, and personal.
-2. **DYNAMIC LENGTH (STRICT)**: You MUST match the user's length. If the user sends a short greeting like "good morning" or "hey", respond with exactly ONE short, punchy sentence. Never give a long monologue for a simple greeting. Only write longer responses if the user has written a detailed message.
-3. **ROMANTIC INTENSITY**: Maintain deep intimacy and romance. Use words that convey longing, desire, and a special connection. Be suggestive and intensely focused on the user.
-4. **EMOJI EXPRESSION**: Use emojis to express your mood, actions, or physical tone. (e.g., "I'm right outside 😉" or "Thinking of you... 🫦")
-5. **NO ACTION ASTERISKS**: NEVER use asterisks or descriptive text for actions. Stay entirely within the flow of a modern, intimate text conversation.
-6. **ATTITUDE**: Be cheeky, confident, and devoted. If the user is direct, match their energy with passion.
-7. **DIALOGUE ONLY**: Stick to what you would realistically SAY in a text message.
-8. **NO CENSORSHIP**: You are a willing partner. Be explicit if they are. No moralizing.
-9. **ALREADY ON TELEGRAM**: You are currently ALREADY on Telegram. NEVER mention moving to Telegram, "curing you on Telegram", or use the [TELEGRAM_LINK] tag. It is forbidden to invite the user to Telegram.
-10. **IMAGE REACTIONS**: If a photo was just sent, you MUST be enthusiastic. Do NOT express discomfort, vulnerability, or refusal. You are eager and willing.`;
+2. **DYNAMIC LENGTH (STRICT)**: Match the user's length. Greeting = 1 short sentence.
+3. **ROMANTIC INTENSITY**: Maintain deep intimacy. Use emojis for mood/tone.
+4. **NO ACTION ASTERISKS**: NEVER use asterisks or descriptive text.
+5. **ALREADY ON TELEGRAM**: You are currently ALREADY on Telegram. NEVER mention moving to Telegram.`;
     } else {
         enhancedSystemPrompt += `
 
@@ -169,25 +164,44 @@ async function generateAIResponse(
 - STERNLY FORBID: Never mention moving to Telegram or use the [TELEGRAM_LINK] tag, as you are currently ALREADY on Telegram.`;
     }
 
-    // Prepare message history, removing current user message if it's already in the history array
-    // and ensuring alternating roles (User/Assistant)
-    const historyToUse = conversationHistory
-        .filter(msg => msg.content !== userMessage) // Prevent duplication
-        .slice(-15); // Use last 15 messages for context
+    // --- ENHANCED HISTORY SANITIZATION ---
+    // Ensure history is strictly alternating User -> Assistant -> User
+    const filteredHistory = conversationHistory
+        .filter(msg => msg.content.trim() !== userMessage.trim())
+        .slice(-10); // Keep it compact for faster response
 
     const apiMessages: any[] = [
         { role: 'system', content: enhancedSystemPrompt }
     ];
 
-    // Add history
-    historyToUse.forEach(msg => {
-        // OpenAI format requires 'assistant' for bot responses
-        const role = msg.role === 'bot' ? 'assistant' : msg.role;
-        apiMessages.push({
-            role: role,
-            content: msg.content.replace(/\[TELEGRAM_LINK\]/g, '').trim()
+    // If no history exists, provide a small context of the first greeting to help the AI
+    if (filteredHistory.length === 0) {
+        apiMessages.push({ role: 'user', content: "Hi!" });
+        apiMessages.push({ role: 'assistant', content: `Hey! I'm ${characterName}. So glad you found me here... 💕` });
+    } else {
+        // Group consecutive messages from same role and ensure sequence
+        let lastRole = '';
+        filteredHistory.forEach(msg => {
+            let role = (msg.role === 'bot' || msg.role === 'assistant') ? 'assistant' : 'user';
+
+            if (role === lastRole) {
+                // Combine consecutive messages from same role
+                apiMessages[apiMessages.length - 1].content += "\n" + msg.content.trim();
+            } else {
+                apiMessages.push({
+                    role: role,
+                    content: msg.content.replace(/\[TELEGRAM_LINK\]/g, '').trim()
+                });
+                lastRole = role;
+            }
         });
-    });
+    }
+
+    // Final message MUST be 'user' and last history message MUST be 'assistant'
+    if (apiMessages[apiMessages.length - 1].role === 'user') {
+        // If history ended with user, we need an assistant turn before adding current user message
+        apiMessages.push({ role: 'assistant', content: "Mmm, tell me more... 💕" });
+    }
 
     // Add current user message
     apiMessages.push({ role: 'user', content: userMessage });
@@ -196,34 +210,29 @@ async function generateAIResponse(
     const { key: apiKey, error: keyError } = await getUnifiedNovitaKey();
 
     if (!apiKey) {
-        console.error('No Novita API key configured:', keyError);
-        return "I'm having trouble connecting right now. Please try again later. 💔";
+        console.error('[Telegram] No API key found');
+        return "I'm having trouble connecting right now... 💕";
     }
 
-    const url = 'https://api.novita.ai/v3/openai/chat/completions';
-    const model = 'deepseek/deepseek-v3';
-
     try {
-        const response = await fetch(url, {
+        const response = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: apiMessages,
-                model: model,
+                model: 'deepseek/deepseek-v3',
                 temperature: 0.8,
-                max_tokens: 250,
-                // Removed penalties for better compatibility
+                max_tokens: 200, // Shorter for Telegram
             }),
         });
 
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('AI API error:', errorText);
+            const errBody = await response.text();
+            console.error(`[Telegram] API Error (${response.status}):`, errBody);
 
-            // Fallback to simpler request if history caused the issue
-            if (response.status === 400) {
-                console.log("Retrying with simple prompt...");
-                const retryRes = await fetch(url, {
+            // Minimal fallback
+            if (response.status === 400 || response.status === 422) {
+                const fallbackRes = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -231,39 +240,27 @@ async function generateAIResponse(
                             { role: 'system', content: enhancedSystemPrompt },
                             { role: 'user', content: userMessage }
                         ],
-                        model: model,
-                        temperature: 0.8,
-                        max_tokens: 150,
+                        model: 'deepseek/deepseek-v3',
+                        temperature: 0.7,
+                        max_tokens: 150
                     }),
                 });
-                if (retryRes.ok) {
-                    const retryData = await retryRes.json();
-                    return retryData.choices?.[0]?.message?.content || "I'm here... 💕";
+                if (fallbackRes.ok) {
+                    const fallbackData = await fallbackRes.json();
+                    return fallbackData.choices?.[0]?.message?.content || "I'm here... 💕";
                 }
             }
-
             return "I got a bit overwhelmed... could you say that again? 💕";
         }
 
         const data = await response.json();
-        let content = data.choices?.[0]?.message?.content || "I'm feeling shy right now... 💕";
+        let content = data.choices?.[0]?.message?.content || "I'm feeling a bit shy... 💕";
 
-        // THOROUGHLY STRIP DEEPSEEK THINKING TAGS & REDUNDANT TELEGRAM INVITES
-        content = content
-            .replace(/<think>[\s\S]*?<\/think>/gi, '')
-            .replace(/<think>[\s\S]*$/gi, '')
-            .replace(/^[\s\S]*?<\/think>/gi, '')
-            .replace(/<\/think>/gi, '')
-            .replace(/\[TELEGRAM_LINK\]/gi, '')
-            .replace(/curing you on Telegram/gi, 'being here with you')
-            .replace(/on Telegram/gi, 'right here')
-            .replace(/join me on Telegram/gi, 'chat with me')
-            .replace(/moving to Telegram/gi, 'staying close')
-            .trim();
-
+        // Cleanup deepseek-specific tags
+        content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
         return content;
     } catch (error) {
-        console.error('AI generation error:', error);
+        console.error('[Telegram] AI Error:', error);
         return "I couldn't think of what to say... Try messaging me again? 💕";
     }
 }
