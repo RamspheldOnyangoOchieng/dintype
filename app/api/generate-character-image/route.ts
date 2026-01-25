@@ -100,7 +100,11 @@ export async function POST(request: NextRequest) {
                - CONNECTED: Driving a car, shopping mall, gym workout, concert crowd, airport terminal.
                Vary the lighting and atmosphere to match the location perfectly.
             5. INTIMATE MOODS: Describe CANDID, ALLURING moments (e.g., "waking up", "sipping coffee", "looking fast at camera", "messy hair").
-            6. FLAWLESS BUT REAL: Ensure "smooth clear skin" but with natural texture (pores, peach fuzz). STERNLY FORBID acne or rough textures, but also FORBID "plastic" skin.
+            6. AGE-APPROPRIATE PHYSIQUE & SKIN: 
+               - If Age < 25: Ensure "firm, plump, youthful skin", "soft features", "natural collagen".
+               - If Age > 35: Ensure "refined features", "mature elegance", "slightly more defined bone structure", "realistic skin maturity".
+               - If Age > 50: Ensure "distinguished look", "natural laugh lines", "realistic aging signs", "bony hands/structure".
+               STERNLY FORBID "plastic" or "airbrushed" skin. Skin must look like REAL HUMAN SKIN with pores and texture appropriate for a person of ${characterDetails.age} years old.
             7. ANATOMY: Describe hands as "anatomically perfect, five fingers".
             8. WORD COUNT: Under 150 words.
             9. FORMAT: Provide ONLY the raw photographic prompt text.`
