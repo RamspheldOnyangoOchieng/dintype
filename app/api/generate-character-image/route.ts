@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { characterDetails, gender } = body;
+    const { characterDetails, gender, additionalInstructions } = body;
     // Default to 'lady' if not specified or invalid
     const isMale = gender === 'gent';
     const subjectTerm = isMale ? 'man' : 'woman';
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
           },
           {
             role: 'user',
-            content: `Masterpiece request for a ${gender} character: ${description}. Style: ${characterDetails.style === 'anime' ? 'High-end modern anime art/illustration with saturated colors and intricate linework' : 'Ultra-photorealistic photography, 85mm lens, f/1.8, bokeh background'}. Enhance this into a breathtaking, fine-detailed prompt.`
+            content: `Masterpiece request for a ${gender} character: ${description}. ${additionalInstructions ? `ADDITIONAL USER REQUIREMENTS: ${additionalInstructions}.` : ""} Style: ${characterDetails.style === 'anime' ? 'High-end modern anime art/illustration with saturated colors and intricate linework' : 'Ultra-photorealistic photography, 85mm lens, f/1.8, bokeh background'}. Enhance this into a breathtaking, fine-detailed prompt.`
           }
         ],
         max_tokens: 250,

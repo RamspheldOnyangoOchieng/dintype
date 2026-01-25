@@ -12,6 +12,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
+    Sparkles,
+    User,
     Heart,
     Info,
     ShieldCheck,
@@ -60,6 +62,7 @@ export default function CreateCharacterPage() {
     const [showNameDialog, setShowNameDialog] = useState(false);
     const [errorModal, setErrorModal] = useState({ isOpen: false, title: "", message: "" });
     const [memoryLevel, setMemoryLevel] = useState(1); // 1 = standard, 2 = enhanced, 3 = maximum
+    const [additionalInstructions, setAdditionalInstructions] = useState("");
 
     const supabase = createClient();
     const router = useRouter();
@@ -756,10 +759,10 @@ export default function CreateCharacterPage() {
 
                     {/* Generated Image Display */}
                     {generatedImageUrl && (
-                        <div className="mb-8 flex justify-center">
+                        <div className="mb-8 flex flex-col items-center">
                             <div
                                 className={`rounded-2xl overflow-hidden border-4 border-primary shadow-2xl transition-opacity duration-1000 ${showImage ? 'opacity-100' : 'opacity-0'
-                                    }`}
+                                    } mb-8`}
                                 style={{ maxWidth: '500px' }}
                             >
                                 <img
@@ -767,6 +770,34 @@ export default function CreateCharacterPage() {
                                     alt="Generated AI Character"
                                     className="w-full h-auto"
                                 />
+                            </div>
+
+                            <div className="w-full max-w-xl bg-card border border-border p-6 rounded-[2rem] shadow-xl">
+                                <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
+                                    <Sparkles className="w-5 h-5 text-primary" />
+                                    Not quite perfect?
+                                </h3>
+                                <p className="text-sm text-muted-foreground mb-4">
+                                    Add specific details (like "wearing a red dress" or "standing in a futuristic city") and try again!
+                                </p>
+
+                                <div className="space-y-4">
+                                    <textarea
+                                        value={additionalInstructions}
+                                        onChange={(e) => setAdditionalInstructions(e.target.value)}
+                                        placeholder="Add more details for regeneration..."
+                                        className="w-full h-24 bg-background border border-border rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
+                                    />
+
+                                    <button
+                                        onClick={() => handleGenerateImage()}
+                                        disabled={isGenerating}
+                                        className="w-full py-4 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground font-bold flex items-center justify-center gap-2 transition-all"
+                                    >
+                                        <RefreshCw className={cn("w-5 h-5", isGenerating && "animate-spin")} />
+                                        {isGenerating ? "Regenerating..." : "Regenerate Character"}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -776,7 +807,7 @@ export default function CreateCharacterPage() {
     };
 
     // Handle image generation - starts automatically when stepping to creation step
-    const handleGenerateImage = async () => {
+    const handleGenerateImage = async (customInstructions?: string) => {
         setIsGenerating(true);
         setShowImage(false);
 
@@ -803,6 +834,7 @@ export default function CreateCharacterPage() {
                 body: JSON.stringify({
                     characterDetails,
                     gender: gender, // Pass gender to the API
+                    additionalInstructions: customInstructions || additionalInstructions,
                 }),
             });
 
