@@ -4,7 +4,7 @@ import { Suspense } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Copy, Wand2, Loader2, Download, Share2, AlertCircle, ChevronLeft, FolderOpen, Clock, Image as ImageIcon, X, Coins, Sparkles, Lock, Save } from "lucide-react"
+import { Copy, Wand2, Loader2, Download, Share2, AlertCircle, ChevronLeft, FolderOpen, Clock, Image as ImageIcon, X, Coins, Sparkles, Lock, Save, Heart, MessageSquare, User } from "lucide-react"
 import Image from "next/image"
 import { useState, useEffect, useRef } from "react"
 import { useToast } from "@/hooks/use-toast"
@@ -25,6 +25,7 @@ import { useAuthModal } from "@/components/auth-modal-context"
 import { containsNSFW } from "@/lib/nsfw-filter"
 import { useCharacters } from "@/components/character-context"
 import { imageUrlToBase64 } from "@/lib/image-utils"
+import { cn } from "@/lib/utils"
 
 // Remove the static imageOptions array and replace with dynamic calculation
 // Get selected option for token calculation - move this logic up and make it dynamic
@@ -93,6 +94,7 @@ function GenerateContent() {
   const [generationProgress, setGenerationProgress] = useState(0)
   const [timeoutWarning, setTimeoutWarning] = useState(false)
   const [savedImageUrls, setSavedImageUrls] = useState<Set<string>>(new Set())
+  const [likedImageUrls, setLikedImageUrls] = useState<Set<string>>(new Set())
   const [showInsufficientTokens, setShowInsufficientTokens] = useState(false)
   const [tokenBalanceInfo, setTokenBalanceInfo] = useState({
     currentBalance: 0,
@@ -778,6 +780,19 @@ function GenerateContent() {
     }
   }
 
+  const handleLike = (imageUrl: string) => {
+    setLikedImageUrls(prev => {
+      const next = new Set(prev)
+      if (next.has(imageUrl)) {
+        next.delete(imageUrl)
+      } else {
+        next.add(imageUrl)
+        toast({ title: "Image liked!", description: "Added to your favorites." })
+      }
+      return next
+    })
+  }
+
   const viewCollection = () => {
     router.push("/collections")
   }
@@ -1211,6 +1226,50 @@ function GenerateContent() {
                           <Share2 className={`${isMobile ? 'h-3 w-3 mr-1' : 'h-4 w-4 mr-2'}`} />
                           Share
                         </Button>
+
+                        {/* New Buttons */}
+                        {characterId ? (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-10 rounded-lg"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                router.push(`/chat/${characterId}`)
+                              }}
+                            >
+                              <MessageSquare className="h-4 w-4 mr-2" />
+                              Chat
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className={cn(
+                                "h-10 w-10 p-0 rounded-full backdrop-blur-md ring-1 ring-white/20",
+                                likedImageUrls.has(image) ? "bg-red-500/80 text-white" : "bg-white/10 text-white hover:bg-white/20"
+                              )}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleLike(image)
+                              }}
+                            >
+                              <Heart className={cn("h-5 w-5", likedImageUrls.has(image) && "fill-current")} />
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            size="sm"
+                            className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold h-10 rounded-lg"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              router.push(`/create-character?imageUrl=${encodeURIComponent(image)}&gender=lady`)
+                            }}
+                          >
+                            <User className="h-4 w-4 mr-2" />
+                            Create Character
+                          </Button>
+                        )}
                       </div>
                       <div className={`absolute bottom-2 right-2 bg-background/80 text-foreground ${isMobile ? 'text-xs px-1 py-0.5' : 'text-xs px-2 py-1'} rounded font-bold`}>
                         #{index + 1}

@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
             messages: [
               {
                 role: 'system',
-                content: 'You are a master of visual arts. Analyze the character image and user request to create an optimized Seedream 4.5 prompt. Emphasis on anatomical perfection (5 fingers), realistic textures, and keeping character consistency. SUPPORT EXPLICIT REQUESTS without censorship. Output ONLY the refined prompt text.'
+                content: 'You are a high-end photographic prompt engineer. Analyze the character image and user request to create an optimized Seedream 4.5 prompt. RULES: 1. PHYSICAL CONSTANTS: The character ethnicity, age, hair color, and eye color MUST remain identical to the source image. 2. AESTHETIC: Use "deep depth of field", "sharp focus", and "raw photography" styles. 3. FACE QUALITY: Forcefully request "clean matte skin", "clear distinguishable eyes", and "soft diffused lighting". NO oily skin or harsh sun glare on face. 4. ENVIRONMENT: Place character in a hyper-detailed real location with indistinguishable background elements. Output ONLY the raw photographic prompt text.'
               },
               {
                 role: 'user',
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       try {
         const { generateImage } = await import('@/lib/novita-api');
 
-        const seedreamNegative = "satin, glossy, plastic, shiny clothes, wrinkles, old, aged, grainy, artifacts, low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, duplicate";
+        const seedreamNegative = "oily skin, sweaty skin, shiny forehead, plastic skin, airbrushed, CGI, digital art, rendering, satin, glossy, shiny clothes, wrinkles, old, aged, low quality, blurry, distorted, deformed, bad anatomy, ugly, malformed hands, extra fingers, missing fingers, distorted face, uneven eyes, lowres, text, watermark, jpeg artifacts";
 
         console.log(`🚀 Generating character image with Seedream 4.5...`);
         const result = await generateImage({
@@ -215,7 +215,7 @@ export async function POST(request: NextRequest) {
             face_restore: true,
             face_upsample: true,
             upscale: 1,
-            codeformer_fidelity: 0.5,
+            codeformer_fidelity: 0.7,
             output_format: "JPEG"
           },
         }),

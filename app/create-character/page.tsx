@@ -32,6 +32,7 @@ import { refineCharacterAttributes } from "@/lib/openai";
 export default function CreateCharacterPage() {
     const searchParams = useSearchParams();
     const gender = searchParams.get('gender') || 'lady'; // Default to 'lady' if not specified
+    const preProvidedImageUrl = searchParams.get('imageUrl'); // If coming from /generate with an image
 
     const totalSteps = gender === 'lady' ? 8 : 5; // Re-indexed for lady: 0-Ethnicity/Age, 1-Eyes, 2-Hair, 3-Body, 4-Personality, 5-Relationship, 6-Summary, 7-Generation
 
@@ -86,6 +87,17 @@ export default function CreateCharacterPage() {
             }
         }
     }, [user, authLoading]);
+
+    // Handle pre-provided image URL from /generate page
+    useEffect(() => {
+        if (preProvidedImageUrl && !generatedImageUrl) {
+            console.log('🖼️ Pre-provided image detected, jumping to Summary step');
+            setGeneratedImageUrl(decodeURIComponent(preProvidedImageUrl));
+            setShowImage(true);
+            // Jump to Summary step (step 6 for ladies, step 3 for gents)
+            setCurrentStep(gender === 'lady' ? 6 : 3);
+        }
+    }, [preProvidedImageUrl]);
 
     // Load female images from database when gender is 'lady'
     useEffect(() => {

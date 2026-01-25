@@ -214,19 +214,19 @@ export default function GenerateCharacterPage({ params }: GenerateCharacterPageP
 
     const qualityEnhancers = [
       "professional photography",
-      "high quality",
-      "detailed",
-      "realistic",
-      "cinematic composition",
-      "perfect lighting",
-      "sharp focus",
-      "8K resolution",
+      "masterpiece quality",
       "photorealistic",
-      "beautiful",
-      "elegant",
-      "sophisticated",
-      "artistic",
-      "masterpiece"
+      "clean matte skin",
+      "clear distinguishable eyes",
+      "sharp focus",
+      "natural lighting",
+      "highly detailed",
+      "8K resolution",
+      "cinematic composition",
+      "perfect anatomy",
+      "raw photo",
+      "fujifilm instax",
+      "depth of field"
     ];
 
     // Extract key elements from user prompt
@@ -324,7 +324,7 @@ export default function GenerateCharacterPage({ params }: GenerateCharacterPageP
 
     // Add nudity content tags if detected
     if (hasNudityContent) {
-      enhancedPrompt += `, artistic nude, tasteful nudity, nude art, elegant nude, beautiful nude`;
+      enhancedPrompt += `, clean matte skin, clear distinguishable eyes, sharp focus, raw photography, depth of field`;
     }
 
     return enhancedPrompt;
@@ -407,7 +407,7 @@ export default function GenerateCharacterPage({ params }: GenerateCharacterPageP
     const randomBackground = backgroundVariations[Math.floor(Math.random() * backgroundVariations.length)];
     const randomClothing = clothingVariations[Math.floor(Math.random() * clothingVariations.length)];
 
-    const basePrompt = `${character.name}, ${randomView}, ${character.age} years old, ${character.ethnicity}, ${character.body} build, wearing ${randomClothing}, ${randomLighting}, ${randomBackground}, ${character.personality} personality, professional photography, high quality, detailed, realistic, cinematic composition, perfect lighting, sharp focus, 8K resolution, photorealistic, beautiful, elegant, sophisticated, artistic, masterpiece`;
+    const basePrompt = `${character.name}, ${randomView}, ${character.age} years old, ${character.ethnicity}, ${character.body} build, wearing ${randomClothing}, ${randomLighting}, ${randomBackground}, ${character.personality} personality, professional photography, masterpiece quality, photorealistic, clean matte skin, clear distinguishable eyes, sharp focus, 8K resolution, natural lighting, cinematic composition, raw photo, depth of field`;
 
     setPrompt(basePrompt);
   };
