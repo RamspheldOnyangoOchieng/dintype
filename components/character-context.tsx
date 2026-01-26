@@ -71,6 +71,10 @@ const camelToSnake = (obj: any): any => {
     return obj.map(camelToSnake)
   }
 
+  // List of known columns that exist in BOTH camelCase and snake_case in the DB
+  // We ONLY keep the camelCase version for these specific fields to avoid "column not found" errors
+  const knownDuplicates = ['systemPrompt', 'userId', 'isPublic', 'videoUrl']
+
   return Object.keys(obj).reduce((acc, key) => {
     // If it's already snake_case, keep it
     if (key.includes('_')) {
@@ -80,10 +84,8 @@ const camelToSnake = (obj: any): any => {
       const snakeKey = key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
       acc[snakeKey] = camelToSnake(obj[key])
 
-      // CRITICAL: If the original key was camelCase, keep it too!
-      // This ensures that for duplicate DB columns (systemPrompt & system_prompt), 
-      // BOTH are updated by Supabase.
-      if (key !== snakeKey) {
+      // Only keep the original camelCase key if it's a known duplicate in the DB
+      if (key !== snakeKey && knownDuplicates.includes(key)) {
         acc[key] = camelToSnake(obj[key])
       }
     }
