@@ -26,6 +26,8 @@ import {
   Menu,
   Loader2,
 } from "lucide-react"
+import { SimpleImageGenerator } from "@/components/simple-image-generator"
+import { toast } from "sonner"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import {
   Dialog,
@@ -37,7 +39,7 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { generateCharacterDescription, generateSystemPrompt, type GenerateCharacterParams } from "@/lib/openai"
-import { toast } from "sonner"
+
 import Image from "next/image"
 import { ScrollArea } from "@/components/ui/scroll-area" // Assume scroll-area exists or use div
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -1573,79 +1575,22 @@ export default function EditCharacterPage() {
       </div>
 
       {/* Regeneration Modal */}
-      <Dialog open={isRegenModalOpen} onOpenChange={setIsRegenModalOpen}>
-        <DialogContent className="sm:max-w-[600px] bg-[#1a1a1a] border-[#333] text-white">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Wand2 className="h-5 w-5 text-primary" />
-              Regenerate Character Face
-            </DialogTitle>
-            <DialogDescription className="text-gray-400">
-              Generate a new face for your character. This will update the primary profile image.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-400">Current Prompt</label>
-              <Textarea
-                value={regenPrompt}
-                onChange={(e) => setRegenPrompt(e.target.value)}
-                className="bg-[#252525] border-[#333] text-white min-h-[100px]"
-                placeholder="Enter generation prompt..."
-              />
-            </div>
-
-            <ScrollArea className="h-[300px] pr-4">
-              <div className="space-y-6">
-                {Object.entries(suggestions).map(([category, items]) => (
-                  <div key={category} className="space-y-2">
-                    <h4 className="text-sm font-semibold text-primary capitalize flex items-center justify-between">
-                      {category}
-                      <span className="text-[10px] text-gray-500 font-normal">Click to add to prompt</span>
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {items.map((item: any) => (
-                        <Badge
-                          key={item.id}
-                          variant="secondary"
-                          className="bg-[#333] hover:bg-primary/20 text-gray-300 hover:text-primary cursor-pointer border-[#444] py-1 px-2 text-xs transition-colors"
-                          onClick={() => appendSuggestion(item.prompt_text)}
-                        >
-                          {item.label}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-
-                {loadingSuggestions && (
-                  <div className="flex justify-center py-4">
-                    <Loader2 className="animate-spin h-6 w-6 text-primary" />
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-          </div>
-
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="ghost"
-              onClick={() => setIsRegenModalOpen(false)}
-              className="text-gray-400 hover:text-white"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => handleRegenerateImage()}
-              className="bg-primary hover:bg-primary/90 text-white"
-            >
-              <Wand2 className="mr-2 h-4 w-4" />
-              Start Generation
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <SimpleImageGenerator
+        isOpen={isRegenModalOpen}
+        onClose={() => setIsRegenModalOpen(false)}
+        onImageSelect={(url) => {
+          setFormData((prev: any) => ({ ...prev, image: url }))
+          setImagePreview(url)
+          toast.success("Character face generated successfully!")
+        }}
+        settings={{
+          width: 768,
+          height: 1024,
+          size: "768x1024",
+          aspectRatioLabel: "Portrait (3:4)",
+          title: "Generate Character Face"
+        }}
+      />
     </>
   )
 }

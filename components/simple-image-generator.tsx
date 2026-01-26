@@ -12,13 +12,29 @@ interface SimpleImageGeneratorProps {
     isOpen: boolean
     onClose: () => void
     onImageSelect: (imageUrl: string) => void
+    settings?: {
+        width?: number
+        height?: number
+        size?: string
+        aspectRatioLabel?: string // e.g. "Portrait (3:4)"
+        title?: string
+    }
 }
 
-export function SimpleImageGenerator({ isOpen, onClose, onImageSelect }: SimpleImageGeneratorProps) {
+export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, settings }: SimpleImageGeneratorProps) {
     const [prompt, setPrompt] = useState("")
     const [isGenerating, setIsGenerating] = useState(false)
     const [generatedImage, setGeneratedImage] = useState<string | null>(null)
     const [error, setError] = useState("")
+
+    // Default settings (fallback to banner defaults if not provided)
+    const config = {
+        width: settings?.width || 1600,
+        height: settings?.height || 320,
+        size: settings?.size || "1600x320",
+        aspectRatioLabel: settings?.aspectRatioLabel || "Wide Banner",
+        title: settings?.title || "Generate Asset"
+    }
 
     const handleGenerate = async () => {
         if (!prompt) return
@@ -35,10 +51,10 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect }: SimpleI
                 },
                 body: JSON.stringify({
                     prompt: prompt,
-                    width: 1600, // Good aspect ratio for banners (approx 1222x244 scaled)
-                    height: 320, // Keep it wide
+                    width: config.width,
+                    height: config.height,
                     image_num: 1,
-                    size: "1600x320", // Custom size for banners
+                    size: config.size,
                     steps: 30,
                     guidance_scale: 7.5,
                     autoSave: true // Ensure we get a persistent URL
@@ -104,10 +120,10 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect }: SimpleI
                 <DialogHeader>
                     <DialogTitle className="text-xl font-bold flex items-center gap-2">
                         <Sparkles className="h-5 w-5 text-[#00A3FF]" />
-                        Generate Banner Asset
+                        {config.title}
                     </DialogTitle>
                     <DialogDescription className="text-gray-400">
-                        Create a custom image for your banner using AI.
+                        Create a custom image using AI.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -115,7 +131,7 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect }: SimpleI
                     <div className="space-y-2">
                         <Label className="text-sm font-medium text-gray-300">Prompt Description</Label>
                         <Textarea
-                            placeholder="Describe the banner image you want (e.g., 'Abstract blue waves with neon particles, wide aspect ratio')"
+                            placeholder={`Describe the image you want (Aspect Ratio: ${config.aspectRatioLabel})`}
                             className="bg-[#252525] border-[#333] text-white min-h-[100px] focus:border-[#00A3FF]"
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
