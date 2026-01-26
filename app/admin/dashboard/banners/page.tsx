@@ -17,6 +17,8 @@ import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { cn } from "@/lib/utils"
 import { ImageGenerationModal } from "@/components/image-generation-modal"
+import { SimpleImageGenerator } from "@/components/simple-image-generator"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 
 interface Banner {
   id: string
@@ -449,26 +451,30 @@ export default function AdminBannersPage() {
         </div>
       </div>
 
-      {/* Add/Edit Banner Form Inline */}
-      {(isAdding || isEditing) && (
-        <div className="bg-[#1A1A1A] border border-[#252525] rounded-2xl p-8 mb-10 shadow-2xl relative overflow-hidden backdrop-blur-sm animate-in slide-in-from-top-4 duration-300">
-          <div className="absolute top-0 left-0 w-1 h-full bg-[#00A3FF]" />
-          <div className="flex justify-between items-center mb-8">
-            <h4 className="text-2xl font-black text-white">{isAdding ? "Create New Campaign" : "Optimize Banner"}</h4>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-gray-500 hover:text-white hover:bg-[#252525] rounded-xl transition-colors"
-              onClick={() => {
-                setIsAdding(false)
-                setIsEditing(null)
-              }}
-            >
-              <X className="h-6 w-6" />
-            </Button>
-          </div>
+      {/* Add/Edit Banner Modal */}
+      <Dialog open={isAdding || !!isEditing} onOpenChange={(open) => {
+        if (!open) {
+          setIsAdding(false)
+          setIsEditing(null)
+          setFormData({
+            imageUrl: "",
+            title: "",
+            subtitle: "",
+            buttonText: "",
+            buttonLink: "",
+            linkUrl: "",
+          })
+        }
+      }}>
+        <DialogContent className="max-w-4xl bg-[#1A1A1A] border-[#252525] text-white max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black">{isAdding ? "Create New Campaign" : "Optimize Banner"}</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Configure the visual and functional aspects of your banner.
+            </DialogDescription>
+          </DialogHeader>
 
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 mb-8">
+          <div className="grid grid-cols-1 gap-8 mt-4">
             <div className="space-y-4">
               <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">Visual Asset Preview</label>
               <div className="relative aspect-[1222/244] w-full bg-[#0F0F0F] border border-[#252525] rounded-2xl overflow-hidden group shadow-inner border-dashed">
@@ -572,16 +578,19 @@ export default function AdminBannersPage() {
             </div>
           </div>
 
-          <div className="flex justify-between items-center gap-4 pt-6 border-t border-[#252525]">
-            <Button
-              variant="outline"
-              className="border-[#252525] bg-transparent hover:bg-white/5 text-gray-400 font-bold h-12 px-6 rounded-xl transition-all"
-              onClick={() => setShowGenerationModal(true)}
-              disabled={isUploading}
-            >
-              <Sparkles className="h-4 w-4 mr-2 text-[#00A3FF]" />
-              Generate AI Content
-            </Button>
+          <DialogFooter className="flex justify-between items-center gap-4 pt-6 border-t border-[#252525] mt-6">
+            <div className="flex-1">
+              <Button
+                variant="outline"
+                className="border-[#252525] bg-transparent hover:bg-white/5 text-gray-400 font-bold h-12 px-6 rounded-xl transition-all"
+                onClick={() => setShowGenerationModal(true)}
+                disabled={isUploading}
+                type="button"
+              >
+                <Sparkles className="h-4 w-4 mr-2 text-[#00A3FF]" />
+                Generate AI Content
+              </Button>
+            </div>
 
             <div className="flex gap-4">
               <Button
@@ -599,6 +608,7 @@ export default function AdminBannersPage() {
                     linkUrl: "",
                   })
                 }}
+                type="button"
               >
                 Discard
               </Button>
@@ -606,6 +616,7 @@ export default function AdminBannersPage() {
                 className="bg-[#00A3FF] hover:bg-[#0082CC] text-white font-black h-12 px-10 rounded-xl shadow-xl shadow-[#00A3FF]/20 transition-all active:scale-95"
                 onClick={isAdding ? handleAddBanner : handleUpdateBanner}
                 disabled={!formData.imageUrl || !formData.title || !formData.linkUrl || isUploading}
+                type="button"
               >
                 {isUploading ? (
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -615,12 +626,12 @@ export default function AdminBannersPage() {
                 {isAdding ? "Finalize Campaign" : "Apply Changes"}
               </Button>
             </div>
-          </div>
-        </div>
-      )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {/* AI Generation Modal */}
-      <ImageGenerationModal
+      {/* Simple AI Generation Modal */}
+      <SimpleImageGenerator
         isOpen={showGenerationModal}
         onClose={() => setShowGenerationModal(false)}
         onImageSelect={handleGeneratedImage}

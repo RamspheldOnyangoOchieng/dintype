@@ -61,6 +61,25 @@ export default function SEOMetaAdminPage() {
     }
   }
 
+  const handleAddPage = () => {
+    const newPage: PageMeta = {
+      id: '',
+      page_path: '/new-page',
+      meta_title: '',
+      meta_description: '',
+      meta_keywords: '',
+      og_title: '',
+      og_description: '',
+      og_image: '',
+      og_type: 'website',
+      twitter_card: 'summary_large_image',
+      canonical_url: '',
+      robots: 'index,follow',
+      language: 'en'
+    }
+    setSelectedPage(newPage)
+  }
+
   const handleSave = async () => {
     if (!selectedPage) return
 
@@ -68,10 +87,16 @@ export default function SEOMetaAdminPage() {
     setMessage(null)
 
     try {
+      // Prepare payload - remove ID if empty string to allow auto-generation
+      const payload: any = { ...selectedPage }
+      if (!payload.id) {
+        delete payload.id
+      }
+
       const response = await fetch('/api/admin/seo-meta', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(selectedPage),
+        body: JSON.stringify(payload),
       })
 
       if (!response.ok) throw new Error('Failed to save')
@@ -161,11 +186,16 @@ export default function SEOMetaAdminPage() {
       <div className="grid gap-6 md:grid-cols-[300px_1fr]">
         {/* Pages List */}
         <Card>
-          <CardHeader>
-            <CardTitle>Pages</CardTitle>
-            <CardDescription>Select a page to edit SEO</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <div className="space-y-1">
+              <CardTitle>Pages</CardTitle>
+              <CardDescription>Select a page to edit SEO</CardDescription>
+            </div>
+            <Button size="icon" variant="outline" onClick={handleAddPage} title="Add New Page">
+              <Plus className="h-4 w-4" />
+            </Button>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-2">
             {/* Search */}
             <div className="relative">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -183,6 +213,7 @@ export default function SEOMetaAdminPage() {
                 <div className="text-center py-8 text-muted-foreground">
                   <Globe className="w-8 h-8 mx-auto mb-2 opacity-20" />
                   <p>No pages found</p>
+                  <Button variant="link" onClick={handleAddPage} className="text-blue-500">Create one?</Button>
                 </div>
               ) : (
                 filteredPages.map((page) => {
@@ -200,11 +231,11 @@ export default function SEOMetaAdminPage() {
                     >
                       <div className="flex justify-between items-start mb-1">
                         <span className={cn(
-                          "font-bold text-sm tracking-tight",
+                          "font-bold text-sm tracking-tight truncate max-w-[180px]",
                           selectedPage?.id === page.id ? "text-blue-400" : "text-foreground"
                         )}>{page.page_path}</span>
                         <div className={cn(
-                          "w-2 h-2 rounded-full",
+                          "w-2 h-2 rounded-full flex-shrink-0 mt-1",
                           pageHealth.totalScore >= 80 ? "bg-green-500" :
                             pageHealth.totalScore >= 50 ? "bg-yellow-500" : "bg-red-500"
                         )} />
@@ -238,7 +269,7 @@ export default function SEOMetaAdminPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="h-7 bg-muted/30 border-muted">
-                  ID: {selectedPage.id.split('-')[0]}...
+                  ID: {selectedPage.id ? selectedPage.id.split('-')[0] : 'NEW'}...
                 </Badge>
                 <div className="flex items-center gap-2 px-3 py-1 bg-muted/20 rounded-full border border-border/10">
                   <div className={cn(
@@ -277,6 +308,16 @@ export default function SEOMetaAdminPage() {
                         <CardDescription className="text-xs uppercase tracking-widest font-bold">Standard metadata for engines</CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-5">
+                        <div className="space-y-2">
+                          <Label className="text-[11px] font-black uppercase text-muted-foreground ml-1">Page Path</Label>
+                          <Input
+                            value={selectedPage.page_path || ''}
+                            onChange={(e) => updateField('page_path', e.target.value)}
+                            className="bg-muted/30 border-muted placeholder:text-muted-foreground/30 font-medium h-11"
+                            placeholder="/example-page"
+                          />
+                        </div>
+
                         <div className="space-y-2">
                           <Label className="text-[11px] font-black uppercase text-muted-foreground ml-1">Meta Title</Label>
                           <Input
