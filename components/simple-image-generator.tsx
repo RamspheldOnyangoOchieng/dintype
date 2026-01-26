@@ -49,6 +49,7 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, settings 
                 headers: {
                     "Content-Type": "application/json",
                 },
+                credentials: "include",
                 body: JSON.stringify({
                     prompt: prompt,
                     width: config.width,
@@ -86,7 +87,9 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, settings 
     const pollForTask = async (taskId: string) => {
         const checkStatus = async () => {
             try {
-                const res = await fetch(`/api/check-generation?taskId=${taskId}`)
+                const res = await fetch(`/api/check-generation?taskId=${taskId}`, {
+                    credentials: "include"
+                })
                 const data = await res.json()
 
                 if (data.status === "TASK_STATUS_SUCCEED" && data.images && data.images.length > 0) {

@@ -1360,12 +1360,24 @@ export default function EditCharacterPage() {
                             }}
                           />
                           {formData.face_reference_url ? (
-                            <Image
-                              src={formData.face_reference_url}
-                              alt="Face reference"
-                              fill
-                              className="object-contain"
-                            />
+                            <div className="relative w-full h-full group">
+                              <Image
+                                src={formData.face_reference_url}
+                                alt="Face reference"
+                                fill
+                                className="object-contain"
+                              />
+                              <button
+                                type="button"
+                                className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/80 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setFormData((prev: any) => ({ ...prev, face_reference_url: null }))
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
                           ) : (
                             <div className="flex flex-col items-center justify-center h-full p-4">
                               <Upload className="h-6 w-6 mb-1 text-gray-400" />
@@ -1404,12 +1416,24 @@ export default function EditCharacterPage() {
                             }}
                           />
                           {formData.anatomy_reference_url ? (
-                            <Image
-                              src={formData.anatomy_reference_url}
-                              alt="Anatomy reference"
-                              fill
-                              className="object-contain"
-                            />
+                            <div className="relative w-full h-full group">
+                              <Image
+                                src={formData.anatomy_reference_url}
+                                alt="Anatomy reference"
+                                fill
+                                className="object-contain"
+                              />
+                              <button
+                                type="button"
+                                className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/80 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setFormData((prev: any) => ({ ...prev, anatomy_reference_url: null }))
+                                }}
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
                           ) : (
                             <div className="flex flex-col items-center justify-center h-full p-4 text-center">
                               <Upload className="h-6 w-6 mb-1 text-gray-400" />

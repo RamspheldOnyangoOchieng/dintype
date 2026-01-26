@@ -100,24 +100,33 @@ export async function POST(req: NextRequest) {
     }
     console.log(`✅ Using Novita API key from ${source}`)
 
-    // Try multiple authentication methods
+    // Method 0: Try Cookie-based Auth (Default)
+    const { data: { user: cookieUser } } = await supabase.auth.getUser()
+    if (cookieUser) {
+      userId = cookieUser.id
+      console.log("✅ Authentication successful via cookie for user:", userId.substring(0, 8) + '...')
+    }
+
+    // Try multiple authentication methods (fallbacks)
     const authHeader = req.headers.get('authorization')
     const userIdHeader = req.headers.get('x-user-id')
 
     console.log("🔑 Auth headers:", {
       hasAuthHeader: !!authHeader,
-      hasUserIdHeader: !!userIdHeader
+      hasUserIdHeader: !!userIdHeader,
+      hasCookieUser: !!cookieUser
     })
 
-    // Method 1: Try Authorization header (JWT token)
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.replace('Bearer ', '')
-      console.log("🎫 Token extracted:", token.substring(0, 20) + '...')
-
+    // Method 1: Try Authorization header (JWT token) - Only if cookie auth failed
+    if (!userId && authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1]
+      console.log("🎫 Token extracted (len):", token.length)
 
       try {
         // Create a new client instance for auth verification
         const authSupabase = await createClient()
+
+        // Pass the JWT to getUser to verify it
         const { data: { user }, error: authError } = await authSupabase.auth.getUser(token)
 
         if (authError || !user) {
