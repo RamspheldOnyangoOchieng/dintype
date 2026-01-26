@@ -157,10 +157,16 @@ export default function EditCharacterPage() {
     fetchSuggestions()
   }, [])
 
+  const hasLoadedRef = useRef(false)
+
   // Load character data
   useEffect(() => {
+    // Only load data if we haven't loaded it yet or if the ID changed
+    if (hasLoadedRef.current && id === params.id) return
+
     const character = getCharacter(id)
     if (character) {
+      console.log(`📡 Character ${id} found in context, loading into form...`)
       setFormData({
         // Start with traits from character metadata (lowest priority)
         ...(character.metadata?.characterDetails || {}),
@@ -209,10 +215,13 @@ export default function EditCharacterPage() {
       if (character.image && !character.image.includes("placeholder")) {
         setImagePreview(character.image)
       }
-    } else if (!isLoading) {
+
+      hasLoadedRef.current = true
+    } else if (!isLoading && characters.length > 0) {
+      console.warn(`⚠️ Character ${id} not found in characters array of length ${characters.length}`)
       setNotFound(true)
     }
-  }, [id, characters, isLoading, getCharacter])
+  }, [id, characters, isLoading, getCharacter, params.id])
 
   // Redirect if not logged in or not admin
   useEffect(() => {
@@ -524,7 +533,7 @@ export default function EditCharacterPage() {
       story_conflict, story_setting, story_plot
     } = data
 
-    // Build characterDetails from current formData traits
+    // 1. Build the fresh sub-metadata object for appearance/story traits
     const characterDetails = {
       characterGender: data.characterGender,
       characterAge: data.characterAge,
@@ -538,24 +547,40 @@ export default function EditCharacterPage() {
       pose: data.pose,
       background: data.background,
       mood: data.mood,
-      // Sync story fields if present
       story_conflict: data.story_conflict || data.storyConflict,
       story_setting: data.story_setting || data.storySetting,
       story_plot: data.story_plot || data.storyPlot,
     }
 
+    // 2. Return ONLY verified database columns at the top level
+    // We update BOTH snake_case and camelCase variants because the DB 
+    // unfortunately contains duplicate columns (a mix of both styles).
     return {
-      name, age, image, videoUrl, description,
-      personality, occupation, hobbies, body,
-      ethnicity, language, relationship,
-      systemPrompt, isNew, category, images,
-      hairColor, eyeColor, skinTone, characterStyle,
-      storyConflict: story_conflict || data.storyConflict,
-      storySetting: story_setting || data.storySetting,
-      storyPlot: story_plot || data.storyPlot,
+      name: data.name,
+      age: Number(data.age),
+      image: data.image,
+      video_url: data.videoUrl,
+      videoUrl: data.videoUrl, // Duplicate column variant
+      description: data.description,
+      personality: data.personality,
+      occupation: data.occupation,
+      hobbies: data.hobbies,
+      body: data.body,
+      ethnicity: data.ethnicity,
+      language: data.language,
+      relationship: data.relationship,
+      system_prompt: data.systemPrompt,
+      systemPrompt: data.systemPrompt, // Duplicate column variant
+      is_new: !!data.isNew,
+      is_public: !!data.isPublic,
+      isPublic: !!data.isPublic, // Duplicate column variant
+      category: data.category || "girls",
+      images: data.images || [],
+      user_id: data.user_id || data.userId,
+      userId: data.user_id || data.userId, // Duplicate column variant
       metadata: {
         ...(data.metadata || {}),
-        characterDetails, // Overwrite with fresh traits
+        characterDetails, // This overwrites the old characterDetails pack
         face_reference_url: data.face_reference_url,
         anatomy_reference_url: data.anatomy_reference_url,
         preferred_poses: data.preferred_poses,
