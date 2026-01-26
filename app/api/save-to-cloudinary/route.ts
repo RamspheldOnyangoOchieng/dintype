@@ -17,31 +17,23 @@ export async function POST(request: NextRequest) {
 
     const imageBuffer = await imageResponse.arrayBuffer()
 
-    // Prepare form data for Cloudinary upload
-    const formData = new FormData()
-    formData.append("file", new Blob([imageBuffer]))
-    formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default")
+    // Use Cloudinary SDK instead of direct fetch with presets
+    const { v2: cloudinary } = await import("cloudinary")
 
-    // Upload to Cloudinary
-    const cloudinaryResponse = await fetch(
-      `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`,
-      {
-        method: "POST",
-        body: formData,
-      },
-    )
+    cloudinary.config({
+      cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
+    })
 
-    if (!cloudinaryResponse.ok) {
-      const cloudinaryError = await cloudinaryResponse.text()
-      console.error("Cloudinary error:", cloudinaryError)
-      return NextResponse.json({ error: "Failed to upload to Cloudinary" }, { status: 500 })
-    }
-
-    const cloudinaryData = await cloudinaryResponse.json()
+    const result = await cloudinary.uploader.upload(imageUrl, {
+      folder: "ai-characters",
+      resource_type: "image",
+    })
 
     return NextResponse.json({
-      secureUrl: cloudinaryData.secure_url,
-      publicId: cloudinaryData.public_id,
+      secureUrl: result.secure_url,
+      publicId: result.public_id,
     })
   } catch (error) {
     console.error("Error in save-to-cloudinary API:", error)

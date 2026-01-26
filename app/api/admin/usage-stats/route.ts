@@ -28,10 +28,22 @@ export async function GET() {
             .select("*", { count: "exact", head: true })
             .eq("is_premium", true)
 
+        // Get monthly API costs from cost_logs
+        const today = new Date()
+        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+
+        const { data: costData, error: costError } = await supabase
+            .from("cost_logs")
+            .select("api_cost")
+            .gte("created_at", firstDayOfMonth.toISOString())
+
+        const monthlyApiCost = (costData || []).reduce((sum, item) => sum + (item.api_cost || 0), 0)
+
         return NextResponse.json({
             totalTokens,
             totalCredits,
-            premiumCount: premiumCount || 0
+            premiumCount: premiumCount || 0,
+            monthlyApiCost
         })
     } catch (error: any) {
         console.error("Stats API error:", error)

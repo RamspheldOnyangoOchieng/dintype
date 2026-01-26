@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/auth-context"
-import { Home, Search, Trash2, Edit, Plus, Upload, Save, X, AlertTriangle, LinkIcon, ExternalLink } from "lucide-react"
+import { Home, Search, Trash2, Edit, Plus, Upload, Save, X, AlertTriangle, LinkIcon, ExternalLink, Sparkles, Loader2 } from "lucide-react"
 import { format } from "date-fns"
 import { useToast } from "@/hooks/use-toast"
 import { createClient } from "@/utils/supabase/client"
@@ -16,6 +16,7 @@ import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { cn } from "@/lib/utils"
+import { ImageGenerationModal } from "@/components/image-generation-modal"
 
 interface Banner {
   id: string
@@ -42,7 +43,7 @@ export default function AdminBannersPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [availableBuckets, setAvailableBuckets] = useState<string[]>([])
+  const [showGenerationModal, setShowGenerationModal] = useState(false)
 
   const [formData, setFormData] = useState<any>({
     imageUrl: "",
@@ -53,32 +54,15 @@ export default function AdminBannersPage() {
     linkUrl: "",
   })
 
-  // Fetch available buckets
-  useEffect(() => {
-    async function fetchBuckets() {
-      try {
-        const { data, error } = await supabaseClient.storage.listBuckets()
-        if (error) {
-          console.error("Error fetching buckets:", error)
-          return
-        }
-
-        if (data && data.length > 0) {
-          setAvailableBuckets(data.map((bucket) => bucket.name))
-          console.log(
-            "Available buckets:",
-            data.map((bucket) => bucket.name),
-          )
-        }
-      } catch (err) {
-        console.error("Error fetching buckets:", err)
-      }
-    }
-
-    if (user) {
-      fetchBuckets()
-    }
-  }, [user, supabaseClient])
+  // Helper to convert file to base64
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = (error) => reject(error)
+    })
+  }
 
   // Fetch banners from Supabase
   useEffect(() => {
@@ -144,7 +128,7 @@ export default function AdminBannersPage() {
       (banner.subtitle && banner.subtitle.toLowerCase().includes(searchTerm.toLowerCase())),
   )
 
-  // Handle image upload with fallback options
+  // Handle image upload with server-side logic
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -152,56 +136,57 @@ export default function AdminBannersPage() {
     setIsUploading(true)
 
     try {
-      // Check if we have any available buckets
-      if (availableBuckets.length === 0) {
-        toast({
-          title: "Storage not available",
-          description: "Please enter an image URL directly instead.",
-          variant: "destructive",
-        })
-        setIsUploading(false)
-        return
-      }
+      // Use the same server-side upload logic as characters
+      const base64String = await convertFileToBase64(file)
 
-      // Use the first available bucket
-      const bucketName = availableBuckets[0]
+      const formDataUpload = new FormData()
+      formDataUpload.append("file", base64String)
+      formDataUpload.append("folder", "banners")
 
-      // Upload to Supabase Storage
-      const fileExt = file.name.split(".").pop()
-      const fileName = `banner-${Math.random().toString(36).substring(2, 15)}.${fileExt}`
-      const filePath = `${fileName}`
-
-      const { data, error } = await supabaseClient.storage.from(bucketName).upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: false,
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formDataUpload,
       })
 
-      if (error) {
-        console.error("Storage upload error:", error)
-        throw error
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to upload image")
       }
 
-      // Get the public URL
-      const {
-        data: { publicUrl },
-      } = supabaseClient.storage.from(bucketName).getPublicUrl(filePath)
+      const result = await response.json()
 
-      setFormData((prev: any) => ({ ...prev, imageUrl: publicUrl }))
+      if (!result.secure_url) {
+        throw new Error("No URL returned from upload")
+      }
+
+      setFormData((prev: any) => ({ ...prev, imageUrl: result.secure_url }))
 
       toast({
-        title: "Image uploaded",
-        description: "The banner image has been uploaded successfully.",
+        title: "Success",
+        description: "The banner image has been uploaded to Cloudinary.",
       })
     } catch (error) {
       console.error("Error uploading image:", error)
       toast({
         title: "Upload failed",
-        description: "Failed to upload the banner image. Please enter a URL directly instead.",
+        description: error instanceof Error ? error.message : "Failed to upload the banner image.",
         variant: "destructive",
       })
     } finally {
       setIsUploading(false)
+      // Reset input
+      const input = document.getElementById('image-upload') as HTMLInputElement
+      if (input) input.value = ''
     }
+  }
+
+  // Handle AI image generation landing
+  const handleGeneratedImage = (imageUrl: string) => {
+    setFormData((prev: any) => ({ ...prev, imageUrl }))
+    toast({
+      title: "AI Image Ready",
+      description: "Generated asset applied to banner draft.",
+    })
   }
 
   const handleAddBanner = async () => {
@@ -587,28 +572,59 @@ export default function AdminBannersPage() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-4 pt-6 border-t border-[#252525]">
+          <div className="flex justify-between items-center gap-4 pt-6 border-t border-[#252525]">
             <Button
-              variant="ghost"
-              className="text-gray-500 hover:text-white hover:bg-white/5 font-bold h-12 px-8 rounded-xl"
-              onClick={() => {
-                setIsAdding(false)
-                setIsEditing(null)
-              }}
+              variant="outline"
+              className="border-[#252525] bg-transparent hover:bg-white/5 text-gray-400 font-bold h-12 px-6 rounded-xl transition-all"
+              onClick={() => setShowGenerationModal(true)}
+              disabled={isUploading}
             >
-              Discard
+              <Sparkles className="h-4 w-4 mr-2 text-[#00A3FF]" />
+              Generate AI Content
             </Button>
-            <Button
-              className="bg-[#00A3FF] hover:bg-[#0082CC] text-white font-black h-12 px-10 rounded-xl shadow-xl shadow-[#00A3FF]/20 transition-all active:scale-95"
-              onClick={isAdding ? handleAddBanner : handleUpdateBanner}
-              disabled={!formData.imageUrl || !formData.title || !formData.linkUrl}
-            >
-              <Save className="mr-2 h-5 w-5" />
-              {isAdding ? "Finalize Campaign" : "Update Asset"}
-            </Button>
+
+            <div className="flex gap-4">
+              <Button
+                variant="ghost"
+                className="text-gray-500 hover:text-white hover:bg-white/5 font-bold h-12 px-8 rounded-xl"
+                onClick={() => {
+                  setIsAdding(false)
+                  setIsEditing(null)
+                  setFormData({
+                    imageUrl: "",
+                    title: "",
+                    subtitle: "",
+                    buttonText: "",
+                    buttonLink: "",
+                    linkUrl: "",
+                  })
+                }}
+              >
+                Discard
+              </Button>
+              <Button
+                className="bg-[#00A3FF] hover:bg-[#0082CC] text-white font-black h-12 px-10 rounded-xl shadow-xl shadow-[#00A3FF]/20 transition-all active:scale-95"
+                onClick={isAdding ? handleAddBanner : handleUpdateBanner}
+                disabled={!formData.imageUrl || !formData.title || !formData.linkUrl || isUploading}
+              >
+                {isUploading ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-5 w-5" />
+                )}
+                {isAdding ? "Finalize Campaign" : "Apply Changes"}
+              </Button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* AI Generation Modal */}
+      <ImageGenerationModal
+        isOpen={showGenerationModal}
+        onClose={() => setShowGenerationModal(false)}
+        onImageSelect={handleGeneratedImage}
+      />
 
       {/* Error Feedback */}
       {error && (

@@ -28,7 +28,7 @@ const CharacterContext = createContext<CharacterContextType | undefined>(undefin
 
 // Helper function to convert snake_case to camelCase
 const snakeToCamel = (obj: any): any => {
-  if (obj === null || typeof obj !== "object") {
+  if (obj === null || typeof obj !== "object" || obj instanceof Date) {
     return obj
   }
 
@@ -36,16 +36,34 @@ const snakeToCamel = (obj: any): any => {
     return obj.map(snakeToCamel)
   }
 
-  return Object.keys(obj).reduce((acc, key) => {
-    const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
-    acc[camelKey] = snakeToCamel(obj[key])
-    return acc
-  }, {} as any)
+  // Handle keys: we want to normalize to camelCase, but if both snake_case 
+  // and camelCase variants exist in the source (common in your DB), 
+  // we treat the snake_case one as the source of truth.
+  const result: any = {}
+
+  // First pass: copy all existing camelCase keys (lowest priority)
+  Object.keys(obj).forEach(key => {
+    if (!key.includes('_')) {
+      result[key] = snakeToCamel(obj[key])
+    }
+  })
+
+  // Second pass: convert snake_case to camelCase (highest priority - overwrites)
+  Object.keys(obj).forEach(key => {
+    if (key.includes('_')) {
+      const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+      result[camelKey] = snakeToCamel(obj[key])
+      // Also keep the original snake key for internal logic if needed
+      result[key] = result[camelKey]
+    }
+  })
+
+  return result
 }
 
 // Helper function to convert camelCase to snake_case
 const camelToSnake = (obj: any): any => {
-  if (obj === null || typeof obj !== "object") {
+  if (obj === null || typeof obj !== "object" || obj instanceof Date) {
     return obj
   }
 
@@ -54,8 +72,21 @@ const camelToSnake = (obj: any): any => {
   }
 
   return Object.keys(obj).reduce((acc, key) => {
-    const snakeKey = key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
-    acc[snakeKey] = camelToSnake(obj[key])
+    // If it's already snake_case, keep it
+    if (key.includes('_')) {
+      acc[key] = camelToSnake(obj[key])
+    } else {
+      // Convert to snake_case
+      const snakeKey = key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
+      acc[snakeKey] = camelToSnake(obj[key])
+
+      // CRITICAL: If the original key was camelCase, keep it too!
+      // This ensures that for duplicate DB columns (systemPrompt & system_prompt), 
+      // BOTH are updated by Supabase.
+      if (key !== snakeKey) {
+        acc[key] = camelToSnake(obj[key])
+      }
+    }
     return acc
   }, {} as any)
 }
@@ -308,7 +339,8 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // Direct client-side upload to Cloudinary using fetch
+  // Use the internal API for uploads instead of direct client-side Cloudinary
+  // This is more reliable and avoids "Upload preset not found" errors
   const uploadImage = async (file: File): Promise<string> => {
     try {
       // Validate file size
@@ -334,29 +366,26 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
         reader.readAsDataURL(file)
       })
 
-      // Create a FormData object for the upload
+      // Create a FormData object for our internal upload API
       const formData = new FormData()
       formData.append("file", base64String)
-      formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default")
       formData.append("folder", "ai-characters")
 
-      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "demo"
-
-      // Make a direct POST request to the Cloudinary API
-      const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      // Use our internal API route for secure server-side upload
+      const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(`Cloudinary API error: ${errorData.error?.message || "Unknown error"}`)
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
+        throw new Error(errorData.error || `Upload failed with status ${response.status}`)
       }
 
       const result = await response.json()
 
       if (!result.secure_url) {
-        throw new Error("Failed to upload image to Cloudinary")
+        throw new Error("Failed to upload image (no URL returned)")
       }
 
       return result.secure_url

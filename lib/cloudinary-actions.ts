@@ -9,7 +9,7 @@ export type CloudinaryUploadResult = {
 }
 
 /**
- * Uploads an image to Cloudinary using direct fetch with unsigned upload preset
+ * Uploads an image to Cloudinary using the server-side SDK
  * @param base64Data The file to upload as base64 string
  * @param folder Optional folder path
  * @returns The upload result with secure URL
@@ -19,27 +19,19 @@ export async function uploadImageToCloudinary(
   folder = "ai-characters",
 ): Promise<CloudinaryUploadResult> {
   try {
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || "demo"
-    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default"
+    const { v2: cloudinary } = await import("cloudinary")
 
-    // Create a FormData object for the upload
-    const formData = new FormData()
-    formData.append("file", base64Data)
-    formData.append("upload_preset", uploadPreset)
-    formData.append("folder", folder)
-
-    // Make a direct POST request to the Cloudinary API
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-      method: "POST",
-      body: formData,
+    cloudinary.config({
+      cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
     })
 
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(`Cloudinary API error: ${errorData.error?.message || "Unknown error"}`)
-    }
-
-    const result = await response.json()
+    // Upload to Cloudinary using the server-side SDK
+    const result = await cloudinary.uploader.upload(base64Data, {
+      folder: folder,
+      resource_type: "auto",
+    })
 
     return {
       secure_url: result.secure_url,
@@ -87,34 +79,15 @@ export async function getPublicIdFromUrl(url: string): Promise<string> {
  */
 export async function deleteImageFromCloudinary(publicId: string): Promise<boolean> {
   try {
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || "demo"
-    const apiKey = process.env.CLOUDINARY_API_KEY || ""
-    const apiSecret = process.env.CLOUDINARY_API_SECRET || ""
+    const { v2: cloudinary } = await import("cloudinary")
 
-    // For deletion, we need to use the API key and secret
-    // This should only be done server-side
-    const formData = new FormData()
-    formData.append("public_id", publicId)
-    formData.append("api_key", apiKey)
-
-    // Note: For proper deletion, you would need to generate a signature
-    // But since we're avoiding crypto, we'll use a simpler approach
-    // This means deletion might not work properly in this implementation
-
-    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/destroy`, {
-      method: "POST",
-      body: formData,
-      headers: {
-        Authorization: `Basic ${Buffer.from(`${apiKey}:${apiSecret}`).toString("base64")}`,
-      },
+    cloudinary.config({
+      cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME,
+      api_key: process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
     })
 
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(`Cloudinary API error: ${errorData.error?.message || "Unknown error"}`)
-    }
-
-    const result = await response.json()
+    const result = await cloudinary.uploader.destroy(publicId)
     return result.result === "ok"
   } catch (error) {
     console.error("Error deleting from Cloudinary:", error)

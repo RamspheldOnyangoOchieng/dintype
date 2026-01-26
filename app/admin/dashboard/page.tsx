@@ -69,7 +69,7 @@ export default function AdminDashboardPage() {
   const [totalOrders, setTotalOrders] = useState<number | undefined>(undefined)
   const [totalUsers, setTotalUsers] = useState<number | undefined>(undefined)
   const [recentActivity, setRecentActivity] = useState<any[]>([])
-  const [usageStats, setUsageStats] = useState<{ totalTokens: number, totalCredits: number, premiumCount: number } | null>(null)
+  const [usageStats, setUsageStats] = useState<{ totalTokens: number, totalCredits: number, premiumCount: number, monthlyApiCost: number } | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -202,24 +202,24 @@ export default function AdminDashboardPage() {
       icon: MessageSquare,
     },
     {
-      title: "Token usage",
+      title: "Monthly Revenue",
       value: typeof monthlyRevenue === 'number' ? `${currency} ${monthlyRevenue.toFixed(2)}` : `${currency} 0.00`,
-      change: "0%",
+      change: "This month",
       changeType: "neutral",
       icon: DollarSign,
+    },
+    {
+      title: "API Costs",
+      value: usageStats ? `${currency} ${usageStats.monthlyApiCost.toFixed(2)}` : `${currency} 0.00`,
+      change: "This month",
+      changeType: "negative",
+      icon: Activity,
     },
     {
       title: "Total Revenue",
       value: typeof totalRevenue === 'number' ? `${currency} ${totalRevenue.toFixed(2)}` : `${currency} 0.00`,
-      change: "0%",
-      changeType: "neutral",
-      icon: DollarSign,
-    },
-    {
-      title: "Total Orders",
-      value: typeof totalOrders === 'number' ? totalOrders.toString() : "0",
-      change: "0%",
-      changeType: "neutral",
+      change: "All time",
+      changeType: "positive",
       icon: CreditCard,
     },
     {

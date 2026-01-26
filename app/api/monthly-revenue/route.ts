@@ -10,12 +10,12 @@ export async function GET() {
         if (!supabase) {
             return NextResponse.json({ error: "Failed to create Supabase admin client" }, { status: 500 })
         }
-        
+
         const today = new Date()
         const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
 
         const { data, error } = await supabase
-            .from("token_transactions")
+            .from("revenue_transactions")
             .select("amount")
             .gte("created_at", firstDayOfMonth.toISOString())
 
@@ -34,9 +34,9 @@ export async function GET() {
             hint: error?.hint || "",
             code: error?.code || ""
         })
-        return NextResponse.json({ 
-            error: "Internal server error", 
-            details: error?.message 
+        return NextResponse.json({
+            error: "Internal server error",
+            details: error?.message
         }, { status: 500 })
     }
 }

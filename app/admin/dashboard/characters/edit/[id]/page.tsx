@@ -196,8 +196,9 @@ export default function EditCharacterPage() {
         mood: character.mood || (character.metadata?.characterDetails?.mood) || "neutral",
         language: character.language || "English",
         relationship: character.relationship || "Single",
-        systemPrompt: character.systemPrompt || "",
-        isNew: !!character.isNew,
+        systemPrompt: (character as any).systemPrompt || (character as any).system_prompt || "",
+        isNew: !!((character as any).isNew || (character as any).is_new),
+        isPublic: !!((character as any).isPublic || (character as any).is_public),
         category: (character as any).category || "girls",
         images: character.images || [],
         // Advanced metadata fields (direct mapping)
@@ -555,12 +556,11 @@ export default function EditCharacterPage() {
     // 2. Return ONLY verified database columns at the top level
     // We update BOTH snake_case and camelCase variants because the DB 
     // unfortunately contains duplicate columns (a mix of both styles).
-    return {
+    const updatePayload: any = {
       name: data.name,
       age: Number(data.age),
       image: data.image,
       video_url: data.videoUrl,
-      videoUrl: data.videoUrl, // Duplicate column variant
       description: data.description,
       personality: data.personality,
       occupation: data.occupation,
@@ -580,7 +580,7 @@ export default function EditCharacterPage() {
       userId: data.user_id || data.userId, // Duplicate column variant
       metadata: {
         ...(data.metadata || {}),
-        characterDetails, // This overwrites the old characterDetails pack
+        characterDetails,
         face_reference_url: data.face_reference_url,
         anatomy_reference_url: data.anatomy_reference_url,
         preferred_poses: data.preferred_poses,
@@ -591,6 +591,21 @@ export default function EditCharacterPage() {
         negative_prompt: data.negative_prompt,
       }
     }
+
+    // Include appearance traits at top level if columns exist
+    const topLevelTraits = [
+      'hairColor', 'eyeColor', 'skinTone', 'characterStyle',
+      'artStyle', 'clothing', 'pose', 'background', 'mood',
+      'characterGender', 'characterAge', 'bodyType'
+    ]
+
+    topLevelTraits.forEach(trait => {
+      if (data[trait] !== undefined) {
+        updatePayload[trait] = data[trait]
+      }
+    })
+
+    return updatePayload
   }
 
   const handleReferenceImagesClick = () => {
@@ -711,7 +726,21 @@ export default function EditCharacterPage() {
         await refreshSession()
 
         // Update the character
-        await updateCharacter(id, updateData)
+        const updated = await updateCharacter(id, updateData)
+
+        if (updated) {
+          // Sync local formData with the returned data to ensure UI is fresh
+          const reloadedFormData = {
+            ...(updated.metadata?.characterDetails || {}),
+            ...updated,
+            // Re-map a few key fields that might be snake_case in 'updated'
+            systemPrompt: (updated as any).systemPrompt || (updated as any).system_prompt || formData.systemPrompt,
+            isNew: !!((updated as any).isNew || (updated as any).is_new),
+            isPublic: !!((updated as any).isPublic || (updated as any).is_public),
+            videoUrl: (updated as any).videoUrl || (updated as any).video_url || "",
+          }
+          setFormData((prev: any) => ({ ...prev, ...reloadedFormData }))
+        }
       } catch (updateErr) {
         // Check if it's an auth error
         if (
@@ -735,7 +764,8 @@ export default function EditCharacterPage() {
       }
 
       toast.success("Character updated successfully!")
-      router.push("/admin/dashboard/characters")
+      // REMOVED: router.push("/admin/dashboard/characters")
+      // Instead of redirecting, we stay on the page so the user can continue editing.
     } catch (err) {
       console.error("Error updating character:", err)
 
