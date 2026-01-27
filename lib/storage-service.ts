@@ -153,7 +153,7 @@ export class StorageService {
       return {
         ...character,
         prompt_template: character.prompt_template || character.system_prompt || '',
-        image_url: character.image_url || character.image || '',
+        image_url: character.image || character.image_url || '',
         images: character.images || [],
         video_url: character.video_url || '',
         user_id: character.user_id || character.userId || '',

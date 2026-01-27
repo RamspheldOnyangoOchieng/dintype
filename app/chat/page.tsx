@@ -23,7 +23,7 @@ export default async function ChatPage() {
   const { data: rows } = await query.order("created_at", { ascending: false })
 
   const characters = (rows || []).map((r: any) => {
-    let imageUrl = r.image_url || r.image || '';
+    let imageUrl = r.image || r.image_url || '';
 
     // Normalize image URL (handle Supabase storage paths)
     if (imageUrl && !imageUrl.startsWith('http')) {

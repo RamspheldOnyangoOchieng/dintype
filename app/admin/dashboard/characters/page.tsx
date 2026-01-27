@@ -10,13 +10,15 @@ import { Home, Search, Trash2, Edit, Plus, Video, BookOpen } from "lucide-react"
 import { format } from "date-fns"
 import Link from "next/link"
 import { CharacterHoverVideoModal } from "@/components/character-hover-video-modal"
+import { Switch } from "@/components/ui/switch"
+import { toast } from "sonner"
 
 // Add export const dynamic = 'force-dynamic' at the top of the file to prevent static prerendering
 export const dynamic = "force-dynamic"
 
 export default function AdminCharactersPage() {
   const { user, isLoading } = useAuth()
-  const { characters, deleteCharacter, refreshCharacters } = useCharacters()
+  const { characters, deleteCharacter, updateCharacter, refreshCharacters } = useCharacters()
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
@@ -113,6 +115,7 @@ export default function AdminCharactersPage() {
                     <th className="text-left py-3 px-4 text-gray-400 font-medium whitespace-nowrap">Age</th>
                     <th className="text-left py-3 px-4 text-gray-400 font-medium whitespace-nowrap">Occupation</th>
                     <th className="text-left py-3 px-4 text-gray-400 font-medium whitespace-nowrap">Hover Video</th>
+                    <th className="text-left py-3 px-4 text-gray-400 font-medium whitespace-nowrap">Storyline</th>
                     <th className="text-left py-3 px-4 text-gray-400 font-medium whitespace-nowrap">Created</th>
                     <th className="text-right py-3 px-4 text-gray-400 font-medium whitespace-nowrap">Actions</th>
                   </tr>
@@ -145,6 +148,25 @@ export default function AdminCharactersPage() {
                         ) : (
                           <span className="text-gray-500 text-sm">❌ No Video</span>
                         )}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={!!character.isStorylineActive}
+                            onCheckedChange={async (checked) => {
+                              try {
+                                await updateCharacter(character.id, { isStorylineActive: checked });
+                                toast.success(`Storyline ${checked ? 'activated' : 'deactivated'} for ${character.name}`);
+                              } catch (err) {
+                                console.error("Update error:", err);
+                                toast.error("Failed to update storyline status");
+                              }
+                            }}
+                          />
+                          <span className={character.isStorylineActive ? "text-amber-400 text-xs" : "text-gray-500 text-xs"}>
+                            {character.isStorylineActive ? "Active" : "Inactive"}
+                          </span>
+                        </div>
                       </td>
                       <td className="py-3 px-4 text-gray-400">
                         {format(new Date(character.createdAt), "MMM d, yyyy")}

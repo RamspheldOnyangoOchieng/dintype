@@ -5,20 +5,33 @@
  */
 export const isAskingForImage = (message: string): boolean => {
   if (!message) return false
-  const lowerCaseMessage = message.toLowerCase()
-  return (
-    lowerCaseMessage.includes("image") ||
-    lowerCaseMessage.includes("draw") ||
-    lowerCaseMessage.includes("picture") ||
-    lowerCaseMessage.includes("generate") ||
-    lowerCaseMessage.includes("create") ||
-    lowerCaseMessage.includes("can i see") ||
-    lowerCaseMessage.includes("send me") ||
-    lowerCaseMessage.includes("show me") ||
-    lowerCaseMessage.includes("show") ||
-    lowerCaseMessage.includes("selfie") ||
-    lowerCaseMessage.includes("photo")
-  )
+  const lowerCaseMessage = message.toLowerCase().trim()
+
+  // Standalone follow-up triggers (Aggressive matching for follow-ups)
+  const standaloneTriggers = [
+    "another", "another one", "one more", "more", "again", "send another", "give another", "show another",
+    "en till", "en till tack", "mer", "igen", "visa en till", "skicka en till"
+  ];
+  if (standaloneTriggers.includes(lowerCaseMessage)) return true;
+
+  // 1. High-intent direct keywords (Standalone triggers)
+  const directKeywords = ["image", "picture", "selfie", "photo", "pic", "pics", "draw", "generate", "create", "teckna", "bild", "foto"];
+  if (directKeywords.some(k => lowerCaseMessage.includes(k))) return true;
+
+  // 2. Clear intent phrases
+  const intentPhrases = [
+    "can i see", "send me", "show me", "give me",
+    "kan jag få se", "skicka en", "visa mig", "ge mig",
+    "send another", "give another", "show another"
+  ];
+  if (intentPhrases.some(p => lowerCaseMessage.includes(p))) return true;
+
+  // 3. Follow-up "another" patterns (Combinations)
+  if (lowerCaseMessage.includes("another") || lowerCaseMessage.includes("one more") || lowerCaseMessage.includes("en till")) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
@@ -28,9 +41,40 @@ export const isAskingForImage = (message: string): boolean => {
  */
 export const extractImagePrompt = (message: string): string => {
   if (!message) return ""
-  // This is a very basic implementation.  A more sophisticated implementation
-  // might use regex or NLP to extract the relevant part of the message.
-  return message
+  const lower = message.toLowerCase().trim()
+
+  // If it's just a "more" request without detail, provide a good default
+  const genericMore = ["another", "another one", "one more", "more", "again", "give me more", "show me more", "send me more"];
+  if (genericMore.includes(lower) || lower === "another selfie" || lower === "another photo") {
+    return "a beautiful and intimate selfie, natural lighting, high quality"
+  }
+
+  // List of phrases to strip from the beginning of the prompt
+  const triggersToStrip = [
+    "generate a ", "generate an ", "generate ",
+    "create a ", "create an ", "create ",
+    "draw a ", "draw an ", "draw ",
+    "send me a ", "send me an ", "send me ",
+    "show me a ", "show me an ", "show me ",
+    "give me a ", "give me an ", "give me ",
+    "can i see a ", "can i see an ", "can i see ",
+    "i want a ", "i want an ", "i want "
+  ];
+
+  let cleaned = message;
+  for (const trigger of triggersToStrip) {
+    if (cleaned.toLowerCase().startsWith(trigger)) {
+      cleaned = cleaned.substring(trigger.length);
+      break;
+    }
+  }
+
+  // If after cleaning it's too short or just "another", use a better default
+  if (cleaned.trim().length < 3 || cleaned.toLowerCase() === "another") {
+    return "a beautiful and intimate selfie, natural lighting, high quality"
+  }
+
+  return cleaned.trim()
 }
 
 /**
@@ -57,6 +101,7 @@ export const imageUrlToBase64 = async (imageUrl: string): Promise<string | null>
     return null
   }
 }
+
 /**
  * Server-side compatible URL to base64 converter.
  */

@@ -182,12 +182,16 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
 
             if (!imgCandidate) {
               c.image = imgCandidate
+              c.imageUrl = imgCandidate
+              c.image_url = imgCandidate
               return c
             }
 
             // If it's already an absolute URL, use it
             if (typeof imgCandidate === 'string' && imgCandidate.startsWith('http')) {
               c.image = imgCandidate
+              c.imageUrl = imgCandidate
+              c.image_url = imgCandidate
               return c
             }
 
@@ -202,6 +206,8 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
 
               if (publicUrlData && publicUrlData.publicUrl) {
                 c.image = publicUrlData.publicUrl
+                c.imageUrl = publicUrlData.publicUrl
+                c.image_url = publicUrlData.publicUrl
                 return c
               }
             } catch (e) {
@@ -210,6 +216,8 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
 
             // Fallback: use the raw candidate (may be a full URL or relative path)
             c.image = imgCandidate
+            c.imageUrl = imgCandidate
+            c.image_url = imgCandidate
             return c
           } catch (e) {
             console.error('Error normalizing character image', e)

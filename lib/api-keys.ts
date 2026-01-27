@@ -25,7 +25,7 @@ export async function getNovitaApiKey(): Promise<string | null> {
     }
 
     // Fall back to environment variables
-    const envKey = process.env.NOVITA_API || process.env.NEXT_PUBLIC_NOVITA_API_KEY
+    const envKey = process.env.NOVITA_API || process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY
     if (envKey && envKey.trim() !== "") {
       console.log("✅ Using Novita API key from environment variables")
       return envKey
@@ -157,7 +157,7 @@ export async function getStripeWebhookSecret(): Promise<string | null> {
  */
 export async function getActiveStripeSecretKey(): Promise<string | null> {
   const isLiveMode = process.env.STRIPE_LIVE_MODE === "true"
-  
+
   if (isLiveMode) {
     return await getStripeLiveSecretKey()
   } else {
@@ -171,7 +171,7 @@ export async function getActiveStripeSecretKey(): Promise<string | null> {
  */
 export async function getActiveStripePublishableKey(): Promise<string | null> {
   const isLiveMode = process.env.STRIPE_LIVE_MODE === "true"
-  
+
   if (isLiveMode) {
     return await getStripeLivePublishableKey()
   } else {
@@ -184,7 +184,7 @@ export async function getActiveStripePublishableKey(): Promise<string | null> {
  * Should only be used when async is not available
  */
 export function getNovitaApiKeySync(): string | null {
-  return process.env.NOVITA_API || process.env.NEXT_PUBLIC_NOVITA_API_KEY || null
+  return process.env.NOVITA_API || process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY || null
 }
 
 /**

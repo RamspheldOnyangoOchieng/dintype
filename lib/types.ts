@@ -41,6 +41,7 @@ export type Character = {
   category?: string
   tags?: string[]
   isPublic?: boolean
+  isStorylineActive?: boolean
   metadata?: {
     face_reference_url?: string
     anatomy_reference_url?: string

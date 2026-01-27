@@ -308,7 +308,7 @@ function GenerateContent() {
       let imageBase64 = null
       const character = characterId ? characters.find(c => c.id === characterId) : null
       if (characterId && character) {
-        const imageUrl = character.image_url || character.image
+        const imageUrl = character.image || character.image_url
         if (imageUrl) {
           console.log("🧬 Generating character reference base64...")
           imageBase64 = await imageUrlToBase64(imageUrl)

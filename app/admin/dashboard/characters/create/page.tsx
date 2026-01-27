@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/components/auth-context"
 import { useCharacters } from "@/components/character-context"
-import { Home, ArrowLeft, Wand2, Upload, Sparkles, X, Plus, ImageIcon } from "lucide-react"
+import { Home, ArrowLeft, Wand2, Upload, Sparkles, X, Plus, ImageIcon, BookOpen as StoryIcon } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
 import { generateCharacterDescription, generateSystemPrompt, type GenerateCharacterParams } from "@/lib/openai"
 import Image from "next/image"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -48,12 +49,16 @@ export default function CreateCharacterPage() {
     pose: "portrait",
     background: "simple",
     mood: "neutral",
-    // Other fields
     language: "English",
     relationship: "Single",
     systemPrompt: "",
-    category: "anime", // Default category
-    images: [] as string[], // Add this field
+    category: "anime",
+    images: [] as string[],
+    preferred_moods: "",
+    negative_prompt_restrictions: "",
+    default_prompt: "",
+    negative_prompt: "",
+    isStorylineActive: false,
   })
 
   const [isGenerating, setIsGenerating] = useState(false)
@@ -319,14 +324,18 @@ export default function CreateCharacterPage() {
         name, age, image, videoUrl, description,
         personality, occupation, hobbies, body,
         ethnicity, language, relationship,
-        systemPrompt, category, images
+        systemPrompt, category, images,
+        preferred_moods, negative_prompt_restrictions, default_prompt, negative_prompt,
       } = formData
 
       const characterData = {
         name, age, image, videoUrl, description,
         personality, occupation, hobbies, body,
         ethnicity, language, relationship,
-        systemPrompt, category, images
+        systemPrompt, category, images,
+        preferred_moods, negative_prompt_restrictions, default_prompt, negative_prompt,
+        is_storyline_active: !!formData.isStorylineActive,
+        isStorylineActive: !!formData.isStorylineActive,
       }
 
       await addCharacter(characterData)
@@ -541,122 +550,141 @@ export default function CreateCharacterPage() {
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Form Fields - Takes remaining space */}
-                <div className="lg:col-span-2 space-y-6">
-                  {/* Basic Information */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Basic Information</h3>
+                  {/* Form Fields - Takes remaining space */}
+                  <div className="lg:col-span-2 space-y-6">
+                    {/* Basic Information */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Basic Information</h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-300">
-                          Name
-                        </label>
-                        <Input
-                          id="name"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleChange}
-                          className="bg-[#252525] border-[#333] text-white"
-                          placeholder="Character name"
-                        />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label htmlFor="name" className="block text-sm font-medium text-gray-300">
+                            Name
+                          </label>
+                          <Input
+                            id="name"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            className="bg-[#252525] border-[#333] text-white"
+                            placeholder="Character name"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label htmlFor="age" className="block text-sm font-medium text-gray-300">
+                            Age
+                          </label>
+                          <Input
+                            id="age"
+                            name="age"
+                            type="number"
+                            value={formData.age === "" ? "" : formData.age.toString()}
+                            onChange={handleChange}
+                            className="bg-[#252525] border-[#333] text-white"
+                            min="18"
+                            max="100"
+                            placeholder="18"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label htmlFor="occupation" className="block text-sm font-medium text-gray-300">
+                            Occupation
+                          </label>
+                          <Input
+                            id="occupation"
+                            name="occupation"
+                            value={formData.occupation}
+                            onChange={handleChange}
+                            className="bg-[#252525] border-[#333] text-white"
+                            placeholder="Character occupation"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <label htmlFor="personality" className="block text-sm font-medium text-gray-300">
+                            Personality
+                          </label>
+                          <Input
+                            id="personality"
+                            name="personality"
+                            value={formData.personality}
+                            onChange={handleChange}
+                            className="bg-[#252525] border-[#333] text-white"
+                            placeholder="e.g., Friendly, Outgoing, Shy"
+                          />
+                        </div>
                       </div>
 
                       <div className="space-y-2">
-                        <label htmlFor="age" className="block text-sm font-medium text-gray-300">
-                          Age
+                        <label htmlFor="hobbies" className="block text-sm font-medium text-gray-300">
+                          Hobbies
                         </label>
                         <Input
-                          id="age"
-                          name="age"
-                          type="number"
-                          value={formData.age === "" ? "" : formData.age.toString()}
+                          id="hobbies"
+                          name="hobbies"
+                          value={formData.hobbies}
                           onChange={handleChange}
                           className="bg-[#252525] border-[#333] text-white"
-                          min="18"
-                          max="100"
-                          placeholder="18"
+                          placeholder="e.g., Reading, Hiking, Photography"
                         />
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label htmlFor="occupation" className="block text-sm font-medium text-gray-300">
-                          Occupation
-                        </label>
-                        <Input
-                          id="occupation"
-                          name="occupation"
-                          value={formData.occupation}
-                          onChange={handleChange}
-                          className="bg-[#252525] border-[#333] text-white"
-                          placeholder="Character occupation"
-                        />
-                      </div>
+                    {/* Character Category */}
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Category & Details</h3>
 
                       <div className="space-y-2">
-                        <label htmlFor="personality" className="block text-sm font-medium text-gray-300">
-                          Personality
-                        </label>
-                        <Input
-                          id="personality"
-                          name="personality"
-                          value={formData.personality}
-                          onChange={handleChange}
-                          className="bg-[#252525] border-[#333] text-white"
-                          placeholder="e.g., Friendly, Outgoing, Shy"
-                        />
+                        <label className="block text-sm font-medium text-gray-300">Character Category</label>
+                        <RadioGroup
+                          value={formData.category}
+                          onValueChange={handleCategoryChange}
+                          className="flex space-x-6"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="girls" id="girls" />
+                            <Label htmlFor="girls" className="text-white">
+                              Girls
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="anime" id="anime" />
+                            <Label htmlFor="anime" className="text-white">
+                              Anime
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="guys" id="guys" />
+                            <Label htmlFor="guys" className="text-white">
+                              Guys
+                            </Label>
+                          </div>
+                        </RadioGroup>
                       </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <label htmlFor="hobbies" className="block text-sm font-medium text-gray-300">
-                        Hobbies
-                      </label>
-                      <Input
-                        id="hobbies"
-                        name="hobbies"
-                        value={formData.hobbies}
-                        onChange={handleChange}
-                        className="bg-[#252525] border-[#333] text-white"
-                        placeholder="e.g., Reading, Hiking, Photography"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Character Category */}
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-medium">Category & Details</h3>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-300">Character Category</label>
-                      <RadioGroup
-                        value={formData.category}
-                        onValueChange={handleCategoryChange}
-                        className="flex space-x-6"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="girls" id="girls" />
-                          <Label htmlFor="girls" className="text-white">
-                            Girls
-                          </Label>
+                      <div className="space-y-2 pt-2">
+                        <div className="flex items-center justify-between p-3 rounded-lg border border-[#333] bg-[#252525]/30">
+                          <div className="flex items-center gap-3">
+                            <StoryIcon className="h-5 w-5 text-amber-400" />
+                            <div>
+                              <Label htmlFor="isStorylineActive" className="text-sm font-medium text-white cursor-pointer">
+                                Storyline Active
+                              </Label>
+                              <p className="text-[10px] text-gray-400">Enable advanced storyline image/narrative flow</p>
+                            </div>
+                          </div>
+                          <Switch
+                            id="isStorylineActive"
+                            checked={formData.isStorylineActive}
+                            onCheckedChange={(checked) => setFormData((prev: any) => ({ ...prev, isStorylineActive: checked }))}
+                          />
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="anime" id="anime" />
-                          <Label htmlFor="anime" className="text-white">
-                            Anime
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="guys" id="guys" />
-                          <Label htmlFor="guys" className="text-white">
-                            Guys
-                          </Label>
-                        </div>
-                      </RadioGroup>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -862,14 +890,14 @@ export default function CreateCharacterPage() {
             </form>
           </div>
         </div>
-      </div>
 
-      {/* Image Generation Modal */}
-      <ImageGenerationModal
-        isOpen={showImageGenerationModal}
-        onClose={() => setShowImageGenerationModal(false)}
-        onImageSelect={handleUseGeneratedImage}
-      />
-    </div>
+        {/* Image Generation Modal */}
+        <ImageGenerationModal
+          isOpen={showImageGenerationModal}
+          onClose={() => setShowImageGenerationModal(false)}
+          onImageSelect={handleUseGeneratedImage}
+        />
+      </div>
+    </div >
   )
 }

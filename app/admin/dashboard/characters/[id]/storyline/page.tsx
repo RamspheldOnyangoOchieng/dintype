@@ -941,7 +941,7 @@ export default function CharacterStorylinePage() {
                         {character && (
                             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
                                 <img
-                                    src={character.image_url || character.image || "/placeholder.svg"}
+                                    src={character.image || character.image_url || "/placeholder.svg"}
                                     alt={character.name}
                                     className="w-12 h-12 rounded-full object-cover border-2 border-primary/30"
                                 />

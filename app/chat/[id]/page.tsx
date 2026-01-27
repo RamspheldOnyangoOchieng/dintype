@@ -165,6 +165,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   // Use a ref to store the current task ID
   const currentTaskIdRef = useRef<string | null>(null)
 
+  // Track the last loaded character/user combo to prevent redundant reloads
+  const lastLoadedIdRef = useRef<string | null>(null)
+
   // Message aggregation buffer for debouncing (respond once to multiple messages)
   const messageBufferRef = useRef<string[]>([])
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
@@ -345,7 +348,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             isNew: typedData.is_new,
             createdAt: typedData.created_at,
             systemPrompt: typedData.system_prompt || typedData.systemPrompt,
-            imageUrl: typedData.image_url || typedData.image,
+            image: typedData.image || typedData.image_url,
+            imageUrl: typedData.image || typedData.image_url,
             videoUrl: typedData.video_url || typedData.videoUrl,
             isPublic: typedData.is_public || typedData.isPublic,
           };
@@ -742,10 +746,15 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
   // Effect to load chat history when component mounts or character changes
   useEffect(() => {
-    if (isMounted) {
-      loadChatHistory()
+    if (isMounted && characterId && user?.id) {
+      const currentId = `${user.id}-${characterId}`
+      if (lastLoadedIdRef.current !== currentId) {
+        console.log("🔄 Loading fresh chat history for:", currentId)
+        loadChatHistory()
+        lastLoadedIdRef.current = currentId
+      }
     }
-  }, [loadChatHistory, isMounted])
+  }, [loadChatHistory, isMounted, characterId, user?.id])
 
   // Auto-save session management - Enable auto-save when in chat, disable when leaving
   useEffect(() => {
@@ -953,20 +962,37 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         setMessages((prev) => [...prev, imageMessage])
         saveMessageToLocalStorage(characterId!, imageMessage)
-        saveMessageToDatabase(characterId!, imageMessage) // Ensure it's saved to DB
-        handleSaveImage(imageMessage.imageUrl!, imageMessage.imagePrompt, true) // Auto-save silently to collection
+
+        // AWAIT these to prevent race conditions during history reloads
+        await saveMessageToDatabase(characterId!, imageMessage)
+        await handleSaveImage(imageMessage.imageUrl!, imageMessage.imagePrompt, true)
 
         // Get a natural response from the character about the photo
         setTimeout(async () => {
           try {
-            const aiCaption = await generatePhotoCaption(
-              character?.name || "Character",
-              character?.system_prompt || character?.systemPrompt || "",
-              prompt,
-              !!user?.isPremium,
-              storyProgress && !storyProgress.is_completed ? `We are in Chapter ${storyProgress.current_chapter_number}` : "",
-              imageMessage.imageUrl
-            );
+            console.log("📝 Requesting AI caption for photo...");
+            const captionResponse = await fetch("/api/chat/caption", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                characterName: character?.name || "Character",
+                systemPrompt: character?.system_prompt || character?.systemPrompt || "",
+                photoContext: prompt,
+                isPremium: !!user?.isPremium,
+                storyContext: storyProgress && !storyProgress.is_completed ? `We are in Chapter ${storyProgress.current_chapter_number}` : "",
+                imageUrl: imageMessage.imageUrl
+              })
+            });
+
+            let aiCaption = `Here's a little something for you... 😘`;
+            if (captionResponse.ok) {
+              const captionData = await captionResponse.json();
+              if (captionData.caption) {
+                aiCaption = captionData.caption;
+              }
+            } else {
+              console.warn("⚠️ Caption API returned an error, using fallback");
+            }
 
             const reactionMsg: Message = {
               id: `reaction-${Date.now()}`,
@@ -1055,20 +1081,35 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
             setMessages((prev) => [...prev, imageMessage])
             saveMessageToLocalStorage(characterId!, imageMessage)
-            saveMessageToDatabase(characterId!, imageMessage) // Ensure it's saved to DB
-            handleSaveImage(imageMessage.imageUrl!, imageMessage.imagePrompt, true) // Auto-save silently to collection
+
+            // AWAIT these to prevent race conditions during history reloads
+            await saveMessageToDatabase(characterId!, imageMessage)
+            await handleSaveImage(imageMessage.imageUrl!, imageMessage.imagePrompt, true)
 
             // Get a natural response from the character about the photo
             setTimeout(async () => {
               try {
-                const aiCaption = await generatePhotoCaption(
-                  character?.name || "Character",
-                  character?.system_prompt || character?.systemPrompt || "",
-                  prompt,
-                  !!user?.isPremium,
-                  storyProgress && !storyProgress.is_completed ? `We are in Chapter ${storyProgress.current_chapter_number}` : "",
-                  imageMessage.imageUrl
-                );
+                console.log("📝 Requesting AI caption for photo...");
+                const captionResponse = await fetch("/api/chat/caption", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    characterName: character?.name || "Character",
+                    systemPrompt: character?.system_prompt || character?.systemPrompt || "",
+                    photoContext: prompt,
+                    isPremium: !!user?.isPremium,
+                    storyContext: storyProgress && !storyProgress.is_completed ? `We are in Chapter ${storyProgress.current_chapter_number}` : "",
+                    imageUrl: imageMessage.imageUrl
+                  })
+                });
+
+                let aiCaption = `Here's a little something for you... 😘`;
+                if (captionResponse.ok) {
+                  const captionData = await captionResponse.json();
+                  if (captionData.caption) {
+                    aiCaption = captionData.caption;
+                  }
+                }
 
                 const reactionMsg: Message = {
                   id: `reaction-${Date.now()}`,
@@ -1079,7 +1120,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
                 setMessages((prev) => [...prev, reactionMsg]);
                 saveMessageToLocalStorage(characterId!, reactionMsg);
-                saveMessageToDatabase(characterId!, reactionMsg);
+                await saveMessageToDatabase(characterId!, reactionMsg);
               } catch (err) {
                 console.error("Failed to get natural response for photo:", err);
               }
@@ -1211,6 +1252,15 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     try {
       // 2. Check for image requests (using the combined content)
       if (isAskingForImage(combinedContent)) {
+        // --- CRITICAL: Save the user's prompt to DB before generating ---
+        if (user?.id && character?.id) {
+          saveMessageToDatabase(character.id, {
+            id: `user-${Date.now()}`,
+            role: "user",
+            content: combinedContent,
+          }).catch(err => console.error("Error saving trigger message to DB:", err));
+        }
+
         // Story Mode Image Handling
         if (storyProgress && !storyProgress.is_completed) {
           // Filter out any invalid image URLs (must be absolute URLs or base64)
@@ -1726,7 +1776,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                           src={
                             imageErrors[char.id]
                               ? "/placeholder.svg?height=48&width=48"
-                              : (char.image_url || char.image || "/placeholder.svg?height=48&width=48")
+                              : (char.image || char.image_url || "/placeholder.svg?height=48&width=48")
                           }
                           alt={char.name}
                           className="w-full h-full rounded-full object-cover"
@@ -1807,7 +1857,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 src={
                   imageErrors[character?.id || '']
                     ? "/placeholder.svg?height=40&width=40"
-                    : (character?.image_url || character?.image || "/placeholder.svg?height=40&width=40")
+                    : (character?.image || character?.image_url || "/placeholder.svg?height=40&width=40")
                 }
                 alt={character?.name || "Character"}
                 className="w-full h-full rounded-full object-cover"

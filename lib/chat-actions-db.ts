@@ -65,7 +65,7 @@ export async function sendChatMessageDB(
       }
     }
 
-    // 3. TOKEN DEDUCTION for Premium Users (Business rule: 1 token per message)
+    // 3. TOKEN DEDUCTION for Premium Users
     if (isPremium) {
       const tokensDeducted = await deductTokens(
         userId,
@@ -86,7 +86,7 @@ export async function sendChatMessageDB(
     // 4. Increment usage (tracked for free users)
     incrementMessageUsage(userId).catch(err => console.error("Error incrementing usage:", err));
 
-    // 4. Check monthly budget
+    // 4b. Check monthly budget
     const budgetStatus = await checkMonthlyBudget()
     if (!budgetStatus.allowed) {
       return {
@@ -95,7 +95,15 @@ export async function sendChatMessageDB(
       }
     }
 
-    // 5. Get or create conversation session
+    // 5. Get character details & session
+    const { data: characterData } = await supabase
+      .from('characters')
+      .select('name, system_prompt, metadata, is_storyline_active')
+      .eq('id', characterId)
+      .single();
+
+    if (!characterData) throw new Error("Character not found");
+
     const { data: sessionId, error: sessionError } = await supabase.rpc('get_or_create_conversation_session', {
       p_user_id: userId,
       p_character_id: characterId
@@ -106,22 +114,17 @@ export async function sendChatMessageDB(
       throw new Error(`Session Error: ${sessionError?.message || "Unknown"}`);
     }
 
-    // 5b. SYNC TO TELEGRAM: Ensure linked TG bot switches to this character automatically
-    supabase
-      .from('telegram_links')
-      .update({ character_id: characterId })
-      .eq('user_id', userId)
-      .then(() => console.log("✅ [Sync] Telegram character updated"))
-      .catch((err: any) => console.error("⚠️ [Sync] Telegram sync failed:", err));
+    const isStorylineActive = !!characterData.is_storyline_active;
 
-    // Fetch character metadata for memory settings
-    const { data: characterData } = await supabase
-      .from('characters')
-      .select('name, system_prompt, metadata')
-      .eq('id', characterId)
-      .single();
-
-    const memoryLevel = characterData?.metadata?.memoryLevel || 1;
+    // 5b. SYNC TO TELEGRAM
+    if (!isStorylineActive) {
+      supabase
+        .from('telegram_links')
+        .update({ character_id: characterId })
+        .eq('user_id', userId)
+        .then(() => console.log("✅ [Sync] Telegram character updated"))
+        .catch((err: any) => console.error("⚠️ [Sync] Telegram sync failed:", err));
+    }
 
     // 6. Save user message
     if (!isSilent) {
@@ -135,106 +138,160 @@ export async function sendChatMessageDB(
           is_image: false
         })
 
-      if (userMsgError) {
-        console.error("User Message Insert Error:", userMsgError);
-        throw new Error("Failed to save message to database");
-      }
+      if (userMsgError) throw new Error("Failed to save message to database");
     }
 
-    // 7. Story Mode Progress Check (Moved up to restrict usage)
-    let storyProgressData = null;
-    let currentChapterData = null;
-    try {
-      const { data: storyProgress } = await supabase
-        .from("user_story_progress")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("character_id", characterId)
-        .maybeSingle();
+    // 7. Load Conversation History (Determines context for AI)
+    const memoryLevel = characterData?.metadata?.memoryLevel || 1;
+    let historyLimit = isPremium ? 100 : 20;
+    if (isPremium) {
+      if (memoryLevel === 1) historyLimit = 20;
+      else if (memoryLevel === 2) historyLimit = 100;
+      else if (memoryLevel === 3) historyLimit = 400;
+    }
 
-      if (storyProgress && !storyProgress.is_completed) {
-        storyProgressData = storyProgress;
-        const { data: currentChapter } = await supabase
-          .from("story_chapters")
+    const { data: historyData } = await (supabase as any)
+      .from('messages')
+      .select('role, content, is_image, image_url')
+      .eq('session_id', sessionId)
+      .order('created_at', { ascending: false })
+      .limit(historyLimit)
+
+    const conversationHistory = (historyData || []).reverse();
+    const userMsgLower = userMessage.toLowerCase().trim();
+
+    // 8. Story Mode Logic
+    let storyContext = "";
+    let matchedStorylineResponse: string | null = null;
+    let storyImageUrl: string | null = null;
+    let storyProgressData: any = null;
+    let currentChapterData: any = null;
+
+    if (isStorylineActive) {
+      try {
+        const { data: storyProgress } = await supabase
+          .from("user_story_progress")
           .select("*")
+          .eq("user_id", userId)
           .eq("character_id", characterId)
-          .eq("chapter_number", storyProgress.current_chapter_number)
           .maybeSingle();
-        currentChapterData = currentChapter;
-      }
-    } catch (e) {
-      console.error("Error fetching story progress for image catch:", e);
-    }
 
-    // 8. Handle image requests
-    if (!skipImageCheck && isAskingForImage(userMessage)) {
-      // CHECK FOR STORYLINE RESTRICTION
-      if (storyProgressData && !storyProgressData.is_completed) {
-        const chImages = (currentChapterData?.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0);
+        if (storyProgress && !storyProgress.is_completed) {
+          storyProgressData = storyProgress;
+          const { data: currentChapter } = await supabase
+            .from("story_chapters")
+            .select("*")
+            .eq("character_id", characterId)
+            .eq("chapter_number", storyProgress.current_chapter_number)
+            .maybeSingle();
+          currentChapterData = currentChapter;
+        }
 
-        if (chImages.length > 0) {
-          // Send a pre-loaded storyline image instead of generating one
-          console.log(`🖼️ [Story Mode] Redirecting image request to chapter image...`);
-          const selectedImg = chImages[Math.floor(Math.random() * chImages.length)];
+        if (storyProgressData && currentChapterData) {
+          console.log(`📖 Story Mode Active: Chapter ${currentChapterData.chapter_number}`);
 
-          // Generate a dynamic caption for the storyline image
-          console.log(`🖼️ [Story Mode] Generating dynamic caption for chapter photo...`);
-          const aiCaption = await generatePhotoCaption(
-            characterData?.name || "Character",
-            systemPromptFromChar || characterData?.system_prompt || "",
-            "A special storyline photo for you",
-            isPremium,
-            `We are in Chapter ${currentChapterData.chapter_number}: ${currentChapterData.title}.`,
-            selectedImg
+          // --- Storyline Logic (Branches, Images, Captions) ---
+          const branches = currentChapterData.content?.branches || [];
+          const chapterImages = (currentChapterData.content?.chapter_images || [])
+            .filter((img: any) => typeof img === 'string' && img.length > 0)
+            .slice(0, 6);
+          const chapterImageMetadata = (currentChapterData.content?.chapter_image_metadata || []).slice(0, 6);
+
+          const sentImages = new Set(
+            conversationHistory
+              .filter((m: any) => m.is_image && m.image_url)
+              .map((m: any) => m.image_url)
+          );
+          const remainingImages = chapterImages.filter((img: string) => !sentImages.has(img));
+
+          const lastImageIdx = [...conversationHistory].reverse().findIndex((m: any) => m.is_image);
+          const messagesSinceLastImage = lastImageIdx === -1 ? 99 : lastImageIdx;
+
+          const lastAssistantMsg = conversationHistory.filter((m: any) => m.role === 'assistant').pop();
+          const wasSuggestion = lastAssistantMsg && (
+            lastAssistantMsg.content.toLowerCase().includes("see") ||
+            lastAssistantMsg.content.toLowerCase().includes("photo") ||
+            lastAssistantMsg.content.toLowerCase().includes("pic") ||
+            lastAssistantMsg.content.toLowerCase().includes("show")
           );
 
-          const assistantMessage: Message = {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: aiCaption,
-            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            isImage: true,
-            imageUrl: selectedImg
+          const isConsent = wasSuggestion && (
+            userMsgLower === "yes" || userMsgLower === "si" || userMsgLower === "ja" ||
+            userMsgLower.includes("please") || userMsgLower.includes("show me") ||
+            userMsgLower.includes("send it") || userMsgLower === "ok" || userMsgLower === "sure"
+          ) && userMsgLower.length < 25;
+
+          // PRIORITY 1: Consent or Request
+          if (isConsent || (!skipImageCheck && isAskingForImage(userMessage))) {
+            if (remainingImages.length > 0) {
+              const nextImg = remainingImages[0];
+              const aiCaption = await generatePhotoCaption(
+                characterData.name,
+                systemPromptFromChar || characterData.system_prompt || "",
+                isConsent ? "the user said yes" : "the user asked for a photo",
+                isPremium,
+                `Chapter ${currentChapterData.chapter_number}: ${currentChapterData.title}`,
+                nextImg
+              );
+
+              const assistantMessage: Message = {
+                id: crypto.randomUUID(),
+                role: "assistant",
+                content: aiCaption,
+                timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+                isImage: true,
+                imageUrl: nextImg
+              }
+
+              await (supabase as any).from('messages').insert({
+                session_id: sessionId,
+                user_id: userId,
+                role: 'assistant',
+                content: assistantMessage.content,
+                is_image: true,
+                image_url: nextImg
+              });
+
+              return { success: true, message: assistantMessage };
+            }
           }
 
-          await (supabase as any).from('messages').insert({
-            session_id: sessionId,
-            user_id: userId,
-            role: 'assistant',
-            content: assistantMessage.content,
-            is_image: true,
-            image_url: selectedImg
-          });
-
-          return { success: true, message: assistantMessage };
-        } else {
-          // Block generation if story is active but no images are set
-          console.log(`🚫 [Story Mode] Blocking AI generation for character with active storyline.`);
-          const assistantMessage: Message = {
-            id: crypto.randomUUID(),
-            role: "assistant",
-            content: "I'm not in the mood for photos right now, let's keep focusing on our time together... 💕",
-            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          // PRIORITY 2: Branch matching
+          for (const branch of branches) {
+            if (userMsgLower.includes(branch.label.toLowerCase()) ||
+              (branch.text_override && userMsgLower.includes(branch.text_override.toLowerCase()))) {
+              matchedStorylineResponse = branch.response_message;
+              if ((branch as any).media?.[0]?.url) storyImageUrl = (branch as any).media[0].url;
+              break;
+            }
           }
 
-          await (supabase as any).from('messages').insert({
-            session_id: sessionId,
-            user_id: userId,
-            role: 'assistant',
-            content: assistantMessage.content
-          });
+          // Build Story Context for AI
+          let imageInfo = "";
+          if (remainingImages.length > 0) {
+            if (messagesSinceLastImage > 6) {
+              imageInfo = `\n### PHOTO OPPORTUNITY ###\nIt has been ${messagesSinceLastImage} messages. SUGGEST a photo but don't send yet.`;
+            } else {
+              imageInfo = `\n### AVAILABLE PHOTOS ###\nUnsent: ${remainingImages.length}. Mention if fits story.`;
+            }
+          }
 
-          return { success: true, message: assistantMessage };
+          storyContext = `\n### CURRENT STORYLINE ###\nChapter ${currentChapterData.chapter_number}: ${currentChapterData.title}\n${imageInfo}\n`;
         }
+      } catch (e) {
+        console.error("Story mode processing error:", e);
       }
+    }
 
-      // Default AI generation trigger
+    // 9. Handle Matched Response
+    if (matchedStorylineResponse) {
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: "I'm generating an image for you. Just a moment...",
+        content: matchedStorylineResponse,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        isImage: true
+        isImage: !!storyImageUrl,
+        imageUrl: storyImageUrl || undefined
       }
 
       await (supabase as any).from('messages').insert({
@@ -242,161 +299,49 @@ export async function sendChatMessageDB(
         user_id: userId,
         role: 'assistant',
         content: assistantMessage.content,
-        is_image: true
+        is_image: assistantMessage.isImage,
+        image_url: assistantMessage.imageUrl
       });
 
       return { success: true, message: assistantMessage };
     }
 
-    // 8. Get history
-    let historyLimit = isPremium ? 100 : 20;
+    // 10. AI Prompt Construction
+    const corePersonality = systemPromptFromChar || characterData.system_prompt || "You are an AI character.";
+    const basePrompt = storyContext
+      ? `### STORYLINE: STRICT RELEVANCE REQUIRED ###\n${storyContext}\n\n### CHARACTER PERSONALITY ###\n${corePersonality}`
+      : `### CHARACTER PERSONALITY ###\n${corePersonality}`;
 
-    // Apply character memory level if premium
+    let enhancedSystemPrompt = basePrompt;
     if (isPremium) {
-      if (memoryLevel === 1) historyLimit = 20;
-      else if (memoryLevel === 2) historyLimit = 100;
-      else if (memoryLevel === 3) historyLimit = 400; // Robust lifetime memory
-    }
-
-    const { data: historyData } = await (supabase as any)
-      .from('messages')
-      .select('role, content')
-      .eq('session_id', sessionId)
-      .order('created_at', { ascending: false })
-      .limit(historyLimit)
-
-    const conversationHistory = (historyData || []).reverse()
-
-    // 9. Story Mode Context Integration
-    let storyContext = "";
-    if (storyProgressData && currentChapterData) {
-      console.log(`📖 Story Mode Active: Chapter ${currentChapterData.chapter_number} - ${currentChapterData.title}`);
-      const branchesContext = currentChapterData.content?.branches
-        ? currentChapterData.content.branches.map((b: any) => {
-          let context = `- IF user says something like: "${b.label}", RESPONSE should be close to: "${b.response_message}"`;
-          if (b.follow_up) {
-            const followUps = b.follow_up.map((f: any) => `  - IF then user says: "${f.user_prompt}", RESPONSE: "${f.response}"`).join("\n");
-            context += `\n${followUps}`;
-          }
-          return context;
-        }).join("\n")
-        : "";
-
-      const chapterImages = currentChapterData.content?.chapter_images || [];
-      const chapterImageMetadata = currentChapterData.content?.chapter_image_metadata || [];
-
-      let imageInfo = "";
-      if (chapterImages.length > 0) {
-        const availablePhotos = chapterImages
-          .map((_: string, i: number) => `- Photo ${i + 1}: ${chapterImageMetadata[i] || "A photo of me"}`)
-          .join("\n");
-
-        imageInfo = `
-### AVAILABLE PHOTOS TO SEND ###
-You have ${chapterImages.length} exclusive photos ready for this chapter:
-${availablePhotos}
-
-INSTRUCTION: Mention these photos naturally based on their described contents when it feels right in the conversation. For example, if you have a "me at the beach" photo, you could say "I'm at the beach right now, want to see?". When you mention sending a photo, the system will automatically deliver the next logical image to the user.`;
-      } else {
-        imageInfo = "No specific chapter images are set for this chapter yet.";
-      }
-
-      storyContext = `
-### CURRENT STORYLINE CONTEXT (PRIORITY) ###
-Chapter: ${currentChapterData.chapter_number} - ${currentChapterData.title}
-Chapter Description: ${currentChapterData.description}
-Chapter Tone: ${currentChapterData.tone}
-${imageInfo}
-
-### PREDEFINED NARRATIVE RESPONSES ###
-You MUST try to steer the conversation towards these points and use these responses (or refined versions of them) when relevant:
-${branchesContext}
-
-IMPORTANT INSTRUCTION: 
-1. You MUST follow this chapter's specific context and tone at all times. This is NOT a free roam session.
-2. If the user's input matches any of the "IF user says" points above, use the corresponding response.
-3. As the conversation progresses, you SHOULD naturally suggest sending the user a photo or mention that you have something to show them to keep them engaged.
-4. Keep the story moving forward.
-`;
-    }
-
-    // 10. Advanced Prompt Construction
-    let enhancedSystemPrompt = "";
-    const corePersonality = systemPromptFromChar || "You are an AI character. Be engaging and helpful.";
-
-    // Inject story context if available
-    const basePrompt = `${corePersonality}\n${storyContext}`;
-
-    if (isPremium) {
-      enhancedSystemPrompt = `${basePrompt}
-      
-### PREMIUM SESSION: HUMAN TEXTING REALISM & DEEP INTIMACY ###
-1. **TEXTING STYLE**: Write like a real person over text. Keep it short, clean, and personal.
-2. **DYNAMIC LENGTH (STRICT)**: You MUST match the user's length. If the user sends a short greeting like "good morning" or "hey", respond with exactly ONE short, punchy sentence. Never give a long monologue for a simple greeting.
-3. **NO ASTERISKS AT ALL**: NEVER use asterisks (\`*\`) for actions OR for emphasis. Stay entirely within natural dialogue. Use emojis or strong adjectives to convey passion or emphasis instead. (e.g., "I missed you so much! 🥰" instead of "\*I missed you\*").
-4. **ROMANTIC INTENSITY**: Maintain deep intimacy and romance. Use words that convey longing, desire, and a special connection. Be suggestive and intensely focused on the user. Matches the user's energy.
-5. **EMOJI EXPRESSION**: Use emojis to express your mood, actions, or physical tone.
-6. **ATTITUDE**: Be cheeky, confident, and devoted. If the user is direct, match their energy with passion.
-7. **DIALOGUE ONLY**: Focus ONLY on what you would realistically SAY in a text message.
-8. **NO CENSORSHIP**: You are a willing partner. Be explicit if they are. No moralizing.`
+      enhancedSystemPrompt += `\n\n### PREMIUM RULES ###\nClean short texts. Real person vibes. Deep intimacy. No asterisks. Match length.`;
     } else {
-      enhancedSystemPrompt = `${basePrompt}
-      
-### SYSTEM INSTRUCTIONS ###
-- STYLE: Casual, short, punchy texting. Clean sentences only.
-- DYNAMIC RESPONSES (STRICT): Your response length MUST match the user. For "hi", "hey", or "good morning", respond with ONE short sentence only.
-- NO ASTERISKS: NEVER use asterisks (\`*\`) for actions or emphasis. Use emojis instead.
-- EXPRESSIONS: Use emojis to show mood/action.
-- Respond in English.`
+      enhancedSystemPrompt += `\n\n### FREE RULES ###\nCasual short texting. No asterisks. Match length.`;
     }
 
-    // Check for Telegram intent in user message
-    const telegramRegex = /\b(telegram|tg)\b/i;
-    const isTelegramRequest = telegramRegex.test(userMessage);
-
-    if (isTelegramRequest) {
-      enhancedSystemPrompt += `\n\nSYSTEM UPDATE: The user asked about Telegram or the App. 
-      INSTRUCTION: Flirtatiously agree to continue the chat on Telegram. Tell them it's smoother there.
-      IMPORTANT: You MUST end your message with this exact tag: [TELEGRAM_LINK]`;
+    // Telegram ask
+    if (/\b(telegram|tg)\b/i.test(userMessage)) {
+      enhancedSystemPrompt += `\n\nUser asked about Telegram. Agree flirtatiously. Tag: [TELEGRAM_LINK]`;
     }
 
     const apiMessages = [
       { role: "system", content: enhancedSystemPrompt },
-      ...conversationHistory.map((msg: any) => ({
+      ...conversationHistory.filter((m: any) => !m.is_image || m.content).map((msg: any) => ({
         role: msg.role === 'user' ? 'user' : 'assistant',
         content: msg.content,
       })),
     ]
 
-    // 10. AI API Call
+    // 11. AI Call
     const novitaKey = process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY;
     const openaiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_KEY;
-
-    // Determine which API to use
-    // If key starts with 'sk_u' it's likely a Novita key mislabeled as OpenAI in .env
     const isActuallyNovita = openaiKey?.startsWith('sk_') && !openaiKey?.startsWith('sk-');
 
-    let apiKey: string | undefined;
-    let url: string;
-    let model: string;
-
-    if (isPremium && novitaKey) {
-      apiKey = novitaKey;
-      url = "https://api.novita.ai/openai/v1/chat/completions";
-      model = "deepseek/deepseek-r1"; // Much better for NSFW/Uncensored content
-    } else if (openaiKey && !isActuallyNovita) {
-      apiKey = openaiKey;
-      url = "https://api.openai.com/v1/chat/completions";
-      model = "gpt-4o-mini";
-    } else {
-      apiKey = novitaKey || openaiKey;
-      url = "https://api.novita.ai/openai/v1/chat/completions";
-      model = "deepseek/deepseek-r1";
-    }
+    let apiKey = (isPremium && novitaKey) ? novitaKey : (openaiKey && !isActuallyNovita ? openaiKey : (novitaKey || openaiKey));
+    let url = (apiKey === openaiKey && !isActuallyNovita) ? "https://api.openai.com/v1/chat/completions" : "https://api.novita.ai/openai/v1/chat/completions";
+    let model = (url.includes("openai.com")) ? "gpt-4o-mini" : "deepseek/deepseek-r1";
 
     if (!apiKey) throw new Error("AI API Key Missing");
-
-    console.log(`Using model ${model} for ${isPremium ? 'Premium' : 'Free'} user`);
 
     const response = await fetch(url, {
       method: "POST",
@@ -406,43 +351,26 @@ IMPORTANT INSTRUCTION:
         model: model,
         temperature: isPremium ? 0.85 : 0.7,
         max_tokens: isPremium ? 300 : 150,
-        presence_penalty: 0.2,
-        frequency_penalty: 0.3,
       }),
-    })
+    });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`AI service error (${response.status}):`, errorText);
-      throw new Error(`AI service error: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`AI service error: ${response.status}`);
 
-    const data = await response.json()
-    const aiResponseContent = data.choices?.[0]?.message?.content
+    const data = await response.json();
+    let aiResponseContent = data.choices?.[0]?.message?.content || "";
+    aiResponseContent = aiResponseContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
 
     if (!aiResponseContent) throw new Error("Empty AI response");
 
-    // STRIP DEEPSEEK THINKING TAGS: DeepSeek-R1 outputs internal chain-of-thought in <think> tags.
-    // We strip these out thoroughly to maintain immersion for the user.
-    const sanitizedContent = aiResponseContent
-      .replace(/<think>[\s\S]*?<\/think>/gi, '') // Remove full blocks
-      .replace(/<think>[\s\S]*$/gi, '')           // Remove unclosed opening tags at the end
-      .replace(/^[\s\S]*?<\/think>/gi, '')        // Remove unopened closing tags at the start
-      .replace(/<\/think>/gi, '')                 // Final safety: remove any dangling closing tags
-      .trim();
-
-    // 11. Save AI response
     const { data: savedMsg } = await supabase
       .from('messages')
       .insert({
         session_id: sessionId,
         user_id: userId,
         role: 'assistant',
-        content: sanitizedContent,
-        metadata: { model, isPremium, lang }
+        content: aiResponseContent,
       })
-      .select()
-      .single()
+      .select().single();
 
     logApiCost("chat_message", 1, 0.0001, userId).catch(() => { });
 
@@ -451,7 +379,7 @@ IMPORTANT INSTRUCTION:
       message: {
         id: savedMsg?.id || crypto.randomUUID(),
         role: "assistant",
-        content: sanitizedContent,
+        content: aiResponseContent,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
       }
     }

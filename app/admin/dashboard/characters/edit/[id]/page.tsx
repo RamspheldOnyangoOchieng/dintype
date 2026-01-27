@@ -44,7 +44,8 @@ import Image from "next/image"
 import { ScrollArea } from "@/components/ui/scroll-area" // Assume scroll-area exists or use div
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import { X, Plus } from "lucide-react"
+import { X, Plus, BookOpen as StoryIcon } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
 
 // Add this helper function at the top of the file, outside the component
 const convertFileToBase64 = (file: File): Promise<string> => {
@@ -123,7 +124,9 @@ export default function EditCharacterPage() {
     preferred_moods: "",
     negative_prompt_restrictions: "",
     default_prompt: "",
+    default_prompt: "",
     negative_prompt: "",
+    isStorylineActive: false,
   })
 
   const [isGenerating, setIsGenerating] = useState(false)
@@ -201,6 +204,7 @@ export default function EditCharacterPage() {
         systemPrompt: (character as any).systemPrompt || (character as any).system_prompt || "",
         isNew: !!((character as any).isNew || (character as any).is_new),
         isPublic: !!((character as any).isPublic || (character as any).is_public),
+        isStorylineActive: !!((character as any).isStorylineActive || (character as any).is_storyline_active),
         category: (character as any).category || "girls",
         images: character.images || [],
         // Advanced metadata fields (direct mapping)
@@ -580,6 +584,8 @@ export default function EditCharacterPage() {
       images: data.images || [],
       user_id: data.user_id || data.userId,
       userId: data.user_id || data.userId, // Duplicate column variant
+      is_storyline_active: !!data.isStorylineActive,
+      isStorylineActive: !!data.isStorylineActive,
       metadata: {
         ...(data.metadata || {}),
         characterDetails,
@@ -1322,6 +1328,25 @@ export default function EditCharacterPage() {
                           </label>
                         </div>
                         <p className="text-xs text-gray-400">Characters marked as new will display a "New" badge.</p>
+                      </div>
+
+                      <div className="space-y-2 pt-2">
+                        <div className="flex items-center justify-between p-3 rounded-lg border border-[#333] bg-[#252525]/30">
+                          <div className="flex items-center gap-3">
+                            <StoryIcon className="h-5 w-5 text-amber-400" />
+                            <div>
+                              <Label htmlFor="isStorylineActive" className="text-sm font-medium text-white cursor-pointer">
+                                Storyline Active
+                              </Label>
+                              <p className="text-[10px] text-gray-400">Enable advanced storyline image/narrative flow</p>
+                            </div>
+                          </div>
+                          <Switch
+                            id="isStorylineActive"
+                            checked={formData.isStorylineActive}
+                            onCheckedChange={(checked) => setFormData((prev: any) => ({ ...prev, isStorylineActive: checked }))}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>

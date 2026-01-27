@@ -88,9 +88,9 @@ export function CharacterList({ characters }: CharacterListProps) {
         <div key={character.id} className="group relative bg-[#0a0a0a] rounded-[2rem] overflow-hidden border border-white/10 transition-all duration-700 hover:border-primary/50 hover:shadow-[0_0_30px_rgba(14,165,233,0.15)] hover:-translate-y-2">
           {/* Image Container */}
           <div className="relative aspect-[2/3] w-full overflow-hidden">
-            {(character.image_url || character.image || (character as any).image) ? (
+            {(character.image || character.image_url || (character as any).image) ? (
               <Image
-                src={character.image_url || character.image || (character as any).image || "/placeholder.svg"}
+                src={character.image || character.image_url || (character as any).image || "/placeholder.svg"}
                 alt={character.name}
                 fill
                 className="object-cover object-top transition-transform duration-[1501ms] group-hover:scale-110"
