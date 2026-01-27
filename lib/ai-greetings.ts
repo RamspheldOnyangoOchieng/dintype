@@ -38,7 +38,7 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
 - Match your character's personality and the current story situation
 - Output ONLY the greeting message, nothing else`;
 
-        const response = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
+        const response = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${novitaKey}`,
@@ -49,7 +49,7 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
                     { role: 'system', content: greetingPrompt },
                     { role: 'user', content: 'Send me a good morning message.' }
                 ],
-                model: 'deepseek/deepseek-v3',
+                model: 'deepseek/deepseek-r1',
                 temperature: 0.8,
                 max_tokens: 100,
             }),
@@ -140,7 +140,7 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
                     }
                 ];
 
-                const visionResponse = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
+                const visionResponse = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${novitaKey}`,
@@ -186,7 +186,7 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
             }
         ];
 
-        const textResponse = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
+        const textResponse = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${novitaKey}`,

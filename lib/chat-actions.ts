@@ -130,7 +130,8 @@ IMPORTANT INSTRUCTIONS:
     try {
       // PRIORITY: Use OPENAI_API_KEY from .env first, then fallback to NOVITA
       const openaiApiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_KEY
-      const novitaApiKey = process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY
+      const { getNovitaApiKey } = await import('./api-keys');
+      const novitaApiKey = await getNovitaApiKey();
 
       // Determine which API to use
       // If OPEN_AI_KEY starts with 'sk_u' it's likely a Novita key mislabeled in .env
@@ -138,17 +139,6 @@ IMPORTANT INSTRUCTIONS:
       const useOpenAI = !!openaiApiKey && !isActuallyNovita
 
       let apiKey = openaiApiKey || novitaApiKey
-
-      // Only try database if environment variables are not available
-      if (!apiKey) {
-        try {
-          const dbApiKey = await getApiKey("novita_api_key")
-          apiKey = dbApiKey || undefined;
-          console.log("API key from database:", apiKey ? "Found" : "Not found")
-        } catch (error) {
-          console.warn("Could not fetch API key from database:", error)
-        }
-      }
 
       console.log("Chat API Configuration:", {
         usingOpenAI: useOpenAI,

@@ -104,14 +104,44 @@ export async function sendChatMessageDB(
 
     if (!characterData) throw new Error("Character not found");
 
-    const { data: sessionId, error: sessionError } = await supabase.rpc('get_or_create_conversation_session', {
+    const { data: sessionIdResult, error: sessionError } = await supabase.rpc('get_or_create_conversation_session', {
       p_user_id: userId,
       p_character_id: characterId
     })
 
+    let sessionId = sessionIdResult;
+
     if (sessionError || !sessionId) {
-      console.error("RPC Session Error:", sessionError);
-      throw new Error(`Session Error: ${sessionError?.message || "Unknown"}`);
+      console.warn("⚠️ RPC Session Error or missing, trying manual fallback:", sessionError?.message);
+
+      // Manual fallback
+      const { data: existingSession } = await supabase
+        .from('conversation_sessions')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('character_id', characterId)
+        .eq('is_archived', false)
+        .maybeSingle();
+
+      if (existingSession) {
+        sessionId = existingSession.id;
+      } else {
+        const { data: newSession, error: createError } = await supabase
+          .from('conversation_sessions')
+          .insert({
+            user_id: userId,
+            character_id: characterId,
+            title: userMessage.substring(0, 50)
+          })
+          .select('id')
+          .single();
+
+        if (createError) {
+          console.error("❌ Session creation failed both RPC and manual:", createError);
+          throw new Error(`Session Error: ${createError.message}`);
+        }
+        sessionId = newSession.id;
+      }
     }
 
     const isStorylineActive = !!characterData.is_storyline_active;
@@ -316,13 +346,14 @@ export async function sendChatMessageDB(
     ]
 
     // 11. AI Call
-    const novitaKey = process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY;
+    const { getNovitaApiKey } = await import('./api-keys');
+    const novitaKey = await getNovitaApiKey();
     const openaiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_KEY;
     const isActuallyNovita = openaiKey?.startsWith('sk_') && !openaiKey?.startsWith('sk-');
 
     let apiKey = (isPremium && novitaKey) ? novitaKey : (openaiKey && !isActuallyNovita ? openaiKey : (novitaKey || openaiKey));
-    let url = (apiKey === openaiKey && !isActuallyNovita) ? "https://api.openai.com/v1/chat/completions" : "https://api.novita.ai/v3/openai/chat/completions";
-    let model = (url.includes("openai.com")) ? "gpt-4o-mini" : "deepseek/deepseek-v3";
+    let url = (apiKey === openaiKey && !isActuallyNovita) ? "https://api.openai.com/v1/chat/completions" : "https://api.novita.ai/openai/v1/chat/completions";
+    let model = (url.includes("openai.com")) ? "gpt-4o-mini" : "deepseek/deepseek-r1";
 
     if (!apiKey) throw new Error("AI API Key Missing");
 

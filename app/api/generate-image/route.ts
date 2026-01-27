@@ -396,7 +396,7 @@ export async function POST(req: NextRequest) {
     try {
       const { key: novitaApiKey } = await getUnifiedNovitaKey();
       if (novitaApiKey) {
-        const enhancementResponse = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
+        const enhancementResponse = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${novitaApiKey}`,

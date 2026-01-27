@@ -335,7 +335,7 @@ async function generateAIResponse(
 
     try {
         // High-speed Telegram Response (V3)
-        const response = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
+        const response = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${apiKey.trim()}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -351,7 +351,7 @@ async function generateAIResponse(
             console.error(`[Telegram] Primary AI Error (${errStatus})`);
 
             // AUTOMATIC FAILOVER: Try Meta Llama 3.1 (High Reliability)
-            const fallbackRes = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
+            const fallbackRes = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${apiKey.trim()}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -391,7 +391,7 @@ async function enhanceImagePrompt(userPrompt: string, characterDescription: stri
     if (!apiKey) return userPrompt;
 
     try {
-        const response = await fetch("https://api.novita.ai/v3/openai/chat/completions", {
+        const response = await fetch("https://api.novita.ai/openai/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

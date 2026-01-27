@@ -34,7 +34,7 @@ export async function generateAIGreeting(
         - STAY IMMERSED: You are ALREADY on Telegram. NEVER say "join me on Telegram".
         - Output ONLY the message.`;
 
-        const response = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
+        const response = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
