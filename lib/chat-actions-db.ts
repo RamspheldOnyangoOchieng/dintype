@@ -166,8 +166,6 @@ export async function sendChatMessageDB(
 
     // 8. Story Mode Logic
     let storyContext = "";
-    let matchedStorylineResponse: string | null = null;
-    let storyImageUrl: string | null = null;
     let storyProgressData: any = null;
     let currentChapterData: any = null;
 
@@ -260,17 +258,7 @@ export async function sendChatMessageDB(
             }
           }
 
-          // PRIORITY 2: Branch matching
-          for (const branch of branches) {
-            if (userMsgLower.includes(branch.label.toLowerCase()) ||
-              (branch.text_override && userMsgLower.includes(branch.text_override.toLowerCase()))) {
-              matchedStorylineResponse = branch.response_message;
-              if ((branch as any).media?.[0]?.url) storyImageUrl = (branch as any).media[0].url;
-              break;
-            }
-          }
-
-          // Build Story Context for AI
+          // Build Story Context for AI with Branches
           let imageInfo = "";
           if (remainingImages.length > 0) {
             if (messagesSinceLastImage > 6) {
@@ -280,7 +268,15 @@ export async function sendChatMessageDB(
             }
           }
 
-          storyContext = `\n### CURRENT STORYLINE ###\nChapter ${currentChapterData.chapter_number}: ${currentChapterData.title}\n${imageInfo}\n`;
+          let branchInfo = "";
+          if (branches.length > 0) {
+            branchInfo = "\n### NARRATIVE BRANCHES ###\nYou are at a pivot point. Listen for user's intent and follow a branch:\n" +
+              branches.map((b: any, i: number) =>
+                `Path ${i + 1}: If they seem to want "${b.label}", steer towards: "${b.response_message}"`
+              ).join("\n");
+          }
+
+          storyContext = `\n### CURRENT STORYLINE ###\nChapter ${currentChapterData.chapter_number}: ${currentChapterData.title}\n${imageInfo}\n${branchInfo}\n`;
         }
       } catch (e) {
         console.error("Story mode processing error:", e);
@@ -288,27 +284,6 @@ export async function sendChatMessageDB(
     }
 
     // 9. Handle Matched Response
-    if (matchedStorylineResponse) {
-      const assistantMessage: Message = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: matchedStorylineResponse,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        isImage: !!storyImageUrl,
-        imageUrl: storyImageUrl || undefined
-      }
-
-      await (supabase as any).from('messages').insert({
-        session_id: sessionId,
-        user_id: userId,
-        role: 'assistant',
-        content: assistantMessage.content,
-        is_image: assistantMessage.isImage,
-        image_url: assistantMessage.imageUrl
-      });
-
-      return { success: true, message: assistantMessage };
-    }
 
     const corePersonality = systemPromptFromChar || characterData.system_prompt || "You are an AI character.";
     // Only use Storyline header if we actually have active story context (not completed)
@@ -319,7 +294,7 @@ export async function sendChatMessageDB(
     let enhancedSystemPrompt = basePrompt;
 
     // STRICT RULE: No asterisks or action descriptions for ANY mode
-    enhancedSystemPrompt += `\n\n### RESPONSE STYLE RULES ###\n- NO ASTERISKS (*) or action descriptions (e.g., *smiles*, *leans in*).\n- Use strict natural language only, as if texting on WhatsApp/Telegram.\n- Do not describe what you are doing, only say what you want to say.`;
+    enhancedSystemPrompt += `\n\n### RESPONSE STYLE RULES ###\n- NO ASTERISKS (*) or action descriptions (e.g., *smiles*, *leans in*).\n- Use strict natural language only, as if texting on WhatsApp/Telegram.\n- Do not describe what you are doing, only say what you want to say.\n- If the user's input matches a NARRATIVE BRANCH, naturally transition into that path and use the provided response as your anchor.`;
 
     if (isPremium) {
       enhancedSystemPrompt += `\n\n### PREMIUM RULES ###\nClean short texts. Real person vibes. Deep intimacy. Match length.`;

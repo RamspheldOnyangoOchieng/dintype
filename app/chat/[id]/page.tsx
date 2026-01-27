@@ -1583,37 +1583,6 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     }
   }
 
-  // Handle story branch selection
-  const handleSelectBranch = async (branch: any) => {
-    if (!user || !character || !storyProgress) return;
-
-    // 1. Add player's choice as a message
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: branch.label,
-      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    };
-    setMessages(prev => [...prev, userMsg]);
-    saveMessageToLocalStorage(character.id, userMsg);
-
-    // 2. Add AI's canned response
-    setIsSendingMessage(true);
-    setTimeout(async () => {
-      const assistantMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: branch.response_message,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      };
-      setMessages(prev => [...prev, assistantMsg]);
-      saveMessageToLocalStorage(character.id, assistantMsg);
-
-      // 3. Just send the message and let the normal progression logic handle it
-      // The storyContext in the backend will now steer the AI based on this choice.
-      setIsSendingMessage(false);
-    }, 200);
-  };
 
   // Show loading while checking authentication
   if (isLoading) {
@@ -2034,22 +2003,6 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Story Mode Choices */}
-        {storyProgress && !storyProgress.is_completed && currentChapter?.content?.branches && (
-          <div className="px-4 py-2 flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2 duration-500 overflow-x-auto no-scrollbar">
-            {currentChapter.content.branches.map((branch: any, idx: number) => (
-              <Button
-                key={idx}
-                variant="outline"
-                size="sm"
-                className="bg-primary/5 border-primary/20 hover:bg-primary/10 text-primary rounded-full px-4 border-dashed whitespace-nowrap"
-                onClick={() => handleSelectBranch(branch)}
-              >
-                {branch.label}
-              </Button>
-            ))}
-          </div>
-        )}
 
         {apiKeyError && (
           <div className="mx-4 p-3 bg-destructive/20 border border-destructive text-destructive-foreground rounded-lg text-sm">
