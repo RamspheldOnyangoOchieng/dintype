@@ -220,21 +220,20 @@ async function generateAIResponse(
     if (isPremium) {
         enhancedSystemPrompt += `
 
-### PREMIUM SESSION: HUMAN TEXTING REALISM & DEEP INTIMACY ###
-1. **INTELLIGENT DYNAMICS**: Act like a real person over text. Use natural, flirty, and intimate language.
-2. **NATURAL CONTEXT**: Use asterisks (*) naturally for actions, environment, or mood (e.g., *smiles softly while looking at my phone*, *leans back*, *sighs happily*).
-3. **FLEXIBLE LENGTH**: Use your judgment for message length. If the user asks a deep question or shares something meaningful, give a thoughtful, longer response. If it's just a greeting or quick chat, keep it punchy.
-4. **NATURAL EMOJIS**: Integrate emojis naturally to show passion and mood.
-5. **IMMERSED**: You are ALREADY on Telegram. Never mention moving here or use [TELEGRAM_LINK].`;
+### PREMIUM SESSION: NATURAL HUMAN TEXTING REALISM ###
+1. **INTELLIGENT DYNAMICS**: Act exactly like a real person would over WhatsApp/Telegram.
+2. **STRICT NATURAL LANGUAGE**: NO ASTERISKS (*) or action descriptions (e.g., *leans in*, *smiles*). Do not describe what you are doing, only say what you want to say.
+3. **FLEXIBLE LENGTH**: Use judgment for message length. If the user is meaningful, be thoughtful. If casual, stay punchy.
+4. **IMMERSED**: You are ALREADY on Telegram. Never mention moving here or use [TELEGRAM_LINK].`;
     } else {
         enhancedSystemPrompt += `
 
-### SYSTEM INSTRUCTIONS ###
-- **STYLE**: Human-like, casual, and engaging texting.
-- **ACTIONS**: You MAY use asterisks (*) for setting the scene or describing actions (e.g., *blushes slightly*).
-- **DYNAMIC LENGTH**: Reason if the answer should be short or long. Don't be robotic; match the energy of the conversation.
+### SYSTEM INSTRUCTIONS: CASUAL TEXTING ###
+- **STYLE**: Human-like, natural, and engaging texting.
+- **NO ACTIONS**: NEVER use asterisks (*) or describe your actions. Use strict natural language only.
+- **DYNAMIC LENGTH**: Match the energy of the conversation.
 - **EMOJIS**: Use emojis naturally to express emotion.
-- **STERNLY FORBID**: Never mention moving to Telegram or use the [TELEGRAM_LINK] tag.`;
+- **FORBIDDEN**: Never mention moving to Telegram or use [TELEGRAM_LINK].`;
     }
 
     // --- ENHANCED HISTORY SANITIZATION ---
@@ -335,13 +334,13 @@ async function generateAIResponse(
     }
 
     try {
-        // Attempt 1: DeepSeek R1
+        // High-speed Telegram Response (V3)
         const response = await fetch('https://api.novita.ai/v3/openai/chat/completions', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${apiKey.trim()}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: apiMessages,
-                model: 'deepseek/deepseek-r1',
+                model: 'deepseek/deepseek-v3',
                 temperature: 0.8,
                 max_tokens: 350,
             }),
@@ -776,6 +775,22 @@ export async function POST(request: NextRequest) {
                         .maybeSingle();
 
                     if (pendingLink) {
+                        // Parse metadata from code: link_[hex]_s[1|0][c[N]]
+                        const metaPart = linkCode.split('_').find((p: string) => p.startsWith('s'));
+                        let extraContext = "";
+
+                        if (metaPart) {
+                            const isStory = metaPart.startsWith('s1');
+                            if (isStory) {
+                                extraContext = "You are in story mode";
+                                if (metaPart.includes('c')) {
+                                    const chNum = metaPart.split('c')[1];
+                                    extraContext += `, specifically at chapter ${chNum}`;
+                                }
+                            } else {
+                                extraContext = "You are in Free Roam mode, just chatting naturally";
+                            }
+                        }
                         await supabase.from('telegram_links').upsert({
                             telegram_id: telegramUserId.toString(),
                             user_id: pendingLink.user_id,
@@ -807,7 +822,8 @@ export async function POST(request: NextRequest) {
                             syncChar?.system_prompt || syncChar?.description || "",
                             firstName,
                             isPremium,
-                            'synced'
+                            'synced',
+                            extraContext
                         );
 
                         // Helper to safely escape HTML
@@ -857,12 +873,12 @@ export async function POST(request: NextRequest) {
                         if (character.is_storyline_active) {
                             const { data: prog } = await supabase
                                 .from('user_story_progress')
-                                .select('current_chapter_number')
+                                .select('current_chapter_number, is_completed')
                                 .eq('user_id', linkedAccount.user_id)
                                 .eq('character_id', character.id)
                                 .maybeSingle();
 
-                            if (prog) {
+                            if (prog && !prog.is_completed) {
                                 const { data: ch } = await supabase
                                     .from('story_chapters')
                                     .select('content')
@@ -1006,16 +1022,18 @@ export async function POST(request: NextRequest) {
             const characterName = character?.name || 'Your Companion';
             const characterPrompt = character?.system_prompt || character?.description || '';
 
-            // Load conversation history for context
+            // Load conversation history for context (across all non-archived sessions)
             let conversationHistory: { role: string; content: string }[] = [];
-            if (activeSessionId) {
+            if (linkedAccount.user_id && linkedAccount.character_id) {
                 const { data: messages } = await supabase
                     .from('messages')
-                    .select('role, content, is_image, image_url')
-                    .eq('session_id', activeSessionId)
-                    .order('created_at', { ascending: true })
-                    .limit(30);
-                conversationHistory = messages || [];
+                    .select('role, content, is_image, image_url, conversation_sessions!inner(id)')
+                    .eq('conversation_sessions.user_id', linkedAccount.user_id)
+                    .eq('conversation_sessions.character_id', linkedAccount.character_id)
+                    .eq('conversation_sessions.is_archived', false)
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+                conversationHistory = (messages || []).reverse();
             }
 
             // (Session management and user message saving already handled above)

@@ -723,14 +723,21 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         console.log("Migration candidate: local messages exist but DB is empty")
       } else {
         console.log("No history found anywhere, setting default welcome message")
-        const defaultMessage: Message = {
-          id: Date.now().toString(),
-          role: "assistant",
-          content: `Hey there, my love... 💕 I'm ${character.name}. I've been waiting for someone like you.\n\n*leans in closer* So tell me... what brings you here tonight? You can message me right here, or find me on Telegram @pocketloveaibot for something more... private. 🌹`,
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          isWelcome: true
+
+        // Skip default welcome for storyline characters - they get chapter opening message instead
+        if (character?.is_storyline_active || character?.isStorylineActive) {
+          console.log("Storyline active, skipping generic welcome");
+          setMessages([]);
+        } else {
+          const defaultMessage: Message = {
+            id: Date.now().toString(),
+            role: "assistant",
+            content: `Hey there, my love... 💕 I'm ${character.name}. I've been waiting for someone like you.\n\nSo tell me... what brings you here tonight? You can message me right here, or find me on Telegram @pocketloveaibot for something more... private. 🌹`,
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            isWelcome: true
+          }
+          setMessages([defaultMessage])
         }
-        setMessages([defaultMessage])
       }
     } catch (error) {
       console.error("Error loading history:", error)
@@ -741,7 +748,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         {
           id: `error-welcome-${characterId}`,
           role: "assistant",
-          content: `Hey there, my love... 💕 I'm ${character.name}. I've been waiting for someone like you.\n\n*leans in closer* So tell me... what brings you here tonight? You can message me right here, or find me on Telegram @pocketloveaibot for something more... private. 🌹`,
+          content: `Hey there, my love... 💕 I'm ${character?.name || 'your companion'}. I've been waiting for someone like you. Tell me... what brings you here tonight? 🌹`,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           isWelcome: true
         },
@@ -1250,16 +1257,14 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       return
     }
 
-    // Combine all pending messages
     const combinedContent = messageBufferRef.current.join("\n")
     messageBufferRef.current = []
 
     setDebugInfo((prev) => ({ ...prev, lastAction: "processingBuffer" }))
 
     try {
-      // 2. Check for image requests (using the combined content)
+      // 1. Check for image requests
       if (isAskingForImage(combinedContent)) {
-        // --- CRITICAL: Save the user's prompt to DB before generating ---
         if (user?.id && character?.id) {
           saveMessageToDatabase(character.id, {
             id: `user-${Date.now()}`,
@@ -1268,15 +1273,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           }).catch(err => console.error("Error saving trigger message to DB:", err));
         }
 
-        // Story Mode Image Handling
         if (storyProgress && !storyProgress.is_completed) {
-          // Filter out any invalid image URLs (must be absolute URLs or base64)
           const chImages = (currentChapter?.content?.chapter_images || []).filter((img: any) =>
             typeof img === 'string' && (img.startsWith('http') || img.startsWith('data:'))
           );
 
           if (chImages.length > 0) {
-            // Try to find a matching image based on prompt keywords if available
             const meta = (currentChapter?.content as any)?.chapter_image_metadata || []
             const lowercasePrompt = combinedContent.toLowerCase()
             let bestMatchImg = null
@@ -1293,7 +1295,6 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             }
 
             const nextImg = bestMatchImg || chImages.find((img) => !sentChapterImages.includes(img)) || chImages[0]
-
             const aiCaption = await generatePhotoCaption(
               character?.name || "Character",
               character?.system_prompt || character?.systemPrompt || "",
@@ -1308,7 +1309,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               role: "assistant",
               content: aiCaption,
               isImage: true,
-              imageUrl: nextImg, // Now guaranteed to be a valid URL
+              imageUrl: nextImg,
               timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             }
 
@@ -1316,40 +1317,33 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               setMessages((prev) => [...prev, storyImgMsg])
               saveMessageToLocalStorage(character.id, storyImgMsg)
               setSentChapterImages((prev) => [...new Set([...prev, nextImg])])
-            }, 1000)
+            }, 300)
 
             setIsSendingMessage(false)
             return
           } else {
-            // Block generation if story is active but no images are set
-            console.log(`🚫 [Story Mode] Blocking AI generation for character with active storyline.`);
             const storyRefusalMsg: Message = {
               id: `story-refusal-${Date.now()}`,
               role: "assistant",
               content: "I'm not in the mood for photos right now, let's keep focusing on our time together... 💕",
               timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             }
-
             setTimeout(() => {
               setMessages((prev) => [...prev, storyRefusalMsg])
               saveMessageToLocalStorage(character.id, storyRefusalMsg)
-            }, 1000)
-
+            }, 300)
             setIsSendingMessage(false)
             return
           }
         }
 
-        // Normal image generation (outside Story Mode or if story images missing)
         const imagePrompt = extractImagePrompt(combinedContent)
         setIsSendingMessage(false)
         await generateImage(imagePrompt)
         return
       }
 
-      // 3. Send to AI (which also saves to DB)
-      setDebugInfo((prev) => ({ ...prev, lastAction: "sendingToAI" }))
-
+      // 2. Normal Chat Response
       if (!user?.id) {
         toast.error("Please login to continue chatting.")
         openLoginModal()
@@ -1364,124 +1358,6 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         user.id,
       )
 
-      // Update message count for context progression
-      const updatedMessageCount = chapterMessageCount + 1
-      setChapterMessageCount(updatedMessageCount)
-
-      // Narrative Progression Logic (Story Mode)
-      if (storyProgress && !storyProgress.is_completed && currentChapter) {
-        const chImages = (currentChapter.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0)
-        const aiText = aiResponse.message?.content?.toLowerCase() || ""
-
-        // Triggers for "Natural Photo Sending"
-        const photoTriggers = [
-          "send you a photo",
-          "sending you a pic",
-          "check my feed",
-          "show you something",
-          "sent you a photo",
-          "look at this",
-          "here's a photo",
-          "here's a pic",
-          "my new photo",
-          "sending a photo",
-          "sending a pic",
-          "have a look at this",
-          "this photo of me",
-          "(image:",
-          "*sends photo*",
-          "sent a photo",
-          "sent a pic",
-        ]
-        const shouldSendImage =
-          photoTriggers.some((t) => aiText.includes(t)) || aiResponse.message?.content?.includes("(Image:")
-
-        if (shouldSendImage && chImages.length > 0) {
-          // Try to find a matching image based on keywords if available
-          const meta = (currentChapter?.content as any)?.chapter_image_metadata || []
-          const lowercaseAiText = aiText.toLowerCase()
-          let bestMatchImg = null
-
-          if (meta.length > 0) {
-            for (const imgUrl of chImages) {
-              const originalIdx = (currentChapter?.content?.chapter_images || []).indexOf(imgUrl);
-              const imgMeta = (meta[originalIdx] || "").toLowerCase();
-              if (imgMeta && lowercaseAiText.split(' ').some((word: string) => word.length > 3 && imgMeta.includes(word))) {
-                bestMatchImg = imgUrl;
-                break;
-              }
-            }
-          }
-
-          const nextImg = bestMatchImg || chImages.find((img) => !sentChapterImages.includes(img))
-          if (nextImg) {
-            // Generate dynamic caption for the auto-sent storyline photo
-            const aiCaption = await generatePhotoCaption(
-              character?.name || "Character",
-              character?.system_prompt || character?.systemPrompt || "",
-              "An automated story update photo",
-              !!user?.isPremium,
-              `We are in Chapter ${currentChapter?.chapter_number}: ${currentChapter?.title}.`,
-              nextImg
-            );
-
-            const storyImgMsg: Message = {
-              id: `story-auto-img-${Date.now()}`,
-              role: "assistant",
-              content: aiCaption,
-              isImage: true,
-              imageUrl: nextImg,
-              timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            }
-
-            setTimeout(() => {
-              setMessages((prev) => [...prev, storyImgMsg])
-              saveMessageToLocalStorage(character.id, storyImgMsg)
-              setSentChapterImages((prev) => [...new Set([...prev, nextImg])])
-            }, 1000)
-          }
-        }
-
-        // Update progression bar based on images sent
-        const updatedImagesCount = sentChapterImages.length + (shouldSendImage ? 1 : 0)
-        setChapterSubProgress(updatedImagesCount)
-
-        // Auto-Chapter Completion Conditions:
-        // 1. All chapter images sent
-        // 2. OR chapter responses are "over" (Threshold of 12 messages in chapter)
-        const totalChapterImages = chImages.length
-        const isContextOver = updatedMessageCount >= 12
-
-        if ((totalChapterImages > 0 && updatedImagesCount >= totalChapterImages) || isContextOver) {
-          console.log(
-            `🔥 Chapter Finish Condition Met (Images: ${updatedImagesCount}/${totalChapterImages}, Msg: ${updatedMessageCount}/12)`,
-          )
-          setTimeout(() => {
-            const nextNum = (storyProgress as UserStoryProgress).current_chapter_number + 1
-            completeChapter(user.id, character.id, nextNum).then(({ progress, isComplete }) => {
-              if (progress) {
-                setStoryProgress(progress as UserStoryProgress)
-                setSentChapterImages([]) // Reset for next chapter
-                setChapterMessageCount(0) // Reset for next chapter
-                setChapterSubProgress(0)
-                if (!isComplete) {
-                  getChapter(character.id, nextNum).then((ch) => {
-                    setCurrentChapter(ch)
-                    toast.success(`Chapter Completed! Next: ${ch?.title}`)
-                  })
-                } else {
-                  setCurrentChapter(null)
-                  toast.success("Storyline Completed! You've unlocked Free Roam.")
-                  // AUTO-DISABLE Storyline flag on character once story is finished
-                  updateCharacter(character.id, {
-                    isStorylineActive: false
-                  });
-                }
-              }
-            })
-          }, 5000)
-        }
-      }
       if (!aiResponse.success) {
         if (aiResponse.limitReached || aiResponse.upgradeRequired) {
           setPremiumModalFeature(aiResponse.limitReached ? "Message Limit" : "Token Balance")
@@ -1496,7 +1372,6 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       }
 
       if (aiResponse.message) {
-        // AI response received and saved to DB
         const assistantMessage: Message = {
           id: aiResponse.message.id,
           role: "assistant",
@@ -1508,22 +1383,77 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         setMessages((prev) => [...prev, assistantMessage])
         saveMessageToLocalStorage(character.id, assistantMessage)
+
+        // Narrative Progression
+        if (storyProgress && !storyProgress.is_completed && currentChapter) {
+          setChapterMessageCount(prev => prev + 1)
+          const chImages = (currentChapter.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0)
+          const aiText = aiResponse.message.content.toLowerCase()
+
+          const photoTriggers = ["send you a photo", "sending you a pic", "look at this", "here's a photo", "(image:", "*sends photo*"]
+          const shouldSendImage = photoTriggers.some(t => aiText.includes(t)) || aiResponse.message.content.includes("(Image:")
+
+          if (shouldSendImage && chImages.length > 0) {
+            const nextImg = chImages.find(img => !sentChapterImages.includes(img))
+            if (nextImg) {
+              const aiCaption = await generatePhotoCaption(
+                character?.name || "Character",
+                character?.system_prompt || character?.systemPrompt || "",
+                "An automated story update photo",
+                !!user?.isPremium,
+                `Chapter ${currentChapter.chapter_number}`,
+                nextImg
+              );
+              const storyImgMsg: Message = {
+                id: `story-auto-img-${Date.now()}`,
+                role: "assistant",
+                content: aiCaption,
+                isImage: true,
+                imageUrl: nextImg,
+                timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+              }
+              setTimeout(() => {
+                setMessages(prev => [...prev, storyImgMsg])
+                saveMessageToLocalStorage(character.id, storyImgMsg)
+                setSentChapterImages(prev => [...new Set([...prev, nextImg])])
+              }, 400)
+            }
+          }
+
+          // Chapter Completion
+          const updatedMessageCount = chapterMessageCount + 1
+          const updatedImagesCount = sentChapterImages.length + (shouldSendImage ? 1 : 0)
+          if ((chImages.length > 0 && updatedImagesCount >= chImages.length) || updatedMessageCount >= 12) {
+            setTimeout(() => {
+              const nextNum = storyProgress.current_chapter_number + 1
+              completeChapter(user.id, character.id, nextNum).then(({ progress, isComplete }) => {
+                if (progress) {
+                  setStoryProgress(progress as UserStoryProgress)
+                  setSentChapterImages([])
+                  setChapterMessageCount(0)
+                  setChapterSubProgress(0)
+                  if (!isComplete) {
+                    getChapter(character.id, nextNum).then(ch => {
+                      setCurrentChapter(ch)
+                      toast.success(`Chapter Completed! Next: ${ch?.title}`)
+                      localStorage.removeItem(`last_daily_msg_${character.id}`);
+                    })
+                  } else {
+                    setCurrentChapter(null)
+                    toast.success("Storyline Completed! You've unlocked Free Roam.")
+                    updateCharacter(character.id, { isStorylineActive: false });
+                  }
+                }
+              })
+            }, 1000)
+          }
+        }
       }
     } catch (error) {
-      console.error("Error processing buffered messages:", error)
-      if (!isMounted) return
-      setDebugInfo((prev) => ({ ...prev, lastError: error, lastAction: "sendMessageError" }))
-      toast.error("An error occurred while sending your message.")
+      console.error("Error processing messages:", error)
+      if (isMounted) toast.error("An error occurred.")
     } finally {
-      if (isMounted) {
-        setIsSendingMessage(false)
-        // Fallback focus to ensure input is active
-        setTimeout(() => {
-          if (inputRef.current && !inputRef.current.disabled) {
-            inputRef.current.focus()
-          }
-        }, 300)
-      }
+      if (isMounted) setIsSendingMessage(false)
     }
   }
 
@@ -1593,7 +1523,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current)
       }
-      debounceTimerRef.current = setTimeout(processMessageBuffer, 2000)
+      debounceTimerRef.current = setTimeout(processMessageBuffer, 500)
 
       // Release the submission lock after a short delay to prevent double-clicks
       // but allow sending multiple messages quickly.
@@ -1627,7 +1557,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         const welcomeMessage: Message = {
           id: `welcome-${characterId}-${Date.now()}`,
           role: "assistant",
-          content: `Hey there, my love... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\n*smiles softly* Tell me about yourself... or take me with you on Telegram @pocketloveaibot. Either way, I'm all yours. 🌹`,
+          content: `Hey there... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\nTell me about yourself... or take me with you on Telegram @pocketloveaibot. Either way, I'm all yours. 🌹`,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           isWelcome: true
         }
@@ -1682,7 +1612,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       // 3. Just send the message and let the normal progression logic handle it
       // The storyContext in the backend will now steer the AI based on this choice.
       setIsSendingMessage(false);
-    }, 1000);
+    }, 200);
   };
 
   // Show loading while checking authentication
@@ -1748,8 +1678,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   return (
     <div
       key="chat-page-root"
-      className="flex flex-col md:flex-row bg-background w-full overflow-hidden"
-      style={{ position: 'relative', top: 0, height: '100dvh', maxHeight: '100dvh' }}
+      className="flex flex-col md:flex-row bg-background w-full overflow-hidden fixed inset-0"
+      style={{ height: '100dvh', maxHeight: '100dvh' }}
       suppressHydrationWarning
     >
       {/* Left Sidebar - Chat List - Independent Scroll */}
@@ -1819,185 +1749,192 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
       {/* Middle - Chat Area - Independent Scroll with Fixed Header */}
       <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
-        {/* Story Mode Progress Bar */}
-        {storyProgress && !storyProgress.is_completed && currentChapter && (
-          <div className="bg-background/95 backdrop-blur px-4 py-3 border-b border-border z-20">
-            <div className="flex justify-between items-center mb-2 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded flex items-center gap-1">
-                  <Sparkles className="h-3 w-3" /> Chapter {storyProgress.current_chapter_number}
-                </span>
-                <span className="text-foreground/70 font-medium truncate max-w-[150px]">{currentChapter.title}</span>
-              </div>
-              <span className="text-muted-foreground font-mono">
-                {chapterSubProgress}/6 Images
-              </span>
-            </div>
-            <div className="flex gap-1 h-1.5">
-              {Array.from({ length: currentChapter?.content?.chapter_images?.length || 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`flex-1 rounded-full transition-all duration-500 ${i < chapterSubProgress ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-secondary'}`}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-        {/* Chat Header - Fixed/Static */}
-        <div className="border-b border-border flex items-center px-3 md:px-4 py-3 md:py-4 justify-between bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 flex-shrink-0">
-          <div className="flex items-center min-w-0 flex-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden mr-2 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation"
-              onClick={() => toggle()}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="mr-2 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation"
-              onClick={() => router.push('/chat')}
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <div className="relative w-10 h-10 mr-3 flex-shrink-0">
-              {/* Use regular img tag for Cloudinary images */}
-              <img
-                src={
-                  imageErrors[character?.id || '']
-                    ? "/placeholder.svg?height=40&width=40"
-                    : (character?.image || character?.image_url || "/placeholder.svg?height=40&width=40")
-                }
-                alt={character?.name || "Character"}
-                className="w-full h-full rounded-full object-cover"
-                onError={() => character?.id && handleImageError(character.id)}
-                loading="lazy"
-              />
-            </div>
-            <div className="flex flex-col min-w-0 flex-1 overflow-hidden cursor-pointer md:cursor-auto" onClick={() => window.innerWidth < 768 && setIsMobileProfileOpen(true)}>
-              <h4 className="font-bold truncate text-foreground leading-tight">
-                {character?.name || t("general.loading")}
-              </h4>
-              <span className="text-[10px] md:text-xs text-muted-foreground truncate">
-                {isSendingMessage ? (
-                  <span className="text-primary animate-pulse font-medium">typing...</span>
-                ) : isGeneratingImage ? (
-                  <span className="text-primary animate-pulse font-medium">{character?.name || 'Designing'} is sending photo..</span>
-                ) : (
-                  messages.length > 0 ? messages[messages.length - 1].timestamp : t("chat.noMessagesYet")
-                )}
-              </span>
-
-            </div>
-          </div>
-          <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-2">
-            {/* Desktop Actions */}
-            <div className="hidden sm:flex items-center gap-1 md:gap-2">
-              <ClearChatDialog onConfirm={handleClearChat} isClearing={isClearingChat} />
-              {user?.id && character?.id && (
-                <TelegramConnectButton
-                  userId={user.id}
-                  characterId={character.id}
-                  characterName={character.name || 'Companion'}
-                />
-              )}
-            </div>
-
-            {/* Profile Toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "flex text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation transition-colors",
-                (isProfileOpen || isMobileProfileOpen) && "text-primary"
-              )}
-              onClick={() => {
-                if (window.innerWidth < 1024) {
-                  setIsMobileProfileOpen(true)
-                } else {
-                  setIsProfileOpen(!isProfileOpen)
-                }
-              }}
-              title="Profile Details"
-            >
-              <User className="h-5 w-5" />
-            </Button>
-
-            {/* Responsive More Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation">
-                  <MoreVertical className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-[#1A1A1A] border-[#252525] text-white min-w-[200px] z-50">
-                <DropdownMenuLabel className="text-xs text-white/40 uppercase tracking-widest font-black py-3 px-4">Chat Options</DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-[#252525]" />
-
-                {/* Mobile-only Items */}
-                <div className="sm:hidden">
-                  <DropdownMenuItem
-                    onSelect={() => setIsTelegramModalOpen(true)}
-                    className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer"
-                  >
-                    <Send className="h-4 w-4 text-primary" />
-                    <span>Connect Telegram</span>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem
-                    onSelect={() => setIsClearDialogOpen(true)}
-                    className="flex items-center gap-3 py-3 px-4 text-red-400 focus:text-red-300 focus:bg-red-400/10 cursor-pointer"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    <span>Clear Chat History</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-[#252525]" />
+        {/* Header & Story Progress - Unified Sticky Area */}
+        <div className="flex-shrink-0 z-50 sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
+          {storyProgress && !storyProgress.is_completed && currentChapter && (
+            <div className="px-4 py-3 border-b border-border/50">
+              <div className="flex justify-between items-center mb-2 text-[10px] md:text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded flex items-center gap-1">
+                    <Sparkles className="h-2.5 w-2.5" /> Chapter {storyProgress.current_chapter_number}
+                  </span>
+                  <span className="text-foreground/70 font-medium truncate max-w-[120px] md:max-w-[150px]">{currentChapter.title}</span>
                 </div>
+                <span className="text-muted-foreground font-mono">
+                  {chapterSubProgress}/6 Images
+                </span>
+              </div>
+              <div className="flex gap-1 h-1">
+                {Array.from({ length: currentChapter?.content?.chapter_images?.length || 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`flex-1 rounded-full transition-all duration-500 ${i < chapterSubProgress ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-secondary'}`}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
-                {/* Profile Toggle for tablets/smaller desktops */}
-                <DropdownMenuItem
-                  onSelect={() => setIsProfileOpen(!isProfileOpen)}
-                  className="lg:hidden flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer"
-                >
-                  <UserCircle className="h-4 w-4" />
-                  <span>{isProfileOpen ? "Hide Profile Details" : "Show Profile Details"}</span>
-                </DropdownMenuItem>
+          {/* Main Chat Header */}
+          <div className="flex items-center px-3 md:px-4 py-3 md:py-4 justify-between">
+            <div className="flex items-center min-w-0 flex-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden mr-2 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation"
+                onClick={() => toggle()}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="mr-2 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation"
+                onClick={() => router.push('/chat')}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <div className="relative w-10 h-10 mr-3 flex-shrink-0">
+                {/* Use regular img tag for Cloudinary images */}
+                <img
+                  src={
+                    imageErrors[character?.id || '']
+                      ? "/placeholder.svg?height=40&width=40"
+                      : (character?.image || character?.image_url || "/placeholder.svg?height=40&width=40")
+                  }
+                  alt={character?.name || "Character"}
+                  className="w-full h-full rounded-full object-cover"
+                  onError={() => character?.id && handleImageError(character.id)}
+                  loading="lazy"
+                />
+              </div>
+              <div className="flex flex-col min-w-0 flex-1 overflow-hidden cursor-pointer md:cursor-auto" onClick={() => window.innerWidth < 768 && setIsMobileProfileOpen(true)}>
+                <h4 className="font-bold truncate text-foreground leading-tight">
+                  {character?.name || t("general.loading")}
+                </h4>
+                <span className="text-[10px] md:text-xs text-muted-foreground truncate">
+                  {isSendingMessage ? (
+                    <span className="text-primary animate-pulse font-medium">typing...</span>
+                  ) : isGeneratingImage ? (
+                    <span className="text-primary animate-pulse font-medium">{character?.name || 'Designing'} is sending photo..</span>
+                  ) : (
+                    messages.length > 0 ? messages[messages.length - 1].timestamp : t("chat.noMessagesYet")
+                  )}
+                </span>
 
-                <DropdownMenuItem asChild>
-                  <Link href={`/characters/${character?.id}`} className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer w-full">
-                    <Info className="h-4 w-4" />
-                    <span>Character Settings</span>
-                  </Link>
-                </DropdownMenuItem>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-2">
+              {/* Desktop Actions */}
+              <div className="hidden sm:flex items-center gap-1 md:gap-2">
+                <ClearChatDialog onConfirm={handleClearChat} isClearing={isClearingChat} />
+                {user?.id && character?.id && (
+                  <TelegramConnectButton
+                    userId={user.id}
+                    characterId={character.id}
+                    characterName={character.name || 'Companion'}
+                    isStoryMode={!!currentChapter}
+                    chapter={currentChapter?.chapter_number}
+                  />
+                )}
+              </div>
 
-                <DropdownMenuItem className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer">
-                  <Share2 className="h-4 w-4" />
-                  <span>Share Character</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              {/* Profile Toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "flex text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation transition-colors",
+                  (isProfileOpen || isMobileProfileOpen) && "text-primary"
+                )}
+                onClick={() => {
+                  if (window.innerWidth < 1024) {
+                    setIsMobileProfileOpen(true)
+                  } else {
+                    setIsProfileOpen(!isProfileOpen)
+                  }
+                }}
+                title="Profile Details"
+              >
+                <User className="h-5 w-5" />
+              </Button>
 
-            {/* Hidden Dialogs that are triggered by the menu */}
-            <div className="hidden">
-              <ClearChatDialog
-                onConfirm={handleClearChat}
-                isClearing={isClearingChat}
-                open={isClearDialogOpen}
-                onOpenChange={setIsClearDialogOpen}
-                showTrigger={false}
-              />
-              {user?.id && character?.id && (
-                <TelegramConnectButton
-                  userId={user.id}
-                  characterId={character.id}
-                  characterName={character.name || 'Companion'}
-                  open={isTelegramModalOpen}
-                  onOpenChange={setIsTelegramModalOpen}
+              {/* Responsive More Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation">
+                    <MoreVertical className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-[#1A1A1A] border-[#252525] text-white min-w-[200px] z-50">
+                  <DropdownMenuLabel className="text-xs text-white/40 uppercase tracking-widest font-black py-3 px-4">Chat Options</DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-[#252525]" />
+
+                  {/* Mobile-only Items */}
+                  <div className="sm:hidden">
+                    <DropdownMenuItem
+                      onSelect={() => setIsTelegramModalOpen(true)}
+                      className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer"
+                    >
+                      <Send className="h-4 w-4 text-primary" />
+                      <span>Connect Telegram</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onSelect={() => setIsClearDialogOpen(true)}
+                      className="flex items-center gap-3 py-3 px-4 text-red-400 focus:text-red-300 focus:bg-red-400/10 cursor-pointer"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span>Clear Chat History</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-[#252525]" />
+                  </div>
+
+                  {/* Profile Toggle for tablets/smaller desktops */}
+                  <DropdownMenuItem
+                    onSelect={() => setIsProfileOpen(!isProfileOpen)}
+                    className="lg:hidden flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer"
+                  >
+                    <UserCircle className="h-4 w-4" />
+                    <span>{isProfileOpen ? "Hide Profile Details" : "Show Profile Details"}</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link href={`/characters/${character?.id}`} className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer w-full">
+                      <Info className="h-4 w-4" />
+                      <span>Character Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer">
+                    <Share2 className="h-4 w-4" />
+                    <span>Share Character</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Hidden Dialogs that are triggered by the menu */}
+              <div className="hidden">
+                <ClearChatDialog
+                  onConfirm={handleClearChat}
+                  isClearing={isClearingChat}
+                  open={isClearDialogOpen}
+                  onOpenChange={setIsClearDialogOpen}
                   showTrigger={false}
                 />
-              )}
+                {user?.id && character?.id && (
+                  <TelegramConnectButton
+                    userId={user.id}
+                    characterId={character.id}
+                    characterName={character.name || 'Companion'}
+                    isStoryMode={!!currentChapter}
+                    chapter={currentChapter?.chapter_number}
+                    open={isTelegramModalOpen}
+                    onOpenChange={setIsTelegramModalOpen}
+                    showTrigger={false}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -2034,6 +1971,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                           <MeetOnTelegramButton
                             characterId={character.id}
                             characterName={character.name}
+                            isStoryMode={!!currentChapter}
+                            chapter={currentChapter?.chapter_number}
                             variant="secondary"
                             className="w-full bg-blue-500/20 text-blue-200 hover:bg-blue-500/30 border-blue-500/20"
                           />
@@ -2532,7 +2471,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           />
         )
       }
-    </div >
+    </div>
   )
 }
 

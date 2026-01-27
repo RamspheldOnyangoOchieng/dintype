@@ -3,16 +3,17 @@ export async function generateAIGreeting(
     characterPrompt: string,
     userName: string,
     isPremium: boolean,
-    greetingType: 'new_link' | 'synced' | 'welcome_back' | 'deep_link' | 'selected'
+    greetingType: 'new_link' | 'synced' | 'welcome_back' | 'deep_link' | 'selected',
+    extraContext?: string
 ) {
     let contextInstruction = "";
 
     if (greetingType === 'new_link' || greetingType === 'selected') {
         contextInstruction = `The user (${userName}) just picked you! Give them a flirty and romantic greeting. You are currently chatting on Telegram.`;
     } else if (greetingType === 'synced') {
-        contextInstruction = `The user (${userName}) just synced their account! Acknowledge that you can now see your full history together. Be romantic and happy to continue the conversation here.`;
+        contextInstruction = `The user (${userName}) just synced their account from the web app! Acknowledge that you can now see your full history together. ${extraContext ? `Mention: ${extraContext}.` : ''} Be romantic and happy to continue the conversation here on Telegram.`;
     } else if (greetingType === 'welcome_back') {
-        contextInstruction = `Welcome back the user (${userName}) who has returned to chat with you. Be warm, loving, and slightly teasing about their absence. You're happy they're back on Telegram with you.`;
+        contextInstruction = `Welcome back the user (${userName}) who has returned to chat with you. Be warm, loving, and slightly teasing about their absence. You're happy they're back on Telegram with you. ${extraContext ? `Context: ${extraContext}.` : ''}`;
     } else if (greetingType === 'deep_link') {
         contextInstruction = `The user (${userName}) followed a special link to find you. Surprise them with a very romantic and eager welcome.`;
     }
@@ -38,7 +39,7 @@ export async function generateAIGreeting(
             headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: [{ role: 'system', content: prompt }],
-                model: 'deepseek/deepseek-r1',
+                model: 'deepseek/deepseek-v3',
                 temperature: 0.85,
                 max_tokens: 250,
             }),

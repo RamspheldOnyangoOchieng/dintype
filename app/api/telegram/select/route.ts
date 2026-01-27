@@ -75,42 +75,43 @@ export async function POST(request: NextRequest) {
             .update({ character_id: characterId })
             .eq('telegram_id', telegramId);
 
-        // 3. Send confirming message as the character
-        const { generateAIGreeting } = await import('@/lib/telegram-ai');
-        const charGreeting = await generateAIGreeting(
-            character.name,
-            character.system_prompt || character.description || "",
-            telegramUser.first_name || "sweetheart",
-            isPremium,
-            'selected'
-        );
+        // 3. Deliver Greeting Asynchronously (Don't await to close Mini App fast)
+        (async () => {
+            try {
+                const { generateAIGreeting } = await import('@/lib/telegram-ai');
+                const charGreeting = await generateAIGreeting(
+                    character.name,
+                    character.system_prompt || character.description || "",
+                    telegramUser.first_name || "sweetheart",
+                    isPremium,
+                    'selected'
+                );
 
-        const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+                const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+                await fetch(`${TELEGRAM_API_URL}/sendChatAction`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: telegramId, action: 'typing' }),
+                });
 
-        // Show typing indicator for a more "alive" feel
-        await fetch(`${TELEGRAM_API_URL}/sendChatAction`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chat_id: telegramId, action: 'typing' }),
-        });
-
-        // Delay slightly for effect
-        await new Promise(r => setTimeout(r, 800));
-
-        await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                chat_id: telegramId,
-                text: `💕 <b>${character.name}</b>\n\n${charGreeting}`,
-                parse_mode: 'HTML',
-                reply_markup: {
-                    inline_keyboard: [[
-                        { text: '🔄 Switch Character', web_app: { url: `${request.nextUrl.origin}/telegram` } }
-                    ]]
-                }
-            }),
-        });
+                await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: telegramId,
+                        text: `💕 <b>${character.name}</b>\n\n${charGreeting}`,
+                        parse_mode: 'HTML',
+                        reply_markup: {
+                            inline_keyboard: [[
+                                { text: '🔄 Switch Character', web_app: { url: `${request.nextUrl.origin}/telegram` } }
+                            ]]
+                        }
+                    }),
+                });
+            } catch (e) {
+                console.error("Async greeting error:", e);
+            }
+        })();
 
         return NextResponse.json({ success: true });
 

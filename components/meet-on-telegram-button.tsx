@@ -10,6 +10,8 @@ import { generateTelegramLinkCode } from "@/lib/telegram-actions"
 interface MeetOnTelegramButtonProps {
   characterId: string
   characterName: string
+  isStoryMode?: boolean
+  chapter?: number
   variant?: "default" | "outline" | "secondary" | "ghost" | "link"
   className?: string
 }
@@ -17,6 +19,8 @@ interface MeetOnTelegramButtonProps {
 export function MeetOnTelegramButton({
   characterId,
   characterName,
+  isStoryMode,
+  chapter,
   variant = "outline",
   className
 }: MeetOnTelegramButtonProps) {
@@ -28,8 +32,8 @@ export function MeetOnTelegramButton({
     try {
       // If user is logged in, use the secure link generator (Server Action)
       if (user?.id) {
-        const result = await generateTelegramLinkCode(user.id, characterId, characterName)
-        
+        const result = await generateTelegramLinkCode(user.id, characterId, characterName, { isStoryMode, chapter })
+
         if (result.success && result.linkUrl) {
           window.open(result.linkUrl, "_blank")
           toast.success("Opening Telegram... Connect with " + characterName)
@@ -52,9 +56,9 @@ export function MeetOnTelegramButton({
   }
 
   return (
-    <Button 
-      variant={variant} 
-      className={className} 
+    <Button
+      variant={variant}
+      className={className}
       onClick={handleMeetOnTelegram}
       disabled={isLoading}
     >

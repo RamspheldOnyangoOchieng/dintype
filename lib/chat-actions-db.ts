@@ -150,10 +150,14 @@ export async function sendChatMessageDB(
       else if (memoryLevel === 3) historyLimit = 400;
     }
 
+    // 7. Get Conversation History across ALL sessions for this user+character
+    // This ensures the AI knows about past chats even in Story Mode.
     const { data: historyData } = await (supabase as any)
       .from('messages')
-      .select('role, content, is_image, image_url')
-      .eq('session_id', sessionId)
+      .select('role, content, is_image, image_url, conversation_sessions!inner(id)')
+      .eq('conversation_sessions.user_id', userId)
+      .eq('conversation_sessions.character_id', characterId)
+      .eq('conversation_sessions.is_archived', false)
       .order('created_at', { ascending: false })
       .limit(historyLimit)
 
@@ -313,10 +317,14 @@ export async function sendChatMessageDB(
       : `### CHARACTER PERSONALITY ###\n${corePersonality}`;
 
     let enhancedSystemPrompt = basePrompt;
+
+    // STRICT RULE: No asterisks or action descriptions for ANY mode
+    enhancedSystemPrompt += `\n\n### RESPONSE STYLE RULES ###\n- NO ASTERISKS (*) or action descriptions (e.g., *smiles*, *leans in*).\n- Use strict natural language only, as if texting on WhatsApp/Telegram.\n- Do not describe what you are doing, only say what you want to say.`;
+
     if (isPremium) {
-      enhancedSystemPrompt += `\n\n### PREMIUM RULES ###\nClean short texts. Real person vibes. Deep intimacy. No asterisks. Match length.`;
+      enhancedSystemPrompt += `\n\n### PREMIUM RULES ###\nClean short texts. Real person vibes. Deep intimacy. Match length.`;
     } else {
-      enhancedSystemPrompt += `\n\n### FREE RULES ###\nCasual short texting. No asterisks. Match length.`;
+      enhancedSystemPrompt += `\n\n### FREE RULES ###\nCasual short texting. Match length.`;
     }
 
     // Telegram ask
@@ -338,8 +346,8 @@ export async function sendChatMessageDB(
     const isActuallyNovita = openaiKey?.startsWith('sk_') && !openaiKey?.startsWith('sk-');
 
     let apiKey = (isPremium && novitaKey) ? novitaKey : (openaiKey && !isActuallyNovita ? openaiKey : (novitaKey || openaiKey));
-    let url = (apiKey === openaiKey && !isActuallyNovita) ? "https://api.openai.com/v1/chat/completions" : "https://api.novita.ai/openai/v1/chat/completions";
-    let model = (url.includes("openai.com")) ? "gpt-4o-mini" : "deepseek/deepseek-r1";
+    let url = (apiKey === openaiKey && !isActuallyNovita) ? "https://api.openai.com/v1/chat/completions" : "https://api.novita.ai/v3/openai/chat/completions";
+    let model = (url.includes("openai.com")) ? "gpt-4o-mini" : "deepseek/deepseek-v3";
 
     if (!apiKey) throw new Error("AI API Key Missing");
 

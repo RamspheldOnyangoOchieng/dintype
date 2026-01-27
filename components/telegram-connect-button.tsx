@@ -18,6 +18,8 @@ interface TelegramConnectButtonProps {
     userId: string
     characterId: string
     characterName: string
+    isStoryMode?: boolean
+    chapter?: number
     open?: boolean
     onOpenChange?: (open: boolean) => void
     showTrigger?: boolean
@@ -27,6 +29,8 @@ export function TelegramConnectButton({
     userId,
     characterId,
     characterName,
+    isStoryMode,
+    chapter,
     open: controlledOpen,
     onOpenChange,
     showTrigger = true,
@@ -40,6 +44,10 @@ export function TelegramConnectButton({
     const [linkUrl, setLinkUrl] = useState<string>('')
 
     useEffect(() => {
+        checkLinkStatus()
+    }, [])
+
+    useEffect(() => {
         if (isOpen) {
             checkLinkStatus()
         }
@@ -51,15 +59,21 @@ export function TelegramConnectButton({
         setLinkedUsername(result.telegramUsername || '')
     }
 
-    const handleGenerateLink = async () => {
+    const handleGenerateLink = async (shouldOpenDirectly = false) => {
         setIsLoading(true)
         try {
-            const result = await generateTelegramLinkCode(userId, characterId, characterName)
+            const result = await generateTelegramLinkCode(userId, characterId, characterName, { isStoryMode, chapter })
 
             if (result.isAlreadyLinked) {
                 setIsLinked(true)
                 setLinkedUsername(result.linkedTelegramUsername || '')
-                toast.info('Already linked to Telegram!')
+                if (shouldOpenDirectly && result.linkUrl) {
+                    window.open(result.linkUrl, '_blank')
+                    toast.success('Opening Telegram...')
+                    setIsOpen(false)
+                } else {
+                    toast.info('Already linked to Telegram!')
+                }
                 return
             }
 
@@ -102,6 +116,14 @@ export function TelegramConnectButton({
         }
     }
 
+    const handleTriggerClick = (e: React.MouseEvent) => {
+        if (isLinked) {
+            e.preventDefault()
+            e.stopPropagation()
+            handleGenerateLink(true)
+        }
+    }
+
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
             {showTrigger && (
@@ -111,6 +133,7 @@ export function TelegramConnectButton({
                         size="icon"
                         className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px]"
                         title="Connect Telegram"
+                        onClick={handleTriggerClick}
                     >
                         <Send className="h-5 w-5" />
                     </Button>
@@ -197,7 +220,7 @@ export function TelegramConnectButton({
                             </div>
 
                             <Button
-                                onClick={handleGenerateLink}
+                                onClick={() => handleGenerateLink()}
                                 disabled={isLoading}
                                 className="w-full gap-2"
                             >

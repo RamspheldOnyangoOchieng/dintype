@@ -49,7 +49,7 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
                     { role: 'system', content: greetingPrompt },
                     { role: 'user', content: 'Send me a good morning message.' }
                 ],
-                model: 'deepseek/deepseek-r1',
+                model: 'deepseek/deepseek-v3',
                 temperature: 0.8,
                 max_tokens: 100,
             }),

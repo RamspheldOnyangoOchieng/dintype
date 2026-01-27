@@ -21,7 +21,8 @@ export interface TelegramLinkResult {
 export async function generateTelegramLinkCode(
     userId: string,
     characterId: string,
-    characterName: string
+    characterName: string,
+    metadata: { isStoryMode?: boolean; chapter?: number } = {}
 ): Promise<TelegramLinkResult> {
     try {
         const supabase = await createAdminClient()
@@ -37,8 +38,9 @@ export async function generateTelegramLinkCode(
             .eq('character_id', characterId)
             .maybeSingle()
 
-        // Generate a unique link code
-        const code = `link_${crypto.randomBytes(16).toString('hex')}`
+        // Generate a unique link code with encoded metadata
+        const metaStr = metadata.isStoryMode !== undefined ? `_s${metadata.isStoryMode ? '1' : '0'}${metadata.chapter ? `c${metadata.chapter}` : ''}` : '';
+        const code = `link_${crypto.randomBytes(12).toString('hex')}${metaStr}`
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
 
         // Save the pending link code
@@ -54,8 +56,8 @@ export async function generateTelegramLinkCode(
         // Generate the Telegram deep link
         const linkUrl = `https://t.me/${BOT_USERNAME}?start=${code}`
 
-        return { 
-            success: true, 
+        return {
+            success: true,
             linkUrl,
             isAlreadyLinked: !!existingLink,
             linkedTelegramUsername: existingLink?.telegram_username || existingLink?.telegram_first_name || 'Unknown',
