@@ -292,6 +292,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     let isMounted = true;
 
     async function loadCharacter() {
+      if (!characterId || characterId === "null") return;
       const charId = String(characterId);
       console.log('🔍 Syncing character details:', charId);
 
@@ -335,7 +336,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       try {
         const response = await fetch(`/api/characters/${charId}`)
         if (!response.ok) {
-          throw new Error("Failed to fetch character from API")
+          throw new Error(`Failed to fetch character from API: ${response.status}`)
         }
         const data = await response.json();
 
@@ -394,15 +395,21 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
           setTimeout(async () => {
             try {
-              // 1. Generate AI Greeting
-              const aiGreeting = await generateDailyGreeting(
-                charId,
-                character?.name || "Character",
-                character?.system_prompt || character?.systemPrompt || "",
-                user?.id || "",
-                !!user?.isPremium,
-                storyCtx
-              );
+              // 1. Determine Greeting (Prioritize Storyline Opening Message)
+              let aiGreeting = "";
+              if (chapter?.content?.opening_message) {
+                console.log("📖 Using Storyline Opening Message");
+                aiGreeting = chapter.content.opening_message;
+              } else {
+                aiGreeting = await generateDailyGreeting(
+                  charId,
+                  character?.name || "Character",
+                  character?.system_prompt || character?.systemPrompt || "",
+                  user?.id || "",
+                  !!user?.isPremium,
+                  storyCtx
+                );
+              }
 
               const morningMsg: Message = {
                 id: `daily-${Date.now()}`,
@@ -1465,6 +1472,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 } else {
                   setCurrentChapter(null)
                   toast.success("Storyline Completed! You've unlocked Free Roam.")
+                  // AUTO-DISABLE Storyline flag on character once story is finished
+                  updateCharacter(character.id, {
+                    isStorylineActive: false
+                  });
                 }
               }
             })
@@ -2084,22 +2095,22 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Story Mode Choices (Hidden) */}
-        {/* {storyProgress && !storyProgress.is_completed && currentChapter?.content?.branches && (
-          <div className="px-4 py-2 flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        {/* Story Mode Choices */}
+        {storyProgress && !storyProgress.is_completed && currentChapter?.content?.branches && (
+          <div className="px-4 py-2 flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2 duration-500 overflow-x-auto no-scrollbar">
             {currentChapter.content.branches.map((branch: any, idx: number) => (
               <Button
                 key={idx}
                 variant="outline"
                 size="sm"
-                className="bg-primary/5 border-primary/20 hover:bg-primary/10 text-primary rounded-full px-4 border-dashed"
+                className="bg-primary/5 border-primary/20 hover:bg-primary/10 text-primary rounded-full px-4 border-dashed whitespace-nowrap"
                 onClick={() => handleSelectBranch(branch)}
               >
                 {branch.label}
               </Button>
             ))}
           </div>
-        )} */}
+        )}
 
         {apiKeyError && (
           <div className="mx-4 p-3 bg-destructive/20 border border-destructive text-destructive-foreground rounded-lg text-sm">

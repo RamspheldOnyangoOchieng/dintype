@@ -485,8 +485,7 @@ export async function POST(request: NextRequest) {
             // Parse callback data: action:value
             const [action, value] = data.split(':');
 
-            if (action === 'select_char' || action === 'select_branch') {
-                // User selected a character or a branch
+            if (action === 'select_char') {
                 const valueId = value;
 
                 // Get character info
@@ -550,6 +549,8 @@ export async function POST(request: NextRequest) {
                                         await sendTelegramMessage(chatId, `✨ <b>Chapter Completed!</b>\nNext: ${nextCharChapter.title}`);
                                     } else {
                                         await sendTelegramMessage(chatId, "🎉 <b>Storyline Completed!</b>\nYou've unlocked Free Roam!");
+                                        // AUTO-DISABLE Storyline for this character globally
+                                        await supabase.from('characters').update({ is_storyline_active: false }).eq('id', linkedAccount.character_id);
                                     }
                                 }
                             }
@@ -839,7 +840,7 @@ export async function POST(request: NextRequest) {
                 if (linkedAccount && linkedAccount.character_id) {
                     const { data: character } = await supabase
                         .from('characters')
-                        .select('id, name, description, system_prompt')
+                        .select('id, name, description, system_prompt, is_storyline_active')
                         .eq('id', linkedAccount.character_id)
                         .maybeSingle();
 
@@ -852,7 +853,27 @@ export async function POST(request: NextRequest) {
                         }
 
                         // Generate Dynamic Welcome Back Greeting
-                        const charGreeting = await generateAIGreeting(
+                        let openingMessage = "";
+                        if (character.is_storyline_active) {
+                            const { data: prog } = await supabase
+                                .from('user_story_progress')
+                                .select('current_chapter_number')
+                                .eq('user_id', linkedAccount.user_id)
+                                .eq('character_id', character.id)
+                                .maybeSingle();
+
+                            if (prog) {
+                                const { data: ch } = await supabase
+                                    .from('story_chapters')
+                                    .select('content')
+                                    .eq('character_id', character.id)
+                                    .eq('chapter_number', prog.current_chapter_number)
+                                    .maybeSingle();
+                                if (ch?.content?.opening_message) openingMessage = ch.content.opening_message;
+                            }
+                        }
+
+                        const charGreeting = openingMessage || await generateAIGreeting(
                             character.name,
                             character.system_prompt || character.description || "",
                             firstName,
@@ -1197,7 +1218,42 @@ export async function POST(request: NextRequest) {
                 clearInterval(responseInterval);
             }
 
-            // Story branch buttons removed as requested by user to keep chat clean
+            // Story branch buttons
+            if (activeSessionId && linkedAccount?.user_id && character?.is_storyline_active) {
+                try {
+                    const { data: storyProgress } = await supabase
+                        .from("user_story_progress")
+                        .select("*")
+                        .eq("user_id", linkedAccount.user_id)
+                        .eq("character_id", linkedAccount.character_id)
+                        .maybeSingle();
+
+                    if (storyProgress && !storyProgress.is_completed) {
+                        const { data: chapter } = await supabase
+                            .from("story_chapters")
+                            .select("*")
+                            .eq("character_id", linkedAccount.character_id)
+                            .eq("chapter_number", storyProgress.current_chapter_number)
+                            .maybeSingle();
+
+                        if (chapter?.content?.branches && chapter.content.branches.length > 0) {
+                            const inlineButtons = chapter.content.branches.map((b: any, idx: number) => ([{
+                                text: b.label,
+                                callback_data: `select_branch:${idx}`
+                            }]));
+
+                            replyMarkup = {
+                                inline_keyboard: [
+                                    ...inlineButtons,
+                                    [{ text: '🔄 Switch Character', web_app: { url: `${SITE_URL}/telegram` } }]
+                                ]
+                            };
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error adding story buttons:", e);
+                }
+            }
 
             // Save AI response
             if (activeSessionId) {

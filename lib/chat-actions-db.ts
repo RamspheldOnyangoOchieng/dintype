@@ -306,9 +306,9 @@ export async function sendChatMessageDB(
       return { success: true, message: assistantMessage };
     }
 
-    // 10. AI Prompt Construction
     const corePersonality = systemPromptFromChar || characterData.system_prompt || "You are an AI character.";
-    const basePrompt = storyContext
+    // Only use Storyline header if we actually have active story context (not completed)
+    const basePrompt = (storyContext && storyContext.includes("CHAPTER"))
       ? `### STORYLINE: STRICT RELEVANCE REQUIRED ###\n${storyContext}\n\n### CHARACTER PERSONALITY ###\n${corePersonality}`
       : `### CHARACTER PERSONALITY ###\n${corePersonality}`;
 
@@ -413,16 +413,24 @@ export async function loadChatHistory(
       }
     }
 
+    // Updated query to get the MOST RECENT messages from any session for this character.
+    // We get newest first (desc) and then reverse them for the UI.
     const { data: messages, error } = await supabase
-      .rpc('get_conversation_history', {
-        p_user_id: userId,
-        p_character_id: characterId,
-        p_limit: finalLimit
-      })
+      .from('messages')
+      .select('id, role, content, created_at, is_image, image_url, conversation_sessions!inner(id)')
+      .eq('conversation_sessions.user_id', userId)
+      .eq('conversation_sessions.character_id', characterId)
+      .eq('conversation_sessions.is_archived', false) // Only show non-cleared chats
+      .order('created_at', { ascending: false })
+      .limit(finalLimit)
 
-    if (error) return []
+    if (error) {
+      console.error("Error loading chat history:", error)
+      return []
+    }
 
-    return (messages || []).map((m: any) => ({
+    // Reverse to chronological order (oldest first)
+    return (messages || []).reverse().map((m: any) => ({
       id: m.id,
       role: m.role,
       content: m.content,
