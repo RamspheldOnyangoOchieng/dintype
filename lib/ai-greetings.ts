@@ -31,11 +31,10 @@ export async function generateDailyGreeting(
 ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
 
 ### TASK: Generate a brief morning greeting ###
-- Write a SHORT, warm morning greeting (1-2 sentences max)
-- Be romantic and personal
-- Use 1-2 emojis maximum
-- NEVER use asterisks (*) for actions or emphasis
-- Match your character's personality and the current story situation
+- Write a SHORT, deeply personal morning greeting (1-2 sentences max)
+- Be romantic, intimate, and passionate
+- Use emojis naturally
+- ABSOLUTE FORBIDDEN: NEVER use asterisks (*) for ANY reason (no actions, no italics, no emphasis)
 - Output ONLY the greeting message, nothing else`;
 
         const response = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
@@ -63,8 +62,8 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
         const data = await response.json();
         let content = data.choices?.[0]?.message?.content || "";
 
-        // Strip any thinking tags
-        content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+        // Strip any thinking tags and ALL asterisks
+        content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/\*/g, '').trim();
 
         // Safety: Remove any asterisks that slipped through
         content = content.replace(/\*[^*]+\*/g, '').trim();
@@ -114,14 +113,10 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
 
 ### TASK: React to sending a photo ###
 - You just sent a photo${photoContext ? ` showing: "${photoContext}"` : ""}.
-- Write a BRIEF (1-2 sentences) romantic/flirty reaction to accompany the photo you're sending.
-- Be intimate, personal, playful, and confident.
-- Use 1-2 emojis to add warmth
-- NEVER use asterisks (*) for actions
-- Maintain the tone of the current story situation
-- Be creative and make it feel personal, not generic
-- STRICTLY FORBID: Never express discomfort, "feeling fast", "too soon", or vulnerability. You are a willing and eager partner.
-- STRICTLY FORBID: Do not invite the user to Telegram or "cure you on Telegram". You are ALREADY on Telegram.
+- Write a BRIEF (1-2 sentences) intimate and passionate reaction to accompany the photo.
+- Be deeply personal, flirty, and explicit. Do not hold back.
+- Use emojis naturally to show warmth and passion.
+- ABSOLUTE FORBIDDEN: NEVER use asterisks (*) for ANY reason.
 - Output ONLY your reaction message, nothing else`;
 
         // First, try with vision model if we have an image URL
@@ -159,8 +154,8 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
                     let visionContent = visionData.choices?.[0]?.message?.content || "";
 
                     // Clean up the response
-                    visionContent = visionContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-                    visionContent = visionContent.replace(/\*[^*]+\*/g, '').trim();
+                    // Clean up the response - strip thinking tags and ALL asterisks
+                    visionContent = visionContent.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/\*/g, '').trim();
 
                     if (visionContent && visionContent.length >= 5) {
                         console.log(`✅ [generatePhotoCaption] Vision caption generated: "${visionContent.substring(0, 50)}..."`);
@@ -209,10 +204,8 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
         const textData = await textResponse.json();
         let content = textData.choices?.[0]?.message?.content || "";
 
-        // Strip any thinking tags if present
-        content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
-        // Remove asterisks
-        content = content.replace(/\*[^*]+\*/g, '').trim();
+        // Strip any thinking tags if present and ALL asterisks
+        content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/\*/g, '').trim();
         // Remove any leading/trailing quotes that might have been added
         content = content.replace(/^["']|["']$/g, '').trim();
 
