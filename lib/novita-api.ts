@@ -99,7 +99,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     if (imageBase64) {
       referenceImages.push({
         url: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
-        weight: 1.0,
+        weight: 0.7, // Lowered weight for context to allow the prompt to guide the pose without clashing
         label: "Context Image"
       });
     }
@@ -112,6 +112,9 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
     const contextReference = referenceImages.find(r => r.label === "Context Image");
 
+    // Clearer solo mandate in the prefix
+    const soloMandate = "(solo:1.6), (1girl:1.6), (one person only:1.5), lone identity, ";
+
     const limitedReferences = [];
     if (principalIdentity) limitedReferences.push(principalIdentity);
     if (contextReference) limitedReferences.push(contextReference);
@@ -120,15 +123,11 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     for (const ref of limitedReferences) {
       try {
         let cleanUrl = ref.url;
-        // Seedream 4.5 ControlNet requires Base64 for units if not public URLs
-        // Note: We assume the caller handles necessary Base64 conversions if needed, 
-        // but here we ensure internal consistency.
-
         const isFaceSource = ref.label.includes("Face") || ref.label.includes("Profile");
 
         finalControlUnits.push({
           model_name: isFaceSource ? "ip-adapter_plus_face_xl" : "ip-adapter_xl",
-          weight: ref.weight,
+          weight: isFaceSource ? 0.65 : 0.45, // Further lowered to prevent merging/leaking and deformations
           control_image: cleanUrl,
           module_name: "none"
         });
@@ -149,10 +148,10 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   }
 
   // Enhance prompt based on style - focus on Solitary Intimate Photography
-  // We demand a single frame but encourage dynamic full-body/environmental shots
+  // We demand a single frame and use high weighting for raw, photorealistic textures
   let enhancedPrompt = style === 'realistic'
-    ? `(ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (solo:1.3), full body or mid-shot environmental photography, no collage, no split screen, no diptych, full screen, unprocessed raw digital photography, ${identityPrefix}${prompt}, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
-    : `(ONE CONTINUOUS ILLUSTRATION:1.4), (ONE FRAME ONLY:1.4), (solo:1.3), dynamic full body or mid-shot anime pose, no collage, no split screen, ${identityPrefix}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
+    ? `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (ultra-realistic raw photography:1.4), (natural skin textures:1.4), (detailed skin pores:1.3), (fine wrinkles:0.7), no collage, no split screen, full screen, unprocessed raw digital photography, ${identityPrefix}${prompt}, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
+    : `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS ILLUSTRATION:1.4), (ONE FRAME ONLY:1.4), (masterpiece anime art:1.2), dynamic full body or mid-shot anime pose, no collage, no split screen, ${identityPrefix}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
 
   if (enhancedPrompt.length > 1500) {
     enhancedPrompt = enhancedPrompt.substring(0, 1500);

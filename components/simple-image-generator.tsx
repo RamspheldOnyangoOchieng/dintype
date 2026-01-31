@@ -59,8 +59,8 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
                     height: config.height,
                     image_num: 4, // Always generate 4 as requested
                     size: config.size,
-                    steps: 30,
-                    guidance_scale: 7.0,
+                    steps: 25,
+                    guidance_scale: 4.5, // Slightly increased for better prompt adherence balanced with realism
                     characterId: characterId, // Enable Twinning/Reference Engine
                     autoSave: true
                 }),
@@ -121,8 +121,8 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[700px] bg-[#1A1A1A] border-[#333] text-white">
-                <DialogHeader>
+            <DialogContent className="w-[95vw] sm:max-w-[800px] max-h-[92vh] flex flex-col bg-[#0F0F0F] border-[#222] text-white p-0 overflow-hidden shadow-2xl rounded-2xl">
+                <DialogHeader className="p-6 pb-2 border-b border-[#222]">
                     <DialogTitle className="text-xl font-bold flex items-center gap-2">
                         <Sparkles className="h-5 w-5 text-[#00A3FF]" />
                         {config.title}
@@ -132,7 +132,7 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-6 py-4">
+                <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
                     <div className="space-y-2">
                         <Label className="text-sm font-medium text-gray-300">Prompt Description</Label>
                         <Textarea
@@ -153,13 +153,14 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
                                 <span className="text-xs text-gray-400 font-medium animate-pulse">DNA Twinning in progress...</span>
                             </div>
                         ) : generatedImages.length > 0 ? (
-                            <div className="grid grid-cols-2 gap-2 w-full h-full">
+                            <div className="grid grid-cols-2 gap-4 w-full h-full p-2">
                                 {generatedImages.map((img, idx) => (
                                     <div
                                         key={idx}
                                         className={cn(
-                                            "relative aspect-square rounded-lg overflow-hidden cursor-pointer transition-all border-2",
-                                            selectedImage === img ? "border-[#00A3FF] ring-2 ring-[#00A3FF]/50" : "border-transparent opacity-80 hover:opacity-100"
+                                            "relative rounded-xl overflow-hidden cursor-pointer transition-all border-2",
+                                            "aspect-[2/3] w-full bg-[#111]", // Fixed aspect ratio for portrait references
+                                            selectedImage === img ? "border-[#00A3FF] ring-4 ring-[#00A3FF]/20 shadow-2xl scale-[1.02] z-10" : "border-[#333] opacity-90 hover:opacity-100 hover:scale-[1.01]"
                                         )}
                                         onClick={() => setSelectedImage(img)}
                                     >
@@ -167,13 +168,16 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
                                             src={img}
                                             alt={`Generated ${idx + 1}`}
                                             fill
-                                            className="object-cover"
+                                            className="object-contain" // Contain instead of cover to show full frame
                                         />
                                         {selectedImage === img && (
-                                            <div className="absolute top-2 right-2 bg-[#00A3FF] rounded-full p-1 shadow-lg">
-                                                <Check className="h-4 w-4 text-white" />
+                                            <div className="absolute top-3 right-3 bg-[#00A3FF] rounded-full p-1.5 shadow-lg animate-in zoom-in">
+                                                <Check className="h-5 w-5 text-white" />
                                             </div>
                                         )}
+                                        <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase tracking-wider">
+                                            Option {idx + 1}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -192,7 +196,7 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
                     )}
                 </div>
 
-                <div className="flex justify-end gap-3">
+                <div className="flex justify-end gap-3 p-6 border-t border-[#222] bg-[#0F0F0F]">
                     <Button variant="ghost" onClick={onClose} className="text-gray-400 hover:text-white">
                         Cancel
                     </Button>
