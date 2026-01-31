@@ -149,10 +149,10 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   }
 
   // Enhance prompt based on style - focus on Solitary Intimate Photography
-  // We explicitly demand a single frame and use aggressive single-frame keywords with EXTREME weighting
+  // We demand a single frame but encourage dynamic full-body/environmental shots
   let enhancedPrompt = style === 'realistic'
-    ? `(SINGLE CONTINUOUS PHOTOGRAPH:1.8), (ONE FRAME ONLY:1.8), (solo:1.6), lone subject, no collage, no split screen, no diptych, full screen, unprocessed raw digital photography, ${identityPrefix}${prompt}, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
-    : `(SINGLE CONTINUOUS ILLUSTRATION:1.8), (ONE FRAME ONLY:1.8), (solo:1.6), lone subject, no collage, no split screen, ${identityPrefix}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
+    ? `(ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (solo:1.3), full body or mid-shot environmental photography, no collage, no split screen, no diptych, full screen, unprocessed raw digital photography, ${identityPrefix}${prompt}, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
+    : `(ONE CONTINUOUS ILLUSTRATION:1.4), (ONE FRAME ONLY:1.4), (solo:1.3), dynamic full body or mid-shot anime pose, no collage, no split screen, ${identityPrefix}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
 
   if (enhancedPrompt.length > 1500) {
     enhancedPrompt = enhancedPrompt.substring(0, 1500);

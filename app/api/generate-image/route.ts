@@ -417,7 +417,8 @@ export async function POST(req: NextRequest) {
                 5. QUALITY: "highly detailed", "sharp focus", "8k UHD".
                 6. GENITALIA PRECISION: Natural realistic textures and anatomical precision.
                 7. CLEANLINESS: No text, logos, or watermarks.
-                8. SINGLE FRAME MANDATE: Produce ONE single, continuous, unified photograph FROM A SINGLE CAMERA ANGLE. Describe ONLY ONE moment in time. DO NOT use words like "series", "sequence", "variations", "shots", or "angles" in your plural form. Describe only ONE pose and ONLY ONE distance (no mix of close-up and wide shot). ANY multi-panel or collage output is a CRITICAL FAILURE.`
+                8. SINGLE FRAME MANDATE: Produce ONE single, continuous, unified photograph. NO collages or split views. ANY multi-panel output is a FAILURE.
+                9. DYNAMIC COMPOSITION: Do not default to close-up face shots. Favor full-body, wide-angle, or medium shots. Describe dynamic poses (sitting, walking, lounging) that interact with a detailed environment.`
               },
               {
                 role: 'user',
@@ -444,7 +445,8 @@ export async function POST(req: NextRequest) {
                 ${latestCharacter.negativeRestrictions ? `STRICT RESTRICTIONS (AERIAL/NO-GO): ${latestCharacter.negativeRestrictions}` : ''}
                 ` : ''}
 
-                Style: ${actualModel.includes('anime') || actualModel.includes('dreamshaper') ? 'High-end stylized anime/illustration' : 'Breathtaking photorealistic photography'}.`
+                Style: ${actualModel.includes('anime') || actualModel.includes('dreamshaper') ? 'High-end stylized anime/illustration' : 'Breathtaking photorealistic photography'}. 
+                COMPOSITION: Unless a portrait is specified, default to a full-body or dynamic mid-shot in a rich environment (e.g. sitting on a chair, walking on a beach, or lounging).`
               }
             ],
             max_tokens: 400,
@@ -459,8 +461,8 @@ export async function POST(req: NextRequest) {
             console.log("✅ Prompt enhanced successfully");
             let cleanedPrompt = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
-            const identityPrefix = latestCharacter ? `### IDENTITY LOCK: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.ethnicity || ''}. ### ` : '';
-            const frameMandate = `(SINGLE CONTINUOUS PHOTOGRAPH:1.6), (ONE FRAME ONLY:1.6), (solo:1.4), NO COLLAGE, NO SPLIT-VIEW. `;
+            const identityPrefix = latestCharacter ? `### IDENTITY : ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes. ### ` : '';
+            const frameMandate = `(ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (solo:1.3), `;
             cleanedPrompt = identityPrefix + frameMandate + cleanedPrompt;
             finalPrompt = cleanedPrompt.length > 1000 ? cleanedPrompt.substring(0, 1000) : cleanedPrompt;
           }
