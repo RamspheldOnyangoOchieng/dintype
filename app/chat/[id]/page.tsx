@@ -804,7 +804,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
   // Effect to load chat history when component mounts or character changes
   useEffect(() => {
-    if (isMounted && characterId && user?.id) {
+    // Only proceed if everything is ready, especially the character object
+    if (isMounted && characterId && user?.id && character && character.id === characterId) {
       const currentId = `${user.id}-${characterId}`
       if (lastLoadedIdRef.current !== currentId) {
         console.log("🔄 Loading fresh chat history for:", currentId)
@@ -812,7 +813,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         lastLoadedIdRef.current = currentId
       }
     }
-  }, [loadChatHistory, isMounted, characterId, user?.id])
+  }, [loadChatHistory, isMounted, characterId, user?.id, character])
 
   // Auto-save session management - Enable auto-save when in chat, disable when leaving
   useEffect(() => {
@@ -1310,6 +1311,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             setTimeout(() => {
               setMessages((prev) => [...prev, storyImgMsg])
               saveMessageToLocalStorage(character.id, storyImgMsg)
+              saveMessageToDatabase(character.id, storyImgMsg) // Save AI's story response to DB
               setSentChapterImages((prev) => [...new Set([...prev, nextImg])])
             }, 300)
 
@@ -1322,9 +1324,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               content: "I'm not in the mood for photos right now, let's keep focusing on our time together... 💕",
               timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             }
+
             setTimeout(() => {
               setMessages((prev) => [...prev, storyRefusalMsg])
               saveMessageToLocalStorage(character.id, storyRefusalMsg)
+              saveMessageToDatabase(character.id, storyRefusalMsg) // Save refusal to DB
             }, 300)
             setIsSendingMessage(false)
             return
@@ -1401,6 +1405,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               setTimeout(() => {
                 setMessages(prev => [...prev, storyImgMsg])
                 saveMessageToLocalStorage(character.id, storyImgMsg)
+                saveMessageToDatabase(character.id, storyImgMsg)
                 setSentChapterImages(prev => [...new Set([...prev, nextImg])])
               }, 400)
             }
