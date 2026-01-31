@@ -150,8 +150,8 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   // Enhance prompt based on style - focus on Solitary Intimate Photography
   // We demand a single frame and use high weighting for raw, photorealistic textures
   let enhancedPrompt = style === 'realistic'
-    ? `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (ultra-realistic raw photography:1.4), (natural skin textures:1.4), (detailed skin pores:1.3), (fine wrinkles:0.7), no collage, no split screen, full screen, unprocessed raw digital photography, ${identityPrefix}${prompt}, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
-    : `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS ILLUSTRATION:1.4), (ONE FRAME ONLY:1.4), (masterpiece anime art:1.2), dynamic full body or mid-shot anime pose, no collage, no split screen, ${identityPrefix}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
+    ? `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (hyper-focused face:1.3), (sharp detailed eyes:1.3), (ultra-realistic raw photography:1.4), (natural skin textures:1.4), (detailed skin pores:1.3), no collage, no split screen, full screen, unprocessed raw digital photography, ${identityPrefix}${prompt}, dynamic pose, interesting environment, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
+    : `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS ILLUSTRATION:1.4), (ONE FRAME ONLY:1.4), (perfect face:1.2), (clear eyes:1.2), (masterpiece anime art:1.2), dynamic full body or mid-shot anime pose, no collage, no split screen, ${identityPrefix}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
 
   if (enhancedPrompt.length > 1500) {
     enhancedPrompt = enhancedPrompt.substring(0, 1500);

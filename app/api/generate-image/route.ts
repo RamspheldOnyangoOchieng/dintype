@@ -418,7 +418,10 @@ export async function POST(req: NextRequest) {
                 6. GENITALIA PRECISION: Natural realistic textures and anatomical precision.
                 7. CLEANLINESS: No text, logos, or watermarks.
                 8. SINGLE FRAME MANDATE: Produce ONE single, continuous, unified photograph. NO collages or split views. ANY multi-panel output is a FAILURE.
-                9. DYNAMIC COMPOSITION: Do not default to close-up face shots. Favor full-body, wide-angle, or medium shots. Describe dynamic poses (sitting, walking, lounging) that interact with a detailed environment.`
+                9. DYNAMIC COMPOSITION: Do not default to close-up face shots. Favor full-body, wide-angle, or medium shots. Describe dynamic poses (leaning, sitting, walking, lounging, or reaching) that DISRUPT standard standing poses.
+                10. FACE CLARITY: Even in full-body shots, ensure the face is sharply rendered with detailed eyes and realistic skin textures. Avoid blurry or soft facial features.
+                11. ENVIRONMENTAL VARIETY: Describe rich, unique environments (textures, lighting, weather, depth) to prevent repetitive 'neutral' backgrounds. Ensure the character interacts with their surroundings.
+                12. ACTION & MOTION: Use active verbs. Describe the physics of the moment (wind in hair, weight distribution, fabric motion) to avoid 'still mannequin' results.`
               },
               {
                 role: 'user',
@@ -446,7 +449,9 @@ export async function POST(req: NextRequest) {
                 ` : ''}
 
                 Style: ${actualModel.includes('anime') || actualModel.includes('dreamshaper') ? 'High-end stylized anime/illustration' : 'Breathtaking photorealistic photography'}. 
-                COMPOSITION: Unless a portrait is specified, default to a full-body or dynamic mid-shot in a rich environment (e.g. sitting on a chair, walking on a beach, or lounging).`
+                COMPOSITION: Unless a portrait is specified, default to a full-body or dynamic mid-shot in a rich, specific environment.
+                VARIETY: DO NOT repeat poses or environments. If the user prompt is simple, invent a complex, high-contrast, atmospheric setting and a dynamic interaction (e.g. crouching, sitting cross-legged, leaning against a rainy window, walking through tall grass).
+                FACIAL DETAIL: Explicitly describe sharp focus on the eyes and facial skin textures in every output.`
               }
             ],
             max_tokens: 400,
