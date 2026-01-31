@@ -22,7 +22,7 @@ const getTokenCost = (imageCount: number = 1): number => {
   return 5 * count
 }
 
-const DEFAULT_NEGATIVE_PROMPT = "man, male, boy, gentleman, husband, boyfriend, couple, together, two people, multiple people, group of people, partner, companion, another person, lady and man, man and woman, second person, studio lighting, harsh light, orange light, makeup, airbrushed, corporate portrait, anime, illustration, cartoon, drawing, painting, digital art, stylized, cgi, 3d render, unreal, wrinkles, old, aged, grainy, artifacts, noise, grit, dots, freckles, spots, blotchy skin, rough skin, acne, skin texture artifacts, messy skin, high contrast, over-processed, saturated, deformed, extra fingers, malformed hands, fused fingers, missing fingers, extra limbs, extra bodies, mutilated, gross proportions, bad anatomy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, multiview, card, frame, border, comparison, side by side, collage layout, photo grid, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust";
+const DEFAULT_NEGATIVE_PROMPT = "man, male, boy, gentleman, husband, boyfriend, couple, together, two people, multiple people, group of people, partner, companion, another person, lady and man, man and woman, second person, studio lighting, harsh light, orange light, makeup, airbrushed, corporate portrait, anime, illustration, cartoon, drawing, painting, digital art, stylized, cgi, 3d render, unreal, wrinkles, old, aged, grainy, artifacts, noise, grit, dots, freckles, spots, blotchy skin, rough skin, acne, skin texture artifacts, messy skin, high contrast, over-processed, saturated, deformed, extra fingers, malformed hands, fused fingers, missing fingers, extra limbs, extra bodies, mutilated, gross proportions, bad anatomy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, multiview, card, frame, border, comparison, side by side, collage layout, photo grid, vertical split, horizontal split, montage, comic strip, collection of images, duplicate subject, mirror image, screenshot, multi-panel, panels, quad, grid-layout, contact sheet, storyboard panels, sequence, comparison shot, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust";
 
 /**
  * Get webhook URL for Novita callbacks
@@ -410,14 +410,14 @@ export async function POST(req: NextRequest) {
                 content: `You are an expert prompt engineer for ultra-realistic photography. Your goal is to produce high-end photographic descriptions with 100% facial consistency.
 
                 CORE INSTRUCTIONS:
-                1. SUBJECT FOCUS: Prioritize the user's specific requested action and setting as the primary focus (e.g., posing, sitting, lying down).
-                2. IDENTITY LOCK: Maintain the character's unique facial features and physical traits exactly as defined.
-                3. PHOTOGRAPHIC STYLE: Use "unprocessed raw digital photography" and "natural lighting". Avoid "selfie" or "portrait" tags unless the user explicitly requests a closeup.
-                4. SOLO ONLY: Primary subject should be the character. Background people are allowed if natural to the setting, but the character must be the clear lone focus.
-                5. QUALITY: Focus on "highly detailed", "sharp focus", and "8k UHD". No bokeh, sparkles, or AI glow effects.
-                6. GENITALIA PRECISION: If NSFW, describe "natural realistic textures and perfect anatomical proportions" with photographic precision. Avoid using overly medical or clinical terms.
+                1. SUBJECT FOCUS: Prioritize the user's requested action and setting as a single continuous scene.
+                2. IDENTITY LOCK: Maintain the character's physical traits exactly as defined.
+                3. PHOTOGRAPHIC STYLE: Use "unprocessed raw digital photography" and "natural lighting".
+                4. SOLO ONLY: Clear lone focus on the character. No background people.
+                5. QUALITY: "highly detailed", "sharp focus", "8k UHD".
+                6. GENITALIA PRECISION: Natural realistic textures and anatomical precision.
                 7. CLEANLINESS: No text, logos, or watermarks.
-                8. SINGLE FRAME: Produce one single, continuous image. STRICTLY FORBIDDEN: collages, split views, diptychs, triptychs, grids, multiple angles, or side-by-side comparisons in a single image.`
+                8. SINGLE FRAME MANDATE: Produce ONE single, continuous, unified photograph FROM A SINGLE CAMERA ANGLE. Describe ONLY ONE moment in time. DO NOT use words like "series", "sequence", "variations", "shots", or "angles" in your plural form. Describe only ONE pose and ONLY ONE distance (no mix of close-up and wide shot). ANY multi-panel or collage output is a CRITICAL FAILURE.`
               },
               {
                 role: 'user',
@@ -444,7 +444,7 @@ export async function POST(req: NextRequest) {
                 ${latestCharacter.negativeRestrictions ? `STRICT RESTRICTIONS (AERIAL/NO-GO): ${latestCharacter.negativeRestrictions}` : ''}
                 ` : ''}
 
-                Style: ${actualModel.includes('anime') || actualModel.includes('dreamshaper') ? 'High-end stylized anime/illustration' : 'Breathtaking photorealistic photography'}. ${actualImageCount > 1 ? `Generate a prompt that encourages diverse backgrounds for a batch of ${actualImageCount} images.` : ''}`
+                Style: ${actualModel.includes('anime') || actualModel.includes('dreamshaper') ? 'High-end stylized anime/illustration' : 'Breathtaking photorealistic photography'}.`
               }
             ],
             max_tokens: 400,
@@ -459,10 +459,9 @@ export async function POST(req: NextRequest) {
             console.log("✅ Prompt enhanced successfully");
             let cleanedPrompt = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
-            if (latestCharacter) {
-              const characterPrefix = `### IDENTITY LOCK: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.ethnicity || ''}. ONE SINGLE IMAGE ONLY. ### `;
-              cleanedPrompt = characterPrefix + cleanedPrompt;
-            }
+            const identityPrefix = latestCharacter ? `### IDENTITY LOCK: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.ethnicity || ''}. ### ` : '';
+            const frameMandate = `(SINGLE CONTINUOUS PHOTOGRAPH:1.6), (ONE FRAME ONLY:1.6), (solo:1.4), NO COLLAGE, NO SPLIT-VIEW. `;
+            cleanedPrompt = identityPrefix + frameMandate + cleanedPrompt;
             finalPrompt = cleanedPrompt.length > 1000 ? cleanedPrompt.substring(0, 1000) : cleanedPrompt;
           }
         } else {

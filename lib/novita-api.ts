@@ -39,7 +39,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   const {
     prompt,
-    negativePrompt = 'sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurry, distorted, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy',
+    negativePrompt = 'sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, multiview, card, frame, border, comparison, side by side, collage layout, photo grid, vertical split, horizontal split, montage, comic strip, collection of images, duplicate subject, mirror image, screenshot, multi-panel, panels, quad, grid-layout, contact sheet, storyboard panels, sequence, comparison shot, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust',
     width = 1600,
     height = 2400,
     steps = 25,
@@ -149,10 +149,10 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   }
 
   // Enhance prompt based on style - focus on Solitary Intimate Photography
-  // We explicitly demand a single frame and use aggressive single-frame keywords
+  // We explicitly demand a single frame and use aggressive single-frame keywords with EXTREME weighting
   let enhancedPrompt = style === 'realistic'
-    ? `Solo female, ONE SINGLE PHOTOGRAPH, single frame, lone subject, no collage, full screen, unprocessed raw digital photography, ${identityPrefix}${prompt}, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
-    : `high-end anime style, ONE SINGLE ILLUSTRATION, single frame, lone subject, no collage, ${identityPrefix}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
+    ? `(SINGLE CONTINUOUS PHOTOGRAPH:1.8), (ONE FRAME ONLY:1.8), (solo:1.6), lone subject, no collage, no split screen, no diptych, full screen, unprocessed raw digital photography, ${identityPrefix}${prompt}, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
+    : `(SINGLE CONTINUOUS ILLUSTRATION:1.8), (ONE FRAME ONLY:1.8), (solo:1.6), lone subject, no collage, no split screen, ${identityPrefix}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
 
   if (enhancedPrompt.length > 1500) {
     enhancedPrompt = enhancedPrompt.substring(0, 1500);
@@ -312,9 +312,9 @@ export function buildAttributePrompt(attributes: {
   if (style === 'realistic') {
     parts.push('unprocessed raw mobile phone selfie');
     parts.push('natural indoor lighting, smooth clear skin with flawless features');
-    parts.push('lone woman taking a photo of herself');
-    parts.push('raw digital look, slight camera shake, realistic room background');
-    parts.push('unfiltered, sharp focus on face, non-studio lighting');
+    parts.push('(solo:1.4), lone woman taking a photo of herself, ONE SINGLE CONTINUOUS FRAME');
+    parts.push('raw digital look, slight camera shake, realistic room background, NO COLLAGE');
+    parts.push('unfiltered, sharp focus on face, non-studio lighting, NO SPLIT-VIEW');
     parts.push('raw photo, film grain, 4k, Fujifilm instax, NO SHINING, NO BOKEH, NO TEXT');
   } else {
     parts.push('professional anime illustration');
