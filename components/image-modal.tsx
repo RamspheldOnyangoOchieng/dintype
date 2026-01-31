@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, ChevronRight, Download, Share2, X, Save, Loader2 } from "lucide-react"
+import { ChevronLeft, ChevronRight, Download, Share2, X, Save, Loader2, MessageSquare } from "lucide-react"
 import Image from "next/image"
 
 interface ImageModalProps {
@@ -14,6 +14,7 @@ interface ImageModalProps {
   onDownload: (imageUrl: string, index: number) => void
   onShare: (imageUrl: string) => void
   onSave?: (index: number) => void
+  onChat?: (imageUrl: string) => void
   savingIndex?: number | null
 }
 
@@ -25,6 +26,7 @@ export function ImageModal({
   onDownload,
   onShare,
   onSave,
+  onChat,
   savingIndex,
 }: ImageModalProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
@@ -123,8 +125,8 @@ export function ImageModal({
                     key={index}
                     onClick={() => setCurrentIndex(index)}
                     className={`relative w-16 h-24 rounded-md overflow-hidden border-2 transition-all shrink-0 ${currentIndex === index
-                        ? "border-primary scale-105 shadow-[0_0_10px_rgba(var(--primary),0.5)]"
-                        : "border-transparent opacity-40 hover:opacity-100"
+                      ? "border-primary scale-105 shadow-[0_0_10px_rgba(var(--primary),0.5)]"
+                      : "border-transparent opacity-40 hover:opacity-100"
                       }`}
                   >
                     <Image
@@ -177,6 +179,15 @@ export function ImageModal({
                 <Save className="h-4 w-4 mr-2" />
               )}
               Save
+            </Button>
+          )}
+          {onChat && (
+            <Button
+              onClick={() => onChat(images[currentIndex])}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Chat
             </Button>
           )}
         </div>

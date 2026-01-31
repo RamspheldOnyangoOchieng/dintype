@@ -1237,7 +1237,7 @@ function GenerateContent() {
                               className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-10 rounded-lg"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                router.push(`/chat/${characterId}`)
+                                router.push(`/chat/${characterId}?imageUrl=${encodeURIComponent(image)}`)
                               }}
                             >
                               <MessageSquare className="h-4 w-4 mr-2" />
@@ -1299,6 +1299,13 @@ function GenerateContent() {
             onShare={handleShare}
             onSave={(index) => saveImageToCollection(generatedImages[index], index)}
             savingIndex={savingImageIndex}
+            onChat={(imageUrl) => {
+              if (characterId) {
+                router.push(`/chat/${characterId}?imageUrl=${encodeURIComponent(imageUrl)}`)
+              } else {
+                router.push(`/create-character?imageUrl=${encodeURIComponent(imageUrl)}&gender=lady`)
+              }
+            }}
           />
 
           {/* Insufficient Tokens Dialog */}

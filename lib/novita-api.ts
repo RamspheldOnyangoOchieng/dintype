@@ -53,7 +53,12 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   // --- MULTI-REFERENCING ENGINE (CORE) ---
   const finalControlUnits = [...controlnet_units];
-  const identityPrefix = character ? `### IDENTITY LOCK: ${character.name}, ${character.hairColor || character.hair_color || ''} hair, ${character.eyeColor || character.eye_color || ''} eyes. MATCH VISUAL DNA EXACTLY. ### ` : '';
+
+  // Create identity prefix safely (check if already present in prompt to avoid double-prefixing)
+  const identityLockText = `### IDENTITY LOCK: ${character?.name || ''}`;
+  const identityPrefix = (character && !prompt.includes(identityLockText))
+    ? `### IDENTITY LOCK: ${character.name}, ${character.hairColor || character.hair_color || ''} hair, ${character.eyeColor || character.eye_color || ''} eyes. MATCH VISUAL DNA EXACTLY. ### `
+    : '';
 
   if (character) {
     console.log(`🧬 [Multi-Engine] Building identity lock for ${character.name}...`);
@@ -94,13 +99,25 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     if (imageBase64) {
       referenceImages.push({
         url: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
-        weight: 0.6,
+        weight: 1.0,
         label: "Context Image"
       });
     }
 
+    // 💎 ELITE FILTERING: To prevent collages (split-screen), we must minimize IP-Adapter conflict.
+    // We prioritize 1 Principal Identity Face + 1 Context/Anatomy reference. MAX 2 TOTAL.
+    const principalIdentity = referenceImages.find(r => r.label === "Golden Face") ||
+      referenceImages.find(r => r.label === "Main Profile") ||
+      referenceImages[0];
+
+    const contextReference = referenceImages.find(r => r.label === "Context Image");
+
+    const limitedReferences = [];
+    if (principalIdentity) limitedReferences.push(principalIdentity);
+    if (contextReference) limitedReferences.push(contextReference);
+
     // Combine into finalControlUnits
-    for (const ref of referenceImages) {
+    for (const ref of limitedReferences) {
       try {
         let cleanUrl = ref.url;
         // Seedream 4.5 ControlNet requires Base64 for units if not public URLs
@@ -120,11 +137,11 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       }
     }
 
-    // 5. Anatomy Reference
-    if (character.metadata?.anatomy_reference_url || character.anatomy_reference_url) {
+    // 5. Anatomy Reference (Only if we have space, otherwise it's overkill)
+    if (limitedReferences.length < 2 && (character.metadata?.anatomy_reference_url || character.anatomy_reference_url)) {
       finalControlUnits.push({
         model_name: "ip-adapter_xl",
-        weight: 0.7,
+        weight: 0.8,
         control_image: character.metadata?.anatomy_reference_url || character.anatomy_reference_url,
         module_name: "none"
       });
@@ -132,10 +149,10 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   }
 
   // Enhance prompt based on style - focus on Solitary Intimate Photography
-  // We explicitly demand a single frame to prevent the Multi-Reference engine from creating collages
+  // We explicitly demand a single frame and use aggressive single-frame keywords
   let enhancedPrompt = style === 'realistic'
-    ? `Solo female, single frame, lone subject, unprocessed raw digital photography, ${identityPrefix}${prompt}, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
-    : `high-end anime style, single frame, lone subject, ${identityPrefix}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
+    ? `Solo female, ONE SINGLE PHOTOGRAPH, single frame, lone subject, no collage, full screen, unprocessed raw digital photography, ${identityPrefix}${prompt}, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
+    : `high-end anime style, ONE SINGLE ILLUSTRATION, single frame, lone subject, no collage, ${identityPrefix}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
 
   if (enhancedPrompt.length > 1500) {
     enhancedPrompt = enhancedPrompt.substring(0, 1500);
@@ -169,9 +186,9 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
           response_image_type: 'url',
           add_watermark: false,
           watermark: false,
-          optimize_prompt_options: {
-            mode: 'standard'
-          }
+          // optimize_prompt_options: {
+          //   mode: 'standard'
+          // }
         }),
         signal: controller.signal,
       });

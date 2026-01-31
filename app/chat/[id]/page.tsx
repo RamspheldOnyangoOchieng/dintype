@@ -27,7 +27,7 @@ import { useSidebar } from "@/components/sidebar-context"
 import { useCharacters } from "@/components/character-context"
 import { sendChatMessage, type Message } from "@/lib/chat-actions"
 import { checkNovitaApiKey } from "@/lib/api-key-utils"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/components/auth-context"
 import { useAuthModal } from "@/components/auth-modal-context"
 import { sendChatMessageDB, loadChatHistory as loadChatHistoryDB, clearChatHistory as clearChatHistoryDB, type Message as DBMessage } from "@/lib/chat-actions-db"
@@ -103,6 +103,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const searchParams = useSearchParams()
+  const processedImageUrlRef = useRef<string | null>(null)
 
   // Check authentication and show login modal if needed
   useEffect(() => {
@@ -829,6 +831,64 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       console.log('🔴 Chat session ended - Auto-save disabled')
     }
   }, [characterId]) // Re-enable when switching characters
+
+  // Effect to handle images carried from the generation page
+  useEffect(() => {
+    const imageUrlParam = searchParams.get('imageUrl')
+    if (imageUrlParam && characterId && user?.id && !isLoadingHistory && character && character.id === characterId) {
+      if (processedImageUrlRef.current !== imageUrlParam) {
+        processedImageUrlRef.current = imageUrlParam
+
+        console.log("📸 Image carried to chat:", imageUrlParam)
+
+        // Check if this exact image is already in current local state to avoid duplicates on quick re-renders
+        const existsInLocal = messages.some(m => m.imageUrl === imageUrlParam)
+        if (existsInLocal) {
+          console.log("Image already exists in state, skipping duplicate add.")
+          return
+        }
+
+        const imageMessage: Message = {
+          id: `carried-${Date.now()}`,
+          role: "user",
+          content: "I love this photo of you! 😍",
+          isImage: true,
+          imageUrl: imageUrlParam,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        }
+
+        setMessages(prev => [...prev, imageMessage])
+        saveMessageToLocalStorage(characterId, imageMessage)
+        saveMessageToDatabase(characterId, imageMessage)
+
+        // Trigger AI response to the new photo
+        setIsSendingMessage(true)
+        sendChatMessageDB(
+          characterId,
+          "I love this photo of you! 😍",
+          character.system_prompt || character.systemPrompt || "",
+          user.id
+        ).then(aiResponse => {
+          if (aiResponse.success && aiResponse.message) {
+            const assistantMessage: Message = {
+              id: aiResponse.message.id,
+              role: aiResponse.message.role as any,
+              content: aiResponse.message.content,
+              timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+              isImage: aiResponse.message.isImage,
+              imageUrl: aiResponse.message.imageUrl,
+            }
+            setMessages(prev => [...prev, assistantMessage])
+            saveMessageToLocalStorage(characterId, assistantMessage)
+          }
+        }).catch(err => {
+          console.error("Error getting AI response for carried image:", err)
+        }).finally(() => {
+          setIsSendingMessage(false)
+        })
+      }
+    }
+  }, [searchParams, characterId, user, isLoadingHistory, character])
 
   // Add this inside the ChatPage component function, after the other useEffect hooks:
   // Effect to log character data when it changes

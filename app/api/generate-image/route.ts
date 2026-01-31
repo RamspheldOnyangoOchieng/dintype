@@ -460,7 +460,7 @@ export async function POST(req: NextRequest) {
             let cleanedPrompt = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
             if (latestCharacter) {
-              const characterPrefix = `### IDENTITY LOCK: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.ethnicity || ''}. ### `;
+              const characterPrefix = `### IDENTITY LOCK: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.ethnicity || ''}. ONE SINGLE IMAGE ONLY. ### `;
               cleanedPrompt = characterPrefix + cleanedPrompt;
             }
             finalPrompt = cleanedPrompt.length > 1000 ? cleanedPrompt.substring(0, 1000) : cleanedPrompt;
