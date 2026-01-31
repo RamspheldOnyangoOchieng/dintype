@@ -668,6 +668,7 @@ export default function EditCharacterPage() {
         occupation: formData.occupation,
         personality: formData.personality,
         interests: formData.hobbies,
+        relationship: formData.relationship,
       }
 
       const description = await generateCharacterDescription(params)
@@ -697,6 +698,7 @@ export default function EditCharacterPage() {
         personality: formData.personality,
         occupation: formData.occupation,
         hobbies: formData.hobbies,
+        relationship: formData.relationship,
       })
 
       setFormData((prev: any) => ({ ...prev, systemPrompt }))

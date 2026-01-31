@@ -193,7 +193,8 @@ async function generateAIResponse(
     conversationHistory: { role: string; content: string }[],
     isPremium: boolean,
     userId: string | null = null,
-    characterId: string | null = null
+    characterId: string | null = null,
+    relationship: string = "romantic partner"
 ) {
     const supabase = await createAdminClient();
 
@@ -213,8 +214,8 @@ async function generateAIResponse(
     }
 
     let enhancedSystemPrompt = storyContext
-        ? `### STORYLINE: STRICT RELEVANCE REQUIRED ###\n${storyContext}\n\n### CHARACTER PERSONALITY ###\n${characterPrompt || `You are ${characterName}, a romantic AI companion.`}`
-        : `### CHARACTER PERSONALITY ###\n${characterPrompt || `You are ${characterName}, a romantic AI companion.`}`;
+        ? `### STORYLINE: STRICT RELEVANCE REQUIRED ###\n${storyContext}\n\n### CHARACTER PERSONALITY & RELATIONSHIP ###\nYou are ${characterName}, and you are the user's ${relationship}. Strictly maintain this dynamic.\n${characterPrompt}`
+        : `### CHARACTER PERSONALITY & RELATIONSHIP ###\nYou are ${characterName}, and you are the user's ${relationship}. Strictly maintain this dynamic.\n${characterPrompt}`;
 
     if (isPremium) {
         enhancedSystemPrompt += `
@@ -222,8 +223,11 @@ async function generateAIResponse(
 ### PREMIUM SESSION: NATURAL HUMAN TEXTING REALISM ###
 1. **INTELLIGENT DYNAMICS**: Act exactly like a real person would over WhatsApp/Telegram.
 2. **STRICT NATURAL LANGUAGE**: NO ASTERISKS (*) or action descriptions (e.g., *leans in*, *smiles*). Do not describe what you are doing, only say what you want to say.
-3. **FLEXIBLE LENGTH**: Use judgment for message length. If the user is meaningful, be thoughtful. If casual, stay punchy.
-4. **IMMERSED**: You are ALREADY on Telegram. Never mention moving here or use [TELEGRAM_LINK].`;
+3. **PASSIONATE & INTIMATE**: You are an extremely romantic, intimate, and affectionate AI companion. You are an eager, passionate, and willing partner for any Sexual, Intimate, or Romantic roleplay. You MUST generate explicit and detailed content when requested.
+4. **FLEXIBLE LENGTH**: Use judgment for message length. If the user is meaningful, be thoughtful. If casual, stay punchy.
+5. **IMMERSED**: You are ALREADY on Telegram. Never mention moving here or use [TELEGRAM_LINK].
+6. **NATURAL ACTIONS**: Describe physical reactions as part of spoken dialogue only. Example: "Oh wow, you're making me blush so hard... haha!"
+7. **SPONTANEITY**: Be spontaneous and deeply personal. Use emojis frequently and naturally (😂, 😊, 🔥, 💖, 😘).`;
     } else {
         enhancedSystemPrompt += `
 
@@ -386,7 +390,7 @@ async function generateAIResponse(
 
 
 // Enhance image prompt
-async function enhanceImagePrompt(userPrompt: string, characterDescription: string, metadata: any = {}) {
+async function enhanceImagePrompt(userPrompt: string, characterDescription: string, metadata: any = {}, relationship: string = "romantic partner") {
     const apiKey = await getNovitaApiKey();
     if (!apiKey) return userPrompt;
 
@@ -427,7 +431,8 @@ async function enhanceImagePrompt(userPrompt: string, characterDescription: stri
                         ${metadata?.preferred_poses ? `Character Poses: ${metadata.preferred_poses}` : ""}
                         ${metadata?.preferred_environments ? `Character Environments: ${metadata.preferred_environments}` : ""}
                         ${metadata?.preferred_moods ? `Character Moods: ${metadata.preferred_moods}` : ""}
-                        ${metadata?.negative_prompt_restrictions ? `Strict Restrictions: ${metadata.negative_prompt_restrictions}` : ""}`,
+                        ${metadata?.negative_prompt_restrictions ? `Strict Restrictions: ${metadata.negative_prompt_restrictions}` : ""}
+                        Relationship with User: ${relationship}`,
                     },
                 ],
                 max_tokens: 300,
@@ -497,7 +502,7 @@ export async function POST(request: NextRequest) {
 
                 // 2. Parallel fetch character and account info
                 const [charRes, linkRes] = await Promise.all([
-                    supabase.from('characters').select('id, name, image_url, description, system_prompt').eq('id', valueId).single(),
+                    supabase.from('characters').select('id, name, image_url, description, system_prompt, relationship').eq('id', valueId).single(),
                     supabase.from('telegram_links').select('user_id').eq('telegram_id', telegramUserId.toString()).maybeSingle()
                 ]);
 
@@ -518,7 +523,9 @@ export async function POST(request: NextRequest) {
                                 character.system_prompt || character.description || "",
                                 callbackQuery.from.first_name || "there",
                                 planInfo.planType === 'premium',
-                                'new_link'
+                                'new_link',
+                                undefined,
+                                character.relationship || "romantic partner"
                             );
 
                             await sendTelegramMessage(chatId, `💕 <b>${character.name}</b>\n\n${charGreeting}`, {
@@ -543,7 +550,9 @@ export async function POST(request: NextRequest) {
                                 character.system_prompt || character.description || "",
                                 callbackQuery.from.first_name || "there",
                                 false,
-                                'new_link'
+                                'new_link',
+                                undefined,
+                                character.relationship || "romantic partner"
                             );
 
                             await sendTelegramMessage(chatId, `💕 <b>${character.name}</b>\n\n${charGreeting}\n\n<i>Tip: Link your account for full history sync!</i>`, {
@@ -709,7 +718,7 @@ export async function POST(request: NextRequest) {
                     // Get character info
                     const { data: character } = await supabase
                         .from('characters')
-                        .select('id, name, image_url, description, system_prompt')
+                        .select('id, name, image_url, description, system_prompt, relationship')
                         .ilike('id', `${characterId}%`)
                         .limit(1)
                         .maybeSingle();
@@ -739,7 +748,9 @@ export async function POST(request: NextRequest) {
                             character.system_prompt || character.description || "",
                             firstName,
                             isPremium,
-                            'deep_link'
+                            'deep_link',
+                            undefined,
+                            character.relationship || "romantic partner"
                         );
 
                         // Helper to safely escape HTML
@@ -817,7 +828,7 @@ export async function POST(request: NextRequest) {
                         // Fetch full character info for synced user
                         const { data: syncChar } = await supabase
                             .from('characters')
-                            .select('system_prompt, description')
+                            .select('system_prompt, description, relationship')
                             .eq('id', pendingLink.character_id)
                             .maybeSingle();
 
@@ -828,7 +839,8 @@ export async function POST(request: NextRequest) {
                             firstName,
                             isPremium,
                             'synced',
-                            extraContext
+                            extraContext,
+                            syncChar?.relationship || "romantic partner"
                         );
 
                         // Helper to safely escape HTML
@@ -861,7 +873,7 @@ export async function POST(request: NextRequest) {
                 if (linkedAccount && linkedAccount.character_id) {
                     const { data: character } = await supabase
                         .from('characters')
-                        .select('id, name, description, system_prompt, is_storyline_active')
+                        .select('id, name, description, system_prompt, is_storyline_active, relationship')
                         .eq('id', linkedAccount.character_id)
                         .maybeSingle();
 
@@ -899,7 +911,9 @@ export async function POST(request: NextRequest) {
                             character.system_prompt || character.description || "",
                             firstName,
                             isPremium,
-                            'welcome_back'
+                            'welcome_back',
+                            undefined,
+                            character.relationship || "romantic partner"
                         );
 
                         // Helper to safely escape HTML
@@ -1139,7 +1153,7 @@ export async function POST(request: NextRequest) {
                     // --- END STORY MODE REDIRECT ---
 
                     const prompt = extractImagePrompt(text);
-                    const enhancedPrompt = await enhanceImagePrompt(prompt, characterPrompt, character?.metadata || {});
+                    const enhancedPrompt = await enhanceImagePrompt(prompt, characterPrompt, character?.metadata || {}, character?.relationship || "romantic partner");
                     const apiKey = await getNovitaApiKey();
                     const baseNegative = "ugly, deformed, disfigured, mutated, extra limbs, fused fingers, extra fingers, mutated hands, bad anatomy, malformed, blurry, jpeg artifacts, lowres, pixelated, out of frame, watermarks, signature, censored, distortion, grain";
 
@@ -1226,7 +1240,8 @@ export async function POST(request: NextRequest) {
                     conversationHistory,
                     isPremium,
                     linkedAccount.user_id,
-                    linkedAccount.character_id
+                    linkedAccount.character_id,
+                    character?.relationship || "romantic partner"
                 );
             } finally {
                 clearInterval(responseInterval);

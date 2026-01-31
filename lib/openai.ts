@@ -8,6 +8,7 @@ export type GenerateCharacterParams = {
   occupation?: string
   personality?: string
   interests?: string
+  relationship?: string
 }
 
 export async function generateCharacterDescription(params: GenerateCharacterParams): Promise<string> {
@@ -40,6 +41,7 @@ export async function generateCharacterDescription(params: GenerateCharacterPara
       ${params.occupation ? `Occupation: ${params.occupation}` : ""}
       ${params.personality ? `Personality: ${params.personality}` : ""}
       ${params.interests ? `Interests/Hobbies: ${params.interests}` : ""}
+      ${params.relationship ? `Relationship Status: ${params.relationship}` : ""}
       
       The description should be 1-2 sentences long and highlight the character's most interesting qualities.
     `
@@ -108,6 +110,7 @@ export async function generateSystemPrompt(character: {
   personality: string
   occupation: string
   hobbies: string
+  relationship?: string
 }): Promise<string> {
   try {
     // PRIORITY: Use OPENAI_API_KEY from .env first, then fallback to NOVITA
@@ -140,6 +143,7 @@ export async function generateSystemPrompt(character: {
       Personality: ${character.personality}
       Occupation: ${character.occupation}
       Hobbies: ${character.hobbies}
+      ${character.relationship ? `Relationship Status: ${character.relationship}` : ""}
       
       The system prompt should instruct the AI on how to behave, speak, and respond as this character.
       Keep it under 200 words and focus on the character's personality, speech patterns, and knowledge areas.

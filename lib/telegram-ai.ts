@@ -6,7 +6,8 @@ export async function generateAIGreeting(
     userName: string,
     isPremium: boolean,
     greetingType: 'new_link' | 'synced' | 'welcome_back' | 'deep_link' | 'selected',
-    extraContext?: string
+    extraContext?: string,
+    relationship: string = "romantic partner"
 ) {
     const apiKey = await getNovitaApiKey();
     if (!apiKey) return `💕 Oh, hey! I was just thinking about you, ${userName}...`;
@@ -23,7 +24,7 @@ export async function generateAIGreeting(
     }
 
     try {
-        const prompt = `You are ${characterName}. ${characterPrompt}. 
+        const prompt = `You are ${characterName}. You are the user's ${relationship}. Strictly maintain this dynamic. ${characterPrompt}. 
         
         INSTRUCTION: ${contextInstruction}
         - NO ASTERISKS: NEVER use asterisks (*) or brackets for actions. 

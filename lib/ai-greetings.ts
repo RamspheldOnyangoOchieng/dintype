@@ -12,7 +12,8 @@ export async function generateDailyGreeting(
     systemPrompt: string,
     userId: string,
     isPremium: boolean = false,
-    storyContext: string = ""
+    storyContext: string = "",
+    relationship: string = "romantic partner"
 ): Promise<string> {
     const fallbackGreeting = `Good morning! ☀️ I was just thinking about you. Hope you have an amazing day! 💕`;
 
@@ -26,7 +27,7 @@ export async function generateDailyGreeting(
         }
 
         // Build a focused prompt for the greeting
-        const greetingPrompt = `You are ${characterName}. ${systemPrompt}
+        const greetingPrompt = `You are ${characterName}. You are the user's ${relationship}. Strictly maintain this dynamic. ${systemPrompt}
 
 ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
 
@@ -91,7 +92,8 @@ export async function generatePhotoCaption(
     photoContext: string,
     isPremium: boolean = false,
     storyContext: string = "",
-    imageUrl?: string
+    imageUrl?: string,
+    relationship: string = "romantic partner"
 ): Promise<string> {
     const fallbackCaption = `Here's a little something for you... 😘`;
 
@@ -107,7 +109,7 @@ export async function generatePhotoCaption(
         console.log(`🖼️ [generatePhotoCaption] Generating caption for ${characterName}, context: "${photoContext.substring(0, 50)}..."`);
 
         // Build a more robust prompt that works with or without image context
-        const captionPrompt = `You are ${characterName}. ${systemPrompt}
+        const captionPrompt = `You are ${characterName}. You are the user's ${relationship}. Strictly maintain this dynamic. ${systemPrompt}
 
 ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
 

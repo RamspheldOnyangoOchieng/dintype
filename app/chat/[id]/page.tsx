@@ -30,7 +30,7 @@ import { checkNovitaApiKey } from "@/lib/api-key-utils"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuth } from "@/components/auth-context"
 import { useAuthModal } from "@/components/auth-modal-context"
-import { sendChatMessageDB, loadChatHistory as loadChatHistoryDB, clearChatHistory as clearChatHistoryDB, type Message as DBMessage } from "@/lib/chat-actions-db"
+import { sendChatMessageDB, loadChatHistory as loadChatHistoryDB, clearChatHistory as clearChatHistoryDB } from "@/lib/chat-actions-db"
 import { ClearChatDialog } from "@/components/clear-chat-dialog"
 import { checkMessageLimit, incrementMessageUsage, getUserPlanInfo } from "@/lib/subscription-limits"
 import { DebugPanel } from "@/components/debug-panel"
@@ -153,11 +153,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   // Story Mode State
   const [storyProgress, setStoryProgress] = useState<UserStoryProgress | null>(null)
   const [currentChapter, setCurrentChapter] = useState<StoryChapter | null>(null)
-  const [chapterSubProgress, setChapterSubProgress] = useState(0) // Visual progress based on unique chapter images sent
-  const [sentChapterImages, setSentChapterImages] = useState<string[]>([]) // Track unique images sent in THIS chapter
-  const [chapterMessageCount, setChapterMessageCount] = useState(0) // Track how many messages sent in THIS chapter
-  const [chapterImageIndex, setChapterImageIndex] = useState(0)
-  const [totalChapters, setTotalChapters] = useState(0)
+  const [chapterSubProgress, setChapterSubProgress] = useState(0)
+  const [sentChapterImages, setSentChapterImages] = useState<string[]>([])
+  const sentChapterImagesRef = useRef<string[]>([]) // CRITICAL: Ref for stable closures
+  const [chapterMessageCount, setChapterMessageCount] = useState(0)
   const [isLoadingStory, setIsLoadingStory] = useState(false)
 
   // Use a ref for the interval to ensure we always have the latest reference
@@ -407,6 +406,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             ? `Storyline Active: Chapter ${chapterDetails.number} - "${chapterDetails.title}". Tone: ${chapterDetails.tone}. ${chapterDetails.description}`
             : "";
 
+          // Sync Ref with current state for daily check
+          sentChapterImagesRef.current = sentChapterImages;
+
           setTimeout(async () => {
             try {
               // 1. Determine Greeting (Prioritize Storyline Opening Message)
@@ -422,7 +424,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   character?.system_prompt || character?.systemPrompt || "",
                   user?.id || "",
                   !!user?.isPremium,
-                  storyCtx
+                  storyCtx,
+                  character?.relationship || "romantic partner"
                 );
               }
 
@@ -446,7 +449,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
               if (chImages.length > 0) {
                 // Pick first unsent image, or fallback to first
-                const currentlySent = sentChapterImages || [];
+                const currentlySent = sentChapterImagesRef.current || [];
                 const nextImgIdx = chImages.findIndex((img: string) => !currentlySent.includes(img));
                 const selectedIdx = nextImgIdx !== -1 ? nextImgIdx : 0;
                 const selectedImg = chImages[selectedIdx];
@@ -461,7 +464,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 };
                 setMessages(prev => [...prev, imgMsg]);
                 saveMessageToLocalStorage(charId, imgMsg);
-                setSentChapterImages(prev => [...new Set([...prev, selectedImg])]);
+
+                // Update both state and Ref
+                const updatedSent = [...new Set([...sentChapterImagesRef.current, selectedImg])];
+                sentChapterImagesRef.current = updatedSent;
+                setSentChapterImages(updatedSent);
+
                 setChapterSubProgress(prev => Math.min(6, prev + 1));
 
                 // Save image message to DB
@@ -504,9 +512,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
               // Calculate initial sub-progress based on history
               const history = await loadChatHistoryDB(characterId, user.id);
-              const chImagesSeen = new Set(history.filter(m => m.isImage && m.imageUrl).map(m => m.imageUrl));
-              setSentChapterImages(Array.from(chImagesSeen) as string[]);
-              setChapterSubProgress(Math.min(6, chImagesSeen.size));
+              const chImagesSeen = Array.from(new Set(history.filter(m => m.isImage && m.imageUrl).map(m => m.imageUrl))) as string[];
+
+              // Merge with current in-memory sent images to avoid resets
+              const mergedSent = [...new Set([...sentChapterImagesRef.current, ...chImagesSeen])];
+              sentChapterImagesRef.current = mergedSent;
+              setSentChapterImages(mergedSent);
+              setChapterSubProgress(Math.min(6, mergedSent.length));
               setChapterMessageCount(history.length);
 
               // Trigger Daily Message
@@ -1165,7 +1177,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     photoContext: prompt,
                     isPremium: !!user?.isPremium,
                     storyContext: storyProgress && !storyProgress.is_completed ? `We are in Chapter ${storyProgress.current_chapter_number}` : "",
-                    imageUrl: imageMessage.imageUrl
+                    imageUrl: imageMessage.imageUrl,
+                    relationship: character?.relationship || "romantic partner"
                   })
                 });
 
@@ -1346,7 +1359,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               }
             }
 
-            const nextImg = bestMatchImg || chImages.find((img) => !sentChapterImages.includes(img)) || chImages[0]
+            const nextImg = bestMatchImg || chImages.find((img) => !sentChapterImagesRef.current.includes(img)) || chImages[0]
 
             const storyImgMsg: Message = {
               id: `story-img-${Date.now()}`,
@@ -1360,8 +1373,40 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             setTimeout(() => {
               setMessages((prev) => [...prev, storyImgMsg])
               saveMessageToLocalStorage(character.id, storyImgMsg)
-              saveMessageToDatabase(character.id, storyImgMsg) // Save AI's story response to DB
-              setSentChapterImages((prev) => [...new Set([...prev, nextImg])])
+              saveMessageToDatabase(character.id, storyImgMsg)
+
+              // Update both state and Ref
+              const updatedSent = [...new Set([...sentChapterImagesRef.current, nextImg])];
+              sentChapterImagesRef.current = updatedSent;
+              setSentChapterImages(updatedSent);
+
+              // PROGRESSION CHECK: Triggered after the last chapter image is sent
+              const nextMsgCount = chapterMessageCount + 1;
+              if (storyProgress && (chImages.length > 0 && updatedSent.length >= chImages.length) || nextMsgCount >= 12) {
+                setTimeout(() => {
+                  const nextNum = storyProgress.current_chapter_number + 1
+                  completeChapter(user.id, character.id, nextNum).then(({ progress, isComplete }) => {
+                    if (progress) {
+                      setStoryProgress(progress as UserStoryProgress)
+                      setSentChapterImages([])
+                      sentChapterImagesRef.current = []
+                      setChapterMessageCount(0)
+                      setChapterSubProgress(0)
+                      if (!isComplete) {
+                        getChapter(character.id, nextNum).then(ch => {
+                          setCurrentChapter(ch)
+                          toast.success(`Chapter Completed! Next: ${ch?.title}`)
+                          localStorage.removeItem(`last_daily_msg_${character.id}`);
+                        })
+                      } else {
+                        setCurrentChapter(null)
+                        toast.success("Storyline Completed! You've unlocked Free Roam.")
+                        updateCharacter(character.id, { isStorylineActive: false });
+                      }
+                    }
+                  })
+                }, 1000)
+              }
             }, 300)
 
             setIsSendingMessage(false)
@@ -1431,6 +1476,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         setMessages((prev) => [...prev, assistantMessage])
         saveMessageToLocalStorage(character.id, assistantMessage)
 
+        // If the backend sent an image (story mode), track it
+        if (assistantMessage.isImage && assistantMessage.imageUrl) {
+          const updatedSent = [...new Set([...sentChapterImagesRef.current, assistantMessage.imageUrl])];
+          sentChapterImagesRef.current = updatedSent;
+          setSentChapterImages(updatedSent);
+        }
+
         // Narrative Progression
         if (storyProgress && !storyProgress.is_completed && currentChapter) {
           setChapterMessageCount(prev => prev + 1)
@@ -1441,7 +1493,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           const shouldSendImage = photoTriggers.some(t => aiText.includes(t)) || aiResponse.message.content.includes("(Image:")
 
           if (shouldSendImage && chImages.length > 0) {
-            const nextImg = chImages.find(img => !sentChapterImages.includes(img))
+            const nextImg = chImages.find(img => !sentChapterImagesRef.current.includes(img))
             if (nextImg) {
               const storyImgMsg: Message = {
                 id: `story-auto-img-${Date.now()}`,
@@ -1455,14 +1507,18 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 setMessages(prev => [...prev, storyImgMsg])
                 saveMessageToLocalStorage(character.id, storyImgMsg)
                 saveMessageToDatabase(character.id, storyImgMsg)
-                setSentChapterImages(prev => [...new Set([...prev, nextImg])])
+
+                // Update both state and Ref
+                const updatedSent = [...new Set([...sentChapterImagesRef.current, nextImg])];
+                sentChapterImagesRef.current = updatedSent;
+                setSentChapterImages(updatedSent);
               }, 400)
             }
           }
 
           // Chapter Completion
           const updatedMessageCount = chapterMessageCount + 1
-          const updatedImagesCount = sentChapterImages.length + (shouldSendImage ? 1 : 0)
+          const updatedImagesCount = sentChapterImagesRef.current.length; // Use Ref for accuracy
           if ((chImages.length > 0 && updatedImagesCount >= chImages.length) || updatedMessageCount >= 12) {
             setTimeout(() => {
               const nextNum = storyProgress.current_chapter_number + 1
@@ -1470,6 +1526,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 if (progress) {
                   setStoryProgress(progress as UserStoryProgress)
                   setSentChapterImages([])
+                  sentChapterImagesRef.current = []
                   setChapterMessageCount(0)
                   setChapterSubProgress(0)
                   if (!isComplete) {

@@ -1,31 +1,19 @@
-"use server"
+import { createAdminClient } from "./supabase-admin";
+import { Message } from "./chat-actions";
+import { checkMessageLimit, incrementMessageUsage, getUserPlanInfo, deductTokens } from "./subscription-limits";
+import { checkMonthlyBudget, logApiCost } from "./budget-monitor";
+import { isAskingForImage } from "./image-utils";
 
-import { createClient } from "@/lib/supabase-server"
-import { createAdminClient } from "./supabase-admin"
-import { checkMonthlyBudget, logApiCost } from "./budget-monitor"
-import { isAskingForImage } from "./image-utils"
-import { checkMessageLimit, getUserPlanInfo, incrementMessageUsage } from "./subscription-limits"
-import { deductTokens } from "./token-utils"
-
-export type Message = {
-  id: string
-  role: "user" | "assistant" | "system"
-  content: string
-  timestamp?: string
-  isImage?: boolean
-  imageUrl?: string
+// Helper to detect language
+function detectLanguage(text: string): string {
+  const swedishWords = ["hej", "hur", "mår", "du", "jag", "är", "en", "bra", "dag", "älskar", "dig"];
+  const words = text.toLowerCase().split(/\s+/);
+  const swedishMatchCount = words.filter(word => swedishWords.includes(word)).length;
+  return swedishMatchCount > 0 ? "sv" : "en";
 }
 
 /**
- * Detect language of the message (English only - Swedish removed)
- */
-function detectLanguage(text: string): "en" {
-  return "en";
-}
-
-/**
- * Send a chat message and get AI response
- * Uses Admin Client to bypass RLS for reliability in server actions
+ * Enhanced Send Message for Database Persistence & Story Mode
  */
 export async function sendChatMessageDB(
   characterId: string,
@@ -51,7 +39,6 @@ export async function sendChatMessageDB(
     // 1. Get Plan Info
     const planInfo = await getUserPlanInfo(userId);
     const isPremium = planInfo.planType === 'premium';
-    const lang = detectLanguage(userMessage);
 
     // 2. Limit Check
     const limitCheck = await checkMessageLimit(userId)
@@ -69,8 +56,7 @@ export async function sendChatMessageDB(
       const tokensDeducted = await deductTokens(
         userId,
         1,
-        `Chat with character ${characterId}`,
-        { characterId, activity_type: 'chat_message' }
+        `Chat with character ${characterId}`
       );
 
       if (!tokensDeducted) {
@@ -103,51 +89,43 @@ export async function sendChatMessageDB(
 
     if (!characterData) throw new Error("Character not found");
 
-    const { data: sessionIdResult, error: sessionError } = await supabase.rpc('get_or_create_conversation_session', {
-      p_user_id: userId,
-      p_character_id: characterId
-    })
+    const isStorylineActive = characterData.is_storyline_active;
 
-    let sessionId = sessionIdResult;
+    // Use a session manager logic: always find current active session
+    const { data: session } = await supabase
+      .from('conversation_sessions')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('character_id', characterId)
+      .eq('is_archived', false)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (sessionError || !sessionId) {
-      console.warn("⚠️ RPC Session Error or missing, trying manual fallback:", sessionError?.message);
+    let sessionId = session?.id;
 
-      // Manual fallback
-      const { data: existingSession } = await supabase
+    if (!sessionId) {
+      const { data: newSession, error: sessionError } = await supabase
         .from('conversation_sessions')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('character_id', characterId)
-        .eq('is_archived', false)
-        .maybeSingle();
+        .insert({
+          user_id: userId,
+          character_id: characterId,
+          is_archived: false
+        })
+        .single();
 
-      if (existingSession) {
-        sessionId = existingSession.id;
-      } else {
-        const { data: newSession, error: createError } = await supabase
-          .from('conversation_sessions')
-          .insert({
-            user_id: userId,
-            character_id: characterId,
-            title: userMessage.substring(0, 50)
-          })
-          .select('id')
-          .single();
-
-        if (createError) {
-          console.error("❌ Session creation failed both RPC and manual:", createError);
-          throw new Error(`Session Error: ${createError.message}`);
-        }
-        sessionId = newSession.id;
-      }
+      if (sessionError) throw new Error("Failed to create chat session");
+      sessionId = newSession.id;
+    } else {
+      // Update last activity
+      await supabase
+        .from('conversation_sessions')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', sessionId);
     }
 
-    const isStorylineActive = !!characterData.is_storyline_active;
-
-    // 5b. SYNC TO TELEGRAM (Always sync to ensure parity)
-    supabase
-      .from('telegram_links')
+    // Sync telegram character link if exists
+    supabase.from('telegram_links')
       .update({ character_id: characterId })
       .eq('user_id', userId)
       .then(() => console.log("✅ [Sync] Telegram character updated"))
@@ -178,7 +156,6 @@ export async function sendChatMessageDB(
     }
 
     // 7. Get Conversation History across ALL sessions for this user+character
-    // This ensures the AI knows about past chats even in Story Mode.
     const { data: historyData } = await (supabase as any)
       .from('messages')
       .select('role, content, is_image, image_url, conversation_sessions!inner(id)')
@@ -215,112 +192,166 @@ export async function sendChatMessageDB(
             .maybeSingle();
           currentChapterData = currentChapter;
         }
+      } catch (e) {
+        console.error("Story processing fetch error:", e);
+      }
+    }
 
-        if (storyProgressData && currentChapterData) {
-          console.log(`📖 Story Mode Active: Chapter ${currentChapterData.chapter_number}`);
+    /**
+     * Centralized progression logic for Story Mode
+     */
+    const handleStoryProgression = async (
+      p_storyProgressData: any,
+      p_currentChapterData: any,
+      p_history: any[],
+      p_justSentImageCount: number = 0
+    ) => {
+      if (!p_storyProgressData || !p_currentChapterData) return;
 
-          // --- Storyline Logic (Branches, Images, Captions) ---
-          const branches = currentChapterData.content?.branches || [];
-          const chapterImages = (currentChapterData.content?.chapter_images || [])
-            .filter((img: any) => typeof img === 'string' && img.length > 0)
-            .slice(0, 6);
-          const chapterImageMetadata = (currentChapterData.content?.chapter_image_metadata || []).slice(0, 6);
+      const messagesInChapter = p_history.length + 1;
+      const chapterImages = (p_currentChapterData.content?.chapter_images || [])
+        .filter((img: any) => typeof img === 'string' && img.length > 0);
+      const sentImagesCount = p_history.filter((m: any) => m.is_image).length + p_justSentImageCount;
 
-          const sentImages = new Set(
-            conversationHistory
-              .filter((m: any) => m.is_image && m.image_url)
-              .map((m: any) => m.image_url)
-          );
-          const remainingImages = chapterImages.filter((img: string) => !sentImages.has(img));
+      // PROGRESSION TRIGGER: 12 messages OR ALL images seen
+      if (messagesInChapter >= 12 || (chapterImages.length > 0 && sentImagesCount >= chapterImages.length)) {
+        console.log(`✅ [Progression Check] Chapter ${p_currentChapterData.chapter_number} complete. Images: ${sentImagesCount}/${chapterImages.length}, Msgs: ${messagesInChapter}. Moving to next...`);
 
-          const lastImageIdx = [...conversationHistory].reverse().findIndex((m: any) => m.is_image);
-          const messagesSinceLastImage = lastImageIdx === -1 ? 99 : lastImageIdx;
+        const nextChapterNum = p_currentChapterData.chapter_number + 1;
+        const { data: nextChapterExists } = await supabase
+          .from('story_chapters')
+          .select('id')
+          .eq('character_id', characterId)
+          .eq('chapter_number', nextChapterNum)
+          .maybeSingle();
 
-          const lastAssistantMsg = conversationHistory.filter((m: any) => m.role === 'assistant').pop();
-          const wasSuggestion = lastAssistantMsg && (
-            lastAssistantMsg.content.toLowerCase().includes("see") ||
-            lastAssistantMsg.content.toLowerCase().includes("photo") ||
-            lastAssistantMsg.content.toLowerCase().includes("pic") ||
-            lastAssistantMsg.content.toLowerCase().includes("show")
-          );
+        await supabase
+          .from('user_story_progress')
+          .update({
+            current_chapter_number: nextChapterNum,
+            is_completed: !nextChapterExists,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', p_storyProgressData.id);
 
-          const isConsent = wasSuggestion && (
-            userMsgLower === "yes" || userMsgLower === "si" || userMsgLower === "ja" ||
-            userMsgLower.includes("please") || userMsgLower.includes("show me") ||
-            userMsgLower.includes("send it") || userMsgLower === "ok" || userMsgLower === "sure" ||
-            userMsgLower.includes("send me a photo")
-          ) && userMsgLower.length < 35;
+        if (!nextChapterExists) {
+          await supabase
+            .from('characters')
+            .update({ is_storyline_active: false })
+            .eq('id', characterId);
+        }
+      }
+    };
 
-          // PRIORITY 1: Consent or Request
-          if (isConsent || (!skipImageCheck && isAskingForImage(userMessage))) {
-            if (remainingImages.length > 0) {
-              // INTELLIGENT IMAGE SELECTION based on metadata
-              let bestImg = remainingImages[0];
-              const userKeywords = userMsgLower.split(/\s+/).filter(w => w.length > 3);
+    if (storyProgressData && currentChapterData) {
+      console.log(`📖 Story Mode Active: Chapter ${currentChapterData.chapter_number}`);
 
-              if (userKeywords.length > 0) {
-                let maxScore = -1;
-                for (let i = 0; i < remainingImages.length; i++) {
-                  const imgUrl = remainingImages[i];
-                  const originalIdx = chapterImages.indexOf(imgUrl);
-                  const meta = (chapterImageMetadata[originalIdx] || "").toLowerCase();
+      // --- Storyline Logic (Branches, Images, Captions) ---
+      const branches = currentChapterData.content?.branches || [];
+      const chapterImages = (currentChapterData.content?.chapter_images || [])
+        .filter((img: any) => typeof img === 'string' && img.length > 0)
+        .slice(0, 6);
+      const chapterImageMetadata = (currentChapterData.content?.chapter_image_metadata || []).slice(0, 6);
 
-                  let score = 0;
-                  userKeywords.forEach(kw => { if (meta.includes(kw)) score += 1; });
+      const sentImages = new Set(
+        conversationHistory
+          .filter((m: any) => m.is_image && m.image_url)
+          .map((m: any) => m.image_url)
+      );
+      const remainingImages = chapterImages.filter((img: string) => !sentImages.has(img));
 
-                  if (score > maxScore) {
-                    maxScore = score;
-                    bestImg = imgUrl;
-                  }
-                }
+      const lastImageIdx = [...conversationHistory].reverse().findIndex((m: any) => m.is_image);
+      const messagesSinceLastImage = lastImageIdx === -1 ? 99 : lastImageIdx;
+
+      const lastAssistantMsg = conversationHistory.filter((m: any) => m.role === 'assistant').pop();
+      const wasSuggestion = lastAssistantMsg && (
+        lastAssistantMsg.content.toLowerCase().includes("see") ||
+        lastAssistantMsg.content.toLowerCase().includes("photo") ||
+        lastAssistantMsg.content.toLowerCase().includes("pic") ||
+        lastAssistantMsg.content.toLowerCase().includes("show")
+      );
+
+      const isConsent = wasSuggestion && (
+        userMsgLower === "yes" || userMsgLower === "si" || userMsgLower === "ja" ||
+        userMsgLower.includes("please") || userMsgLower.includes("show me") ||
+        userMsgLower.includes("send it") || userMsgLower === "ok" || userMsgLower === "sure" ||
+        userMsgLower.includes("send me a photo")
+      ) && userMsgLower.length < 35;
+
+      // PRIORITY 1: Consent or Request
+      if (isConsent || (!skipImageCheck && isAskingForImage(userMessage))) {
+        if (remainingImages.length > 0) {
+          // INTELLIGENT IMAGE SELECTION based on metadata
+          let bestImg = remainingImages[0];
+          const userKeywords = userMsgLower.split(/\s+/).filter(w => w.length > 3);
+
+          if (userKeywords.length > 0) {
+            let maxScore = -1;
+            for (let i = 0; i < remainingImages.length; i++) {
+              const imgUrl = remainingImages[i];
+              const originalIdx = chapterImages.indexOf(imgUrl);
+              const meta = (chapterImageMetadata[originalIdx] || "").toLowerCase();
+
+              let score = 0;
+              userKeywords.forEach(kw => { if (meta.includes(kw)) score += 1; });
+
+              if (score > maxScore) {
+                maxScore = score;
+                bestImg = imgUrl;
               }
-
-              const assistantMessage: Message = {
-                id: crypto.randomUUID(),
-                role: "assistant",
-                content: "",
-                timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-                isImage: true,
-                imageUrl: bestImg
-              }
-
-              await (supabase as any).from('messages').insert({
-                session_id: sessionId,
-                user_id: userId,
-                role: 'assistant',
-                content: "📷 [Photo]",
-                is_image: true,
-                image_url: bestImg
-              });
-
-              return { success: true, message: assistantMessage };
             }
           }
 
-          // Build Story Context for AI with Branches
-          let imageInfo = "";
-          if (remainingImages.length > 0) {
-            if (messagesSinceLastImage > 6) {
-              imageInfo = `\n### PHOTO OPPORTUNITY ###\nIt has been ${messagesSinceLastImage} messages. SUGGEST a photo but don't send yet.`;
-            } else {
-              imageInfo = `\n### AVAILABLE PHOTOS ###\nUnsent: ${remainingImages.length}. Mention if fits story.`;
-            }
+          const assistantMessage: Message = {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: "",
+            timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            isImage: true,
+            imageUrl: bestImg
           }
 
-          // Enhanced Story Context incorporating Visual Builder & JSON settings
-          const chapterSpecificPrompt = currentChapterData.system_prompt || "";
-          const chapterDesc = currentChapterData.description || "";
-          const chapterTone = currentChapterData.tone || "";
+          await (supabase as any).from('messages').insert({
+            session_id: sessionId,
+            user_id: userId,
+            role: 'assistant',
+            content: "📷 [Photo]",
+            is_image: true,
+            image_url: bestImg
+          });
 
-          let branchInfo = "";
-          if (branches.length > 0) {
-            branchInfo = "\n### NARRATIVE BRANCHES ###\nYou are at a pivot point. Listen for user's intent and follow a branch:\n" +
-              branches.map((b: any, i: number) =>
-                `Path ${i + 1}: If they seem to want "${b.label}", steer towards: "${b.response_message}"`
-              ).join("\n");
+          // TRIGGER PROGRESSION CHECK IMMEDIATELY FOR PHOTO RESPONSES
+          if (isStorylineActive) {
+            await handleStoryProgression(storyProgressData, currentChapterData, conversationHistory, 1);
           }
 
-          storyContext = `
+          return { success: true, message: assistantMessage };
+        }
+      }
+
+      // Build Story Context for AI with Branches
+      let imageInfo = "";
+      if (remainingImages.length > 0) {
+        if (messagesSinceLastImage > 6) {
+          imageInfo = `\n### PHOTO OPPORTUNITY ###\nIt has been ${messagesSinceLastImage} messages. SUGGEST a photo but don't send yet.`;
+        } else {
+          imageInfo = `\n### AVAILABLE PHOTOS ###\nUnsent: ${remainingImages.length}. Mention if fits story.`;
+        }
+      }
+
+      const chapterSpecificPrompt = currentChapterData.system_prompt || "";
+      const chapterDesc = currentChapterData.description || "";
+      const chapterTone = currentChapterData.tone || "";
+
+      let branchInfo = "";
+      if (branches.length > 0) {
+        branchInfo = "\n### NARRATIVE BRANCHES ###\nYou are at a pivot point. Listen for user's intent and follow a branch:\n" +
+          branches.map((b: any, i: number) =>
+            `Path ${i + 1}: If they seem to want "${b.label}", steer towards: "${b.response_message}"`
+          ).join("\n");
+      }
+
+      storyContext = `
 ### CURRENT STORYLINE CONTEXT ###
 Chapter ${currentChapterData.chapter_number} of STORY: "${currentChapterData.title}"
 Scenario Details: ${chapterDesc}
@@ -331,14 +362,9 @@ ${chapterSpecificPrompt ? `Current Action/Situation: ${chapterSpecificPrompt}` :
 ${imageInfo}
 ${branchInfo}
 `;
-        }
-      } catch (e) {
-        console.error("Story mode processing error:", e);
-      }
     }
 
     // 9. Handle Matched Response
-
     const corePersonality = systemPromptFromChar || characterData.system_prompt || "You are an AI character.";
     const relationshipStatus = characterData.relationship || "romantic partner";
 
@@ -388,7 +414,7 @@ ${branchInfo}
 
     let apiKey = (isPremium && novitaKey) ? novitaKey : (openaiKey && !isActuallyNovita ? openaiKey : (novitaKey || openaiKey));
     let url = (apiKey === openaiKey && !isActuallyNovita) ? "https://api.openai.com/v1/chat/completions" : "https://api.novita.ai/openai/v1/chat/completions";
-    let model = (url.includes("openai.com")) ? "gpt-4o-mini" : "deepseek/deepseek-r1";
+    let model = (url.includes("openai.com")) ? "gpt-4o-mini" : "deepseek/deepseek-v3.1";
 
     if (!apiKey) throw new Error("AI API Key Missing");
 
@@ -407,6 +433,7 @@ ${branchInfo}
 
     const data = await response.json();
     let aiResponseContent = data.choices?.[0]?.message?.content || "";
+
     // STRIP DEEPSEEK THINKING TAGS AND ALL ASTERISKS
     const sanitizedResponse = aiResponseContent.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/\*/g, '').trim();
     aiResponseContent = sanitizedResponse;
@@ -423,40 +450,9 @@ ${branchInfo}
       })
       .select().single();
 
-    // 12. BACKEND STORYLINE PROGRESSION (Ensures parity across Web/Telegram)
+    // 12. BACKEND STORYLINE PROGRESSION
     if (isStorylineActive && storyProgressData && currentChapterData) {
-      const messagesInChapter = conversationHistory.length + 1; // Current message
-      const chapterImages = (currentChapterData.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0);
-      const sentImagesCount = conversationHistory.filter((m: any) => m.is_image).length;
-
-      // Progression rules: 12 messages OR all chapter images seen
-      if (messagesInChapter >= 12 || (chapterImages.length > 0 && sentImagesCount >= chapterImages.length)) {
-        console.log(`✅ [Progression] Chapter ${currentChapterData.chapter_number} complete. Moving to next...`);
-
-        const nextChapterNum = currentChapterData.chapter_number + 1;
-        const { data: nextChapterExists } = await supabase
-          .from('story_chapters')
-          .select('id')
-          .eq('character_id', characterId)
-          .eq('chapter_number', nextChapterNum)
-          .maybeSingle();
-
-        await supabase
-          .from('user_story_progress')
-          .update({
-            current_chapter_number: nextChapterNum,
-            is_completed: !nextChapterExists,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', storyProgressData.id);
-
-        if (!nextChapterExists) {
-          await supabase
-            .from('characters')
-            .update({ is_storyline_active: false })
-            .eq('id', characterId);
-        }
-      }
+      await handleStoryProgression(storyProgressData, currentChapterData, conversationHistory, 0);
     }
 
     logApiCost("chat_message", 1, 0.0001, userId).catch(() => { });
@@ -517,7 +513,6 @@ export async function loadChatHistory(
       }));
     }
 
-    // Manual Fallback 1: Join messages with conversation_sessions directly
     const { data: messages, error: msgError } = await supabase
       .from('messages')
       .select('id, role, content, created_at, is_image, image_url, conversation_sessions!inner(id, user_id, character_id)')
@@ -527,7 +522,6 @@ export async function loadChatHistory(
       .limit(finalLimit);
 
     if (msgError || !messages || messages.length === 0) {
-      // Manual Fallback 2: Try Step 1/Step 2 method without is_archived filter
       const { data: sessions } = await supabase
         .from('conversation_sessions')
         .select('id')
@@ -583,11 +577,11 @@ export async function clearChatHistory(characterId: string, userId: string): Pro
       .from('conversation_sessions')
       .update({ is_archived: true, updated_at: new Date().toISOString() })
       .eq('user_id', userId)
-      .eq('character_id', characterId)
-      .eq('is_archived', false)
+      .eq('character_id', characterId);
 
-    return !error
+    return !error;
   } catch (error) {
+    console.error("Error clearing chat history:", error)
     return false
   }
 }

@@ -225,6 +225,7 @@ export default function EditCharacterPage({ params }: { params: { id: string } }
         occupation: formData.occupation,
         personality: formData.personality,
         interests: formData.hobbies,
+        relationship: formData.relationship,
       }
 
       const description = await generateCharacterDescription(params)
@@ -254,6 +255,7 @@ export default function EditCharacterPage({ params }: { params: { id: string } }
         personality: formData.personality,
         occupation: formData.occupation,
         hobbies: formData.hobbies,
+        relationship: formData.relationship,
       })
 
       setFormData((prev) => ({ ...prev, systemPrompt }))
