@@ -409,16 +409,21 @@ async function enhanceImagePrompt(userPrompt: string, characterDescription: stri
                         2. FABRIC PHYSICS & TEXTURES: Clothing MUST look real, avoiding any "plastic" or "rendered" look. Describe "realistic fabric grain, micro-folds, natural wrinkles, and high-quality textile physics". For "Silk" or "Satin", mention "complex light reflections and soft subsurface scattering".
                         3. ANATOMICAL PERFECTION: Describe hands as "slender, well-defined fingers with EXACTLY 5 FINGERS PER HAND, clear and beautiful nails with elegant high-gloss polish, natural hand articulation, and visible bone structure under the skin". STERNLY AVOID: fused fingers, extra digits, or blobs. Eyes MUST have "sharp focus, detailed irises, realistic pupils, and symmetrical placement". Ensure limbs are connected naturally. Mention "sharp focus on joints and proportions".
                         4. SKIN REALISM: Avoid "plastic" or "airbrushed" skin. Explicitly describe "natural skin textures, visible pores, subtle goosebumps, realistic skin highlights, and natural subsurface scattering".
-                        5. IDENTITY LOCKING: You MUST ensure the character's facial features remain 100% consistent. 
+                        5. IDENTITY LOCKING: You MUST ensure the character's facial features, SKIN TONE, and ETHNICITY remain 100% consistent with the Provided Character Info. NEVER change their ethnicity or skin color.
                         6. LITERAL ADHERENCE & EXPLICIT ACTIONS: You MUST accurately translate sexual or self-touching actions. If the user says "touching her vagina", "hand on pussy", "pushy", "pusy", or "mouth on clit", describe it vividly as "fingers intimately resting on her wet labia" or "hand delicately cupping her exposed crotch". You MUST ensure the action is depicted precisely as requested, without any ambiguity or deviation. If the user specifies a body part, DO NOT shift the action to another part. If "hands on pussy", the hands MUST be on the pussy, NOT behind the head.
                         7. MOOD & VIBRANCY: Force a "Romantic, Happy, Sexy, and Confident" vibe. Use vibrant colors, warm cinematic lighting, and evocative atmospheres. Use "8k resolution", "Kodak Portra 400 aesthetic", and "Shot on 35mm lens" for realism.
                         8. EXPRESSIONS: Use "joyful", "seductive", "moaning", or "confident". STERNLY FORBID: Any "distressed", "needy", "blank", or "robotic" looks.
+                        9. PHYSICAL INTEGRITY: It is CRITICAL that the skin tone and ethnic features match the character info exactly. Do not alter the personality's biological baseline.
                         
                         Output ONLY the enhanced prompt text, no meta-talk. Keep it under 150 words.`
                     },
                     {
                         role: "user",
                         content: `User prompt: "${userPrompt}"\n\nCharacter Info: "${characterDescription}"
+                        Ethnicity: ${metadata?.ethnicity || "unspecified"}
+                        Skin Tone: ${metadata?.skinTone || metadata?.skin_tone || "unspecified"}
+                        Eye Color: ${metadata?.eyeColor || metadata?.eye_color || "unspecified"}
+                        Hair Color: ${metadata?.hairColor || metadata?.hair_color || "unspecified"}
                         ${metadata?.preferred_poses ? `Character Poses: ${metadata.preferred_poses}` : ""}
                         ${metadata?.preferred_environments ? `Character Environments: ${metadata.preferred_environments}` : ""}
                         ${metadata?.preferred_moods ? `Character Moods: ${metadata.preferred_moods}` : ""}
@@ -487,140 +492,140 @@ export async function POST(request: NextRequest) {
             if (action === 'select_char') {
                 const valueId = value;
 
-                // Get character info
-                const { data: character } = await supabase
-                    .from('characters')
-                    .select('id, name, image_url, description, system_prompt')
-                    .eq('id', valueId)
-                    .single();
+                // 1. Immediate feedback (Signals typing)
+                sendTypingAction(chatId).catch(e => console.error("Typing error:", e));
+
+                // 2. Parallel fetch character and account info
+                const [charRes, linkRes] = await Promise.all([
+                    supabase.from('characters').select('id, name, image_url, description, system_prompt').eq('id', valueId).single(),
+                    supabase.from('telegram_links').select('user_id').eq('telegram_id', telegramUserId.toString()).maybeSingle()
+                ]);
+
+                const character = charRes.data;
+                const linkedAccount = linkRes.data;
 
                 if (character) {
-                    // Check if user has a linked Pocketlove account
-                    const { data: linkedAccount } = await supabase
-                        .from('telegram_links')
-                        .select('user_id')
-                        .eq('telegram_id', telegramUserId.toString())
-                        .maybeSingle();
+                    try {
+                        if (linkedAccount) {
+                            // Update DB and get plan info in parallel
+                            const [updateRes, planInfo] = await Promise.all([
+                                supabase.from('telegram_links').update({ character_id: valueId }).eq('telegram_id', telegramUserId.toString()),
+                                getUserPlanInfo(linkedAccount.user_id)
+                            ]);
 
-                    if (linkedAccount) {
-                        // Update the linked character
-                        await supabase
-                            .from('telegram_links')
-                            .update({ character_id: valueId })
-                            .eq('telegram_id', telegramUserId.toString());
+                            const charGreeting = await generateAIGreeting(
+                                character.name,
+                                character.system_prompt || character.description || "",
+                                callbackQuery.from.first_name || "there",
+                                planInfo.planType === 'premium',
+                                'new_link'
+                            );
 
-                        const planInfo = await getUserPlanInfo(linkedAccount.user_id);
-                        const charGreeting = await generateAIGreeting(
-                            character.name,
-                            character.system_prompt || character.description || "",
-                            callbackQuery.from.first_name || "there",
-                            planInfo.planType === 'premium',
-                            'new_link'
-                        );
-
-                        await sendTelegramMessage(
-                            chatId,
-                            `💕 <b>${character.name}</b>\n\n${charGreeting}`,
-                            {
+                            await sendTelegramMessage(chatId, `💕 <b>${character.name}</b>\n\n${charGreeting}`, {
                                 reply_markup: {
-                                    inline_keyboard: [[
-                                        { text: '🔄 Switch Character', callback_data: 'show_chars' }
-                                    ]]
+                                    inline_keyboard: [[{ text: '🔄 Switch Character', callback_data: 'show_chars' }]]
                                 }
-                            }
-                        );
-                    } else if (action === 'select_branch') {
-                        // Logic for story branch
-                        const branchIdx = parseInt(valueId);
-                        const { data: linkedAccount } = await supabase.from('telegram_links').select('user_id, character_id').eq('telegram_id', telegramUserId.toString()).maybeSingle();
-                        if (linkedAccount?.user_id && linkedAccount?.character_id) {
-                            const { data: progress } = await supabase.from('user_story_progress').select('*').eq('user_id', linkedAccount.user_id).eq('character_id', linkedAccount.character_id).maybeSingle();
-                            if (progress && !progress.is_completed) {
-                                const { data: chapter } = await supabase.from('story_chapters').select('*').eq('character_id', linkedAccount.character_id).eq('chapter_number', progress.current_chapter_number).maybeSingle();
-                                const branch = chapter?.content?.branches?.[branchIdx];
-                                if (branch) {
-                                    await sendTelegramMessage(chatId, branch.response_message);
-                                    const nextNum = progress.current_chapter_number + (branch.next_chapter_increment || 1);
-                                    const { data: nextCharChapter } = await supabase.from("story_chapters").select("id, title").eq("character_id", linkedAccount.character_id).eq("chapter_number", nextNum).maybeSingle();
-                                    const isComplete = !nextCharChapter;
-                                    await supabase.from("user_story_progress").update({ current_chapter_number: nextNum, is_completed: isComplete }).eq("user_id", linkedAccount.user_id).eq("character_id", linkedAccount.character_id);
-                                    if (!isComplete) {
-                                        await sendTelegramMessage(chatId, `✨ <b>Chapter Completed!</b>\nNext: ${nextCharChapter.title}`);
-                                    } else {
-                                        await sendTelegramMessage(chatId, "🎉 <b>Storyline Completed!</b>\nYou've unlocked Free Roam!");
-                                        // AUTO-DISABLE Storyline for this character globally
-                                        await supabase.from('characters').update({ is_storyline_active: false }).eq('id', linkedAccount.character_id);
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        // Create a temporary link for guest users
-                        await supabase.from('telegram_links').upsert({
-                            telegram_id: telegramUserId.toString(),
-                            user_id: null, // Guest user
-                            character_id: valueId,
-                            telegram_username: callbackQuery.from.username || null,
-                            telegram_first_name: callbackQuery.from.first_name || 'Guest',
-                            is_guest: true,
-                            created_at: new Date().toISOString(),
-                        }, { onConflict: 'telegram_id' });
+                            });
+                        } else {
+                            // Guest flow
+                            await supabase.from('telegram_links').upsert({
+                                telegram_id: telegramUserId.toString(),
+                                user_id: null,
+                                character_id: valueId,
+                                telegram_username: callbackQuery.from.username || null,
+                                telegram_first_name: callbackQuery.from.first_name || 'Guest',
+                                is_guest: true,
+                                created_at: new Date().toISOString(),
+                            }, { onConflict: 'telegram_id' });
 
-                        const charGreeting = await generateAIGreeting(
-                            character.name,
-                            character.system_prompt || character.description || "",
-                            callbackQuery.from.first_name || "there",
-                            false,
-                            'new_link'
-                        );
+                            const charGreeting = await generateAIGreeting(
+                                character.name,
+                                character.system_prompt || character.description || "",
+                                callbackQuery.from.first_name || "there",
+                                false,
+                                'new_link'
+                            );
 
-                        await sendTelegramMessage(
-                            chatId,
-                            `💕 <b>${character.name}</b>\n\n${charGreeting}\n\n<i>Tip: Link your account for full history sync!</i>`,
-                            {
+                            await sendTelegramMessage(chatId, `💕 <b>${character.name}</b>\n\n${charGreeting}\n\n<i>Tip: Link your account for full history sync!</i>`, {
                                 reply_markup: {
                                     inline_keyboard: [
-                                        [{ text: '🔗 Link Pocketlove Account', url: `${SITE_URL}/chat/${valueId}` }],
+                                        [{ text: '🔗 Link Account', url: `${SITE_URL}/chat/${valueId}` }],
                                         [{ text: '🔄 Switch Character', callback_data: 'show_chars' }]
                                     ]
                                 }
-                            }
-                        );
+                            });
+                        }
+                    } catch (e) {
+                        console.error("Selection error:", e);
                     }
                 }
 
-                // Answer the callback query
+                // Answer the callback query at the end
                 await fetch(`${TELEGRAM_API_URL}/answerCallbackQuery`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ callback_query_id: callbackQuery.id }),
-                });
+                }).catch(() => { });
+
+                return NextResponse.json({ ok: true });
+            }
+
+            if (action === 'select_branch') {
+                const branchIdx = parseInt(value);
+
+                try {
+                    const { data: linkedAccount } = await supabase.from('telegram_links').select('user_id, character_id').eq('telegram_id', telegramUserId.toString()).maybeSingle();
+                    if (linkedAccount?.user_id && linkedAccount?.character_id) {
+                        const { data: progress } = await supabase.from('user_story_progress').select('*').eq('user_id', linkedAccount.user_id).eq('character_id', linkedAccount.character_id).maybeSingle();
+                        if (progress && !progress.is_completed) {
+                            const { data: chapter } = await supabase.from('story_chapters').select('*').eq('character_id', linkedAccount.character_id).eq('chapter_number', progress.current_chapter_number).maybeSingle();
+                            const branch = chapter?.content?.branches?.[branchIdx];
+                            if (branch) {
+                                await sendTelegramMessage(chatId, branch.response_message);
+                                const nextNum = progress.current_chapter_number + (branch.next_chapter_increment || 1);
+                                const { data: nextCharChapter } = await supabase.from("story_chapters").select("id, title").eq("character_id", linkedAccount.character_id).eq("chapter_number", nextNum).maybeSingle();
+                                const isComplete = !nextCharChapter;
+                                await supabase.from("user_story_progress").update({ current_chapter_number: nextNum, is_completed: isComplete }).eq("user_id", linkedAccount.user_id).eq("character_id", linkedAccount.character_id);
+
+                                if (!isComplete) {
+                                    await sendTelegramMessage(chatId, `✨ <b>Chapter Completed!</b>\nNext: ${nextCharChapter.title}`);
+                                } else {
+                                    await sendTelegramMessage(chatId, "🎉 <b>Storyline Completed!</b>\nYou've unlocked Free Roam!");
+                                    await supabase.from('characters').update({ is_storyline_active: false }).eq('id', linkedAccount.character_id);
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("Branch error:", e);
+                }
+
+                await fetch(`${TELEGRAM_API_URL}/answerCallbackQuery`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ callback_query_id: callbackQuery.id }),
+                }).catch(() => { });
 
                 return NextResponse.json({ ok: true });
             }
 
             if (action === 'show_chars') {
-                // Show character selection
-                const characters = await getRecommendedCharacters(supabase, 6);
-
-                const buttons = characters.map((char: any) => ([
-                    { text: char.name, callback_data: `select_char:${char.id}` }
-                ]));
-
-                buttons.push([{ text: '🌐 See All on Pocketlove', url: `${SITE_URL}/characters` }]);
-
-                await sendTelegramMessage(
-                    chatId,
-                    `💕 <b>Choose Your Companion</b>\n\nWho would you like to chat with today?`,
-                    { reply_markup: { inline_keyboard: buttons } }
-                );
-
-                await fetch(`${TELEGRAM_API_URL}/answerCallbackQuery`, {
+                // 1. Answer immediately
+                fetch(`${TELEGRAM_API_URL}/answerCallbackQuery`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ callback_query_id: callbackQuery.id }),
-                });
+                }).catch(e => console.error("Callback answer error:", e));
 
+                const characters = await getRecommendedCharacters(supabase, 6);
+                const buttons = characters.map((char: any) => ([
+                    { text: char.name, callback_data: `select_char:${char.id}` }
+                ]));
+                buttons.push([{ text: '🌐 See All on Pocketlove', url: `${SITE_URL}/characters` }]);
+
+                await sendTelegramMessage(chatId, `💕 <b>Choose Your Companion</b>\n\nWho would you like to chat with today?`, {
+                    reply_markup: { inline_keyboard: buttons }
+                });
                 return NextResponse.json({ ok: true });
             }
         }
@@ -1264,14 +1269,13 @@ export async function POST(request: NextRequest) {
                 }
             }
 
-            // Save AI response
             if (activeSessionId) {
                 await supabase.from('messages').insert({
                     session_id: activeSessionId,
                     user_id: linkedAccount.user_id,
                     role: 'assistant',
                     content: aiResponse,
-                    metadata: { source: 'telegram', model: isPremium ? 'deepseek-r1' : 'gpt-4o-mini' },
+                    metadata: { source: 'telegram', model: 'deepseek-v3.1' },
                 });
             }
 

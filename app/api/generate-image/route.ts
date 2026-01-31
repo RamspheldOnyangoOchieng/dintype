@@ -412,7 +412,7 @@ export async function POST(req: NextRequest) {
 
                 CORE INSTRUCTIONS:
                 1. SUBJECT FOCUS: Prioritize the user's requested action and setting as a single continuous scene.
-                2. IDENTITY LOCK: Maintain the character's physical traits exactly as defined.
+                2. IDENTITY LOCK: Maintain the character's physical traits (SKIN TONE, ETHNICITY, FACE STRUCTURE) exactly as defined. NEVER alter the character's ethnicity or skin color regardless of setting.
                 3. PHOTOGRAPHIC STYLE: Use "unprocessed raw digital photography" and "natural lighting".
                 4. SOLO ONLY: Clear lone focus on the character. No background people.
                 5. QUALITY: "highly detailed", "sharp focus", "8k UHD".
@@ -422,7 +422,8 @@ export async function POST(req: NextRequest) {
                 9. DYNAMIC COMPOSITION: Do not default to close-up face shots. Favor full-body, wide-angle, or medium shots. Describe dynamic poses (leaning, sitting, walking, lounging, or reaching) that DISRUPT standard standing poses.
                 10. FACE CLARITY: Even in full-body shots, ensure the face is sharply rendered with detailed eyes and realistic skin textures. Avoid blurry or soft facial features.
                 11. ENVIRONMENTAL VARIETY: Describe rich, unique environments (textures, lighting, weather, depth) to prevent repetitive 'neutral' backgrounds. Ensure the character interacts with their surroundings.
-                12. ACTION & MOTION: Use active verbs. Describe the physics of the moment (wind in hair, weight distribution, fabric motion) to avoid 'still mannequin' results.`
+                12. ACTION & MOTION: Use active verbs. Describe the physics of the moment (wind in hair, weight distribution, fabric motion) to avoid 'still mannequin' results.
+                13. ETHNICITY INTEGRITY: It is CRITICAL that the skin tone and ethnic features remain locked. Do not 'beautify' or 'wash out' skin tones with lighting.`
               },
               {
                 role: 'user',
@@ -489,13 +490,13 @@ export async function POST(req: NextRequest) {
             }
 
             // Enhanced identity and quality prefixes for facial clarity
-            const identityPrefix = latestCharacter ? `### IDENTITY : (hyper-focused face:1.3), (sharp detailed eyes:1.4), (visible skin pores:1.3), ${latestCharacter.name}, (natural ${latestCharacter.hairColor || 'natural'} hair:1.2). ### ` : '### IDENTITY : (hyper-focused face:1.3), (sharp detailed eyes:1.4), (visible skin pores:1.3). ### ';
+            const identityPrefix = latestCharacter ? `### IDENTITY : (hyper-focused face:1.4), (sharp detailed eyes:1.4), (precise skin tone [${latestCharacter.skinTone || 'natural'}]:1.3), (ethnicity [${latestCharacter.ethnicity || 'mixed'}]:1.3), (visible skin pores:1.3), ${latestCharacter.name}, (natural ${latestCharacter.hairColor || 'natural'} hair:1.2). MATCH VISUAL DNA EXACTLY. ### ` : '### IDENTITY : (hyper-focused face:1.3), (sharp detailed eyes:1.4), (visible skin pores:1.3). ### ';
             const frameMandate = `(ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (solo:1.3), (candid:1.3), (dynamic pose:1.2), `;
 
             // Map individual prompts with prefixes
             promptsForTasks = promptsToUse.slice(0, actualImageCount).map(p => {
               const fullP = identityPrefix + frameMandate + p;
-              return fullP.length > 1500 ? fullP.substring(0, 1500) : fullP;
+              return fullP.length > 2000 ? fullP.substring(0, 2000) : fullP;
             });
 
             // Fill remaining slots if fewer prompts than images

@@ -11,32 +11,38 @@
 
 import { getApiKey } from "./db-init"
 
-/**
- * Get Novita API Key with fallback
- * Priority: DB → NOVITA_API → NEXT_PUBLIC_NOVITA_API_KEY → null
- */
+// Simple in-memory cache to avoid redundant DB calls during the same execution or warm container
+let cachedNovitaKey: string | null = null;
+let lastKeyFetch = 0;
+const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
+
 export async function getNovitaApiKey(): Promise<string | null> {
+  const now = Date.now();
+  if (cachedNovitaKey && (now - lastKeyFetch < CACHE_TTL)) {
+    return cachedNovitaKey;
+  }
+
   try {
-    // Try database first
-    const dbKey = await getApiKey("novita_api_key")
-    if (dbKey && dbKey.trim() !== "") {
-      console.log("✅ Using Novita API key from database")
-      return dbKey
-    }
-
-    // Fall back to environment variables
-    const envKey = process.env.NOVITA_API || process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY
+    // Try environment variables first (fastest)
+    const envKey = process.env.NOVITA_API || process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY;
     if (envKey && envKey.trim() !== "") {
-      console.log("✅ Using Novita API key from environment variables")
-      return envKey
+      cachedNovitaKey = envKey;
+      lastKeyFetch = now;
+      return envKey;
     }
 
-    console.warn("⚠️ No Novita API key found in database or environment variables")
-    return null
+    // Fall back to database
+    const dbKey = await getApiKey("novita_api_key");
+    if (dbKey && dbKey.trim() !== "") {
+      cachedNovitaKey = dbKey;
+      lastKeyFetch = now;
+      return dbKey;
+    }
+
+    return null;
   } catch (error) {
-    console.error("Error getting Novita API key:", error)
-    // Fall back to environment variables on error
-    return process.env.NOVITA_API || process.env.NEXT_PUBLIC_NOVITA_API_KEY || null
+    console.error("Error getting Novita API key:", error);
+    return process.env.NOVITA_API || process.env.NEXT_PUBLIC_NOVITA_API_KEY || null;
   }
 }
 

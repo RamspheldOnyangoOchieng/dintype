@@ -46,72 +46,66 @@ export async function POST(request: NextRequest) {
         const supabase = await createAdminClient();
         if (!supabase) return NextResponse.json({ error: 'Internal Error' }, { status: 500 });
 
-        // Get character info
-        const { data: character } = await supabase
-            .from('characters')
-            .select('name, image_url, description, system_prompt')
-            .eq('id', characterId)
-            .single();
+        const [charRes, linkRes] = await Promise.all([
+            supabase.from('characters').select('id, name, image_url, description, system_prompt').eq('id', characterId).single(),
+            supabase.from('telegram_links').select('user_id').eq('telegram_id', telegramId).maybeSingle()
+        ]);
+
+        const character = charRes.data;
+        const linkedAccount = linkRes.data;
 
         if (!character) return NextResponse.json({ error: 'Character not found' }, { status: 404 });
 
-        // 1. Get user link info to check premium status
-        const { data: linkedAccount } = await supabase
-            .from('telegram_links')
-            .select('user_id')
-            .eq('telegram_id', telegramId)
-            .maybeSingle();
+        // 2. Deliver Greeting (Await it to ensure it finishes before Mini App closes)
+        const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
-        let isPremium = false;
-        if (linkedAccount?.user_id) {
-            const { getUserPlanInfo } = await import('@/lib/subscription-limits');
-            const planInfo = await getUserPlanInfo(linkedAccount.user_id);
-            isPremium = planInfo.planType === 'premium';
+        try {
+            // Signal "typing" immediately (don't await this one)
+            fetch(`${TELEGRAM_API_URL}/sendChatAction`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: telegramId, action: 'typing' }),
+            }).catch(() => { });
+
+            // Update DB and get plan info in parallel
+            const [updateRes, planRes] = await Promise.all([
+                supabase.from('telegram_links').update({ character_id: characterId }).eq('telegram_id', telegramId),
+                linkedAccount?.user_id ? (async () => {
+                    const { getUserPlanInfo } = await import('@/lib/subscription-limits');
+                    return await getUserPlanInfo(linkedAccount.user_id);
+                })() : Promise.resolve(null)
+            ]);
+
+            const isPremium = planRes?.planType === 'premium';
+
+            // Generate the greeting
+            const { generateAIGreeting } = await import('@/lib/telegram-ai');
+            const charGreeting = await generateAIGreeting(
+                character.name,
+                character.system_prompt || character.description || "",
+                telegramUser.first_name || "sweetheart",
+                isPremium,
+                'selected'
+            );
+
+            // Send the message
+            await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: telegramId,
+                    text: `💕 <b>${character.name}</b>\n\n${charGreeting}`,
+                    parse_mode: 'HTML',
+                    reply_markup: {
+                        inline_keyboard: [[
+                            { text: '🔄 Switch Character', web_app: { url: `${request.nextUrl.origin}/telegram` } }
+                        ]]
+                    }
+                }),
+            });
+        } catch (e) {
+            console.error("Selection delivery error:", e);
         }
-
-        // 2. Update selection in DB
-        await supabase
-            .from('telegram_links')
-            .update({ character_id: characterId })
-            .eq('telegram_id', telegramId);
-
-        // 3. Deliver Greeting Asynchronously (Don't await to close Mini App fast)
-        (async () => {
-            try {
-                const { generateAIGreeting } = await import('@/lib/telegram-ai');
-                const charGreeting = await generateAIGreeting(
-                    character.name,
-                    character.system_prompt || character.description || "",
-                    telegramUser.first_name || "sweetheart",
-                    isPremium,
-                    'selected'
-                );
-
-                const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
-                await fetch(`${TELEGRAM_API_URL}/sendChatAction`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: telegramId, action: 'typing' }),
-                });
-
-                await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: telegramId,
-                        text: `💕 <b>${character.name}</b>\n\n${charGreeting}`,
-                        parse_mode: 'HTML',
-                        reply_markup: {
-                            inline_keyboard: [[
-                                { text: '🔄 Switch Character', web_app: { url: `${request.nextUrl.origin}/telegram` } }
-                            ]]
-                        }
-                    }),
-                });
-            } catch (e) {
-                console.error("Async greeting error:", e);
-            }
-        })();
 
         return NextResponse.json({ success: true });
 

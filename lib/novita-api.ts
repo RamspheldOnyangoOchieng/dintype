@@ -57,7 +57,11 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   // Create identity prefix safely (check if already present in prompt to avoid double-prefixing)
   const identityLockText = `### IDENTITY LOCK: ${character?.name || ''}`;
   const identityPrefix = (character && !prompt.includes(identityLockText))
-    ? `### IDENTITY LOCK: ${character.name}, ${character.hairColor || character.hair_color || ''} hair, ${character.eyeColor || character.eye_color || ''} eyes. MATCH VISUAL DNA EXACTLY. ### `
+    ? `### IDENTITY LOCK: ${character.name}, ethnicity: ${character.ethnicity || 'mixed'}, skin: ${character.skinTone || character.skin_tone || 'natural'}, hair: ${character.hairColor || character.hair_color || ''}, eyes: ${character.eyeColor || character.eye_color || ''}. MATCH VISUAL DNA EXACTLY. ### `
+    : '';
+
+  const anatomyLock = character
+    ? `(Anatomy Lock: ${character.bodyType || character.body_type || 'standard'}, ${character.skinTone || character.skin_tone || 'natural'} skin:1.3), `
     : '';
 
   if (character) {
@@ -78,7 +82,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     if (mainImg) {
       referenceImages.push({
         url: mainImg,
-        weight: 0.85,
+        weight: 0.9,
         label: "Main Profile"
       });
     }
@@ -89,7 +93,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       extraImages.slice(0, 2).forEach((img: string, idx: number) => {
         referenceImages.push({
           url: img,
-          weight: 0.75,
+          weight: 0.8,
           label: `Additional Ref ${idx + 1}`
         });
       });
@@ -99,7 +103,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     if (imageBase64) {
       referenceImages.push({
         url: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
-        weight: 0.7, // Lowered weight for context to allow the prompt to guide the pose without clashing
+        weight: 0.7,
         label: "Context Image"
       });
     }
@@ -127,7 +131,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
         finalControlUnits.push({
           model_name: isFaceSource ? "ip-adapter_plus_face_xl" : "ip-adapter_xl",
-          weight: isFaceSource ? 0.65 : 0.45, // Further lowered to prevent merging/leaking and deformations
+          weight: isFaceSource ? 0.75 : 0.5, // Increased weights for better consistency
           control_image: cleanUrl,
           module_name: "none"
         });
@@ -150,8 +154,8 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   // Enhance prompt based on style - focus on Solitary Intimate Photography
   // We demand a single frame and use high weighting for raw, photorealistic textures
   let enhancedPrompt = style === 'realistic'
-    ? `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (hyper-focused face:1.3), (sharp detailed eyes:1.3), (ultra-realistic raw photography:1.4), (natural skin textures:1.4), (detailed skin pores:1.3), no collage, no split screen, full screen, unprocessed raw digital photography, ${identityPrefix}${prompt}, dynamic pose, interesting environment, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
-    : `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS ILLUSTRATION:1.4), (ONE FRAME ONLY:1.4), (perfect face:1.2), (clear eyes:1.2), (masterpiece anime art:1.2), dynamic full body or mid-shot anime pose, no collage, no split screen, ${identityPrefix}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
+    ? `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (hyper-focused face:1.3), (sharp detailed eyes:1.3), (ultra-realistic raw photography:1.4), (natural skin textures:1.4), (detailed skin pores:1.3), no collage, no split screen, full screen, unprocessed raw digital photography, ${identityPrefix}${anatomyLock}${prompt}, dynamic pose, interesting environment, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
+    : `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS ILLUSTRATION:1.4), (ONE FRAME ONLY:1.4), (perfect face:1.2), (clear eyes:1.2), (masterpiece anime art:1.2), dynamic full body or mid-shot anime pose, no collage, no split screen, ${identityPrefix}${anatomyLock}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
 
   if (enhancedPrompt.length > 1500) {
     enhancedPrompt = enhancedPrompt.substring(0, 1500);

@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Download, Share2, X, Save, Loader2, MessageSquare } from "lucide-react"
 import Image from "next/image"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 interface ImageModalProps {
   images: string[]
@@ -30,6 +31,7 @@ export function ImageModal({
   savingIndex,
 }: ImageModalProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
+  const isMobile = useIsMobile()
 
   // Reset current index when initialIndex changes
   useEffect(() => {
@@ -73,9 +75,9 @@ export function ImageModal({
       <DialogContent className="max-w-4xl p-0 bg-[#0A0A0A] border-[#252525] rounded-lg [&>button]:hidden">
         <DialogTitle className="sr-only">Image View</DialogTitle>
         <DialogDescription className="sr-only">View and manage your generated images</DialogDescription>
-        <div className="relative">
-          <div className="relative aspect-square max-h-[80vh] overflow-hidden rounded-lg">
-            {/* Close button - Moved to top-left */}
+        <div className="relative flex flex-col h-full max-h-[90vh]">
+          <div className="relative flex-1 min-h-0 bg-black/20 overflow-hidden flex items-center justify-center">
+            {/* Close button - Top-left */}
             <Button
               variant="ghost"
               size="icon"
@@ -85,48 +87,56 @@ export function ImageModal({
               <X className="h-5 w-5" />
             </Button>
 
-            <Image
-              src={images[currentIndex] || "/placeholder.svg"}
-              alt={`Image ${currentIndex + 1}`}
-              fill
-              className="object-contain rounded-2xl shadow-lg shadow-blue-500/40"
-              unoptimized // Important for external URLs
-            />
+            <div className="relative w-full h-full max-h-[70vh] aspect-[2/3] mx-auto">
+              <Image
+                src={images[currentIndex] || "/placeholder.svg"}
+                alt={`Image ${currentIndex + 1}`}
+                fill
+                className="object-contain shadow-2xl shadow-blue-500/20"
+                unoptimized
+                priority
+              />
+            </div>
+
+            {/* Navigation buttons */}
+            {images.length > 1 && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-1/2 left-2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white z-40 rounded-full"
+                  onClick={handlePrevious}
+                >
+                  <ChevronLeft className="h-8 w-8" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-1/2 right-2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white z-40 rounded-full"
+                  onClick={handleNext}
+                >
+                  <ChevronRight className="h-8 w-8" />
+                </Button>
+              </>
+            )}
+
+            {/* Image counter */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-3 py-1 rounded-full z-40 font-medium backdrop-blur-md border border-white/10">
+              {currentIndex + 1} / {images.length}
+            </div>
           </div>
 
-          {/* Navigation buttons */}
+          {/* Thumbnail Carousel - Compact for mobile */}
           {images.length > 1 && (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-1/2 left-2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white z-40"
-                onClick={handlePrevious}
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-1/2 right-2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white z-40"
-                onClick={handleNext}
-              >
-                <ChevronRight className="h-6 w-6" />
-              </Button>
-            </>
-          )}
-
-          {/* Thumbnail Carousel */}
-          {images.length > 1 && (
-            <div className="flex justify-center gap-2 p-3 overflow-x-auto bg-black/40 border-t border-[#252525] scrollbar-none">
-              <div className="flex gap-2 mx-auto">
+            <div className="flex justify-center gap-2 p-3 overflow-x-auto bg-black/60 border-t border-white/5 scrollbar-none">
+              <div className="flex gap-2 mx-auto min-w-max">
                 {images.map((img, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentIndex(index)}
-                    className={`relative w-16 h-24 rounded-md overflow-hidden border-2 transition-all shrink-0 ${currentIndex === index
-                      ? "border-primary scale-105 shadow-[0_0_10px_rgba(var(--primary),0.5)]"
-                      : "border-transparent opacity-40 hover:opacity-100"
+                    className={`relative w-12 h-18 sm:w-16 sm:h-24 rounded-md overflow-hidden border-2 transition-all shrink-0 ${currentIndex === index
+                      ? "border-blue-500 scale-105 shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+                      : "border-transparent opacity-50 hover:opacity-100"
                       }`}
                   >
                     <Image
@@ -142,54 +152,53 @@ export function ImageModal({
             </div>
           )}
 
-          {/* Image counter */}
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-black/50 text-white text-xs px-2 py-1 rounded z-40 font-medium backdrop-blur-sm">
-            {currentIndex + 1} / {images.length}
-          </div>
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex justify-center gap-4 p-4 bg-[#1A1A1A] rounded-b-lg">
-          <Button
-            variant="outline"
-            onClick={() => onDownload(images[currentIndex], currentIndex)}
-            className="bg-[#252525] border-[#333333] hover:bg-[#333333]"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Download
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => onShare(images[currentIndex])}
-            className="bg-[#252525] border-[#333333] hover:bg-[#333333]"
-          >
-            <Share2 className="h-4 w-4 mr-2" />
-            Share
-          </Button>
-          {onSave && (
+          {/* Action buttons - RESPONSIVE WRAP */}
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-4 p-4 bg-[#111111] rounded-b-lg border-t border-white/5">
             <Button
               variant="outline"
-              onClick={() => onSave(currentIndex)}
-              disabled={savingIndex === currentIndex}
-              className="bg-[#252525] border-[#333333] hover:bg-[#333333]"
+              size={isMobile ? "sm" : "default"}
+              onClick={() => onDownload(images[currentIndex], currentIndex)}
+              className="bg-[#222222] border-white/10 hover:bg-[#333333] hover:border-white/20 text-white flex-1 min-w-[120px] sm:flex-none"
             >
-              {savingIndex === currentIndex ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Save className="h-4 w-4 mr-2" />
-              )}
-              Save
+              <Download className="h-4 w-4 mr-2" />
+              Download
             </Button>
-          )}
-          {onChat && (
             <Button
-              onClick={() => onChat(images[currentIndex])}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
+              variant="outline"
+              size={isMobile ? "sm" : "default"}
+              onClick={() => onShare(images[currentIndex])}
+              className="bg-[#222222] border-white/10 hover:bg-[#333333] hover:border-white/20 text-white flex-1 min-w-[120px] sm:flex-none"
             >
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Chat
+              <Share2 className="h-4 w-4 mr-2" />
+              Share
             </Button>
-          )}
+            {onSave && (
+              <Button
+                variant="outline"
+                size={isMobile ? "sm" : "default"}
+                onClick={() => onSave(currentIndex)}
+                disabled={savingIndex === currentIndex}
+                className="bg-[#222222] border-white/10 hover:bg-[#333333] hover:border-white/20 text-white flex-1 min-w-[120px] sm:flex-none"
+              >
+                {savingIndex === currentIndex ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Save className="h-4 w-4 mr-2" />
+                )}
+                Save
+              </Button>
+            )}
+            {onChat && (
+              <Button
+                size={isMobile ? "sm" : "default"}
+                onClick={() => onChat(images[currentIndex])}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold flex-1 min-w-[120px] sm:flex-none"
+              >
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Chat
+              </Button>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,3 +1,5 @@
+import { getNovitaApiKey } from './api-keys';
+
 export async function generateAIGreeting(
     characterName: string,
     characterPrompt: string,
@@ -6,8 +8,10 @@ export async function generateAIGreeting(
     greetingType: 'new_link' | 'synced' | 'welcome_back' | 'deep_link' | 'selected',
     extraContext?: string
 ) {
-    let contextInstruction = "";
+    const apiKey = await getNovitaApiKey();
+    if (!apiKey) return `💕 Oh, hey! I was just thinking about you, ${userName}...`;
 
+    let contextInstruction = "";
     if (greetingType === 'new_link' || greetingType === 'selected') {
         contextInstruction = `The user (${userName}) just picked you! Give them a flirty and romantic greeting. You are currently chatting on Telegram.`;
     } else if (greetingType === 'synced') {
@@ -18,20 +22,13 @@ export async function generateAIGreeting(
         contextInstruction = `The user (${userName}) followed a special link to find you. Surprise them with a very romantic and eager welcome.`;
     }
 
-    const { getNovitaApiKey } = await import('./api-keys');
-    const apiKey = await getNovitaApiKey();
-    if (!apiKey) return `💕 Oh, hey! I was just thinking about you, ${userName}...`;
-
     try {
         const prompt = `You are ${characterName}. ${characterPrompt}. 
         
         INSTRUCTION: ${contextInstruction}
-        - Be highly in-character, romantic, and immersive.
-        - NO ASTERISKS: NEVER use asterisks (*) or brackets for actions. DO NOT WRITE ACTIONS LIKE *blushes*. 
-        - NATURAL ACTIONS: Describe your physical reactions and actions as part of your spoken dialogue. Example: "Oh wow, you are making me blush so hard right now... haha!" 
-        - Use emojis to show passion and varied emotions (😂, 😊, 🔥, 💖).
+        - NO ASTERISKS: NEVER use asterisks (*) or brackets for actions. 
+        - Use emojis (😂, 😊, 🔥, 💖).
         - LENGTH: Be expressive but concise.
-        - STAY IMMERSED: You are ALREADY on Telegram. NEVER say "join me on Telegram".
         - Output ONLY the message.`;
 
         const response = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
@@ -41,15 +38,14 @@ export async function generateAIGreeting(
                 messages: [{ role: 'system', content: prompt }],
                 model: 'deepseek/deepseek-v3.1',
                 temperature: 0.9,
-                max_tokens: 250,
+                max_tokens: 150, // Reduced from 250 for speed
             }),
         });
 
         if (!response.ok) throw new Error("API error");
         const data = await response.json();
-        let content = data.choices?.[0]?.message?.content || "";
-        content = content.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-        return content || `💕 I've been waiting for you, ${userName}...`;
+        const content = data.choices?.[0]?.message?.content || "";
+        return content.trim() || `💕 I've been waiting for you, ${userName}...`;
     } catch (e) {
         return `💕 Hey ${userName}! I was missing you... so glad you picked me.`;
     }

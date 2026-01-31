@@ -149,13 +149,13 @@ export default function TelegramRootPage() {
 
         const tg = window.Telegram?.WebApp
 
-        // Set up a fallback timeout to force close after 3 seconds
+        // Set up a fallback timeout to force close after 5 seconds
         const closeTimeout = setTimeout(() => {
             console.log("⏰ Timeout reached, forcing Mini App close")
             if (tg) {
                 try { tg.close() } catch (e) { console.error("Force close error:", e) }
             }
-        }, 3000)
+        }, 5000)
 
         try {
             const initData = tg?.initData || sessionStorage.getItem('tg_init_data') || ""

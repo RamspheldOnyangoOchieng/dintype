@@ -304,13 +304,8 @@ export function getPublicImageUrl(path: string): string {
 // API Key Management
 export async function getApiKey(key: string): Promise<string | null> {
   try {
-    // First check if the table exists
-    const { error: checkError } = await supabase.from("app_settings").select("count").limit(1)
-
-    if (checkError && checkError.message.includes("does not exist")) {
-      console.warn("app_settings table does not exist yet")
-      return null
-    }
+    // We trust the table exists after initialization or just handle the error from the actual query
+    // This saves one redundant DB call per API request
 
     // If we get here, the table exists, so try to get the key
     // Use .maybeSingle() instead of .single() to handle cases where the row might not exist
