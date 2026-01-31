@@ -132,10 +132,10 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   }
 
   // Enhance prompt based on style - focus on Solitary Intimate Photography
-  // We remove 'selfie' and 'portrait' focus to allow for full-body actions requested by users
+  // We explicitly demand a single frame to prevent the Multi-Reference engine from creating collages
   let enhancedPrompt = style === 'realistic'
-    ? `Solo female, unprocessed raw digital photography, ${identityPrefix}${prompt}, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
-    : `high-end anime style, ${identityPrefix}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
+    ? `Solo female, single frame, lone subject, unprocessed raw digital photography, ${identityPrefix}${prompt}, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
+    : `high-end anime style, single frame, lone subject, ${identityPrefix}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
 
   if (enhancedPrompt.length > 1500) {
     enhancedPrompt = enhancedPrompt.substring(0, 1500);
