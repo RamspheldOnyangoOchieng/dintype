@@ -635,6 +635,13 @@ export default function AdminBannersPage() {
         isOpen={showGenerationModal}
         onClose={() => setShowGenerationModal(false)}
         onImageSelect={handleGeneratedImage}
+        settings={{
+          width: 1222,
+          height: 244,
+          size: "1222x244",
+          aspectRatioLabel: "Wide Banner",
+          title: "Generate Banner Content"
+        }}
       />
 
       {/* Error Feedback */}

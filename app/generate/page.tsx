@@ -26,6 +26,7 @@ import { containsNSFW } from "@/lib/nsfw-filter"
 import { useCharacters } from "@/components/character-context"
 import { imageUrlToBase64 } from "@/lib/image-utils"
 import { cn } from "@/lib/utils"
+import { WelcomeModal } from "@/components/welcome-modal"
 
 // Remove the static imageOptions array and replace with dynamic calculation
 // Get selected option for token calculation - move this logic up and make it dynamic
@@ -1327,6 +1328,8 @@ function GenerateContent() {
             imageSrc="https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963046/premium-modals/tokens_depleted.jpg"
           />
 
+          {/* Welcome Marketing Modal */}
+          <WelcomeModal pageType="generate" />
 
         </>
       )}

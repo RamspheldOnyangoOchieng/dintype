@@ -124,7 +124,6 @@ export default function EditCharacterPage() {
     preferred_moods: "",
     negative_prompt_restrictions: "",
     default_prompt: "",
-    default_prompt: "",
     negative_prompt: "",
     isStorylineActive: false,
   })
@@ -1627,17 +1626,18 @@ export default function EditCharacterPage() {
       <SimpleImageGenerator
         isOpen={isRegenModalOpen}
         onClose={() => setIsRegenModalOpen(false)}
+        characterId={id}
         onImageSelect={(url) => {
           setFormData((prev: any) => ({ ...prev, image: url }))
           setImagePreview(url)
-          toast.success("Character face generated successfully!")
+          toast.success("Character image updated!")
         }}
         settings={{
-          width: 768,
-          height: 1024,
-          size: "768x1024",
-          aspectRatioLabel: "Portrait (3:4)",
-          title: "Generate Character Face"
+          width: 800,
+          height: 1200,
+          size: "800x1200",
+          aspectRatioLabel: "Portrait (Full Body)",
+          title: "Generate Character Image"
         }}
       />
     </>

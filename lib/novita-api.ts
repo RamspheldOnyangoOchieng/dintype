@@ -132,12 +132,13 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   }
 
   // Enhance prompt based on style - focus on Solitary Intimate Photography
+  // We remove 'selfie' and 'portrait' focus to allow for full-body actions requested by users
   let enhancedPrompt = style === 'realistic'
-    ? `Solo female raw mobile selfie, unprocessed digital photography, smooth clear skin, lone woman, ${identityPrefix}${prompt}, natural lighting, ordinary room background, flawless facial features, highly detailed, sharp focus, 8k UHD, wide angle lens, authentic raw photo`
+    ? `Solo female, unprocessed raw digital photography, ${identityPrefix}${prompt}, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
     : `high-end anime style, ${identityPrefix}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
 
-  if (enhancedPrompt.length > 1200) {
-    enhancedPrompt = enhancedPrompt.substring(0, 1200);
+  if (enhancedPrompt.length > 1500) {
+    enhancedPrompt = enhancedPrompt.substring(0, 1500);
   }
 
   // Seedream 4.5 with retry logic

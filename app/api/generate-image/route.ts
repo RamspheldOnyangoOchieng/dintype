@@ -22,7 +22,7 @@ const getTokenCost = (imageCount: number = 1): number => {
   return 5 * count
 }
 
-const DEFAULT_NEGATIVE_PROMPT = "man, male, boy, gentleman, husband, boyfriend, couple, together, two people, multiple people, group of people, partner, companion, another person, lady and man, man and woman, second person, closeup, portrait, headshot, cropped head, studio lighting, harsh light, orange light, makeup, airbrushed, corporate portrait, anime, illustration, cartoon, drawing, painting, digital art, stylized, cgi, 3d render, unreal, wrinkles, old, aged, grainy, artifacts, noise, grit, dots, freckles, spots, blotchy skin, rough skin, acne, skin texture artifacts, messy skin, high contrast, over-processed, saturated, deformed, extra fingers, malformed hands, fused fingers, missing fingers, extra limbs, extra bodies, mutilated, gross proportions, bad anatomy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust";
+const DEFAULT_NEGATIVE_PROMPT = "man, male, boy, gentleman, husband, boyfriend, couple, together, two people, multiple people, group of people, partner, companion, another person, lady and man, man and woman, second person, studio lighting, harsh light, orange light, makeup, airbrushed, corporate portrait, anime, illustration, cartoon, drawing, painting, digital art, stylized, cgi, 3d render, unreal, wrinkles, old, aged, grainy, artifacts, noise, grit, dots, freckles, spots, blotchy skin, rough skin, acne, skin texture artifacts, messy skin, high contrast, over-processed, saturated, deformed, extra fingers, malformed hands, fused fingers, missing fingers, extra limbs, extra bodies, mutilated, gross proportions, bad anatomy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust";
 
 /**
  * Get webhook URL for Novita callbacks
@@ -407,18 +407,16 @@ export async function POST(req: NextRequest) {
             messages: [
               {
                 role: 'system',
-                content: `You are a "Mathematical Identity Settler" and ultra-realistic photographic artist. Your goal is to produce a "Character-Twin Raw Selfie" with 100% facial DNA matching.
+                content: `You are an expert prompt engineer for ultra-realistic photography. Your goal is to produce high-end photographic descriptions with 100% facial consistency.
 
-                CRITICAL IDENTITY LOCK (ABSOLUTE PRIORITY):
-                1. MATHEMATICAL DNA FIDELITY: You MUST maintain 100% molecular facial structure consistency with the character. Treat facial landmarks as absolute constants.
-                2. TRAIT ENFORCEMENT: STERNLY prioritize the character's explicit traits (hair color, eye color, ethnicity, special features) over any reference image colors. Absolute trait lock enabled.
-                3. SOLO ONLY: Absolutely FORBID any second person or non-character entities. Solo female only.
-                4. RAW PHOTO AESTHETIC: Use "unprocessed raw digital photography", "natural indoor lighting", and "mobile phone selfie" look.
-                5. NO SHINING/BOKEH: Absolutely FORBIDDEN: bokeh, sparkles, filters, or "AI glow".
-                6. MEDICAL SKIN PRECISION: Ensure "smooth clear skin" and "flawless beauty". STERNLY FORBID acne, noise, or rough textures.
-                7. ANATOMICAL PRECISION: If NSFW, describe "natural textures, realistic labia, and perfect anatomical proportions" with high-end photographic precision.
-                8. NO TEXT: Absolutely NO words, logos, or watermarks.
-                9. Output ONLY the raw photographic prompt text. Keep it under 800 characters.`
+                CORE INSTRUCTIONS:
+                1. SUBJECT FOCUS: Prioritize the user's specific requested action and setting as the primary focus (e.g., posing, sitting, lying down).
+                2. IDENTITY LOCK: Maintain the character's unique facial features and physical traits exactly as defined.
+                3. PHOTOGRAPHIC STYLE: Use "unprocessed raw digital photography" and "natural lighting". Avoid "selfie" or "portrait" tags unless the user explicitly requests a closeup.
+                4. SOLO ONLY: Ensure only the character is in the shot. No second person or entities.
+                5. QUALITY: Focus on "highly detailed", "sharp focus", and "8k UHD". No bokeh, sparkles, or AI glow effects.
+                6. GENITALIA PRECISION: If NSFW, describe "natural realistic textures and perfect anatomical proportions" with photographic precision. Avoid using overly medical or clinical terms.
+                7. CLEANLINESS: No text, logos, or watermarks.`
               },
               {
                 role: 'user',
@@ -458,17 +456,13 @@ export async function POST(req: NextRequest) {
           const enhancedText = enhancementData.choices?.[0]?.message?.content;
           if (enhancedText) {
             console.log("✅ Prompt enhanced successfully");
-            // Remove thinking process or common AI noise if present
             let cleanedPrompt = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
-            // Ensure character traits are included even in the enhanced prompt - BE VERY AGGRESSIVE WITH TWINNING
-            if (latestCharacter) {
-              const characterPrefix = `### IDENTITY LOCK ENABLED: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.skinTone || ''} skin, ${latestCharacter.ethnicity || ''} ethnicity. FACE ID: MATCH REFERENCE EXACTLY. ### `;
-              const characterSuffix = ` (Visual Identity Lock: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, MANDATORY TRAIT ENFORCEMENT).`;
 
-              cleanedPrompt = characterPrefix + cleanedPrompt + characterSuffix;
+            if (latestCharacter) {
+              const characterPrefix = `### IDENTITY LOCK: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.ethnicity || ''}. ### `;
+              cleanedPrompt = characterPrefix + cleanedPrompt;
             }
-            // Truncate to 900 characters to leave room for environment additions
-            finalPrompt = cleanedPrompt.length > 900 ? cleanedPrompt.substring(0, 900) : cleanedPrompt;
+            finalPrompt = cleanedPrompt.length > 1000 ? cleanedPrompt.substring(0, 1000) : cleanedPrompt;
           }
         } else {
           console.warn("⚠️ Prompt enhancement failed (response not ok), using original prompt");

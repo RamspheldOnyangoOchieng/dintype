@@ -17,6 +17,8 @@ import { useConsent } from "@/components/use-consent"
 import { useAuth } from "@/components/auth-context"
 import { useAuthModal } from "@/components/auth-modal-context"
 import { useRouter, useSearchParams } from "next/navigation"
+import { WelcomeModal } from "@/components/welcome-modal"
+import { toast } from "sonner"
 
 export default function Home() {
   const { characters, isLoading } = useCharacters()
@@ -270,6 +272,9 @@ export default function Home() {
         onCookieSettings={handleCookieSettings}
         initialPreferences={consent?.preferences}
       />
+
+      {/* Welcome Marketing Modal */}
+      <WelcomeModal pageType="home" />
     </div>
   )
 }

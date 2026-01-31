@@ -53,6 +53,7 @@ import { WelcomeMessage } from "@/components/welcome-message"
 import { toast } from "sonner"
 import { ImageGenerationLoading } from "@/components/image-generation-loading"
 import { generateDailyGreeting } from "@/lib/ai-greetings"
+import { WelcomeModal } from "@/components/welcome-modal"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -600,15 +601,23 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   useEffect(() => {
     if (!isMounted) return
 
-    const newLastMessages: Record<string, Message | null> = {}
+    const newLastMessages: Record<string, Message | null> = { ...lastMessages }
+
+    // 1. Update from local storage for all characters
     characters.forEach((char) => {
       const history = getChatHistoryFromLocalStorage(char.id)
       if (history && history.length > 0) {
         newLastMessages[char.id] = history[history.length - 1]
       }
     })
+
+    // 2. Override with current chat messages if available
+    if (characterId && messages.length > 0) {
+      newLastMessages[characterId] = messages[messages.length - 1]
+    }
+
     setLastMessages(newLastMessages)
-  }, [characters, isMounted, messages])
+  }, [characters, isMounted, messages, characterId])
 
   // Handle redirect to advanced generation page
   const handleAdvancedGenerate = useCallback(() => {
@@ -2432,6 +2441,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           />
         )
       }
+
+      {/* Welcome Marketing Modal */}
+      <WelcomeModal pageType="chat" />
     </div>
   )
 }

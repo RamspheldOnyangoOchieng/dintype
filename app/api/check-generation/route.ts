@@ -140,14 +140,33 @@ export async function GET(request: NextRequest) {
       }
 
       // Auto-save logic: Check if this generation should be auto-saved
-      const userId = searchParams.get("userId")
+      const userIdFromQuery = searchParams.get("userId")
       const autoSave = searchParams.get("autoSave") === "true"
-      const characterId = searchParams.get("characterId")
-      const prompt = searchParams.get("prompt")
+      const characterIdFromQuery = searchParams.get("characterId")
+      const promptFromQuery = searchParams.get("prompt")
       let permanentUrls: string[] = []
 
-      if (autoSave && userId && supabaseAdmin && allImages.length > 0) {
-        console.log("💾 Auto-saving generated images for user:", userId)
+      // Robust data recovery: Try to get missing context from the task record itself
+      let finalUserId = userIdFromQuery;
+      let finalCharacterId = characterIdFromQuery;
+      let finalPrompt = promptFromQuery;
+
+      if (supabaseAdmin && (!finalUserId || !finalCharacterId || !finalPrompt)) {
+        const { data: dbTask } = await supabaseAdmin
+          .from('generation_tasks')
+          .select('user_id, character_id, prompt')
+          .eq('task_id', taskId)
+          .maybeSingle();
+
+        if (dbTask) {
+          finalUserId = finalUserId || dbTask.user_id;
+          finalCharacterId = finalCharacterId || dbTask.character_id;
+          finalPrompt = finalPrompt || dbTask.prompt;
+        }
+      }
+
+      if (autoSave && finalUserId && supabaseAdmin && allImages.length > 0) {
+        console.log("💾 Auto-saving generated images for user:", finalUserId)
 
         try {
           // Import Cloudinary upload function
@@ -170,10 +189,10 @@ export async function GET(request: NextRequest) {
 
           // Save each generated image to the database with permanent URLs
           const imagesToSave = permanentUrls.map(imageUrl => ({
-            user_id: userId,
-            character_id: characterId || null,
+            user_id: finalUserId,
+            character_id: finalCharacterId || null,
             image_url: imageUrl,
-            prompt: prompt || "Chat image",
+            prompt: finalPrompt || "Chat image",
             model_used: "seedream-4.5",
             metadata: {
               source: "chat",

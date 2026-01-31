@@ -489,34 +489,74 @@ export async function loadChatHistory(
     const supabase = await createAdminClient() as any
     if (!supabase) return []
 
-    // Get plan info to determine default limit if not provided
     let finalLimit = limit;
-    if (finalLimit === 50) { // Only adjust if it's the default
+    if (finalLimit === 50) {
       try {
         const planInfo = await getUserPlanInfo(userId);
         finalLimit = planInfo.planType === 'premium' ? 200 : 50;
-      } catch (e) {
-        console.warn("Failed to get plan info for history limit, using 50", e);
-      }
+      } catch (e) { }
     }
 
-    // Updated query to get the MOST RECENT messages from any session for this character.
-    // We get newest first (desc) and then reverse them for the UI.
-    const { data: messages, error } = await supabase
+    console.log(`[loadChatHistory] Fetching for user: ${userId}, char: ${characterId}`);
+
+    // Try RPC first (standard API method)
+    const { data: rpcMessages, error: rpcError } = await supabase.rpc('get_conversation_history', {
+      p_user_id: userId,
+      p_character_id: characterId,
+      p_limit: finalLimit
+    });
+
+    if (!rpcError && rpcMessages && rpcMessages.length > 0) {
+      return rpcMessages.map((m: any) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        isImage: m.is_image || m.isImage,
+        imageUrl: m.image_url || m.imageUrl
+      }));
+    }
+
+    // Manual Fallback 1: Join messages with conversation_sessions directly
+    const { data: messages, error: msgError } = await supabase
       .from('messages')
-      .select('id, role, content, created_at, is_image, image_url, conversation_sessions!inner(id)')
+      .select('id, role, content, created_at, is_image, image_url, conversation_sessions!inner(id, user_id, character_id)')
       .eq('conversation_sessions.user_id', userId)
       .eq('conversation_sessions.character_id', characterId)
-      .eq('conversation_sessions.is_archived', false) // Only show non-cleared chats
       .order('created_at', { ascending: false })
-      .limit(finalLimit)
+      .limit(finalLimit);
 
-    if (error) {
-      console.error("Error loading chat history:", error)
-      return []
+    if (msgError || !messages || messages.length === 0) {
+      // Manual Fallback 2: Try Step 1/Step 2 method without is_archived filter
+      const { data: sessions } = await supabase
+        .from('conversation_sessions')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('character_id', characterId);
+
+      if (sessions && sessions.length > 0) {
+        const sIds = sessions.map((s: any) => s.id);
+        const { data: fallMsgs } = await supabase
+          .from('messages')
+          .select('*')
+          .in('session_id', sIds)
+          .order('created_at', { ascending: false })
+          .limit(finalLimit);
+
+        if (fallMsgs && fallMsgs.length > 0) {
+          return fallMsgs.reverse().map((m: any) => ({
+            id: m.id,
+            role: m.role,
+            content: m.content,
+            timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+            isImage: m.is_image,
+            imageUrl: m.image_url
+          }));
+        }
+      }
+      return [];
     }
 
-    // Reverse to chronological order (oldest first)
     return (messages || []).reverse().map((m: any) => ({
       id: m.id,
       role: m.role,
@@ -524,8 +564,9 @@ export async function loadChatHistory(
       timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       isImage: m.is_image,
       imageUrl: m.image_url
-    }))
+    }));
   } catch (error) {
+    console.error("[loadChatHistory] Fatal error:", error);
     return []
   }
 }
