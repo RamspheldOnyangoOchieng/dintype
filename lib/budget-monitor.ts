@@ -89,9 +89,19 @@ export interface BudgetStatus {
  */
 export async function checkMonthlyBudget(): Promise<BudgetStatus> {
   const supabase = await createAdminClient()
-  if (!supabase) throw new Error('Supabase admin client validation failed')
-
+  const limits = await getBudgetLimits()
   const currency = await getCurrencyConfig()
+
+  if (!supabase) {
+    return {
+      allowed: true, // Fail open if budget system fails, to avoid blocking users
+      current: { messages: 0, images: 0, characters: 0, apiCost: 0, apiCostUSD: 0, tokenRevenue: 0 },
+      limits,
+      currency,
+      percentUsed: { cost: 0, messages: 0, images: 0 },
+      message: "Budget system unavailable. Proceeding with caution."
+    }
+  }
 
   // Get start of current month
   const monthStart = new Date()
@@ -103,8 +113,6 @@ export async function checkMonthlyBudget(): Promise<BudgetStatus> {
     .from('cost_logs')
     .select('action, tokens_used, api_cost, created_at')
     .gte('created_at', monthStart.toISOString())
-
-  const limits = await getBudgetLimits()
 
   if (!logs) {
     return {

@@ -1,8 +1,11 @@
+"use server";
 import { createAdminClient } from "./supabase-admin";
 import { Message } from "./chat-actions";
 import { checkMessageLimit, incrementMessageUsage, getUserPlanInfo, deductTokens } from "./subscription-limits";
 import { checkMonthlyBudget, logApiCost } from "./budget-monitor";
 import { isAskingForImage } from "./image-utils";
+import { getNovitaApiKey } from "./api-keys";
+import crypto from "crypto";
 
 /**
  * Clean up AI response to remove meta-talk, instructions, and name prefixes
@@ -144,6 +147,7 @@ export async function sendChatMessageDB(
           character_id: characterId,
           is_archived: false
         })
+        .select()
         .single();
 
       if (sessionError) throw new Error("Failed to create chat session");
@@ -439,7 +443,6 @@ ${branchInfo}
     ]
 
     // 11. AI Call
-    const { getNovitaApiKey } = await import('./api-keys');
     const novitaKey = await getNovitaApiKey();
     const openaiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_KEY;
     const isActuallyNovita = openaiKey?.startsWith('sk_') && !openaiKey?.startsWith('sk-');
