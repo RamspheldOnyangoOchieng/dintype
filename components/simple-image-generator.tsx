@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Loader2, Sparkles, Image as ImageIcon, Check } from "lucide-react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner" // Assuming sonner is used for toasts based on previous file views
 
 interface SimpleImageGeneratorProps {
     isOpen: boolean
@@ -28,6 +29,8 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
     const [isGenerating, setIsGenerating] = useState(false)
     const [generatedImages, setGeneratedImages] = useState<string[]>([])
     const [selectedImage, setSelectedImage] = useState<string | null>(null)
+    const [savedImages, setSavedImages] = useState<Set<string>>(new Set()) // Track which ones are saved
+    const [isSavingAll, setIsSavingAll] = useState(false)
     const [error, setError] = useState("")
 
     const config = {
@@ -119,6 +122,69 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
         }
     }
 
+    const handleSaveToGallery = async (imageUrl: string, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (!characterId) return;
+
+        try {
+            const response = await fetch("/api/gallery", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    characterId: characterId,
+                    imageUrl: imageUrl,
+                    isLocked: false,
+                    isNsfw: false,
+                    isPrimary: false
+                })
+            })
+
+            if (response.ok) {
+                setSavedImages(prev => new Set([...prev, imageUrl]))
+                toast.success("Saved to gallery!")
+            } else {
+                throw new Error("Failed to save")
+            }
+        } catch (err) {
+            console.error("Save error:", err)
+            toast.error("Failed to save image")
+        }
+    }
+
+    const handleSaveAll = async () => {
+        if (!characterId || generatedImages.length === 0) return;
+
+        setIsSavingAll(true);
+        let successCount = 0;
+
+        try {
+            for (const imgUrl of generatedImages) {
+                if (savedImages.has(imgUrl)) continue;
+
+                const response = await fetch("/api/gallery", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        characterId: characterId,
+                        imageUrl: imgUrl,
+                        isLocked: false,
+                        isNsfw: false,
+                        isPrimary: false
+                    })
+                })
+                if (response.ok) successCount++;
+            }
+
+            setSavedImages(new Set([...savedImages, ...generatedImages]));
+            toast.success(`Saved ${successCount} new images to gallery!`);
+        } catch (err) {
+            console.error("Save all error:", err);
+            toast.error("Error saving some images");
+        } finally {
+            setIsSavingAll(false);
+        }
+    }
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="w-[95vw] sm:max-w-[800px] max-h-[92vh] flex flex-col bg-[#0F0F0F] border-[#222] text-white p-0 overflow-hidden shadow-2xl rounded-2xl">
@@ -175,6 +241,19 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
                                                 <Check className="h-5 w-5 text-white" />
                                             </div>
                                         )}
+                                        <button
+                                            onClick={(e) => handleSaveToGallery(img, e)}
+                                            disabled={savedImages.has(img)}
+                                            className={cn(
+                                                "absolute top-3 left-3 p-2 rounded-full backdrop-blur-md transition-all",
+                                                savedImages.has(img)
+                                                    ? "bg-green-500/80 text-white"
+                                                    : "bg-black/40 text-white hover:bg-black/60"
+                                            )}
+                                            title="Save to Gallery"
+                                        >
+                                            {savedImages.has(img) ? <Check className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />}
+                                        </button>
                                         <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase tracking-wider">
                                             Option {idx + 1}
                                         </div>
@@ -196,10 +275,23 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
                     )}
                 </div>
 
-                <div className="flex justify-end gap-3 p-6 border-t border-[#222] bg-[#0F0F0F]">
-                    <Button variant="ghost" onClick={onClose} className="text-gray-400 hover:text-white">
-                        Cancel
-                    </Button>
+                <div className="flex flex-wrap justify-between items-center gap-3 p-6 border-t border-[#222] bg-[#0F0F0F]">
+                    <div className="flex gap-3">
+                        <Button variant="ghost" onClick={onClose} className="text-gray-400 hover:text-white">
+                            Cancel
+                        </Button>
+                        {generatedImages.length > 0 && (
+                            <Button
+                                variant="outline"
+                                onClick={handleSaveAll}
+                                disabled={isSavingAll || savedImages.size === generatedImages.length}
+                                className="border-[#333] text-gray-300 hover:bg-[#252525]"
+                            >
+                                {isSavingAll ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2 text-amber-500" />}
+                                Save All to Gallery
+                            </Button>
+                        )}
+                    </div>
                     {selectedImage ? (
                         <Button onClick={handleUseImage} className="bg-[#00A3FF] hover:bg-[#0082CC] text-white font-bold h-11 px-8 rounded-xl shadow-[0_0_20px_rgba(0,163,255,0.3)]">
                             Use Selected Image

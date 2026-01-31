@@ -20,6 +20,7 @@ import { MobileNav } from "@/components/mobile-nav"
 import { AuthModals } from "@/components/auth-modals"
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as SonnerToaster } from "@/components/ui/sonner"
+import { OnboardingTour } from "@/components/onboarding-tour"
 
 function RootLayoutContent({ children }: { children: React.ReactNode }) {
   const { isOpen } = useSidebar()
@@ -90,6 +91,7 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
         feature="Premium Expired"
         description="Premium Plan expired. Renew your Premium Plan."
       />
+      <OnboardingTour />
     </div>
   )
 }

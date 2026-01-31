@@ -66,7 +66,7 @@ export function WelcomeModal({ pageType, onClose }: WelcomeModalProps) {
     useEffect(() => {
         // Check if user has already seen this modal
         const storageKey = `welcome_modal_seen_${pageType}`
-        const hasSeen = sessionStorage.getItem(storageKey)
+        const hasSeen = localStorage.getItem(storageKey)
 
         if (!hasSeen) {
             // Delay slightly for better UX
@@ -79,7 +79,7 @@ export function WelcomeModal({ pageType, onClose }: WelcomeModalProps) {
 
     const handleClose = () => {
         setIsClosing(true)
-        sessionStorage.setItem(`welcome_modal_seen_${pageType}`, "true")
+        localStorage.setItem(`welcome_modal_seen_${pageType}`, "true")
 
         setTimeout(() => {
             setIsVisible(false)

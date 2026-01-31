@@ -165,6 +165,7 @@ export default function AppSidebar() {
                         <TooltipTrigger asChild>
                           <Link
                             href={item.href}
+                            id={`sidebar-link-${item.href.replace("/", "") || "home"}`}
                             onClick={(e) => {
                               if ((item.href === "/my-ai" || item.href === "/collections") && !user) {
                                 e.preventDefault()
