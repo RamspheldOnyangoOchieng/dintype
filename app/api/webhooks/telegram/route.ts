@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAIGreeting } from '@/lib/telegram-ai';
-import { generatePhotoCaption } from '@/lib/ai-greetings';
 import { createAdminClient } from '@/lib/supabase-admin';
 import { getUserPlanInfo, deductTokens, checkImageGenerationLimit, incrementImageUsage } from '@/lib/subscription-limits';
 import { isAskingForImage, extractImagePrompt } from '@/lib/image-utils';
@@ -333,14 +332,15 @@ async function generateAIResponse(
         }
     }
 
+
     try {
-        // High-speed Telegram Response (V3)
+        // High-speed Telegram Response
         const response = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${apiKey.trim()}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: apiMessages,
-                model: 'deepseek/deepseek-v3',
+                model: 'deepseek/deepseek-r1',
                 temperature: 0.8,
                 max_tokens: 350,
             }),
@@ -350,7 +350,7 @@ async function generateAIResponse(
             const errStatus = response.status;
             console.error(`[Telegram] Primary AI Error (${errStatus})`);
 
-            // AUTOMATIC FAILOVER: Try Meta Llama 3.1 (High Reliability)
+            // AUTOMATIC FAILOVER: Try Qwen (High Reliability)
             const fallbackRes = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${apiKey.trim()}`, 'Content-Type': 'application/json' },
@@ -359,7 +359,7 @@ async function generateAIResponse(
                         { role: 'system', content: enhancedSystemPrompt },
                         { role: 'user', content: userMessage }
                     ],
-                    model: 'meta-llama/llama-3.1-70b-instruct',
+                    model: 'qwen/qwen-2.5-72b-instruct',
                     temperature: 0.7,
                     max_tokens: 250
                 }),
@@ -1012,12 +1012,21 @@ export async function POST(request: NextRequest) {
                 }
             }
 
-            // Get character info
+            // Get character info with full twinning traits
             const { data: character } = await supabase
                 .from('characters')
-                .select('name, system_prompt, description, image, image_url, metadata, is_storyline_active')
+                .select('*, metadata') // Select all fields to ensure hairColor, images, etc. are present
                 .eq('id', linkedAccount.character_id)
                 .maybeSingle();
+
+            // Normalize character fields (mapping snake_case to camelCase where expected)
+            if (character) {
+                (character as any).hairColor = character.hair_color || (character as any).hairColor;
+                (character as any).eyeColor = character.eye_color || (character as any).eyeColor;
+                (character as any).skinTone = character.skin_tone || (character as any).skinTone;
+                (character as any).bodyType = character.body_type || (character as any).bodyType;
+                (character as any).faceReferenceUrl = character.metadata?.face_reference_url || (character as any).faceReferenceUrl;
+            }
 
             const characterName = character?.name || 'Your Companion';
             const characterPrompt = character?.system_prompt || character?.description || '';
@@ -1100,27 +1109,17 @@ export async function POST(request: NextRequest) {
                                     const selectedImg = remainingImages[0] || chImages[Math.floor(Math.random() * chImages.length)];
 
                                     if (activeSessionId) {
-                                        const sContext = await getStoryContext(supabase, linkedAccount.user_id, linkedAccount.character_id, conversationHistory);
-                                        const dynamicCaption = await generatePhotoCaption(
-                                            characterName,
-                                            characterPrompt,
-                                            isConsent ? "the user said yes" : "the user asked for a photo",
-                                            isPremium,
-                                            sContext,
-                                            selectedImg
-                                        );
-
                                         await supabase.from('messages').insert({
                                             session_id: activeSessionId,
                                             user_id: linkedAccount.user_id,
                                             role: 'assistant',
-                                            content: dynamicCaption,
+                                            content: "",
                                             is_image: true,
                                             image_url: selectedImg,
                                             metadata: { source: 'telegram', type: 'story_mode' }
                                         });
 
-                                        await sendTelegramPhoto(chatId, selectedImg, dynamicCaption);
+                                        await sendTelegramPhoto(chatId, selectedImg, "");
                                         return NextResponse.json({ ok: true });
                                     }
                                 } else {
@@ -1152,7 +1151,9 @@ export async function POST(request: NextRequest) {
                                 negativePrompt: baseNegative,
                                 width: 1024,
                                 height: 1536,
-                                style: 'realistic'
+                                style: 'realistic',
+                                character: character, // Full Multi-Referencing Engine
+                                imageBase64: userUploadedImageUrl || undefined // Handle user-uploaded context for img2img style
                             });
 
                             if (result && result.url) {
@@ -1172,27 +1173,17 @@ export async function POST(request: NextRequest) {
                                     });
 
                                     if (activeSessionId) {
-                                        const sContext = await getStoryContext(supabase, linkedAccount.user_id, linkedAccount.character_id, conversationHistory);
-                                        const dynamicCaption = await generatePhotoCaption(
-                                            characterName,
-                                            characterPrompt,
-                                            text || "sending a generated photo",
-                                            isPremium,
-                                            sContext,
-                                            imageUrl
-                                        );
-
                                         await supabase.from("messages").insert({
                                             session_id: activeSessionId,
                                             user_id: linkedAccount.user_id,
                                             role: 'assistant',
-                                            content: dynamicCaption,
+                                            content: "",
                                             is_image: true,
                                             image_url: imageUrl,
                                             metadata: { source: "telegram", auto_saved: true }
                                         });
 
-                                        await sendTelegramPhoto(chatId, imageUrl, dynamicCaption);
+                                        await sendTelegramPhoto(chatId, imageUrl, "");
                                     }
                                 } catch (saveErr) {
                                     console.error("❌ Failed to save image permanently:", saveErr);
@@ -1286,7 +1277,7 @@ export async function POST(request: NextRequest) {
 
             await sendTelegramMessage(chatId, aiResponse, { reply_markup: replyMarkup });
 
-            // --- NARRATIVE PROGRESSION LOGIC (AUTO-SEND IMAGES) ---
+            // --- NARRATIVE PROGRESSION LOGIC (AUTO-SEND IMAGES + CHAPTER COMPLETION) ---
             if (activeSessionId && linkedAccount?.user_id) {
                 const { data: storyProgress } = await supabase
                     .from("user_story_progress")
@@ -1305,6 +1296,7 @@ export async function POST(request: NextRequest) {
 
                     if (chapter) {
                         const chImages = (chapter.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0);
+                        const chImagesMeta = (chapter.content?.chapter_image_metadata || []);
                         const aiText = aiResponse.toLowerCase();
                         const photoTriggers = [
                             "send you a photo", "sending you a pic", "show you something",
@@ -1314,46 +1306,76 @@ export async function POST(request: NextRequest) {
 
                         const shouldSendImage = photoTriggers.some(t => aiText.includes(t)) || aiText.includes("(image:");
 
-                        if (shouldSendImage && chImages.length > 0) {
-                            // Find matching image or just send next/random
-                            const meta = chapter.content?.chapter_image_metadata || [];
+                        // Track sent images for this chapter
+                        const sentImagesInChapter = new Set(
+                            conversationHistory
+                                .filter((m: any) => m.is_image && m.image_url)
+                                .map((m: any) => m.image_url)
+                        );
+                        const remainingImages = chImages.filter((img: string) => !sentImagesInChapter.has(img));
+
+                        if (shouldSendImage && remainingImages.length > 0) {
+                            // Find matching image based on AI text keywords
                             let bestMatchImg = null;
-                            if (meta.length > 0) {
-                                for (const imgUrl of chImages) {
-                                    const originalIdx = (chapter.content?.chapter_images || []).indexOf(imgUrl);
-                                    const imgMeta = (meta[originalIdx] || "").toLowerCase();
-                                    if (imgMeta && aiText.split(' ').some((word: string) => word.length > 3 && imgMeta.includes(word))) {
-                                        bestMatchImg = imgUrl;
-                                        break;
-                                    }
+                            for (const imgUrl of remainingImages) {
+                                const originalIdx = chImages.indexOf(imgUrl);
+                                const imgMeta = (chImagesMeta[originalIdx] || "").toLowerCase();
+                                if (imgMeta && aiText.split(' ').some((word: string) => word.length > 3 && imgMeta.includes(word))) {
+                                    bestMatchImg = imgUrl;
+                                    break;
                                 }
                             }
 
-                            const selectedImg = bestMatchImg || chImages[Math.floor(Math.random() * chImages.length)];
+                            const selectedImg = bestMatchImg || remainingImages[0];
 
-                            // Generate reaction caption
-                            const sContext = await getStoryContext(supabase, linkedAccount.user_id, linkedAccount.character_id);
-                            const dynamicCaption = await generatePhotoCaption(
-                                characterName,
-                                characterPrompt,
-                                "sending auto-triggered storyline photo",
-                                isPremium,
-                                sContext,
-                                selectedImg
-                            );
-
-                            // Save and send
+                            // Save and send without caption
                             await supabase.from('messages').insert({
                                 session_id: activeSessionId,
                                 user_id: linkedAccount.user_id,
                                 role: 'assistant',
-                                content: dynamicCaption,
+                                content: "",
                                 is_image: true,
                                 image_url: selectedImg,
                                 metadata: { source: 'telegram', type: 'story_progression' }
                             });
 
-                            await sendTelegramPhoto(chatId, selectedImg, dynamicCaption);
+                            await sendTelegramPhoto(chatId, selectedImg, "");
+                        }
+
+                        // --- CHAPTER COMPLETION CHECK ---
+                        const totalMsgsInChapter = conversationHistory.length + 1;
+                        const totalImgsSent = sentImagesInChapter.size + (shouldSendImage && remainingImages.length > 0 ? 1 : 0);
+
+                        if (totalMsgsInChapter >= 12 || (chImages.length > 0 && totalImgsSent >= chImages.length)) {
+                            console.log(`✅ [Telegram Progression] Chapter ${chapter.chapter_number} complete.`);
+
+                            const nextChapterNum = chapter.chapter_number + 1;
+                            const { data: nextChapterExists } = await supabase
+                                .from('story_chapters')
+                                .select('id')
+                                .eq('character_id', linkedAccount.character_id)
+                                .eq('chapter_number', nextChapterNum)
+                                .maybeSingle();
+
+                            await supabase
+                                .from('user_story_progress')
+                                .update({
+                                    current_chapter_number: nextChapterNum,
+                                    is_completed: !nextChapterExists,
+                                    updated_at: new Date().toISOString()
+                                })
+                                .eq('id', storyProgress.id);
+
+                            if (!nextChapterExists) {
+                                await supabase
+                                    .from('characters')
+                                    .update({ is_storyline_active: false })
+                                    .eq('id', linkedAccount.character_id);
+
+                                await sendTelegramMessage(chatId, "🎉 Wow! We've finished our story together. Now you can chat with me however you want... 💕");
+                            } else {
+                                await sendTelegramMessage(chatId, `📖 Chapter ${chapter.chapter_number} complete! Let's start the next part of our story... 💕`);
+                            }
                         }
                     }
                 }

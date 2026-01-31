@@ -147,8 +147,17 @@ export default function TelegramRootPage() {
         if (selectingId) return
         setSelectingId(character.id)
 
+        const tg = window.Telegram?.WebApp
+
+        // Set up a fallback timeout to force close after 3 seconds
+        const closeTimeout = setTimeout(() => {
+            console.log("⏰ Timeout reached, forcing Mini App close")
+            if (tg) {
+                try { tg.close() } catch (e) { console.error("Force close error:", e) }
+            }
+        }, 3000)
+
         try {
-            const tg = window.Telegram?.WebApp
             const initData = tg?.initData || sessionStorage.getItem('tg_init_data') || ""
 
             if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium')
@@ -159,16 +168,28 @@ export default function TelegramRootPage() {
                 body: JSON.stringify({ characterId: character.id, initData })
             })
 
-            // Close the mini app to return to chat
-            if (response.ok && tg) {
-                tg.close()
-            } else {
-                setSelectingId(null)
+            clearTimeout(closeTimeout)
+
+            // Always close the mini app after selection attempt
+            if (tg) {
+                console.log("✅ Selection complete, closing Mini App")
+                // Small delay to ensure the backend has processed
+                setTimeout(() => {
+                    try { tg.close() } catch (e) { console.error("Close error:", e) }
+                }, 100)
+            }
+
+            if (!response.ok) {
+                console.error("Selection API returned non-OK status:", response.status)
             }
         } catch (err) {
             console.error("Selection error:", err)
-            setSelectingId(null)
-            if (window.Telegram?.WebApp) window.Telegram.WebApp.close()
+            clearTimeout(closeTimeout)
+
+            // Still try to close on error - user can re-open if needed
+            if (tg) {
+                try { tg.close() } catch (e) { console.error("Error close error:", e) }
+            }
         }
     }
 

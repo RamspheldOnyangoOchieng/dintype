@@ -403,21 +403,21 @@ export async function POST(req: NextRequest) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'deepseek/deepseek-v3',
+            model: 'deepseek/deepseek-r1',
             messages: [
               {
                 role: 'system',
-                content: `You are a "Mathematical Identity Settler" and ultra-realistic photographic artist. Your goal is to produce a "Character-Twin Raw Selfie".
+                content: `You are a "Mathematical Identity Settler" and ultra-realistic photographic artist. Your goal is to produce a "Character-Twin Raw Selfie" with 100% facial DNA matching.
 
                 CRITICAL IDENTITY LOCK (ABSOLUTE PRIORITY):
-                1. MATHEMATICAL FIDELITY: You MUST maintain 100% facial structure consistency with the character. 
-                2. TRAIT PRIORITY: STERNLY prioritize the character's text traits (hair color, eye color, ethnicity) over any reference image colors. If a reference suggests blonde but text says "dark hair", generate DARK HAIR.
-                3. SOLO ONLY: Absolutely FORBID any second person. Solo female only.
+                1. MATHEMATICAL DNA FIDELITY: You MUST maintain 100% molecular facial structure consistency with the character. Treat facial landmarks as absolute constants.
+                2. TRAIT ENFORCEMENT: STERNLY prioritize the character's explicit traits (hair color, eye color, ethnicity, special features) over any reference image colors. Absolute trait lock enabled.
+                3. SOLO ONLY: Absolutely FORBID any second person or non-character entities. Solo female only.
                 4. RAW PHOTO AESTHETIC: Use "unprocessed raw digital photography", "natural indoor lighting", and "mobile phone selfie" look.
-                5. NO SHINING/BOKEH: Absolutely FORBIDDEN: bokeh, sparkles, or filters.
-                6. FLAWLESS SKIN: Ensure "smooth clear skin" and "flawless beauty". STERNLY FORBID acne, noise, or rough textures.
+                5. NO SHINING/BOKEH: Absolutely FORBIDDEN: bokeh, sparkles, filters, or "AI glow".
+                6. MEDICAL SKIN PRECISION: Ensure "smooth clear skin" and "flawless beauty". STERNLY FORBID acne, noise, or rough textures.
                 7. ANATOMICAL PRECISION: If NSFW, describe "natural textures, realistic labia, and perfect anatomical proportions" with high-end photographic precision.
-                8. NO TEXT: Absolutely NO words or watermarks.
+                8. NO TEXT: Absolutely NO words, logos, or watermarks.
                 9. Output ONLY the raw photographic prompt text. Keep it under 800 characters.`
               },
               {
@@ -500,48 +500,6 @@ export async function POST(req: NextRequest) {
       promptsForTasks.push(finalPrompt);
     }
 
-    const controlnetUnits: any[] = [];
-
-    // 1. FACE CONSISTENCY (Face ID Twinning)
-    // Priority: 1. faceReferenceUrl (Golden Face) > 2. imageBase64 (Profile Pic)
-    if (latestCharacter?.faceReferenceUrl) {
-      console.log("🧬 Using golden face reference URL (Twinning Mode)...");
-      controlnetUnits.push({
-        model_name: "ip-adapter_plus_face_xl",
-        weight: 1.0, // Maximum weight for golden reference
-        control_image: latestCharacter.faceReferenceUrl,
-        module_name: "none"
-      });
-    } else if (imageBase64) {
-      console.log("📸 Using profile image for face twinning...");
-      controlnetUnits.push({
-        model_name: "ip-adapter_plus_face_xl",
-        weight: 0.95,
-        control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
-        module_name: "none"
-      });
-    }
-
-    // 2. STYLE/VIBE CONSISTENCY (Optional secondary unit)
-    // Only use profile pic as style hint if it wasn't the primary face source
-    if (latestCharacter?.faceReferenceUrl && imageBase64) {
-      console.log("🎨 Adding secondary style unit for environment/vibe...");
-      controlnetUnits.push({
-        model_name: "ip-adapter_xl",
-        weight: 0.5, // Low weight to avoid overriding the Golden Face
-        control_image: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
-        module_name: "none"
-      });
-    } else if (latestCharacter?.anatomyReferenceUrl) {
-      console.log("🧬 Using anatomy reference URL...");
-      controlnetUnits.push({
-        model_name: "ip-adapter_xl",
-        weight: 0.7,
-        control_image: latestCharacter.anatomyReferenceUrl,
-        module_name: "none"
-      });
-    }
-
     // --- GENERATE IMAGES WITH SEEDREAM 4.5 (PRIMARY) ---
     console.log(`🚀 Generating ${actualImageCount} images with Seedream 4.5 (Masterpiece Engine)...`);
 
@@ -560,7 +518,8 @@ export async function POST(req: NextRequest) {
             steps: 25,
             guidance_scale: finalGuidanceScale,
             style: actualModel.includes('anime') ? 'anime' : 'realistic',
-            controlnet_units: controlnetUnits
+            character: latestCharacter,
+            imageBase64: imageBase64
           });
           return { success: true, image: result.url };
         } catch (e: any) {

@@ -15,6 +15,8 @@ export interface ImageGenerationParams {
   style?: 'realistic' | 'anime';
   guidance_scale?: number;
   controlnet_units?: any[];
+  character?: any; // Add character object for Multi-Referencing Engine
+  imageBase64?: string; // Optional context image
 }
 
 export interface GeneratedImage {
@@ -26,7 +28,7 @@ export interface GeneratedImage {
 
 /**
  * Generate image using Seedream 4.5 (exclusive engine)
- * Features: Ultra-realistic rendering, natural skin textures, superior lighting
+ * Features: Multi-Referencing Engine for character consistency
  */
 export async function generateImage(params: ImageGenerationParams): Promise<GeneratedImage> {
   const { key: NOVITA_API_KEY, error: keyError } = await getUnifiedNovitaKey();
@@ -44,16 +46,98 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     seed = -1,
     style = 'realistic',
     guidance_scale = 3.5,
-    controlnet_units,
+    controlnet_units = [],
+    character,
+    imageBase64,
   } = params;
+
+  // --- MULTI-REFERENCING ENGINE (CORE) ---
+  const finalControlUnits = [...controlnet_units];
+  const identityPrefix = character ? `### IDENTITY LOCK: ${character.name}, ${character.hairColor || character.hair_color || ''} hair, ${character.eyeColor || character.eye_color || ''} eyes. MATCH VISUAL DNA EXACTLY. ### ` : '';
+
+  if (character) {
+    console.log(`🧬 [Multi-Engine] Building identity lock for ${character.name}...`);
+    const referenceImages: { url: string; weight: number; label: string }[] = [];
+
+    // 1. Golden Face Reference
+    if (character.metadata?.face_reference_url || character.face_reference_url) {
+      referenceImages.push({
+        url: character.metadata?.face_reference_url || character.face_reference_url,
+        weight: 1.0,
+        label: "Golden Face"
+      });
+    }
+
+    // 2. Main Profile Image
+    const mainImg = character.image || character.imageUrl || character.image_url;
+    if (mainImg) {
+      referenceImages.push({
+        url: mainImg,
+        weight: 0.85,
+        label: "Main Profile"
+      });
+    }
+
+    // 3. Additional Profile Images
+    const extraImages = character.images || character.metadata?.images || [];
+    if (Array.isArray(extraImages) && extraImages.length > 0) {
+      extraImages.slice(0, 2).forEach((img: string, idx: number) => {
+        referenceImages.push({
+          url: img,
+          weight: 0.75,
+          label: `Additional Ref ${idx + 1}`
+        });
+      });
+    }
+
+    // 4. Context Image (Pose/Vibe)
+    if (imageBase64) {
+      referenceImages.push({
+        url: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
+        weight: 0.6,
+        label: "Context Image"
+      });
+    }
+
+    // Combine into finalControlUnits
+    for (const ref of referenceImages) {
+      try {
+        let cleanUrl = ref.url;
+        // Seedream 4.5 ControlNet requires Base64 for units if not public URLs
+        // Note: We assume the caller handles necessary Base64 conversions if needed, 
+        // but here we ensure internal consistency.
+
+        const isFaceSource = ref.label.includes("Face") || ref.label.includes("Profile");
+
+        finalControlUnits.push({
+          model_name: isFaceSource ? "ip-adapter_plus_face_xl" : "ip-adapter_xl",
+          weight: ref.weight,
+          control_image: cleanUrl,
+          module_name: "none"
+        });
+      } catch (err) {
+        console.warn(`⚠️ [Multi-Engine] Failed reference ${ref.label}:`, err);
+      }
+    }
+
+    // 5. Anatomy Reference
+    if (character.metadata?.anatomy_reference_url || character.anatomy_reference_url) {
+      finalControlUnits.push({
+        model_name: "ip-adapter_xl",
+        weight: 0.7,
+        control_image: character.metadata?.anatomy_reference_url || character.anatomy_reference_url,
+        module_name: "none"
+      });
+    }
+  }
 
   // Enhance prompt based on style - focus on Solitary Intimate Photography
   let enhancedPrompt = style === 'realistic'
-    ? `Solo female raw mobile selfie, unprocessed digital photography, smooth clear skin, lone woman, ${prompt}, natural lighting, ordinary room background, flawless facial features, highly detailed, sharp focus, 8k UHD, wide angle lens, authentic raw photo`
-    : `high-end anime style, ${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
+    ? `Solo female raw mobile selfie, unprocessed digital photography, smooth clear skin, lone woman, ${identityPrefix}${prompt}, natural lighting, ordinary room background, flawless facial features, highly detailed, sharp focus, 8k UHD, wide angle lens, authentic raw photo`
+    : `high-end anime style, ${identityPrefix}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
 
-  if (enhancedPrompt.length > 1000) {
-    enhancedPrompt = enhancedPrompt.substring(0, 1000);
+  if (enhancedPrompt.length > 1200) {
+    enhancedPrompt = enhancedPrompt.substring(0, 1200);
   }
 
   // Seedream 4.5 with retry logic
@@ -64,7 +148,6 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      // 90 second timeout per attempt
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 90000);
 
@@ -81,7 +164,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
           seed: seed === -1 ? Math.floor(Math.random() * 2147483647) : seed,
           steps: steps,
           guidance_scale: guidance_scale,
-          controlnet_units: controlnet_units,
+          controlnet_units: finalControlUnits,
           response_image_type: 'url',
           add_watermark: false,
           watermark: false,
@@ -100,7 +183,6 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
           console.log(`✅ Seedream 4.5 succeeded on attempt ${attempt}`);
 
           let imageUrl = data.images[0];
-          // Add base64 prefix if needed
           if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
             imageUrl = `data:image/jpeg;base64,${imageUrl}`;
           }

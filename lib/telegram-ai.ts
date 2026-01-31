@@ -39,7 +39,7 @@ export async function generateAIGreeting(
             headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: [{ role: 'system', content: prompt }],
-                model: 'deepseek/deepseek-v3',
+                model: 'deepseek/deepseek-r1',
                 temperature: 0.85,
                 max_tokens: 250,
             }),

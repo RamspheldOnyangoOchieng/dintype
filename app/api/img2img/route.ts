@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "deepseek/deepseek-v3",
+        model: "deepseek/deepseek-r1",
         messages: [
           {
             role: "system",
@@ -159,70 +159,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ControlNet units for character consistency (Twinning)
-    const controlnetUnits: any[] = [];
-
-    // 1. FACE REFERENCE - HIGHEST PRIORITY
-    if (latestCharacter?.metadata?.face_reference_url) {
-      try {
-        const { urlToBase64 } = await import("@/lib/image-utils");
-        const b64 = await urlToBase64(latestCharacter.metadata.face_reference_url);
-        controlnetUnits.push({
-          model_name: "ip-adapter_plus_face_xl",
-          weight: 1.0, // Primary face source
-          control_image: b64.replace(/^data:image\/\w+;base64,/, ""),
-          module_name: "none"
-        });
-      } catch (e) {
-        console.warn("Failed to load face reference ControlNet:", e);
-      }
-    }
-
-    // 2. IMAGE BASE (Pose/Style/Vibe)
-    if (imageBase64) {
-      const cleanB64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
-
-      // If we already have a dedicated face reference, use the base image only for style/pose
-      if (latestCharacter?.metadata?.face_reference_url) {
-        controlnetUnits.push({
-          model_name: "ip-adapter_xl",
-          weight: 0.6, // Reference the background/pose without overwriting the face
-          control_image: cleanB64,
-          module_name: "none"
-        });
-      } else {
-        // Fallback: use base image for both
-        controlnetUnits.push({
-          model_name: "ip-adapter_xl",
-          weight: 0.7,
-          control_image: cleanB64,
-          module_name: "none"
-        });
-        controlnetUnits.push({
-          model_name: "ip-adapter_plus_face_xl",
-          weight: 0.95,
-          control_image: cleanB64,
-          module_name: "none"
-        });
-      }
-    }
-
-    // 3. ANATOMY REFERENCE
-    if (latestCharacter?.metadata?.anatomy_reference_url) {
-      try {
-        const { urlToBase64 } = await import("@/lib/image-utils");
-        const b64 = await urlToBase64(latestCharacter.metadata.anatomy_reference_url);
-        controlnetUnits.push({
-          model_name: "ip-adapter_xl",
-          weight: 0.5,
-          control_image: b64.replace(/^data:image\/\w+;base64,/, ""),
-          module_name: "none"
-        });
-      } catch (e) {
-        console.warn("Failed to load anatomy reference ControlNet:", e);
-      }
-    }
-
     const negativePromptBase = `husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust`;
 
     let finalNegativePrompt = negativePromptBase;
@@ -233,8 +169,8 @@ export async function POST(req: NextRequest) {
       finalNegativePrompt = `${negativePrompt}, ${finalNegativePrompt}`;
     }
 
-    // Generate image using the unified library (handles Seedream 4.5 + retry + fallback)
-    console.log("🚀 Starting generation via unified library...");
+    // Generate image using the unified library (handles Seedream 4.5 + Multi-Referencing Engine)
+    console.log("🚀 Starting generation via unified library [Multi-Engine]...");
     const result = await generateImage({
       prompt: finalPrompt,
       negativePrompt: finalNegativePrompt,
@@ -242,7 +178,8 @@ export async function POST(req: NextRequest) {
       height: 2400,
       steps: 25,
       guidance_scale: 3.5, // Seedream 4.5 sweet spot
-      controlnet_units: controlnetUnits
+      character: latestCharacter,
+      imageBase64: imageBase64
     });
 
     if (result.url) {

@@ -52,7 +52,7 @@ import { MeetOnTelegramButton } from "@/components/meet-on-telegram-button"
 import { WelcomeMessage } from "@/components/welcome-message"
 import { toast } from "sonner"
 import { ImageGenerationLoading } from "@/components/image-generation-loading"
-import { generateDailyGreeting, generatePhotoCaption } from "@/lib/ai-greetings"
+import { generateDailyGreeting } from "@/lib/ai-greetings"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -154,6 +154,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const [sentChapterImages, setSentChapterImages] = useState<string[]>([]) // Track unique images sent in THIS chapter
   const [chapterMessageCount, setChapterMessageCount] = useState(0) // Track how many messages sent in THIS chapter
   const [chapterImageIndex, setChapterImageIndex] = useState(0)
+  const [totalChapters, setTotalChapters] = useState(0)
   const [isLoadingStory, setIsLoadingStory] = useState(false)
 
   // Use a ref for the interval to ensure we always have the latest reference
@@ -390,16 +391,27 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         if (lastDaily !== today) {
           setIsSendingMessage(true);
 
-          // Construct story context if available
-          const storyCtx = chapter ? `We are currently in Chapter ${chapter.chapter_number}: ${chapter.title}. ${chapter.content?.context || ""}` : "";
+          // Enhanced Story Context with Full Chapter Details
+          const chapterDetails = chapter ? {
+            number: chapter.chapter_number,
+            title: chapter.title,
+            tone: chapter.tone || "romantic",
+            description: chapter.description || "",
+            openingMessage: chapter.content?.opening_message || null,
+          } : null;
+
+          const storyCtx = chapterDetails
+            ? `Storyline Active: Chapter ${chapterDetails.number} - "${chapterDetails.title}". Tone: ${chapterDetails.tone}. ${chapterDetails.description}`
+            : "";
 
           setTimeout(async () => {
             try {
               // 1. Determine Greeting (Prioritize Storyline Opening Message)
               let aiGreeting = "";
-              if (chapter?.content?.opening_message) {
+              if (chapterDetails?.openingMessage) {
                 console.log("📖 Using Storyline Opening Message");
-                aiGreeting = chapter.content.opening_message;
+                // Use the Opening Message as the base, but let AI add a personal touch
+                aiGreeting = chapterDetails.openingMessage;
               } else {
                 aiGreeting = await generateDailyGreeting(
                   charId,
@@ -423,45 +435,43 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               saveMessageToDatabase(charId, morningMsg); // Sync to DB
               localStorage.setItem(`last_daily_msg_${charId}`, today);
 
-              // 2. If chapter has images, send one too
+              // 2. If chapter has images, send one intelligently
               const chImages = (chapter?.content?.chapter_images || []).filter((img: any) =>
                 typeof img === 'string' && img.length > 0 && img.startsWith('http')
               );
+              const chImagesMeta = (chapter?.content?.chapter_image_metadata || []);
 
               if (chImages.length > 0) {
-                const randomImg = chImages[Math.floor(Math.random() * chImages.length)];
-
-                // Generate AI Caption for the specific image context if possible
-                const aiCaption = await generatePhotoCaption(
-                  character?.name || "Character",
-                  character?.system_prompt || character?.systemPrompt || "",
-                  "A special morning photo just for you",
-                  !!user?.isPremium,
-                  storyCtx
-                );
+                // Pick first unsent image, or fallback to first
+                const currentlySent = sentChapterImages || [];
+                const nextImgIdx = chImages.findIndex((img: string) => !currentlySent.includes(img));
+                const selectedIdx = nextImgIdx !== -1 ? nextImgIdx : 0;
+                const selectedImg = chImages[selectedIdx];
 
                 const imgMsg: Message = {
                   id: `daily-img-${Date.now()}`,
                   role: "assistant",
-                  content: aiCaption,
+                  content: "",
                   isImage: true,
-                  imageUrl: randomImg,
+                  imageUrl: selectedImg,
                   timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
                 };
                 setMessages(prev => [...prev, imgMsg]);
                 saveMessageToLocalStorage(charId, imgMsg);
+                setSentChapterImages(prev => [...new Set([...prev, selectedImg])]);
+                setChapterSubProgress(prev => Math.min(6, prev + 1));
 
                 // Save image message to DB
                 fetch('/api/messages', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
-                    session_id: charId, // Local storage uses charId as sessionId often
+                    session_id: charId,
                     user_id: user?.id,
                     role: 'assistant',
-                    content: aiCaption,
+                    content: "",
                     is_image: true,
-                    image_url: randomImg
+                    image_url: selectedImg
                   })
                 }).catch(err => console.error("Failed to sync daily image to DB:", err));
               }
@@ -475,6 +485,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       };
 
       const loadStory = async () => {
+        const supabase = createClient()
         try {
           let prog = await getStoryProgress(user.id, characterId)
 
@@ -487,14 +498,24 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
           if (prog) {
             setStoryProgress(prog)
+
+            // Fetch total chapters count for progress bar
+            const { count } = await supabase
+              .from("story_chapters")
+              .select("*", { count: 'exact', head: true })
+              .eq("character_id", characterId);
+            setTotalChapters(count || 0);
+
             if (!prog.is_completed) {
               const ch = await getChapter(characterId, prog.current_chapter_number)
               setCurrentChapter(ch)
 
-              // Calculate initial sub-progress
-              const history = getChatHistoryFromLocalStorage(characterId)
-              const subSteps = Math.min(6, Math.floor((history?.length || 0) / 5))
-              setChapterSubProgress(subSteps)
+              // Calculate initial sub-progress based on history
+              const history = await loadChatHistoryDB(characterId, user.id);
+              const chImagesSeen = new Set(history.filter(m => m.isImage && m.imageUrl).map(m => m.imageUrl));
+              setSentChapterImages(Array.from(chImagesSeen) as string[]);
+              setChapterSubProgress(Math.min(6, chImagesSeen.size));
+              setChapterMessageCount(history.length);
 
               // Trigger Daily Message
               checkTriggerDailyMessage(characterId, ch)
@@ -512,32 +533,46 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
   // Load characters with chat history (SORTED)
   useEffect(() => {
-    if (!isMounted) return
+    if (!isMounted || !user?.id) return
 
-    try {
-      // 1. Get explicitly ordered recent chats
-      const recentIds = getRecentConversations()
+    const loadHistorySync = async () => {
+      const supabase = createClient()
+      try {
+        // 1. Get explicitly ordered recent chats from local storage
+        const recentIds = getRecentConversations()
 
-      // 2. Find any other characters that have history but aren't in the recent list (migration for existing data)
-      const otherIds = characters
-        .filter((c) => !recentIds.includes(c.id))
-        .filter((character) => {
-          const history = getChatHistoryFromLocalStorage(character.id)
-          return history && history.length > 0
-        })
-        .map((character) => character.id)
+        // 2. Fetch characters with history from Database
+        const { data: dbSessions } = await supabase
+          .from('conversation_sessions')
+          .select('character_id')
+          .eq('user_id', user.id)
+          .eq('is_archived', false)
+          .order('updated_at', { ascending: false });
 
-      // Combine: Recent first, then others
-      const allIds = [...recentIds, ...otherIds]
+        const dbCharIds = (dbSessions as any[] || []).map(s => s.character_id);
 
-      // Filter out any IDs that don't exist in our characters list anymore (cleanup)
-      const validIds = allIds.filter(id => characters.some(c => c.id === id))
+        // 3. Find any other characters that have local history
+        const localCharIds = characters
+          .filter((character) => {
+            const history = getChatHistoryFromLocalStorage(character.id)
+            return history && history.length > 0
+          })
+          .map((character) => character.id)
 
-      setChatsWithHistory(validIds)
-    } catch (error) {
-      console.error("Failed to load characters with history:", error)
+        // Combine: Recent first, then DB, then local
+        const allIds = Array.from(new Set([...recentIds, ...dbCharIds, ...localCharIds]))
+
+        // Filter out any IDs that don't exist in our characters list anymore
+        const validIds = allIds.filter(id => characters.some(c => c.id === id))
+
+        setChatsWithHistory(validIds)
+      } catch (error) {
+        console.error("Failed to load characters with history:", error)
+      }
     }
-  }, [characters, isMounted, messages])
+
+    loadHistorySync()
+  }, [characters, isMounted, messages, user?.id])
 
   useEffect(() => {
     if (!isMounted || !user?.id) return
@@ -967,7 +1002,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         const imageMessage: Message = {
           id: Math.random().toString(36).substring(2, 15),
           role: "assistant",
-          content: ".",
+          content: "",
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           isImage: true,
           imageUrl: Array.isArray(responseData.images) ? responseData.images[0] : responseData.images,
@@ -980,48 +1015,6 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         // AWAIT these to prevent race conditions during history reloads
         await saveMessageToDatabase(characterId!, imageMessage)
         await handleSaveImage(imageMessage.imageUrl!, imageMessage.imagePrompt, true)
-
-        // Get a natural response from the character about the photo
-        setTimeout(async () => {
-          try {
-            console.log("📝 Requesting AI caption for photo...");
-            const captionResponse = await fetch("/api/chat/caption", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                characterName: character?.name || "Character",
-                systemPrompt: character?.system_prompt || character?.systemPrompt || "",
-                photoContext: prompt,
-                isPremium: !!user?.isPremium,
-                storyContext: storyProgress && !storyProgress.is_completed ? `We are in Chapter ${storyProgress.current_chapter_number}` : "",
-                imageUrl: imageMessage.imageUrl
-              })
-            });
-
-            let aiCaption = `Here's a little something for you... 😘`;
-            if (captionResponse.ok) {
-              const captionData = await captionResponse.json();
-              if (captionData.caption) {
-                aiCaption = captionData.caption;
-              }
-            } else {
-              console.warn("⚠️ Caption API returned an error, using fallback");
-            }
-
-            const reactionMsg: Message = {
-              id: `reaction-${Date.now()}`,
-              role: "assistant",
-              content: aiCaption,
-              timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            };
-
-            setMessages((prev) => [...prev, reactionMsg]);
-            saveMessageToLocalStorage(characterId!, reactionMsg);
-            saveMessageToDatabase(characterId!, reactionMsg);
-          } catch (err) {
-            console.error("Failed to get natural response for photo:", err);
-          }
-        }, 1000);
 
         currentTaskIdRef.current = null
         isProcessingImageRef.current = false
@@ -1295,19 +1288,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             }
 
             const nextImg = bestMatchImg || chImages.find((img) => !sentChapterImages.includes(img)) || chImages[0]
-            const aiCaption = await generatePhotoCaption(
-              character?.name || "Character",
-              character?.system_prompt || character?.systemPrompt || "",
-              "A story chapter photo",
-              !!user?.isPremium,
-              `We are in Chapter ${currentChapter?.chapter_number || 1}: ${currentChapter?.title || 'Current Chapter'}.`,
-              nextImg
-            );
 
             const storyImgMsg: Message = {
               id: `story-img-${Date.now()}`,
               role: "assistant",
-              content: aiCaption,
+              content: "",
               isImage: true,
               imageUrl: nextImg,
               timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -1396,18 +1381,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           if (shouldSendImage && chImages.length > 0) {
             const nextImg = chImages.find(img => !sentChapterImages.includes(img))
             if (nextImg) {
-              const aiCaption = await generatePhotoCaption(
-                character?.name || "Character",
-                character?.system_prompt || character?.systemPrompt || "",
-                "An automated story update photo",
-                !!user?.isPremium,
-                `Chapter ${currentChapter.chapter_number}`,
-                nextImg
-              );
               const storyImgMsg: Message = {
                 id: `story-auto-img-${Date.now()}`,
                 role: "assistant",
-                content: aiCaption,
+                content: "",
                 isImage: true,
                 imageUrl: nextImg,
                 timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -1569,6 +1546,17 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     } catch (error) {
       console.error("Error clearing chat:", error)
       setDebugInfo((prev) => ({ ...prev, lastError: error, lastAction: "clearChatError" }))
+
+      // Set default message on error
+      setMessages([
+        {
+          id: `error-welcome-${characterId}`,
+          role: "assistant",
+          content: `Hey there, my love... 💕 I'm ${character?.name || 'your companion'}. I've been waiting for someone like you. Tell me... what brings you here tonight? 🌹`,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          isWelcome: true
+        },
+      ])
     } finally {
       if (isMounted) {
         setIsClearingChat(false)
@@ -1720,27 +1708,48 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
         {/* Header & Story Progress - Unified Sticky Area */}
         <div className="flex-shrink-0 z-50 sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
-          {storyProgress && !storyProgress.is_completed && currentChapter && (
-            <div className="px-4 py-3 border-b border-border/50">
+          {storyProgress && currentChapter && (
+            <div className="px-4 py-3 border-b border-border/50 bg-amber-500/5">
               <div className="flex justify-between items-center mb-2 text-[10px] md:text-xs">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded flex items-center gap-1">
-                    <Sparkles className="h-2.5 w-2.5" /> Chapter {storyProgress.current_chapter_number}
+                    <Sparkles className="h-2.5 w-2.5" />
+                    {storyProgress.is_completed ? "Story Completed" : `Chapter ${storyProgress.current_chapter_number} of ${totalChapters || '?'}`}
                   </span>
-                  <span className="text-foreground/70 font-medium truncate max-w-[120px] md:max-w-[150px]">{currentChapter.title}</span>
+                  {!storyProgress.is_completed && (
+                    <span className="text-foreground/70 font-medium truncate max-w-[120px] md:max-w-[150px]">{currentChapter.title}</span>
+                  )}
                 </div>
-                <span className="text-muted-foreground font-mono">
-                  {chapterSubProgress}/6 Images
-                </span>
+                {!storyProgress.is_completed && (
+                  <span className="text-muted-foreground font-mono">
+                    {chapterSubProgress}/6 Teasing Images
+                  </span>
+                )}
               </div>
-              <div className="flex gap-1 h-1">
-                {Array.from({ length: currentChapter?.content?.chapter_images?.length || 6 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={`flex-1 rounded-full transition-all duration-500 ${i < chapterSubProgress ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]' : 'bg-secondary'}`}
-                  />
-                ))}
-              </div>
+
+              {!storyProgress.is_completed && (
+                <div className="space-y-1.5 mt-1">
+                  {/* Overall Story Progress */}
+                  <div className="flex gap-1 h-1">
+                    {Array.from({ length: totalChapters || 1 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`flex-1 rounded-full transition-all duration-500 ${i < (storyProgress?.current_chapter_number || 0) ? 'bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]' : 'bg-secondary'}`}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Current Chapter Sub-Progress (Teasing) */}
+                  <div className="flex gap-0.5 h-0.5 opacity-60">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`flex-1 rounded-full transition-all duration-500 ${i < chapterSubProgress ? 'bg-amber-400' : 'bg-white/10'}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -2266,7 +2275,6 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       onError={() => handleImageError("profile")}
                       loading="lazy"
                     />
-
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-90" />
 
                     {/* Navigation Arrows */}
