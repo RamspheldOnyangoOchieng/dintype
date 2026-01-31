@@ -340,9 +340,9 @@ async function generateAIResponse(
             headers: { 'Authorization': `Bearer ${apiKey.trim()}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 messages: apiMessages,
-                model: 'deepseek/deepseek-r1',
-                temperature: 0.8,
-                max_tokens: 350,
+                model: 'deepseek/deepseek-v3.1',
+                temperature: 0.9,
+                max_tokens: 450,
             }),
         });
 
@@ -398,7 +398,7 @@ async function enhanceImagePrompt(userPrompt: string, characterDescription: stri
                 Authorization: `Bearer ${apiKey}`,
             },
             body: JSON.stringify({
-                model: "deepseek/deepseek-r1-turbo",
+                model: "deepseek/deepseek-v3.1",
                 messages: [
                     {
                         role: "system",
@@ -693,7 +693,7 @@ export async function POST(request: NextRequest) {
             // Handle /start command
             if (text.startsWith('/start')) {
                 // Set the permanent menu button for this user immediately
-                await setChatMenuButton(chatId);
+                setChatMenuButton(chatId).catch(e => console.error("Menu button error:", e));
 
                 const linkCode = text.split(' ')[1];
 
@@ -1149,8 +1149,8 @@ export async function POST(request: NextRequest) {
                             const result = await generateImage({
                                 prompt: enhancedPrompt,
                                 negativePrompt: baseNegative,
-                                width: 1024,
-                                height: 1536,
+                                width: 1600,
+                                height: 2400,
                                 style: 'realistic',
                                 character: character, // Full Multi-Referencing Engine
                                 imageBase64: userUploadedImageUrl || undefined // Handle user-uploaded context for img2img style

@@ -22,7 +22,7 @@ const getTokenCost = (imageCount: number = 1): number => {
   return 5 * count
 }
 
-const DEFAULT_NEGATIVE_PROMPT = "man, male, boy, gentleman, husband, boyfriend, couple, together, two people, multiple people, group of people, partner, companion, another person, lady and man, man and woman, second person, studio lighting, harsh light, orange light, makeup, airbrushed, corporate portrait, anime, illustration, cartoon, drawing, painting, digital art, stylized, cgi, 3d render, unreal, wrinkles, old, aged, grainy, artifacts, noise, grit, dots, freckles, spots, blotchy skin, rough skin, acne, skin texture artifacts, messy skin, high contrast, over-processed, saturated, deformed, extra fingers, malformed hands, fused fingers, missing fingers, extra limbs, extra bodies, mutilated, gross proportions, bad anatomy, symmetrical face, smooth skin, plastic skin, waxy skin, rubbery skin, unnatural skin, plasticity, over-smooth, airbrushed look, composite image, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, multiview, card, frame, border, comparison, side by side, collage layout, photo grid, vertical split, horizontal split, montage, comic strip, collection of images, duplicate subject, mirror image, screenshot, multi-panel, panels, quad, grid-layout, contact sheet, storyboard panels, sequence, comparison shot, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, melted limbs, anatomical nonsense, floating hair, disconnected body, twisted joints";
+const DEFAULT_NEGATIVE_PROMPT = "man, male, boy, gentleman, husband, boyfriend, couple, together, two people, multiple people, group of people, partner, companion, another person, lady and man, man and woman, second person, studio lighting, harsh light, orange light, makeup, airbrushed, corporate portrait, anime, illustration, cartoon, drawing, painting, digital art, stylized, cgi, 3d render, unreal, wrinkles, old, aged, grainy, artifacts, noise, grit, dots, freckles, spots, blotchy skin, rough skin, acne, skin texture artifacts, messy skin, high contrast, over-processed, saturated, deformed, extra fingers, malformed hands, fused fingers, missing fingers, extra limbs, extra bodies, mutilated, gross proportions, bad anatomy, symmetrical face, smooth skin, plastic skin, waxy skin, rubbery skin, unnatural skin, plasticity, over-smooth, airbrushed look, composite image, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, multiview, card, frame, border, comparison, side by side, collage layout, photo grid, vertical split, horizontal split, montage, comic strip, collection of images, duplicate subject, mirror image, screenshot, multi-panel, panels, quad, grid-layout, contact sheet, storyboard panels, sequence, comparison shot, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, melted limbs, anatomical nonsense, floating hair, disconnected body, twisted joints, standing straight, mannequin, stiff pose, t-pose, symmetry, static posture, cross-eyed, blurry eyes, soft face, out of focus face, low detail face, small face, miniature person";
 
 /**
  * Get webhook URL for Novita callbacks
@@ -392,6 +392,7 @@ export async function POST(req: NextRequest) {
     // --- START PROMPT ENHANCEMENT ---
     console.log("✨ Enhancing prompt for high-end results...");
     let finalPrompt = prompt;
+    let promptsForTasks: string[] = [];
 
     try {
       const { key: novitaApiKey } = await getUnifiedNovitaKey();
@@ -403,7 +404,7 @@ export async function POST(req: NextRequest) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'deepseek/deepseek-r1',
+            model: 'deepseek/deepseek-v3.1',
             messages: [
               {
                 role: 'system',
@@ -450,12 +451,12 @@ export async function POST(req: NextRequest) {
 
                 Style: ${actualModel.includes('anime') || actualModel.includes('dreamshaper') ? 'High-end stylized anime/illustration' : 'Breathtaking photorealistic photography'}. 
                 COMPOSITION: Unless a portrait is specified, default to a full-body or dynamic mid-shot in a rich, specific environment.
-                VARIETY: DO NOT repeat poses or environments. If the user prompt is simple, invent a complex, high-contrast, atmospheric setting and a dynamic interaction (e.g. crouching, sitting cross-legged, leaning against a rainy window, walking through tall grass).
-                FACIAL DETAIL: Explicitly describe sharp focus on the eyes and facial skin textures in every output.`
+                VARIETY: Generate ${actualImageCount} DISTINCT scenarios. Each MUST have a unique pose (NOT standing still) and a unique setting.
+                FORMAT: Return as a JSON array ["Prompt 1", "Prompt 2", ...]`
               }
             ],
-            max_tokens: 400,
-            temperature: 0.6,
+            max_tokens: 1200,
+            temperature: 0.7,
           }),
         });
 
@@ -463,21 +464,63 @@ export async function POST(req: NextRequest) {
           const enhancementData = await enhancementResponse.json();
           const enhancedText = enhancementData.choices?.[0]?.message?.content;
           if (enhancedText) {
-            console.log("✅ Prompt enhanced successfully");
-            let cleanedPrompt = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+            console.log("✅ Prompt(s) enhanced successfully");
+            let cleanedOutput = enhancedText.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
 
-            const identityPrefix = latestCharacter ? `### IDENTITY : ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes. ### ` : '';
-            const frameMandate = `(ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (solo:1.3), `;
-            cleanedPrompt = identityPrefix + frameMandate + cleanedPrompt;
-            finalPrompt = cleanedPrompt.length > 1000 ? cleanedPrompt.substring(0, 1000) : cleanedPrompt;
+            let promptsToUse: string[] = [];
+            let isMultiPrompt = false;
+
+            // Try to extract JSON array if multiple images requested
+            const jsonMatch = cleanedOutput.match(/\[[\s\S]*\]/);
+            if (jsonMatch) {
+              try {
+                const parsed = JSON.parse(jsonMatch[0]);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  promptsToUse = parsed;
+                  isMultiPrompt = true;
+                }
+              } catch (e) {
+                console.warn("⚠️ Failed to parse prompts JSON array:", e);
+              }
+            }
+
+            if (!isMultiPrompt) {
+              promptsToUse = [cleanedOutput.replace(/^"|"$/g, '')];
+            }
+
+            // Enhanced identity and quality prefixes for facial clarity
+            const identityPrefix = latestCharacter ? `### IDENTITY : (hyper-focused face:1.3), (sharp detailed eyes:1.4), (visible skin pores:1.3), ${latestCharacter.name}, (natural ${latestCharacter.hairColor || 'natural'} hair:1.2). ### ` : '### IDENTITY : (hyper-focused face:1.3), (sharp detailed eyes:1.4), (visible skin pores:1.3). ### ';
+            const frameMandate = `(ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (solo:1.3), (candid:1.3), (dynamic pose:1.2), `;
+
+            // Map individual prompts with prefixes
+            promptsForTasks = promptsToUse.slice(0, actualImageCount).map(p => {
+              const fullP = identityPrefix + frameMandate + p;
+              return fullP.length > 1500 ? fullP.substring(0, 1500) : fullP;
+            });
+
+            // Fill remaining slots if fewer prompts than images
+            while (promptsForTasks.length < actualImageCount) {
+              promptsForTasks.push(promptsForTasks[promptsForTasks.length - 1]);
+            }
+
+            finalPrompt = promptsForTasks[0];
           }
         } else {
           console.warn("⚠️ Prompt enhancement failed (response not ok), using original prompt");
+          const identityPrefix = latestCharacter ? `### IDENTITY : (hyper-focused face:1.3), (sharp detailed eyes:1.4), ${latestCharacter.name}. ### ` : '';
+          for (let i = 0; i < actualImageCount; i++) {
+            promptsForTasks.push(identityPrefix + prompt);
+          }
+          finalPrompt = promptsForTasks[0];
         }
       }
     } catch (e) {
       console.error("❌ Error during prompt enhancement:", e);
-      // Fallback to original prompt silently
+      const identityPrefix = latestCharacter ? `### IDENTITY : (hyper-focused face:1.3), (sharp detailed eyes:1.4), ${latestCharacter.name}. ### ` : '';
+      for (let i = 0; i < actualImageCount; i++) {
+        promptsForTasks.push(identityPrefix + prompt);
+      }
+      finalPrompt = promptsForTasks[0];
     }
     // --- END PROMPT ENHANCEMENT ---
 
@@ -492,13 +535,13 @@ export async function POST(req: NextRequest) {
     console.log(`🛡️  NSFW Policy: ${enforceSFW ? 'ENFORCE SFW' : 'ALLOW NSFW'} (Cost: ${tokenCost}, Admin: ${isAdmin}, Premium: ${isPremium})`)
 
     const taskIds: string[] = [];
-    const promptsForTasks: string[] = [];
 
-    for (let i = 0; i < actualImageCount; i++) {
-      // Standardize all prompts in the batch to be identical
-      // This ensures the user gets multiple variations of the EXACT same scenario/character
-      // rather than forcing different environments like mountains or beaches.
-      promptsForTasks.push(finalPrompt);
+    // Ensure promptsForTasks has been populated
+    if (promptsForTasks.length === 0) {
+      const identityPrefix = latestCharacter ? `### IDENTITY : (hyper-focused face:1.3), (sharp detailed eyes:1.4), ${latestCharacter.name}. ### ` : '';
+      for (let i = 0; i < actualImageCount; i++) {
+        promptsForTasks.push(identityPrefix + prompt);
+      }
     }
 
     // --- GENERATE IMAGES WITH SEEDREAM 4.5 (PRIMARY) ---
