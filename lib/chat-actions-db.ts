@@ -288,7 +288,7 @@ export async function sendChatMessageDB(
                 session_id: sessionId,
                 user_id: userId,
                 role: 'assistant',
-                content: "",
+                content: "📷 [Photo]",
                 is_image: true,
                 image_url: bestImg
               });

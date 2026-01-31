@@ -78,10 +78,18 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { characterId, content, role = "user", isImage = false, imageUrl = null, metadata = {} } = body
+    const {
+      characterId,
+      content,
+      role = "user",
+      metadata = {}
+    } = body
 
-    if (!characterId || !content) {
-      return NextResponse.json({ success: false, error: "characterId and content are required" }, { status: 400 })
+    const isImage = body.isImage || body.is_image || false
+    const imageUrl = body.imageUrl || body.image_url || null
+
+    if (!characterId || (!content && !isImage)) {
+      return NextResponse.json({ success: false, error: "characterId and content (or an image) are required" }, { status: 400 })
     }
 
     const supabase = await createClient() as any

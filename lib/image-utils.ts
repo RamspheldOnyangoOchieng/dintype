@@ -15,8 +15,12 @@ export const isAskingForImage = (message: string): boolean => {
   if (standaloneTriggers.includes(lowerCaseMessage)) return true;
 
   // 1. High-intent direct keywords (Standalone triggers)
-  const directKeywords = ["image", "picture", "selfie", "photo", "pic", "pics", "draw", "generate", "create", "teckna", "bild", "foto"];
+  const directKeywords = ["image", "picture", "selfie", "photo", "pic", "pics", "draw", "generate", "create", "teckna", "bild", "foto", "pantry", "nude", "nudes"];
   if (directKeywords.some(k => lowerCaseMessage.includes(k))) return true;
+
+  // 1b. Specific phrases
+  const directPhrases = ["send your", "show your", "send me your", "show me your", "how you look", "what you look like", "send pic", "send photo"];
+  if (directPhrases.some(p => lowerCaseMessage.includes(p))) return true;
 
   // 2. Clear intent phrases
   const intentPhrases = [

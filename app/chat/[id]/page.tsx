@@ -454,7 +454,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 const imgMsg: Message = {
                   id: `daily-img-${Date.now()}`,
                   role: "assistant",
-                  content: "",
+                  content: "📷 [Photo]",
                   isImage: true,
                   imageUrl: selectedImg,
                   timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -465,18 +465,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 setChapterSubProgress(prev => Math.min(6, prev + 1));
 
                 // Save image message to DB
-                fetch('/api/messages', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    session_id: charId,
-                    user_id: user?.id,
-                    role: 'assistant',
-                    content: "",
-                    is_image: true,
-                    image_url: selectedImg
-                  })
-                }).catch(err => console.error("Failed to sync daily image to DB:", err));
+                saveMessageToDatabase(charId, imgMsg).catch(err => console.error("Failed to sync daily image to DB:", err));
               }
             } catch (err) {
               console.error("Failed to execute daily AI greeting:", err);
@@ -1362,7 +1351,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             const storyImgMsg: Message = {
               id: `story-img-${Date.now()}`,
               role: "assistant",
-              content: "",
+              content: "📷 [Photo]",
               isImage: true,
               imageUrl: nextImg,
               timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -1457,7 +1446,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               const storyImgMsg: Message = {
                 id: `story-auto-img-${Date.now()}`,
                 role: "assistant",
-                content: "",
+                content: "📷 [Photo]",
                 isImage: true,
                 imageUrl: nextImg,
                 timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
