@@ -185,6 +185,38 @@ RULES:
     return storyContext;
 }
 
+/**
+ * Clean up AI response to remove meta-talk, instructions, and name prefixes
+ */
+function sanitizeAIResponse(content: string, characterName: string): string {
+    if (!content) return "";
+
+    let sanitized = content.replace(/<think>[\s\S]*?<\/think>/gi, '');
+
+    // Remove "CharacterName:" or "CharacterName -" prefixes
+    const namePrefixRegex = new RegExp(`^(${characterName}|Character|AI)\\s*[:\\-]\\s*`, 'i');
+    sanitized = sanitized.replace(namePrefixRegex, '');
+
+    // Remove common AI meta-talk prefixes
+    const metaTalkPrefixes = [
+        /^Ok, here you are:\s*/i,
+        /^Here's a response:\s*/i,
+        /^Sure, here's what I'd say:\s*/i,
+        /^\[Response\]\s*/i,
+        /^Message:\s*/i
+    ];
+
+    for (const prefix of metaTalkPrefixes) {
+        sanitized = sanitized.replace(prefix, '');
+    }
+
+    // Remove any instruction lines if the AI accidentally included them
+    sanitized = sanitized.replace(/^(-\s*(AVOID|DO NOT|Reference|Strictly|Output).*(\n|$))+/gm, '');
+
+    // Final clean up of quotes and whitespace
+    return sanitized.replace(/^["']|["']$/g, '').trim();
+}
+
 // Generate AI response using same logic as web chat
 async function generateAIResponse(
     userMessage: string,
@@ -372,7 +404,7 @@ async function generateAIResponse(
             if (fallbackRes.ok) {
                 const fbData = await fallbackRes.json();
                 let fbContent = fbData.choices?.[0]?.message?.content || "I'm here... 💕";
-                return fbContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+                return sanitizeAIResponse(fbContent, characterName);
             }
 
             return `I hit a small snag (Error ${errStatus}). Let's try again? 💕`;
@@ -380,7 +412,7 @@ async function generateAIResponse(
 
         const data = await response.json();
         let content = data.choices?.[0]?.message?.content || "I'm feeling a bit shy... 💕";
-        return content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+        return sanitizeAIResponse(content, characterName);
     } catch (error: any) {
         console.error('[Telegram] Network Error:', error);
         return "I'm having a hard time reaching the server. 💕";

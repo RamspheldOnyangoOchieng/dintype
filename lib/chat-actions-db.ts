@@ -4,6 +4,38 @@ import { checkMessageLimit, incrementMessageUsage, getUserPlanInfo, deductTokens
 import { checkMonthlyBudget, logApiCost } from "./budget-monitor";
 import { isAskingForImage } from "./image-utils";
 
+/**
+ * Clean up AI response to remove meta-talk, instructions, and name prefixes
+ */
+function sanitizeAIResponse(content: string, characterName: string): string {
+  if (!content) return "";
+
+  let sanitized = content.replace(/<think>[\s\S]*?<\/think>/gi, '');
+
+  // Remove "CharacterName:" or "CharacterName -" prefixes
+  const namePrefixRegex = new RegExp(`^(${characterName}|Character|AI)\\s*[:\\-]\\s*`, 'i');
+  sanitized = sanitized.replace(namePrefixRegex, '');
+
+  // Remove common AI meta-talk prefixes
+  const metaTalkPrefixes = [
+    /^Ok, here you are:\s*/i,
+    /^Here's a response:\s*/i,
+    /^Sure, here's what I'd say:\s*/i,
+    /^\[Response\]\s*/i,
+    /^Message:\s*/i
+  ];
+
+  for (const prefix of metaTalkPrefixes) {
+    sanitized = sanitized.replace(prefix, '');
+  }
+
+  // Remove any instruction lines if the AI accidentally included them
+  sanitized = sanitized.replace(/^(-\s*(AVOID|DO NOT|Reference|Strictly|Output).*(\n|$))+/gm, '');
+
+  // Final clean up of quotes and whitespace
+  return sanitized.replace(/^["']|["']$/g, '').trim();
+}
+
 // Helper to detect language
 function detectLanguage(text: string): string {
   const swedishWords = ["hej", "hur", "mår", "du", "jag", "är", "en", "bra", "dag", "älskar", "dig"];
@@ -434,9 +466,8 @@ ${branchInfo}
     const data = await response.json();
     let aiResponseContent = data.choices?.[0]?.message?.content || "";
 
-    // STRIP DEEPSEEK THINKING TAGS AND ALL ASTERISKS
-    const sanitizedResponse = aiResponseContent.replace(/<think>[\s\S]*?<\/think>/g, '').replace(/\*/g, '').trim();
-    aiResponseContent = sanitizedResponse;
+    // STRIP DEEPSEEK THINKING TAGS, ALL ASTERISKS, AND META-TALK
+    aiResponseContent = sanitizeAIResponse(aiResponseContent, characterData.name).replace(/\*/g, '');
 
     if (!aiResponseContent) throw new Error("Empty AI response");
 

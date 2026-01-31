@@ -3,6 +3,38 @@
 import { createAdminClient } from "./supabase-admin"
 
 /**
+ * Clean up AI response to remove meta-talk, instructions, and name prefixes
+ */
+function sanitizeAIResponse(content: string, characterName: string): string {
+    if (!content) return "";
+
+    let sanitized = content.replace(/<think>[\s\S]*?<\/think>/gi, '');
+
+    // Remove "CharacterName:" or "CharacterName -" prefixes
+    const namePrefixRegex = new RegExp(`^(${characterName}|Character|AI)\\s*[:\\-]\\s*`, 'i');
+    sanitized = sanitized.replace(namePrefixRegex, '');
+
+    // Remove common AI meta-talk prefixes
+    const metaTalkPrefixes = [
+        /^Ok, here you are:\s*/i,
+        /^Here's a response:\s*/i,
+        /^Sure, here's what I'd say:\s*/i,
+        /^\[Response\]\s*/i,
+        /^Message:\s*/i
+    ];
+
+    for (const prefix of metaTalkPrefixes) {
+        sanitized = sanitized.replace(prefix, '');
+    }
+
+    // Remove any instruction lines if the AI accidentally included them
+    sanitized = sanitized.replace(/^(-\s*(AVOID|DO NOT|Reference|Strictly|Output).*(\n|$))+/gm, '');
+
+    // Final clean up of quotes and whitespace
+    return sanitized.replace(/^["']|["']$/g, '').trim();
+}
+
+/**
  * Generate a dynamic AI greeting for the daily morning message
  * This automatically follows all system prompt rules (no asterisks, correct tone, etc.)
  */
@@ -74,7 +106,7 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
             return fallbackGreeting;
         }
 
-        return content;
+        return sanitizeAIResponse(content, characterName);
 
     } catch (error) {
         console.error("Failed to generate daily greeting:", error);
@@ -161,7 +193,7 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
 
                     if (visionContent && visionContent.length >= 5) {
                         console.log(`✅ [generatePhotoCaption] Vision caption generated: "${visionContent.substring(0, 50)}..."`);
-                        return visionContent;
+                        return sanitizeAIResponse(visionContent, characterName);
                     }
                 } else {
                     const errorText = await visionResponse.text();
@@ -217,7 +249,7 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
         }
 
         console.log(`✅ [generatePhotoCaption] Text caption generated: "${content.substring(0, 50)}..."`);
-        return content;
+        return sanitizeAIResponse(content, characterName);
 
     } catch (error) {
         console.error("❌ [generatePhotoCaption] Failed to generate photo caption:", error);
