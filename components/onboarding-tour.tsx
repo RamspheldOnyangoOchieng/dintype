@@ -1,85 +1,58 @@
 "use client"
 
-import { useState, useEffect, useCallback, Fragment } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Sparkles, ArrowRight, X, ChevronLeft, Heart, MessageCircle, Wand2, PlusSquare, Crown } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react"
+import { ArrowRight, X, ChevronLeft, Heart, MessageCircle, Wand2, PlusSquare, Crown } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface TourStep {
     id: string
-    targetId: string
     title: string
     description: string
-    icon: any
-    color: string
+    icon: React.ComponentType<{ className?: string }>
 }
 
 const TOUR_STEPS: TourStep[] = [
     {
         id: "welcome",
-        targetId: "sidebar-link-home",
         title: "Welcome to PocketLove!",
         description: "Your safe space for deep connections and creative expression. Let's take a quick 1-minute tour.",
         icon: Heart,
-        color: "from-sky-400 to-cyan-500"
     },
     {
         id: "explore",
-        targetId: "sidebar-link-home",
         title: "Discover Companions",
         description: "Explore a world of diverse AI personalities, each with their own unique soul and story.",
         icon: Heart,
-        color: "from-sky-400 to-cyan-500"
     },
     {
         id: "chat",
-        targetId: "sidebar-link-chat",
         title: "Deep Conversations",
         description: "Engage in immersive chats where AI remembers your history and builds a real bond with you.",
         icon: MessageCircle,
-        color: "from-sky-400 to-cyan-500"
     },
     {
         id: "generate",
-        targetId: "sidebar-link-generate",
         title: "AI Image Studio",
         description: "Bring your imagination to life. Generate ultra-realistic photos of your companions in any setting.",
         icon: Wand2,
-        color: "from-sky-400 to-cyan-500"
     },
     {
         id: "create",
-        targetId: "sidebar-link-create-character",
         title: "Create Your Own",
         description: "Craft your perfect match from scratch. Define their looks, personality, and secret desires.",
         icon: PlusSquare,
-        color: "from-sky-400 to-cyan-500"
     },
     {
         id: "premium",
-        targetId: "sidebar-link-premium",
         title: "Unlock Everything",
         description: "Get HD images, unlimited messaging, and priority access to new AI models with Premium.",
         icon: Crown,
-        color: "from-sky-400 to-cyan-500"
     }
 ]
 
 export function OnboardingTour() {
     const [currentStep, setCurrentStep] = useState(-1)
-    const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
     const [isVisible, setIsVisible] = useState(false)
-
-    const updateTargetRect = useCallback(() => {
-        if (currentStep >= 0 && currentStep < TOUR_STEPS.length) {
-            const step = TOUR_STEPS[currentStep]
-            const element = document.getElementById(step.targetId)
-            if (element) {
-                setTargetRect(element.getBoundingClientRect())
-            }
-        }
-    }, [currentStep])
 
     useEffect(() => {
         const hasSeenTour = localStorage.getItem("pocketlove_tour_completed")
@@ -87,20 +60,10 @@ export function OnboardingTour() {
             const timer = setTimeout(() => {
                 setIsVisible(true)
                 setCurrentStep(0)
-            }, 3000) // Show after 3 seconds
+            }, 3000)
             return () => clearTimeout(timer)
         }
     }, [])
-
-    useEffect(() => {
-        updateTargetRect()
-        window.addEventListener("resize", updateTargetRect)
-        window.addEventListener("scroll", updateTargetRect)
-        return () => {
-            window.removeEventListener("resize", updateTargetRect)
-            window.removeEventListener("scroll", updateTargetRect)
-        }
-    }, [updateTargetRect])
 
     const handleNext = () => {
         if (currentStep < TOUR_STEPS.length - 1) {
@@ -118,6 +81,7 @@ export function OnboardingTour() {
 
     const handleComplete = () => {
         setIsVisible(false)
+        setCurrentStep(-1)
         localStorage.setItem("pocketlove_tour_completed", "true")
     }
 
@@ -127,132 +91,88 @@ export function OnboardingTour() {
     const Icon = step.icon
 
     return (
-        <Fragment>
-            {/* Backdrop with Hole - separate from pointer-events-none container */}
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            {/* Dark backdrop */}
             <div 
-                className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-[2px]" 
-                onClick={handleComplete} 
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                onClick={handleComplete}
             />
-
-            {/* Effects container - pointer-events-none */}
-            <div className="fixed inset-0 z-[101] pointer-events-none">
-                {/* Highlight Hole Effect */}
-                {targetRect && (
-                    <motion.div
-                        initial={false}
-                        animate={{
-                            top: targetRect.top - 8,
-                            left: targetRect.left - 8,
-                            width: targetRect.width + 16,
-                            height: targetRect.height + 16,
-                        }}
-                        className="absolute bg-white/20 border-2 border-white/50 rounded-xl shadow-[0_0_50px_rgba(255,255,255,0.3)]"
+            
+            {/* Tour Card - centered modal */}
+            <div className="relative w-full max-w-[380px] bg-[#1a1a1a] border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
+                {/* Progress Bar */}
+                <div className="h-1 w-full bg-white/5">
+                    <div 
+                        className="h-full bg-gradient-to-r from-sky-400 to-cyan-500 transition-all duration-300"
+                        style={{ width: `${((currentStep + 1) / TOUR_STEPS.length) * 100}%` }}
                     />
-                )}
-            </div>
+                </div>
 
-            {/* Tour Card - separate container with pointer-events-auto */}
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={currentStep}
-                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                    animate={{
-                        opacity: 1,
-                        scale: 1,
-                        y: 0,
-                        top: targetRect ? Math.min(window.innerHeight - 350, targetRect.top + targetRect.height + 24) : window.innerHeight / 2 - 150,
-                        left: targetRect ? Math.max(20, Math.min(window.innerWidth - 380, targetRect.left)) : window.innerWidth / 2 - 175
-                    }}
-                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="fixed w-[350px] bg-[#0F0F0F]/95 border border-white/10 rounded-3xl shadow-2xl backdrop-blur-xl z-[102] overflow-hidden"
-                >
-                    {/* Progress Bar */}
-                    <div className="h-1 w-full bg-white/5">
-                        <motion.div
-                            className={cn("h-full bg-gradient-to-r", step.color)}
-                            initial={{ width: `${(currentStep / TOUR_STEPS.length) * 100}%` }}
-                            animate={{ width: `${((currentStep + 1) / TOUR_STEPS.length) * 100}%` }}
-                        />
+                <div className="p-6">
+                    {/* Header with icon and close button */}
+                    <div className="flex justify-between items-start mb-4">
+                        <div className="p-3 rounded-2xl bg-gradient-to-br from-sky-400 to-cyan-500 shadow-lg">
+                            <Icon className="w-6 h-6 text-white" />
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleComplete}
+                            className="p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
                     </div>
 
-                    <div className="p-6">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className={cn("p-3 rounded-2xl bg-gradient-to-br shadow-lg", step.color)}>
-                                <Icon className="w-6 h-6 text-white" />
-                            </div>
+                    {/* Content */}
+                    <h3 className="text-xl font-bold text-white mb-2">{step.title}</h3>
+                    <p className="text-white/60 text-sm leading-relaxed mb-8">
+                        {step.description}
+                    </p>
+
+                    {/* Footer with dots and buttons */}
+                    <div className="flex items-center justify-between">
+                        {/* Step indicators */}
+                        <div className="flex gap-1.5">
+                            {TOUR_STEPS.map((_, i) => (
+                                <div
+                                    key={i}
+                                    className={cn(
+                                        "h-1.5 rounded-full transition-all duration-300",
+                                        i === currentStep 
+                                            ? "w-4 bg-gradient-to-r from-sky-400 to-cyan-500" 
+                                            : "w-1.5 bg-white/20"
+                                    )}
+                                />
+                            ))}
+                        </div>
+
+                        {/* Navigation buttons */}
+                        <div className="flex gap-2">
+                            {currentStep > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={handleBack}
+                                    className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+                                >
+                                    <ChevronLeft className="w-4 h-4" />
+                                    Back
+                                </button>
+                            )}
                             <button
-                                onClick={handleComplete}
-                                className="p-1 text-white/40 hover:text-white transition-colors"
+                                type="button"
+                                onClick={handleNext}
+                                className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-sky-400 to-cyan-500 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
                             >
-                                <X className="w-5 h-5" />
+                                {currentStep === TOUR_STEPS.length - 1 ? "Finish" : "Next"}
+                                {currentStep < TOUR_STEPS.length - 1 && <ArrowRight className="w-4 h-4" />}
                             </button>
                         </div>
-
-                        <h3 className="text-xl font-bold text-white mb-2">{step.title}</h3>
-                        <p className="text-white/60 text-sm leading-relaxed mb-8">
-                            {step.description}
-                        </p>
-
-                        <div className="flex items-center justify-between">
-                            <div className="flex gap-1">
-                                {TOUR_STEPS.map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className={cn(
-                                            "w-1.5 h-1.5 rounded-full transition-all duration-300",
-                                            i === currentStep ? "w-4 bg-white" : "bg-white/20"
-                                        )}
-                                    />
-                                ))}
-                            </div>
-
-                            <div className="flex gap-2">
-                                {currentStep > 0 && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={handleBack}
-                                        className="text-white/60 hover:text-white hover:bg-white/5"
-                                    >
-                                        <ChevronLeft className="w-4 h-4 mr-1" />
-                                        Back
-                                    </Button>
-                                )}
-                                <Button
-                                    size="sm"
-                                    onClick={handleNext}
-                                    className={cn("bg-gradient-to-r text-white font-bold border-none", step.color)}
-                                >
-                                    {currentStep === TOUR_STEPS.length - 1 ? "Finish" : "Next"}
-                                    {currentStep < TOUR_STEPS.length - 1 && <ArrowRight className="w-4 h-4 ml-2" />}
-                                </Button>
-                            </div>
-                        </div>
                     </div>
+                </div>
 
-                    {/* Decorative Elements */}
-                    <div className={cn("absolute -bottom-10 -right-10 w-32 h-32 bg-gradient-to-br blur-3xl opacity-20", step.color)} />
-                </motion.div>
-            </AnimatePresence>
-
-            {/* Sparkle Decoration that follows the highlight */}
-            {targetRect && (
-                <motion.div
-                    animate={{
-                        top: targetRect.top - 20,
-                        left: targetRect.left + targetRect.width / 2,
-                    }}
-                    className="fixed z-[103] pointer-events-none"
-                >
-                    <motion.div
-                        animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 180] }}
-                        transition={{ repeat: Infinity, duration: 2 }}
-                        className="text-sky-400"
-                    >
-                        <Sparkles className="w-6 h-6 fill-sky-400/20" />
-                    </motion.div>
-                </motion.div>
-            )}
-        </Fragment>
+                {/* Decorative gradient */}
+                <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-gradient-to-br from-sky-400 to-cyan-500 blur-3xl opacity-20 pointer-events-none" />
+            </div>
+        </div>
     )
 }
