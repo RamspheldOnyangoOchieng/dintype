@@ -166,6 +166,7 @@ export default function AppSidebar() {
                           <Link
                             href={item.href}
                             id={`sidebar-link-${item.href.replace("/", "") || "home"}`}
+                            data-tour={item.href === "/" ? "home" : item.href.replace("/", "").replace("-", "")}
                             onClick={(e) => {
                               if ((item.href === "/my-ai" || item.href === "/collections") && !user) {
                                 e.preventDefault()
