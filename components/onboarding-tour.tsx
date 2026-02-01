@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, Fragment } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Sparkles, ArrowRight, X, ChevronLeft, Heart, MessageCircle, Wand2, PlusSquare, Crown } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -22,7 +22,7 @@ const TOUR_STEPS: TourStep[] = [
         title: "Welcome to PocketLove!",
         description: "Your safe space for deep connections and creative expression. Let's take a quick 1-minute tour.",
         icon: Heart,
-        color: "from-pink-500 to-rose-500"
+        color: "from-sky-400 to-cyan-500"
     },
     {
         id: "explore",
@@ -30,7 +30,7 @@ const TOUR_STEPS: TourStep[] = [
         title: "Discover Companions",
         description: "Explore a world of diverse AI personalities, each with their own unique soul and story.",
         icon: Heart,
-        color: "from-pink-500 to-rose-500"
+        color: "from-sky-400 to-cyan-500"
     },
     {
         id: "chat",
@@ -38,7 +38,7 @@ const TOUR_STEPS: TourStep[] = [
         title: "Deep Conversations",
         description: "Engage in immersive chats where AI remembers your history and builds a real bond with you.",
         icon: MessageCircle,
-        color: "from-cyan-500 to-blue-500"
+        color: "from-sky-400 to-cyan-500"
     },
     {
         id: "generate",
@@ -46,7 +46,7 @@ const TOUR_STEPS: TourStep[] = [
         title: "AI Image Studio",
         description: "Bring your imagination to life. Generate ultra-realistic photos of your companions in any setting.",
         icon: Wand2,
-        color: "from-purple-500 to-fuchsia-500"
+        color: "from-sky-400 to-cyan-500"
     },
     {
         id: "create",
@@ -54,7 +54,7 @@ const TOUR_STEPS: TourStep[] = [
         title: "Create Your Own",
         description: "Craft your perfect match from scratch. Define their looks, personality, and secret desires.",
         icon: PlusSquare,
-        color: "from-emerald-500 to-teal-500"
+        color: "from-sky-400 to-cyan-500"
     },
     {
         id: "premium",
@@ -62,7 +62,7 @@ const TOUR_STEPS: TourStep[] = [
         title: "Unlock Everything",
         description: "Get HD images, unlimited messaging, and priority access to new AI models with Premium.",
         icon: Crown,
-        color: "from-amber-400 to-orange-500"
+        color: "from-sky-400 to-cyan-500"
     }
 ]
 
@@ -127,25 +127,31 @@ export function OnboardingTour() {
     const Icon = step.icon
 
     return (
-        <div className="fixed inset-0 z-[100] pointer-events-none">
-            {/* Backdrop with Hole */}
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] pointer-events-auto" onClick={handleComplete} />
+        <Fragment>
+            {/* Backdrop with Hole - separate from pointer-events-none container */}
+            <div 
+                className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-[2px]" 
+                onClick={handleComplete} 
+            />
 
-            {/* Highlight Hole Effect */}
-            {targetRect && (
-                <motion.div
-                    initial={false}
-                    animate={{
-                        top: targetRect.top - 8,
-                        left: targetRect.left - 8,
-                        width: targetRect.width + 16,
-                        height: targetRect.height + 16,
-                    }}
-                    className="absolute bg-white/20 border-2 border-white/50 rounded-xl shadow-[0_0_50px_rgba(255,255,255,0.3)] z-[101]"
-                />
-            )}
+            {/* Effects container - pointer-events-none */}
+            <div className="fixed inset-0 z-[101] pointer-events-none">
+                {/* Highlight Hole Effect */}
+                {targetRect && (
+                    <motion.div
+                        initial={false}
+                        animate={{
+                            top: targetRect.top - 8,
+                            left: targetRect.left - 8,
+                            width: targetRect.width + 16,
+                            height: targetRect.height + 16,
+                        }}
+                        className="absolute bg-white/20 border-2 border-white/50 rounded-xl shadow-[0_0_50px_rgba(255,255,255,0.3)]"
+                    />
+                )}
+            </div>
 
-            {/* Tour Card */}
+            {/* Tour Card - separate container with pointer-events-auto */}
             <AnimatePresence mode="wait">
                 <motion.div
                     key={currentStep}
@@ -158,7 +164,7 @@ export function OnboardingTour() {
                         left: targetRect ? Math.max(20, Math.min(window.innerWidth - 380, targetRect.left)) : window.innerWidth / 2 - 175
                     }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="absolute w-[350px] bg-[#0F0F0F]/95 border border-white/10 rounded-3xl shadow-2xl backdrop-blur-xl pointer-events-auto z-[102] overflow-hidden"
+                    className="fixed w-[350px] bg-[#0F0F0F]/95 border border-white/10 rounded-3xl shadow-2xl backdrop-blur-xl z-[102] overflow-hidden"
                 >
                     {/* Progress Bar */}
                     <div className="h-1 w-full bg-white/5">
@@ -236,17 +242,17 @@ export function OnboardingTour() {
                         top: targetRect.top - 20,
                         left: targetRect.left + targetRect.width / 2,
                     }}
-                    className="absolute z-[103] pointer-events-none"
+                    className="fixed z-[103] pointer-events-none"
                 >
                     <motion.div
                         animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 180] }}
                         transition={{ repeat: Infinity, duration: 2 }}
-                        className="text-amber-400"
+                        className="text-sky-400"
                     >
-                        <Sparkles className="w-6 h-6 fill-amber-400/20" />
+                        <Sparkles className="w-6 h-6 fill-sky-400/20" />
                     </motion.div>
                 </motion.div>
             )}
-        </div>
+        </Fragment>
     )
 }
