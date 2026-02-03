@@ -99,7 +99,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     if (anatomyRef) {
       allReferences.push({
         url: anatomyRef,
-        weight: 0.35, // Reduced even more: Allow maximum pose flexibility for third-person shots
+        weight: 0.75, // Tightened: Stronger body structure adherence
         model: "ip-adapter_xl",
         source: "Anatomy Lock"
       });
@@ -126,7 +126,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
         if (url) {
           allReferences.push({
             url: url,
-            weight: 0.6,
+            weight: 0.85, // Tightened: High consistency with portfolio
             model: "ip-adapter_plus_face_xl", // Shifted to face-only model
             source: `Portfolio Image ${idx + 1}`
           });
@@ -161,8 +161,8 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   }
 
   // --- FEATURE SHARPENING (Micro-Step 6) ---
-  const featureLock = imageBase64
-    ? `(FACIAL IDENTITY CLARITY: high-fidelity transfer of biometric features:1.4), (MATCH CHARACTER FACE:1.3), (DISREGARD SOURCE POSTURE: prioritize prompt for body and pose), `
+  const featureLock = character
+    ? `(FACIAL IDENTITY CLARITY: high-fidelity transfer of biometric features:1.6), (MATCH CHARACTER FACE:1.5), (DISREGARD SOURCE POSTURE: prioritize prompt for body and pose), `
     : '';
 
   // --- PREFERENCE INJECTION (Micro-Step 5) ---
@@ -173,9 +173,9 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   const charNegativeRestrictions = character?.negative_prompt_restrictions || character?.metadata?.negative_prompt_restrictions || '';
 
   const preferencePrompt = [
-    poses ? `(STRICT POSE: ${poses}:1.3)` : '',
-    environments ? `(SETTING: ${environments}:1.3)` : '',
-    moods ? `(EXPRESSION: ${moods}:1.2)` : '',
+    poses ? `(STRICT POSE: ${poses}:1.8)` : '',
+    environments ? `(SETTING: ${environments}:1.8)` : '',
+    moods ? `(EXPRESSION: ${moods}:1.4)` : '',
   ].filter(Boolean).join(', ');
 
   // --- PERSPECTIVE ENGINE (Natural Mastery Focus - ABSOLUTE THIRD PERSON) ---
