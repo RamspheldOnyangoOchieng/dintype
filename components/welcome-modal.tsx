@@ -13,13 +13,13 @@ const pageContent = {
         title: "Welcome to PocketLove",
         subtitle: "Your AI Companion Awaits",
         icon: Heart,
-        gradient: "from-pink-500 via-rose-500 to-red-500",
-        glowColor: "rgba(236, 72, 153, 0.4)",
+        gradient: "from-sky-400 via-cyan-500 to-sky-500",
+        glowColor: "rgba(56, 189, 248, 0.4)",
         features: [
-            { icon: Heart, text: "Connect with stunning AI companions", color: "text-pink-400" },
+            { icon: Heart, text: "Connect with stunning AI companions", color: "text-sky-400" },
             { icon: MessageCircle, text: "Unlimited immersive conversations", color: "text-cyan-400" },
-            { icon: Camera, text: "Generate beautiful AI photos", color: "text-purple-400" },
-            { icon: Crown, text: "Premium storylines & adventures", color: "text-amber-400" },
+            { icon: Camera, text: "Generate beautiful AI photos", color: "text-sky-400" },
+            { icon: Crown, text: "Premium storylines & adventures", color: "text-cyan-400" },
         ],
         cta: "Start Your Journey",
         footerText: "✨ Join thousands of happy users today!"
@@ -28,12 +28,12 @@ const pageContent = {
         title: "Private Chat Experience",
         subtitle: "Deep Connections Await",
         icon: MessageCircle,
-        gradient: "from-cyan-500 via-blue-500 to-purple-500",
-        glowColor: "rgba(6, 182, 212, 0.4)",
+        gradient: "from-sky-400 via-cyan-500 to-sky-500",
+        glowColor: "rgba(56, 189, 248, 0.4)",
         features: [
-            { icon: Heart, text: "Build meaningful relationships", color: "text-pink-400" },
-            { icon: Sparkles, text: "AI remembers your conversations", color: "text-amber-400" },
-            { icon: Camera, text: "Request exclusive photos anytime", color: "text-purple-400" },
+            { icon: Heart, text: "Build meaningful relationships", color: "text-sky-400" },
+            { icon: Sparkles, text: "AI remembers your conversations", color: "text-cyan-400" },
+            { icon: Camera, text: "Request exclusive photos anytime", color: "text-sky-400" },
             { icon: Star, text: "Unlock romantic storylines", color: "text-cyan-400" },
         ],
         cta: "Start Chatting",
@@ -43,13 +43,13 @@ const pageContent = {
         title: "AI Image Studio",
         subtitle: "Create Magic in Seconds",
         icon: Wand2,
-        gradient: "from-purple-500 via-violet-500 to-fuchsia-500",
-        glowColor: "rgba(139, 92, 246, 0.4)",
+        gradient: "from-sky-400 via-cyan-500 to-sky-500",
+        glowColor: "rgba(56, 189, 248, 0.4)",
         features: [
-            { icon: Wand2, text: "State-of-the-art AI generation", color: "text-violet-400" },
-            { icon: Sparkles, text: "Ultra-realistic photo quality", color: "text-amber-400" },
-            { icon: Zap, text: "Lightning-fast generation", color: "text-cyan-400" },
-            { icon: Crown, text: "Premium styles & customization", color: "text-pink-400" },
+            { icon: Wand2, text: "State-of-the-art AI generation", color: "text-sky-400" },
+            { icon: Sparkles, text: "Ultra-realistic photo quality", color: "text-cyan-400" },
+            { icon: Zap, text: "Lightning-fast generation", color: "text-sky-400" },
+            { icon: Crown, text: "Premium styles & customization", color: "text-cyan-400" },
         ],
         cta: "Create Now",
         footerText: "🎨 Bring your imagination to life!"
@@ -137,16 +137,16 @@ export function WelcomeModal({ pageType, onClose }: WelcomeModalProps) {
                     <div className="absolute inset-[1px] bg-gradient-to-b from-gray-900 to-black rounded-[2rem]" />
 
                     {/* Sparkle decorations */}
-                    <div className="absolute top-4 left-8 text-amber-400/60 animate-pulse">
+                    <div className="absolute top-4 left-8 text-sky-400/60 animate-pulse">
                         <Sparkles className="w-4 h-4" />
                     </div>
-                    <div className="absolute top-12 right-6 text-pink-400/60 animate-pulse" style={{ animationDelay: "0.5s" }}>
+                    <div className="absolute top-12 right-6 text-cyan-400/60 animate-pulse" style={{ animationDelay: "0.5s" }}>
                         <Star className="w-3 h-3" />
                     </div>
-                    <div className="absolute bottom-20 left-6 text-cyan-400/60 animate-pulse" style={{ animationDelay: "1s" }}>
+                    <div className="absolute bottom-20 left-6 text-sky-400/60 animate-pulse" style={{ animationDelay: "1s" }}>
                         <Star className="w-2 h-2" />
                     </div>
-                    <div className="absolute bottom-12 right-10 text-purple-400/60 animate-pulse" style={{ animationDelay: "1.5s" }}>
+                    <div className="absolute bottom-12 right-10 text-cyan-400/60 animate-pulse" style={{ animationDelay: "1.5s" }}>
                         <Sparkles className="w-3 h-3" />
                     </div>
 

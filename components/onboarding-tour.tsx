@@ -1,82 +1,90 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Sparkles, ArrowRight, X, ChevronLeft, Heart, MessageCircle, Wand2, PlusSquare, Crown } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { ArrowRight, X, ChevronLeft, Heart, MessageCircle, Wand2, PlusSquare, Crown, Home, Image } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface TourStep {
     id: string
-    targetId: string
+    targetSelector: string
     title: string
     description: string
-    icon: any
-    color: string
+    icon: React.ComponentType<{ className?: string }>
+    position: "right" | "bottom" | "left" | "top"
 }
 
 const TOUR_STEPS: TourStep[] = [
     {
-        id: "welcome",
-        targetId: "sidebar-link-home",
-        title: "Welcome to PocketLove!",
-        description: "Your safe space for deep connections and creative expression. Let's take a quick 1-minute tour.",
-        icon: Heart,
-        color: "from-pink-500 to-rose-500"
-    },
-    {
-        id: "explore",
-        targetId: "sidebar-link-home",
-        title: "Discover Companions",
-        description: "Explore a world of diverse AI personalities, each with their own unique soul and story.",
-        icon: Heart,
-        color: "from-pink-500 to-rose-500"
+        id: "home",
+        targetSelector: "[data-tour='home']",
+        title: "Home",
+        description: "Browse all AI companions and discover new connections.",
+        icon: Home,
+        position: "right"
     },
     {
         id: "chat",
-        targetId: "sidebar-link-chat",
-        title: "Deep Conversations",
-        description: "Engage in immersive chats where AI remembers your history and builds a real bond with you.",
+        targetSelector: "[data-tour='chat']",
+        title: "Your Chats",
+        description: "Continue conversations with your AI companions.",
         icon: MessageCircle,
-        color: "from-cyan-500 to-blue-500"
+        position: "right"
     },
     {
         id: "generate",
-        targetId: "sidebar-link-generate",
-        title: "AI Image Studio",
-        description: "Bring your imagination to life. Generate ultra-realistic photos of your companions in any setting.",
-        icon: Wand2,
-        color: "from-purple-500 to-fuchsia-500"
+        targetSelector: "[data-tour='generate']",
+        title: "Generate Images",
+        description: "Create stunning AI-generated photos of your companions.",
+        icon: Image,
+        position: "right"
     },
     {
         id: "create",
-        targetId: "sidebar-link-create-character",
-        title: "Create Your Own",
-        description: "Craft your perfect match from scratch. Define their looks, personality, and secret desires.",
+        targetSelector: "[data-tour='createcharacter']",
+        title: "Create Character",
+        description: "Design your perfect AI companion from scratch.",
         icon: PlusSquare,
-        color: "from-emerald-500 to-teal-500"
+        position: "right"
     },
     {
         id: "premium",
-        targetId: "sidebar-link-premium",
-        title: "Unlock Everything",
-        description: "Get HD images, unlimited messaging, and priority access to new AI models with Premium.",
+        targetSelector: "[data-tour='premium']",
+        title: "Premium",
+        description: "Unlock unlimited features, HD images, and exclusive content.",
         icon: Crown,
-        color: "from-amber-400 to-orange-500"
+        position: "right"
     }
 ]
 
 export function OnboardingTour() {
     const [currentStep, setCurrentStep] = useState(-1)
-    const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
     const [isVisible, setIsVisible] = useState(false)
+    const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
+    const [windowSize, setWindowSize] = useState({ width: 0, height: 0 })
+    const tooltipRef = useRef<HTMLDivElement>(null)
 
-    const updateTargetRect = useCallback(() => {
+    // Update window size
+    useEffect(() => {
+        const updateSize = () => {
+            setWindowSize({ width: window.innerWidth, height: window.innerHeight })
+        }
+        updateSize()
+        window.addEventListener("resize", updateSize)
+        return () => window.removeEventListener("resize", updateSize)
+    }, [])
+
+    // Find and highlight target element
+    const updateTargetPosition = useCallback(() => {
         if (currentStep >= 0 && currentStep < TOUR_STEPS.length) {
             const step = TOUR_STEPS[currentStep]
-            const element = document.getElementById(step.targetId)
+            const element = document.querySelector(step.targetSelector)
             if (element) {
-                setTargetRect(element.getBoundingClientRect())
+                const rect = element.getBoundingClientRect()
+                setTargetRect(rect)
+                
+                // Scroll element into view if needed
+                element.scrollIntoView({ behavior: "smooth", block: "center" })
             }
         }
     }, [currentStep])
@@ -84,23 +92,27 @@ export function OnboardingTour() {
     useEffect(() => {
         const hasSeenTour = localStorage.getItem("pocketlove_tour_completed")
         if (!hasSeenTour) {
+            // Wait for page to fully render
             const timer = setTimeout(() => {
                 setIsVisible(true)
                 setCurrentStep(0)
-            }, 3000) // Show after 3 seconds
+            }, 2500)
             return () => clearTimeout(timer)
         }
     }, [])
 
     useEffect(() => {
-        updateTargetRect()
-        window.addEventListener("resize", updateTargetRect)
-        window.addEventListener("scroll", updateTargetRect)
+        updateTargetPosition()
+        
+        // Update position on scroll/resize
+        window.addEventListener("resize", updateTargetPosition)
+        window.addEventListener("scroll", updateTargetPosition, true)
+        
         return () => {
-            window.removeEventListener("resize", updateTargetRect)
-            window.removeEventListener("scroll", updateTargetRect)
+            window.removeEventListener("resize", updateTargetPosition)
+            window.removeEventListener("scroll", updateTargetPosition, true)
         }
-    }, [updateTargetRect])
+    }, [updateTargetPosition])
 
     const handleNext = () => {
         if (currentStep < TOUR_STEPS.length - 1) {
@@ -118,135 +130,217 @@ export function OnboardingTour() {
 
     const handleComplete = () => {
         setIsVisible(false)
+        setCurrentStep(-1)
         localStorage.setItem("pocketlove_tour_completed", "true")
     }
 
-    if (!isVisible || currentStep === -1) return null
+    if (!isVisible || currentStep === -1 || !targetRect) return null
 
     const step = TOUR_STEPS[currentStep]
     const Icon = step.icon
 
+    // Calculate tooltip position based on target element and preferred position
+    const getTooltipPosition = () => {
+        const tooltipWidth = 280
+        const tooltipHeight = 180
+        const padding = 16
+        const arrowSize = 12
+
+        let top = 0
+        let left = 0
+
+        switch (step.position) {
+            case "right":
+                top = targetRect.top + (targetRect.height / 2) - (tooltipHeight / 2)
+                left = targetRect.right + padding + arrowSize
+                break
+            case "left":
+                top = targetRect.top + (targetRect.height / 2) - (tooltipHeight / 2)
+                left = targetRect.left - tooltipWidth - padding - arrowSize
+                break
+            case "bottom":
+                top = targetRect.bottom + padding + arrowSize
+                left = targetRect.left + (targetRect.width / 2) - (tooltipWidth / 2)
+                break
+            case "top":
+                top = targetRect.top - tooltipHeight - padding - arrowSize
+                left = targetRect.left + (targetRect.width / 2) - (tooltipWidth / 2)
+                break
+        }
+
+        // Keep tooltip within viewport
+        top = Math.max(padding, Math.min(top, windowSize.height - tooltipHeight - padding))
+        left = Math.max(padding, Math.min(left, windowSize.width - tooltipWidth - padding))
+
+        return { top, left }
+    }
+
+    const tooltipPos = getTooltipPosition()
+
+    // Arrow position based on tooltip placement
+    const getArrowStyles = () => {
+        const arrowBase = "absolute w-3 h-3 bg-[#1a1a1a] border-white/10 transform rotate-45"
+        
+        switch (step.position) {
+            case "right":
+                return `${arrowBase} -left-1.5 top-1/2 -translate-y-1/2 border-l border-b`
+            case "left":
+                return `${arrowBase} -right-1.5 top-1/2 -translate-y-1/2 border-r border-t`
+            case "bottom":
+                return `${arrowBase} -top-1.5 left-1/2 -translate-x-1/2 border-l border-t`
+            case "top":
+                return `${arrowBase} -bottom-1.5 left-1/2 -translate-x-1/2 border-r border-b`
+            default:
+                return arrowBase
+        }
+    }
+
     return (
-        <div className="fixed inset-0 z-[100] pointer-events-none">
-            {/* Backdrop with Hole */}
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] pointer-events-auto" onClick={handleComplete} />
-
-            {/* Highlight Hole Effect */}
-            {targetRect && (
-                <motion.div
-                    initial={false}
-                    animate={{
-                        top: targetRect.top - 8,
-                        left: targetRect.left - 8,
-                        width: targetRect.width + 16,
-                        height: targetRect.height + 16,
-                    }}
-                    className="absolute bg-white/20 border-2 border-white/50 rounded-xl shadow-[0_0_50px_rgba(255,255,255,0.3)] z-[101]"
+        <div className="fixed inset-0 z-[9999] pointer-events-none">
+            {/* Overlay with spotlight cut-out */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-auto" onClick={handleComplete}>
+                <defs>
+                    <mask id="spotlight-mask">
+                        <rect x="0" y="0" width="100%" height="100%" fill="white" />
+                        <rect 
+                            x={targetRect.left - 6} 
+                            y={targetRect.top - 6} 
+                            width={targetRect.width + 12} 
+                            height={targetRect.height + 12} 
+                            rx="12"
+                            fill="black"
+                        />
+                    </mask>
+                </defs>
+                <rect 
+                    x="0" 
+                    y="0" 
+                    width="100%" 
+                    height="100%" 
+                    fill="rgba(0,0,0,0.75)" 
+                    mask="url(#spotlight-mask)"
                 />
-            )}
+            </svg>
 
-            {/* Tour Card */}
+            {/* Highlight ring around target */}
+            <motion.div
+                className="absolute border-2 border-sky-400 rounded-xl pointer-events-none"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ 
+                    opacity: 1, 
+                    scale: 1,
+                    top: targetRect.top - 6,
+                    left: targetRect.left - 6,
+                    width: targetRect.width + 12,
+                    height: targetRect.height + 12
+                }}
+                transition={{ duration: 0.3 }}
+            >
+                {/* Pulsing ring */}
+                <motion.div
+                    className="absolute inset-0 border-2 border-sky-400 rounded-xl"
+                    animate={{ scale: [1, 1.15, 1], opacity: [0.8, 0, 0.8] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                />
+            </motion.div>
+
+            {/* Tooltip */}
             <AnimatePresence mode="wait">
                 <motion.div
+                    ref={tooltipRef}
                     key={currentStep}
-                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                    animate={{
-                        opacity: 1,
-                        scale: 1,
+                    className="absolute w-[280px] bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl pointer-events-auto overflow-hidden"
+                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                    animate={{ 
+                        opacity: 1, 
+                        scale: 1, 
                         y: 0,
-                        top: targetRect ? Math.min(window.innerHeight - 350, targetRect.top + targetRect.height + 24) : window.innerHeight / 2 - 150,
-                        left: targetRect ? Math.max(20, Math.min(window.innerWidth - 380, targetRect.left)) : window.innerWidth / 2 - 175
+                        top: tooltipPos.top,
+                        left: tooltipPos.left
                     }}
-                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="absolute w-[350px] bg-[#0F0F0F]/95 border border-white/10 rounded-3xl shadow-2xl backdrop-blur-xl pointer-events-auto z-[102] overflow-hidden"
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
                 >
-                    {/* Progress Bar */}
-                    <div className="h-1 w-full bg-white/5">
-                        <motion.div
-                            className={cn("h-full bg-gradient-to-r", step.color)}
-                            initial={{ width: `${(currentStep / TOUR_STEPS.length) * 100}%` }}
+                    {/* Arrow pointer */}
+                    <div className={getArrowStyles()} />
+
+                    {/* Progress bar */}
+                    <div className="h-1 bg-white/5">
+                        <motion.div 
+                            className="h-full bg-gradient-to-r from-sky-400 to-cyan-500"
                             animate={{ width: `${((currentStep + 1) / TOUR_STEPS.length) * 100}%` }}
+                            transition={{ duration: 0.3 }}
                         />
                     </div>
 
-                    <div className="p-6">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className={cn("p-3 rounded-2xl bg-gradient-to-br shadow-lg", step.color)}>
-                                <Icon className="w-6 h-6 text-white" />
+                    <div className="p-4">
+                        {/* Header */}
+                        <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-xl bg-gradient-to-br from-sky-400 to-cyan-500">
+                                    <Icon className="w-4 h-4 text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-bold text-white">{step.title}</h3>
+                                    <p className="text-[10px] text-white/40">Step {currentStep + 1} of {TOUR_STEPS.length}</p>
+                                </div>
                             </div>
                             <button
+                                type="button"
                                 onClick={handleComplete}
-                                className="p-1 text-white/40 hover:text-white transition-colors"
+                                className="p-1 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-all cursor-pointer"
                             >
-                                <X className="w-5 h-5" />
+                                <X className="w-4 h-4" />
                             </button>
                         </div>
 
-                        <h3 className="text-xl font-bold text-white mb-2">{step.title}</h3>
-                        <p className="text-white/60 text-sm leading-relaxed mb-8">
+                        {/* Description */}
+                        <p className="text-white/60 text-xs leading-relaxed mb-4">
                             {step.description}
                         </p>
 
+                        {/* Navigation */}
                         <div className="flex items-center justify-between">
+                            {/* Dots */}
                             <div className="flex gap-1">
                                 {TOUR_STEPS.map((_, i) => (
                                     <div
                                         key={i}
                                         className={cn(
-                                            "w-1.5 h-1.5 rounded-full transition-all duration-300",
-                                            i === currentStep ? "w-4 bg-white" : "bg-white/20"
+                                            "h-1.5 rounded-full transition-all duration-300",
+                                            i === currentStep 
+                                                ? "w-4 bg-gradient-to-r from-sky-400 to-cyan-500" 
+                                                : "w-1.5 bg-white/20"
                                         )}
                                     />
                                 ))}
                             </div>
 
-                            <div className="flex gap-2">
+                            {/* Buttons */}
+                            <div className="flex gap-1.5">
                                 {currentStep > 0 && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
+                                    <button
+                                        type="button"
                                         onClick={handleBack}
-                                        className="text-white/60 hover:text-white hover:bg-white/5"
+                                        className="flex items-center gap-0.5 px-2.5 py-1.5 text-[11px] font-medium text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-all cursor-pointer"
                                     >
-                                        <ChevronLeft className="w-4 h-4 mr-1" />
+                                        <ChevronLeft className="w-3 h-3" />
                                         Back
-                                    </Button>
+                                    </button>
                                 )}
-                                <Button
-                                    size="sm"
+                                <button
+                                    type="button"
                                     onClick={handleNext}
-                                    className={cn("bg-gradient-to-r text-white font-bold border-none", step.color)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-white bg-gradient-to-r from-sky-400 to-cyan-500 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
                                 >
-                                    {currentStep === TOUR_STEPS.length - 1 ? "Finish" : "Next"}
-                                    {currentStep < TOUR_STEPS.length - 1 && <ArrowRight className="w-4 h-4 ml-2" />}
-                                </Button>
+                                    {currentStep === TOUR_STEPS.length - 1 ? "Done" : "Next"}
+                                    <ArrowRight className="w-3 h-3" />
+                                </button>
                             </div>
                         </div>
                     </div>
-
-                    {/* Decorative Elements */}
-                    <div className={cn("absolute -bottom-10 -right-10 w-32 h-32 bg-gradient-to-br blur-3xl opacity-20", step.color)} />
                 </motion.div>
             </AnimatePresence>
-
-            {/* Sparkle Decoration that follows the highlight */}
-            {targetRect && (
-                <motion.div
-                    animate={{
-                        top: targetRect.top - 20,
-                        left: targetRect.left + targetRect.width / 2,
-                    }}
-                    className="absolute z-[103] pointer-events-none"
-                >
-                    <motion.div
-                        animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 180] }}
-                        transition={{ repeat: Infinity, duration: 2 }}
-                        className="text-amber-400"
-                    >
-                        <Sparkles className="w-6 h-6 fill-amber-400/20" />
-                    </motion.div>
-                </motion.div>
-            )}
         </div>
     )
 }
