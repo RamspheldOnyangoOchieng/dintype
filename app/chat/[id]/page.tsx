@@ -157,6 +157,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const [sentChapterImages, setSentChapterImages] = useState<string[]>([])
   const sentChapterImagesRef = useRef<string[]>([]) // CRITICAL: Ref for stable closures
   const [chapterMessageCount, setChapterMessageCount] = useState(0)
+  const [totalChapters, setTotalChapters] = useState(0)
   const [isLoadingStory, setIsLoadingStory] = useState(false)
 
   // Use a ref for the interval to ensure we always have the latest reference
@@ -485,6 +486,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       };
 
       const loadStory = async () => {
+        if (!characterId || !(character?.is_storyline_active || character?.isStorylineActive)) {
+          setIsLoadingStory(false)
+          return
+        }
         const supabase = createClient()
         try {
           let prog = await getStoryProgress(user.id, characterId)
@@ -533,7 +538,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       }
       loadStory()
     }
-  }, [user, characterId])
+  }, [user, characterId, character])
 
   // Load characters with chat history (SORTED)
   useEffect(() => {
@@ -1338,7 +1343,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           }).catch(err => console.error("Error saving trigger message to DB:", err));
         }
 
-        if (storyProgress && !storyProgress.is_completed) {
+        if (storyProgress && !storyProgress.is_completed && (character.is_storyline_active || character.isStorylineActive)) {
           const chImages = (currentChapter?.content?.chapter_images || []).filter((img: any) =>
             typeof img === 'string' && (img.startsWith('http') || img.startsWith('data:'))
           );
@@ -1385,6 +1390,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               if (storyProgress && (chImages.length > 0 && updatedSent.length >= chImages.length) || nextMsgCount >= 12) {
                 setTimeout(() => {
                   const nextNum = storyProgress.current_chapter_number + 1
+                  if (!user?.id) return
                   completeChapter(user.id, character.id, nextNum).then(({ progress, isComplete }) => {
                     if (progress) {
                       setStoryProgress(progress as UserStoryProgress)
@@ -1484,7 +1490,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         }
 
         // Narrative Progression
-        if (storyProgress && !storyProgress.is_completed && currentChapter) {
+        if (storyProgress && !storyProgress.is_completed && currentChapter && (character.is_storyline_active || character.isStorylineActive)) {
           setChapterMessageCount(prev => prev + 1)
           const chImages = (currentChapter.content?.chapter_images || []).filter((img: any) => typeof img === 'string' && img.length > 0)
           const aiText = aiResponse.message.content.toLowerCase()
