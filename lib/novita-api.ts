@@ -88,7 +88,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     if (faceRef) {
       allReferences.push({
         url: faceRef,
-        weight: 1.0, // MAX weight for the primary identity
+        weight: 1.1, // OVERMAX weight for the primary identity
         model: "ip-adapter_plus_face_xl",
         source: "Golden Face"
       });
@@ -99,7 +99,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     if (anatomyRef) {
       allReferences.push({
         url: anatomyRef,
-        weight: 0.75, // Tightened: Stronger body structure adherence
+        weight: 0.65, // Lowered slightly to prevent 'shrugged' stiffness from references
         model: "ip-adapter_xl",
         source: "Anatomy Lock"
       });
@@ -144,11 +144,12 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       });
     }
 
-    // Remove duplicates and cap at 20 for maximum variety and detail
+    // Remove duplicates and cap at 8 for MAXIMUM IDENTITY FOCUS
+    // Too many references can cause 'sick' or 'muddy' faces due to feature blending
     const uniqueRefs = allReferences.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
-    const finalRefs = uniqueRefs.slice(0, 20);
+    const finalRefs = uniqueRefs.slice(0, 8);
 
-    console.log(`🧬 [DNA Engine] Studying ${finalRefs.length} assets with MAXIMUM feature clarity...`);
+    console.log(`🧬 [DNA Engine] Studying ${finalRefs.length} high-priority assets for perfect likeness...`);
 
     for (const ref of finalRefs) {
       finalControlUnits.push({
@@ -162,7 +163,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   // --- FEATURE SHARPENING (Micro-Step 6) ---
   const featureLock = character
-    ? `(FACIAL IDENTITY CLARITY: high-fidelity transfer of biometric features:1.6), (MATCH CHARACTER FACE:1.5), (DISREGARD SOURCE POSTURE: prioritize prompt for body and pose), `
+    ? `(FACIAL IDENTITY CLARITY: high-fidelity transfer of biometric features:1.7), (MATCH CHARACTER FACE:1.6), (vibrant healthy skin:1.3), (natural healthy complexion:1.3), (relaxed shoulders:1.4), (natural facial expression:1.4), (DISREGARD SOURCE POSTURE: prioritize prompt for body and pose), `
     : '';
 
   // --- PREFERENCE INJECTION (Micro-Step 5) ---

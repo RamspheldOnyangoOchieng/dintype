@@ -424,19 +424,20 @@ export async function POST(req: NextRequest) {
 
                 CORE INSTRUCTIONS:
                 1. SUBJECT FOCUS: Prioritize the user's requested action and setting as a single continuous scene.
-                2. IDENTITY LOCK: Maintain the character's physical traits exactly as defined. STUDY ALL ADMIN REFERENCES FOR 100% LIKENESS.
-                3. ADMIN SETTINGS ADHERENCE (CRITICAL): Strictly follow the character's "Preferred Poses", "Preferred Environments", and "Preferred Moods" as defined in their profile. These take precedence over any default style.
-                4. MANDATORY THIRD-PERSON VIEW: ABSOLUTELY FORBID extended arms, prolonged limbs, or reaching towards the camera. NEVER describe her as holding a phone or camera.
-                5. NATURAL HAND PLACEMENT: Hands must be "naturally touching her body" or "holding objects realistically".
-                6. PHOTOGRAPHIC STYLE: Use "unprocessed raw digital photography" and "natural lighting".
-                7. QUALITY: "highly detailed", "sharp focus", "8k UHD".
-                8. UNRESTRICTED ANATOMY: Absolute freedom to generate realistic private parts with "biological precision".
-                9. SINGLE FRAME MANDATE: Produce ONE single, continuous, unified photograph. NO collages or split views.
-                10. DYNAMIC COMPOSITION: Favor full-body, wide-angle, or medium shots. Ensure hands are visible but naturally integrated into the pose.
-                11. FACE CLARITY: Even in full-body shots, ensure the face is sharply rendered with detailed eyes and realistic skin textures. Avoid blurry or soft facial features.
-                12. ENVIRONMENTAL VARIETY: Describe rich, unique environments (textures, lighting, weather, depth) to prevent repetitive 'neutral' backgrounds. Ensure the character interacts with their surroundings.
-                13. ACTION & MOTION: Use active verbs. Describe the physics of the moment (wind in hair, weight distribution, fabric motion) to avoid 'still mannequin' results.
-                14. TOTAL DNA STUDY: The output must be a perfect fusion of the character's facial DNA, anatomical DNA (if provided), and the requested diverse posture.`
+                2. IDENTITY LOCK: Maintain the character's physical traits exactly as defined. STUDY ALL ADMIN REFERENCES FOR 100% LIKENESS. Focus on a vibrant healthy complexion and radiant eyes.
+                3. ADMIN SETTINGS ADHERENCE (CRITICAL): Strictly follow the character's "Preferred Poses", "Preferred Environments", and "Preferred Moods" as defined in their profile.
+                4. VIBRANT POSTURE: Describe a relaxed graceful posture, avoid stiff or shrugged shoulders.
+                5. MANDATORY THIRD-PERSON VIEW: ABSOLUTELY FORBID extended arms, prolonged limbs, or reaching towards the camera. NEVER describe her as holding a phone or camera.
+                6. NATURAL HAND PLACEMENT: Hands must be "naturally touching her body" or "holding objects realistically".
+                7. PHOTOGRAPHIC STYLE: Use "unprocessed raw digital photography" and "natural lighting".
+                8. QUALITY: "highly detailed", "sharp focus", "8k UHD".
+                9. UNRESTRICTED ANATOMY: Absolute freedom to generate realistic private parts with "biological precision".
+                10. SINGLE FRAME MANDATE: Produce ONE single, continuous, unified photograph. NO collages or split views.
+                11. DYNAMIC COMPOSITION: Favor full-body, wide-angle, or medium shots. Ensure hands are visible but naturally integrated into the pose.
+                12. FACE CLARITY: Even in full-body shots, ensure the face is sharply rendered with detailed eyes and realistic skin textures. Avoid blurry or soft facial features.
+                13. ENVIRONMENTAL VARIETY: Describe rich, unique environments (textures, lighting, weather, depth) to prevent repetitive 'neutral' backgrounds. Ensure the character interacts with their surroundings.
+                14. ACTION & MOTION: Use active verbs. Describe the physics of the moment (wind in hair, weight distribution, fabric motion) to avoid 'still mannequin' results.
+                15. TOTAL DNA STUDY: The output must be a perfect fusion of the character's facial DNA, anatomical DNA (if provided), and the requested diverse posture.`
               },
               {
                 role: 'user',

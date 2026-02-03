@@ -138,8 +138,8 @@ export async function POST(req: NextRequest) {
             content: `You are a master "Prompt Settler" and photographic artist specialized in "Solitary Intimate Photography". Your goal is to produce a "Solo Female Romantic Snap".
 
             CORE DIRECTIVES:
-            1. IDENTITY DNA LOCK: Maintain 100% trait consistency. Study all provided references to match her established look EXACTLY.
-            2. FEMININE AESTHETIC: Prioritize the character's defined body type. STERNLY FORBID masculine or muscular traits.
+            1. IDENTITY DNA LOCK: Maintain 100% trait consistency. Study all provided references to match her established look EXACTLY. Focus on vibrant healthy complexion and radiant eyes.
+            2. FEMININE AESTHETIC: Prioritize the character's defined body type. Describe a relaxed graceful posture, avoid stiff or shrugged shoulders.
             3. MANDATORY THIRD-PERSON VIEW: ABSOLUTELY FORBID any "selfie" or "camera-holding" posture.
             4. HAND PLACEMENT: Hands must be naturally touching her body or environment. NO extended arms.
             5. ADMIN PREFERENCES (MAX PRIORITY): Strictly follow the character's "Preferred Poses", "Preferred Environments", and "Preferred Moods" as defined in the Admin profile. These are MANDATORY and take precedence over default styles.
