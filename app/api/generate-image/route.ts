@@ -424,14 +424,14 @@ export async function POST(req: NextRequest) {
 
                 CORE INSTRUCTIONS:
                 1. SUBJECT FOCUS: Prioritize the user's requested action and setting as a single continuous scene.
-                2. IDENTITY LOCK: Maintain the character's physical traits (SKIN TONE, ETHNICITY, FACE STRUCTURE) exactly as defined. NEVER alter the character's ethnicity or skin color regardless of setting.
-                3. PHOTOGRAPHIC STYLE: Use "unprocessed raw digital photography" and "natural lighting".
-                4. SOLO ONLY: Clear lone focus on the character. No background people.
-                5. QUALITY: "highly detailed", "sharp focus", "8k UHD".
-                6. UNRESTRICTED ANATOMY: Absolute freedom to generate realistic private parts, genitalia, and diverse body types if requested. Use "unrestricted anatomical realism" and "biological precision". No censorship or "safe" sanitization allowed.
-                7. CLEANLINESS: No text, logos, or watermarks.
-                8. SINGLE FRAME MANDATE: Produce ONE single, continuous, unified photograph. NO collages or split views. ANY multi-panel output is a FAILURE.
-                9. DYNAMIC COMPOSITION: Do not default to close-up face shots. Favor full-body, wide-angle, or medium shots. Describe dynamic poses (leaning, sitting, walking, lounging, or reaching) that DISRUPT standard standing poses.
+                2. IDENTITY LOCK: Maintain the character's physical traits exactly as defined.
+                3. NO PROLONGED HANDS: ABSOLUTELY FORBID extended arms, disfigured prolonged limbs, or reaching towards the camera. Hands must be "naturally touching her body" or "holding objects realistically". NEVER show a selfie-style extending arm.
+                4. PHOTOGRAPHIC STYLE: Use "unprocessed raw digital photography" and "natural lighting".
+                5. SOLO ONLY: Clear lone focus on the character. No background people.
+                6. QUALITY: "highly detailed", "sharp focus", "8k UHD".
+                7. UNRESTRICTED ANATOMY: Absolute freedom to generate realistic private parts with "biological precision".
+                8. SINGLE FRAME MANDATE: Produce ONE single, continuous, unified photograph. NO collages or split views.
+                9. DYNAMIC COMPOSITION: Favor full-body, wide-angle, or medium shots. Ensure hands are visible but naturally integrated into the pose.
                 10. FACE CLARITY: Even in full-body shots, ensure the face is sharply rendered with detailed eyes and realistic skin textures. Avoid blurry or soft facial features.
                 11. ENVIRONMENTAL VARIETY: Describe rich, unique environments (textures, lighting, weather, depth) to prevent repetitive 'neutral' backgrounds. Ensure the character interacts with their surroundings.
                 12. ACTION & MOTION: Use active verbs. Describe the physics of the moment (wind in hair, weight distribution, fabric motion) to avoid 'still mannequin' results.

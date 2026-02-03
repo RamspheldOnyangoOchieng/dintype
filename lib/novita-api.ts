@@ -178,19 +178,17 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     moods ? `(EXPRESSION: ${moods}:1.2)` : '',
   ].filter(Boolean).join(', ');
 
-  // --- PERSPECTIVE ENGINE (Balanced & Masterpiece Focus) ---
+  // --- PERSPECTIVE ENGINE (Natural Mastery Focus) ---
   const isSelfieRequested = prompt.toLowerCase().includes('selfie') ||
     prompt.toLowerCase().includes('taking a photo') ||
     prompt.toLowerCase().includes('holding phone');
 
   const perspectiveMode = isSelfieRequested
-    ? `(intimate candid portrait:1.4), (natural close-up:1.3), (fascinating lighting:1.3), (looking at camera:1.2), `
+    ? `(intimate candid portrait:1.4), (natural close-up:1.3), (natural hand placement:1.4), (hands touching body:1.3), (looking at camera:1.2), `
     : `(professional third-person photography:1.6), (full body shot:1.5), (wide angle:1.4), (candid masterpiece:1.4), (cinematic full-body shot:1.4), (MANDATORY THIRD-PERSON PERSPECTIVE:1.5), `;
 
-  // Discourage 'selfie arms' and POV artifacts unless explicitly requested as a phone shot
-  const perspectiveNegatives = isSelfieRequested
-    ? '(extended arm:1.1), (phone in face:1.1), (deformed fingers:1.4)'
-    : '(extended arm:1.6), (arm in frame:1.6), (distorted hand:1.6), (camera in hand:1.5), (POV selfie:1.6), (selfie arm:1.6), (arm reaching out:1.5), (hand holding camera:1.5)';
+  // Aggressively forbid 'selfie arms' and POV artifacts in ALL modes
+  const perspectiveNegatives = `(extended arm:1.7), (prolonged arm:1.7), (arm in frame:1.6), (reaching towards camera:1.6), (POV selfie arm:1.7), (hand holding camera:1.6), (distorted hand:1.5), (camera in hand:1.5)`;
 
   // Enforce ADMIN negative prompt restrictions with MAXIMUM weight
   const finalNegativePrompt = `${negativePrompt}${perspectiveNegatives ? `, ${perspectiveNegatives}` : ''}${charNegativeRestrictions ? `, (${charNegativeRestrictions}:1.6)` : ''}`;
