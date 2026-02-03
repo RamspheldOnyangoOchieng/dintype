@@ -1203,72 +1203,72 @@ function GenerateContent() {
                         unoptimized={true}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                      <div className="absolute bottom-4 left-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-4 group-hover:translate-y-0 transform transition-transform duration-500">
+                      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-4 group-hover:translate-y-0 transform transition-transform duration-500">
                         <Button
-                          size="sm"
-                          className="flex-1 bg-white hover:bg-white/90 text-black font-bold h-10 rounded-lg"
+                          size="icon"
+                          className="bg-white hover:bg-white/90 text-black h-10 w-10 rounded-full shadow-lg"
                           onClick={(e) => {
                             e.stopPropagation()
                             handleDownload(image, index)
                           }}
+                          title="Download"
                         >
-                          <Download className={`${isMobile ? 'h-3 w-3 mr-1' : 'h-4 w-4 mr-2'}`} />
-                          Download
+                          <Download className="h-5 w-5" />
                         </Button>
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="secondary"
                           onClick={(e) => {
                             e.stopPropagation()
                             handleShare(image)
                           }}
-                          className={`${isMobile ? 'text-xs px-2 py-1' : ''} h-10 font-bold backdrop-blur-md`}
+                          className="h-10 w-10 rounded-full backdrop-blur-md shadow-lg"
+                          title="Share"
                         >
-                          <Share2 className={`${isMobile ? 'h-3 w-3 mr-1' : 'h-4 w-4 mr-2'}`} />
-                          Share
+                          <Share2 className="h-5 w-5" />
                         </Button>
 
-                        {/* New Buttons */}
+                        {/* New Icon-only Buttons */}
                         {characterId ? (
                           <>
                             <Button
-                              size="sm"
-                              variant="secondary"
-                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-10 rounded-lg"
+                              size="icon"
+                              className="bg-blue-600 hover:bg-blue-700 text-white h-10 w-10 rounded-full shadow-lg"
                               onClick={(e) => {
                                 e.stopPropagation()
                                 router.push(`/chat/${characterId}?imageUrl=${encodeURIComponent(image)}`)
                               }}
+                              title="Chat with Character"
                             >
-                              <MessageSquare className="h-4 w-4 mr-2" />
-                              Chat
+                              <MessageSquare className="h-5 w-5" />
                             </Button>
                             <Button
-                              size="sm"
+                              size="icon"
                               variant="ghost"
                               className={cn(
-                                "h-10 w-10 p-0 rounded-full backdrop-blur-md ring-1 ring-white/20",
+                                "h-10 w-10 p-0 rounded-full backdrop-blur-md shadow-lg ring-1 ring-white/20",
                                 likedImageUrls.has(image) ? "bg-red-500/80 text-white" : "bg-white/10 text-white hover:bg-white/20"
                               )}
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleLike(image)
                               }}
+                              title={likedImageUrls.has(image) ? "Unlike" : "Like"}
                             >
                               <Heart className={cn("h-5 w-5", likedImageUrls.has(image) && "fill-current")} />
                             </Button>
                           </>
                         ) : (
                           <Button
-                            size="sm"
-                            className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold h-10 rounded-lg"
+                            size="icon"
+                            className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white h-10 w-10 rounded-full shadow-lg"
                             onClick={(e) => {
                               e.stopPropagation()
                               router.push(`/create-character?imageUrl=${encodeURIComponent(image)}&gender=lady`)
                             }}
+                            title="Create Character"
                           >
-                            <User className="h-4 w-4 mr-2" />
-                            Create Character
+                            <User className="h-5 w-5" />
                           </Button>
                         )}
                       </div>

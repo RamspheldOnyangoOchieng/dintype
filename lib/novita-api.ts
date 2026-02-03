@@ -94,31 +94,31 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       });
     }
 
-    // 2. Anatomy Lock Reference
+    // 2. Anatomy Lock Reference (Body Structure)
     const anatomyRef = character.metadata?.anatomy_reference_url || character.anatomy_reference_url || character.anatomyReferenceUrl;
     if (anatomyRef) {
       allReferences.push({
         url: anatomyRef,
-        weight: 0.9, // High weight for body structure
+        weight: 0.45, // Reduced: Only for body proportions, don't let it bake in the clothes
         model: "ip-adapter_xl",
         source: "Anatomy Lock"
       });
     }
 
-    // 3. Training Set (High Fidelity Faces)
+    // 3. Training Set (Identity & Likeness Focus)
     const trainingSet = character.images || character.metadata?.images || [];
     if (Array.isArray(trainingSet)) {
       trainingSet.forEach((img: string, idx: number) => {
         allReferences.push({
           url: img,
           weight: 0.85,
-          model: "ip-adapter_plus_face_xl", // Shift to face model for training set
+          model: "ip-adapter_plus_face_xl", // Face-only model: ignores the outfit
           source: `Training Set Image ${idx + 1}`
         });
       });
     }
 
-    // 4. Portfolio/Gallery Feed
+    // 4. Portfolio/Gallery Feed (Secondary Identity Support)
     const galleryItems = character.gallery || character.character_gallery || [];
     if (Array.isArray(galleryItems)) {
       galleryItems.forEach((img: any, idx: number) => {
@@ -126,8 +126,8 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
         if (url) {
           allReferences.push({
             url: url,
-            weight: 0.75,
-            model: "ip-adapter_xl",
+            weight: 0.6,
+            model: "ip-adapter_plus_face_xl", // Shifted to face-only model
             source: `Portfolio Image ${idx + 1}`
           });
         }
@@ -138,15 +138,15 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     if (imageBase64) {
       allReferences.push({
         url: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
-        weight: 0.85,
+        weight: 0.8,
         model: "ip-adapter_plus_face_xl",
         source: "User Feature Reference"
       });
     }
 
-    // Remove duplicates and cap at 16 to ensure high-fidelity study
+    // Remove duplicates and cap at 20 for maximum variety and detail
     const uniqueRefs = allReferences.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
-    const finalRefs = uniqueRefs.slice(0, 16);
+    const finalRefs = uniqueRefs.slice(0, 20);
 
     console.log(`🧬 [DNA Engine] Studying ${finalRefs.length} assets with MAXIMUM feature clarity...`);
 
@@ -186,12 +186,15 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     ? `### [BIOMETRIC ANCHOR: (precise facial biometrics:1.6), (exact facial structure:1.5), (locked identity DNA:1.5), (match all training photos:1.4), ${character.name} face]. ### `
     : '';
 
+  // --- OUTFIT LIBERATION (Prevents 'Reference Clothing Stickiness') ---
+  const outfitLiberation = `(PRIORITIZE PROMPT CLOTHING:1.5), (LIBERATE OUTFIT: ignore clothing in references:1.4), (CLOTHING VARIETY:1.3), `;
+
   const styleHookInfluence = promptHook ? `(STYLE: ${promptHook}:1.1), ` : '';
 
   // Enhance prompt based on style
   let enhancedPrompt = style === 'realistic'
-    ? `(solo:1.6), (1girl:1.6), ${prompt}, (dynamic composition:1.3), (8k UHD photography:1.4), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (unprocessed raw digital photo:1.2), highly detailed skin texture`
-    : `(solo:1.6), (1girl:1.6), ${prompt}, (dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (masterpiece anime art:1.4), clean aesthetic lines`;
+    ? `(solo:1.6), (1girl:1.6), ${prompt}, ${outfitLiberation}(dynamic composition:1.3), (8k UHD photography:1.4), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (unprocessed raw digital photo:1.2), highly detailed skin texture`
+    : `(solo:1.6), (1girl:1.6), ${prompt}, ${outfitLiberation}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (masterpiece anime art:1.4), clean aesthetic lines`;
 
   if (enhancedPrompt.length > 2000) {
     enhancedPrompt = enhancedPrompt.substring(0, 2000);
