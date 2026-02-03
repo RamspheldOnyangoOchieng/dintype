@@ -39,7 +39,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   const {
     prompt,
-    negativePrompt = 'muscular, masculine body, manly features, bodybuilder, strained muscle, man, male, couple, boy, together, two people, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, wrinkles, old, aged, grainy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, multiview, card, frame, border, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate',
+    negativePrompt = '(extra hands:1.6), (three hands:1.6), (deformed limbs:1.5), (mutated fingers:1.5), (extra fingers:1.5), (long body:1.3), (disfigured:1.4), (malformed:1.4), muscular, masculine body, manly features, bodybuilder, strained muscle, man, male, couple, boy, together, two people, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, wrinkles, old, aged, grainy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, multiview, card, frame, border, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate',
     width = 1600,
     height = 2400,
     steps = 30, // Increased for masterpiece clarity
@@ -185,15 +185,15 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   const perspectiveMode = isSelfieRequested
     ? `(intimate candid portrait:1.4), (natural close-up:1.3), (fascinating lighting:1.3), (looking at camera:1.2), `
-    : `(professional third-person photography:1.6), (full body shot:1.5), (wide angle:1.4), (candid masterpiece:1.4), (cinematic full-body shot:1.4), `;
+    : `(professional third-person photography:1.6), (full body shot:1.5), (wide angle:1.4), (candid masterpiece:1.4), (cinematic full-body shot:1.4), (MANDATORY THIRD-PERSON PERSPECTIVE:1.5), `;
 
   // Discourage 'selfie arms' and POV artifacts unless explicitly requested as a phone shot
   const perspectiveNegatives = isSelfieRequested
-    ? '(extended arm:1.1), (phone in face:1.1)'
-    : '(extended arm:1.4), (arm in frame:1.4), (distorted hand:1.4), (camera in hand:1.3), (POV selfie:1.5), (selfie arm:1.5)';
+    ? '(extended arm:1.1), (phone in face:1.1), (deformed fingers:1.4)'
+    : '(extended arm:1.6), (arm in frame:1.6), (distorted hand:1.6), (camera in hand:1.5), (POV selfie:1.6), (selfie arm:1.6), (arm reaching out:1.5), (hand holding camera:1.5)';
 
-  // Enforce negative prompt restrictions and dynamic balance
-  const finalNegativePrompt = `${negativePrompt}${perspectiveNegatives ? `, ${perspectiveNegatives}` : ''}${charNegativeRestrictions ? `, ${charNegativeRestrictions}` : ''}`;
+  // Enforce ADMIN negative prompt restrictions with MAXIMUM weight
+  const finalNegativePrompt = `${negativePrompt}${perspectiveNegatives ? `, ${perspectiveNegatives}` : ''}${charNegativeRestrictions ? `, (${charNegativeRestrictions}:1.6)` : ''}`;
 
   // --- BIOMETRIC ANCHOR ENGINE (Enhanced for Absolute Likeness) ---
   const biometricAnchor = character

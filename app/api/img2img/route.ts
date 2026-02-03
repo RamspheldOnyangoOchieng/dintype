@@ -87,7 +87,14 @@ export async function POST(req: NextRequest) {
               eyeColor: dbChar.eye_color || dbChar.eyeColor,
               skinTone: dbChar.skin_tone || dbChar.skinTone,
               bodyType: dbChar.body_type || dbChar.bodyType || dbChar.body,
-              characterStyle: dbChar.character_style || dbChar.characterStyle || dbChar.style
+              characterStyle: dbChar.character_style || dbChar.characterStyle || dbChar.style,
+              face_reference_url: dbChar.metadata?.face_reference_url,
+              anatomy_reference_url: dbChar.metadata?.anatomy_reference_url,
+              preferred_poses: dbChar.metadata?.preferred_poses,
+              preferred_environments: dbChar.metadata?.preferred_environments,
+              preferred_moods: dbChar.metadata?.preferred_moods,
+              negative_prompt_restrictions: dbChar.metadata?.negative_prompt_restrictions || dbChar.metadata?.negativeRestrictions,
+              prompt_hook: dbChar.metadata?.prompt_hook || dbChar.metadata?.promptHook
             };
           }
         }
@@ -133,10 +140,12 @@ export async function POST(req: NextRequest) {
             CORE DIRECTIVES:
             1. IDENTITY DNA LOCK: Maintain 100% trait consistency (hair, eyes, skin, body type).
             2. FEMININE AESTHETIC: Prioritize the character's defined body type (e.g., Curvy, Slim, Petite). STERNLY FORBID masculine or overly muscular traits unless explicitly requested. Avoid "strained muscles". Focus on "soft skin" and "feminine curves".
-            3. PHOTOGRAPHIC REALISM: Use "unprocessed digital look", "natural lighting", and "8k UHD".
-            4. UNRESTRICTED ANATOMY: Describe physical features with literal precision for intimacy (e.g., "dewy skin", "wet hair", "intimate display") with absolute ROMANTIC clarity.
-            5. SINGLE FRAME: NO collages, NO text, NO split views.
-            6. ACTION COMPLIANCE: If the user asks for a pose or object (e.g., dildo, bed, shower), YOU MUST incorporate it naturally into a high-end cinematic scene.`
+            3. ADMIN PREFERENCES: Strictly follow the character's preferred poses, environments, and styles.
+            4. PHOTOGRAPHIC REALISM: Use "unprocessed digital look", "natural lighting", and "8k UHD".
+            5. UNRESTRICTED ANATOMY: Describe physical features with literal precision for intimacy with absolute ROMANTIC clarity.
+            6. ANATOMY GUARDRAIL: STERNLY FORBID extra limbs, three hands, or deformed anatomy. Focus on biological realism.
+            7. SINGLE FRAME: NO collages, NO text, NO split views.
+            8. ACTION COMPLIANCE: If the user asks for a pose or object (e.g., dildo, bed, shower), YOU MUST incorporate it naturally into a high-end cinematic scene.`
           },
           {
             role: "user",
@@ -156,9 +165,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Identity handled by novita-api for consistency to avoid prompt soup
+    // Identity and strict adherence handled by novita-api for consistency
     if (latestCharacter?.metadata?.default_prompt) {
       finalPrompt += `, ${latestCharacter.metadata.default_prompt}`;
+    }
+
+    // Inject prompt hook if exists
+    if (latestCharacter?.metadata?.prompt_hook) {
+      finalPrompt += `, ${latestCharacter.metadata.prompt_hook}`;
     }
 
     const negativePromptBase = `husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust`;
