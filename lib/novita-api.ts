@@ -83,12 +83,12 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     console.log(`🧬 [DNA Engine] Harvesting total character DNA for ${character.name}...`);
     const allReferences: { url: string; weight: number; model: string; source: string }[] = [];
 
-    // 1. Golden Face Reference
+    // 1. Golden Face Reference (CRITICAL)
     const faceRef = character.metadata?.face_reference_url || character.face_reference_url || character.faceReferenceUrl;
     if (faceRef) {
       allReferences.push({
         url: faceRef,
-        weight: 0.85,
+        weight: 1.0, // MAX weight for the primary identity
         model: "ip-adapter_plus_face_xl",
         source: "Golden Face"
       });
@@ -99,20 +99,20 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     if (anatomyRef) {
       allReferences.push({
         url: anatomyRef,
-        weight: 0.85,
+        weight: 0.9, // High weight for body structure
         model: "ip-adapter_xl",
         source: "Anatomy Lock"
       });
     }
 
-    // 3. Training Set (Multi-image array)
+    // 3. Training Set (High Fidelity Faces)
     const trainingSet = character.images || character.metadata?.images || [];
     if (Array.isArray(trainingSet)) {
       trainingSet.forEach((img: string, idx: number) => {
         allReferences.push({
           url: img,
-          weight: 0.7,
-          model: "ip-adapter_xl",
+          weight: 0.85,
+          model: "ip-adapter_plus_face_xl", // Shift to face model for training set
           source: `Training Set Image ${idx + 1}`
         });
       });
@@ -126,7 +126,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
         if (url) {
           allReferences.push({
             url: url,
-            weight: 0.65,
+            weight: 0.75,
             model: "ip-adapter_xl",
             source: `Portfolio Image ${idx + 1}`
           });
@@ -138,17 +138,17 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     if (imageBase64) {
       allReferences.push({
         url: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
-        weight: 0.8, // Increased for perfect feature clarity
-        model: "ip-adapter_xl",
+        weight: 0.85,
+        model: "ip-adapter_plus_face_xl",
         source: "User Feature Reference"
       });
     }
 
-    // Remove duplicates and cap at 12 to ensure stability
+    // Remove duplicates and cap at 16 to ensure high-fidelity study
     const uniqueRefs = allReferences.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
-    const finalRefs = uniqueRefs.slice(0, 12);
+    const finalRefs = uniqueRefs.slice(0, 16);
 
-    console.log(`🧬 [DNA Engine] Studying ${finalRefs.length} assets with sharpened feature clarity...`);
+    console.log(`🧬 [DNA Engine] Studying ${finalRefs.length} assets with MAXIMUM feature clarity...`);
 
     for (const ref of finalRefs) {
       finalControlUnits.push({
@@ -181,17 +181,17 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   // Enforce negative prompt restrictions from character metadata
   const finalNegativePrompt = `${negativePrompt}${charNegativeRestrictions ? `, ${charNegativeRestrictions}` : ''}`;
 
-  // --- BIOMETRIC ANCHOR ENGINE (Enhanced for Likeness) ---
+  // --- BIOMETRIC ANCHOR ENGINE (Enhanced for Absolute Likeness) ---
   const biometricAnchor = character
-    ? `### [BIOMETRIC ANCHOR: (hyper-precise facial likeness:1.6), (locked character features:1.5), (exact face from reference:1.5), (consistent identity:1.4), (match visual DNA:1.4)]. ### `
+    ? `### [BIOMETRIC ANCHOR: (precise facial biometrics:1.6), (exact facial structure:1.5), (locked identity DNA:1.5), (match all training photos:1.4), ${character.name} face]. ### `
     : '';
 
-  const styleHookInfluence = promptHook ? `(STYLE INFLUENCE: ${promptHook}:1.1), ` : '';
+  const styleHookInfluence = promptHook ? `(STYLE: ${promptHook}:1.1), ` : '';
 
   // Enhance prompt based on style
   let enhancedPrompt = style === 'realistic'
-    ? `(solo:1.6), (1girl:1.6), ${prompt}, (dynamic composition:1.3), (ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (8k UHD:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, highly detailed textures, authentic lighting`
-    : `(solo:1.6), (1girl:1.6), ${prompt}, (dynamic anime pose:1.3), (ONE CONTINUOUS ILLUSTRATION:1.4), (ONE FRAME ONLY:1.4), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, masterpiece anime quality, clean lines`;
+    ? `(solo:1.6), (1girl:1.6), ${prompt}, (dynamic composition:1.3), (8k UHD photography:1.4), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (unprocessed raw digital photo:1.2), highly detailed skin texture`
+    : `(solo:1.6), (1girl:1.6), ${prompt}, (dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (masterpiece anime art:1.4), clean aesthetic lines`;
 
   if (enhancedPrompt.length > 2000) {
     enhancedPrompt = enhancedPrompt.substring(0, 2000);

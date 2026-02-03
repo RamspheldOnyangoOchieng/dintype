@@ -1535,7 +1535,33 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           // If no chImages, fall through to default AI generation below
         }
 
-        const imagePrompt = extractImagePrompt(combinedContent)
+        let imagePrompt = extractImagePrompt(combinedContent)
+
+        // Contextual awareness: if prompt is generic, look back at the last user message that had detail
+        if (imagePrompt === "a beautiful and intimate selfie, natural lighting, high quality" ||
+          combinedContent.toLowerCase().includes("send it") ||
+          combinedContent.toLowerCase().trim() === "again" ||
+          combinedContent.toLowerCase().trim() === "another") {
+
+          // Search last 5 user messages for a more detailed description
+          const historyUserMsgs = [...messages]
+            .filter(m => m.role === 'user')
+            .reverse()
+            .slice(0, 5);
+
+          for (const m of historyUserMsgs) {
+            const detailedPrompt = extractImagePrompt(m.content);
+            // If we found a prompt that wasn't the default generic one
+            if (detailedPrompt &&
+              detailedPrompt.length > 10 &&
+              detailedPrompt !== "a beautiful and intimate selfie, natural lighting, high quality") {
+              imagePrompt = detailedPrompt;
+              console.log("🔍 Context found in history:", imagePrompt);
+              break;
+            }
+          }
+        }
+
         setIsSendingMessage(false)
         await generateImage(imagePrompt)
         return

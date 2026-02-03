@@ -15,18 +15,29 @@ export const isAskingForImage = (message: string): boolean => {
   if (standaloneTriggers.includes(lowerCaseMessage)) return true;
 
   // 1. High-intent direct keywords (Standalone triggers)
-  const directKeywords = ["image", "picture", "selfie", "photo", "pic", "pics", "draw", "generate", "create", "teckna", "bild", "foto", "pantry", "nude", "nudes", "naked", "topless", "pose", "posing", "bikini", "lingerie", "undress", "undressing"];
+  const directKeywords = [
+    "image", "picture", "selfie", "photo", "pic", "pics", "draw", "generate", "create", "teckna", "bild", "foto",
+    "pantry", "nude", "nudes", "naked", "topless", "pose", "posing", "bikini", "lingerie", "undress", "undressing",
+    "crop top", "skirt", "panties", "bra", "dress", "outfit", "wearing", "no clothes", "body", "pussy", "ass", "boobs", "tits"
+  ];
   if (directKeywords.some(k => lowerCaseMessage.includes(k))) return true;
 
   // 1b. Specific phrases
-  const directPhrases = ["send your", "show your", "send me your", "show me your", "how you look", "what you look like", "send pic", "send photo"];
+  const directPhrases = [
+    "send your", "show your", "send me your", "show me your", "how you look", "what you look like",
+    "send pic", "send photo", "let me see", "can i see", "i need to see", "i need the photo", "send it", "show it"
+  ];
   if (directPhrases.some(p => lowerCaseMessage.includes(p))) return true;
+
+  // 1c. Scene descriptions (If user describes a scene/outfit, they want to see it)
+  const sceneKeywords = ["sitting on", "lying on", "standing in", "wearing a", "dressed as", "in a"];
+  if (sceneKeywords.some(k => lowerCaseMessage.startsWith(k))) return true;
 
   // 2. Clear intent phrases
   const intentPhrases = [
     "can i see", "send me", "show me", "give me",
     "kan jag få se", "skicka en", "visa mig", "ge mig",
-    "send another", "give another", "show another"
+    "send another", "give another", "show another", "send it now"
   ];
   if (intentPhrases.some(p => lowerCaseMessage.includes(p))) return true;
 
@@ -81,6 +92,8 @@ export const extractImagePrompt = (message: string): string => {
 
   // Handle "another one with", "another one where", etc.
   cleaned = cleaned.replace(/^(another\s+one\s+(with|where|when|of)?\s*)/i, "");
+  cleaned = cleaned.replace(/^(send\s+it\s+now\s+(with|where|when|of)?\s*)/i, "");
+  cleaned = cleaned.replace(/^(i\s+need\s+(to\s+see|the\s+photo)\s+(of|where|when)?\s*)/i, "");
   cleaned = cleaned.replace(/^(when\s+yu?\s+are\s+)/i, ""); // Handle "when yu are"
   cleaned = cleaned.replace(/^(yu?\s+are\s+)/i, "");     // Handle "yu are"
 

@@ -501,15 +501,8 @@ export async function POST(req: NextRequest) {
               promptsToUse = [cleanedOutput.replace(/^"|"$/g, '')];
             }
 
-            // Enhanced identity and quality prefixes for facial clarity
-            const identityPrefix = latestCharacter ? `### IDENTITY : (hyper-focused face:1.4), (sharp detailed eyes:1.4), (precise skin tone [${latestCharacter.skinTone || 'natural'}]:1.3), (ethnicity [${latestCharacter.ethnicity || 'mixed'}]:1.3), (visible skin pores:1.3), ${latestCharacter.name}, (natural ${latestCharacter.hairColor || 'natural'} hair:1.2). MATCH VISUAL DNA EXACTLY. ### ` : '### IDENTITY : (hyper-focused face:1.3), (sharp detailed eyes:1.4), (visible skin pores:1.3). ### ';
-            const frameMandate = `(ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (solo:1.3), (candid:1.3), (dynamic pose:1.2), `;
-
-            // Map individual prompts with prefixes
-            promptsForTasks = promptsToUse.slice(0, actualImageCount).map(p => {
-              const fullP = identityPrefix + frameMandate + p;
-              return fullP.length > 2000 ? fullP.substring(0, 2000) : fullP;
-            });
+            // Map individual prompts directly. Identity is handled by novita-api for consistency.
+            promptsForTasks = promptsToUse.slice(0, actualImageCount);
 
             // Fill remaining slots if fewer prompts than images
             while (promptsForTasks.length < actualImageCount) {
@@ -520,18 +513,16 @@ export async function POST(req: NextRequest) {
           }
         } else {
           console.warn("⚠️ Prompt enhancement failed (response not ok), using original prompt");
-          const identityPrefix = latestCharacter ? `### IDENTITY : (hyper-focused face:1.3), (sharp detailed eyes:1.4), ${latestCharacter.name}. ### ` : '';
           for (let i = 0; i < actualImageCount; i++) {
-            promptsForTasks.push(identityPrefix + prompt);
+            promptsForTasks.push(prompt);
           }
           finalPrompt = promptsForTasks[0];
         }
       }
     } catch (e) {
       console.error("❌ Error during prompt enhancement:", e);
-      const identityPrefix = latestCharacter ? `### IDENTITY : (hyper-focused face:1.3), (sharp detailed eyes:1.4), ${latestCharacter.name}. ### ` : '';
       for (let i = 0; i < actualImageCount; i++) {
-        promptsForTasks.push(identityPrefix + prompt);
+        promptsForTasks.push(prompt);
       }
       finalPrompt = promptsForTasks[0];
     }
