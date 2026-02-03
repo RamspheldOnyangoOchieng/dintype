@@ -178,30 +178,35 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     moods ? `(EXPRESSION: ${moods}:1.4)` : '',
   ].filter(Boolean).join(', ');
 
+  // --- PROMPT SANITIZER (Removes selfie triggers) ---
+  const sanitizePrompt = (p: string) => {
+    return p.replace(/selfie/gi, 'candid photo')
+      .replace(/pov/gi, 'third-person view')
+      .replace(/holding phone/gi, 'hands on body')
+      .replace(/taking a photo/gi, 'posing')
+      .replace(/holding camera/gi, 'hands on hips');
+  };
+  const cleanedPrompt = sanitizePrompt(prompt);
+
   // --- PERSPECTIVE ENGINE (Natural Mastery Focus - ABSOLUTE THIRD PERSON) ---
-  // Mandatory third-person to avoid selfie-arm artifacts even if 'selfie' is in prompt
-  const perspectiveMode = `(professional third-person photography:1.7), (full body shot:1.5), (wide angle:1.4), (candid masterpiece:1.4), (cinematic shot:1.4), (natural hand placement:1.5), (MANDATORY THIRD-PERSON PERSPECTIVE:1.6), `;
+  const perspectiveMode = `(professional third-person photography:1.7), (full body shot:1.5), (wide angle:1.6), (remote camera:1.4), (candid from distance:1.4), (hands away from camera:1.6), (hands touching body:1.5), (MANDATORY THIRD-PERSON PERSPECTIVE:1.6), `;
 
-  // Aggressively forbid 'selfie arms' and POV artifacts in ALL modes with MAXIMUM PENALTY
-  const perspectiveNegatives = `(extended arm:1.8), (prolonged arm:1.8), (arm in frame:1.7), (reaching towards camera:1.7), (POV selfie arm:1.8), (hand holding camera:1.7), (distorted hand:1.6), (camera in hand:1.6), (selfie photo:1.5), (POV:1.5)`;
+  // Aggressively forbid 'selfie arm' artifacts with MAXIMUM PENALTY
+  const perspectiveNegatives = `(extended arm:1.9), (prolonged arm:1.9), (arm in frame:1.8), (reaching towards camera:1.8), (POV selfie arm:1.9), (hand holding camera:1.8), (distorted hand:1.7), (camera in hand:1.7), (selfie photo:1.8), (POV:1.8), (holding phone:1.8), (arm stretching:1.7)`;
 
-  // Enforce ADMIN negative prompt restrictions with MAXIMUM weight
   const finalNegativePrompt = `${negativePrompt}${perspectiveNegatives ? `, ${perspectiveNegatives}` : ''}${charNegativeRestrictions ? `, (${charNegativeRestrictions}:1.6)` : ''}`;
 
-  // --- BIOMETRIC ANCHOR ENGINE (Enhanced for Absolute Likeness) ---
   const biometricAnchor = character
-    ? `### [BIOMETRIC ANCHOR: (precise facial biometrics:1.6), (exact facial structure:1.5), (locked identity DNA:1.5), (match all training photos:1.4), ${character.name} face]. ### `
+    ? `### [BIOMETRIC ANCHOR: (precise facial DNA:1.6), (match training photos:1.5), (locked identity:1.5), ${character.name} face]. ### `
     : '';
 
-  // --- OUTFIT LIBERATION (Prevents 'Reference Clothing Stickiness') ---
   const outfitLiberation = `(PRIORITIZE PROMPT CLOTHING:1.5), (LIBERATE OUTFIT: ignore clothing in references:1.4), (CLOTHING VARIETY:1.3), `;
-
   const styleHookInfluence = promptHook ? `(STYLE: ${promptHook}:1.1), ` : '';
 
   // Enhance prompt based on style
   let enhancedPrompt = style === 'realistic'
-    ? `(solo:1.6), (1girl:1.6), (feminine body:1.5), (natural female proportions:1.4), ${prompt}, ${outfitLiberation}${perspectiveMode}(dynamic composition:1.3), (8k UHD photography:1.4), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.4), (soft skin:1.3), fascinating and sexy, clear and romantic display of private parts, full nudity`
-    : `(solo:1.6), (1girl:1.6), ${prompt}, ${outfitLiberation}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (masterpiece anime art:1.4), clean aesthetic lines`;
+    ? `(solo:1.6), (1girl:1.6), (feminine body:1.5), (natural female proportions:1.4), ${cleanedPrompt}, ${outfitLiberation}${perspectiveMode}(dynamic composition:1.3), (8k UHD photography:1.4), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.4), (soft skin:1.3), fascinating and sexy, clear and romantic display of private parts, full nudity`
+    : `(solo:1.6), (1girl:1.6), ${cleanedPrompt}, ${outfitLiberation}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (masterpiece anime art:1.4), clean aesthetic lines`;
 
   if (enhancedPrompt.length > 2000) {
     enhancedPrompt = enhancedPrompt.substring(0, 2000);
