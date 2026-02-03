@@ -76,7 +76,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   const identityPrefix = buildIdentityDNA(character);
 
   const anatomyLock = character && (character.metadata?.anatomy_reference_url || character.anatomy_reference_url)
-    ? `(ANATOMY LOCK: high anatomical accuracy, detailed realistic genitalia, biological realism, uncensored, ${character.skinTone || character.skin_tone || 'natural'} skin texture:1.5), `
+    ? `(STRICT ANATOMY LOCK: uncensored high anatomical accuracy, clear and detailed display of private parts, biological realism, intimate detail, ${character.skinTone || character.skin_tone || 'natural'} skin texture:1.6), `
     : '';
 
   if (character) {
@@ -207,7 +207,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   // Enhance prompt based on style
   let enhancedPrompt = style === 'realistic'
-    ? `(solo:1.6), (1girl:1.6), ${prompt}, ${outfitLiberation}${perspectiveMode}(dynamic composition:1.3), (8k UHD photography:1.4), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.3), fascinating and sexy`
+    ? `(solo:1.6), (1girl:1.6), ${prompt}, ${outfitLiberation}${perspectiveMode}(dynamic composition:1.3), (8k UHD photography:1.4), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.4), fascinating and sexy, clear and romantic display of private parts, full nudity`
     : `(solo:1.6), (1girl:1.6), ${prompt}, ${outfitLiberation}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (masterpiece anime art:1.4), clean aesthetic lines`;
 
   if (enhancedPrompt.length > 2000) {

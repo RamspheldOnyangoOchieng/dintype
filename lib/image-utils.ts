@@ -18,7 +18,9 @@ export const isAskingForImage = (message: string): boolean => {
   const directKeywords = [
     "image", "picture", "selfie", "photo", "pic", "pics", "draw", "generate", "create", "teckna", "bild", "foto",
     "pantry", "nude", "nudes", "naked", "topless", "pose", "posing", "bikini", "lingerie", "undress", "undressing",
-    "crop top", "skirt", "panties", "bra", "dress", "outfit", "wearing", "no clothes", "body", "pussy", "ass", "boobs", "tits"
+    "crop top", "skirt", "panties", "bra", "dress", "outfit", "wearing", "no clothes", "body", "pussy", "ass", "boobs", "tits",
+    "cowgirl", "doggy", "blowjob", "missionary", "masturbation", "dildo", "handjob", "deepthroat", "full naked", "widely spread", "private parts", "very naked", "fully exposed",
+    "boobjob", "reverse cowgirl", "squirting", "cumshot", "bondage", "yacht", "private jet", "penthouse", "hotel room", "car backseat", "locker room"
   ];
   if (directKeywords.some(k => lowerCaseMessage.includes(k))) return true;
 
