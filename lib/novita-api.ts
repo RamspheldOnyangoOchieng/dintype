@@ -178,20 +178,21 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     moods ? `(EXPRESSION: ${moods}:1.2)` : '',
   ].filter(Boolean).join(', ');
 
-  // --- PERSPECTIVE ENGINE (Selfie vs Professional) ---
+  // --- PERSPECTIVE ENGINE (Balanced & Contextual) ---
   const isSelfieRequested = prompt.toLowerCase().includes('selfie') ||
-    prompt.toLowerCase().includes('holding phone') ||
-    prompt.toLowerCase().includes('taking a photo');
+    prompt.toLowerCase().includes('taking a photo') ||
+    prompt.toLowerCase().includes('holding phone');
 
   const perspectiveMode = isSelfieRequested
-    ? `(POV selfie:1.4), (lone woman taking photo:1.3), (mobile phone camera:1.2), `
-    : `(professional third-person photography:1.5), (full body shot:1.4), (wide angle:1.3), (looking away from camera:1.1), (candid masterpiece:1.3), `;
+    ? `(intimate selfie perspective:1.4), (natural close-up:1.3), (looking at camera:1.2), `
+    : `(professional third-person photography:1.5), (full body shot:1.4), (wide angle:1.3), (candid masterpiece:1.3), `;
 
+  // Soft negative weights to discourage 'selfie arms' when not requested, without a hard block
   const perspectiveNegatives = isSelfieRequested
     ? ''
-    : 'selfie, hand holding phone, arm extended, POV selfie, phone in hand, looking at phone, camera in hand, holding camera, (reaching towards camera:1.4), arm in frame, hand in frame';
+    : '(extended arm:1.2), (arm in frame:1.2), (distorted hand:1.3), (camera in hand:1.1)';
 
-  // Enforce negative prompt restrictions and dynamic perspective avoidance
+  // Enforce negative prompt restrictions and dynamic balance
   const finalNegativePrompt = `${negativePrompt}${perspectiveNegatives ? `, ${perspectiveNegatives}` : ''}${charNegativeRestrictions ? `, ${charNegativeRestrictions}` : ''}`;
 
   // --- BIOMETRIC ANCHOR ENGINE (Enhanced for Absolute Likeness) ---
