@@ -51,114 +51,133 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     imageBase64,
   } = params;
 
-  // --- MULTI-REFERENCING ENGINE (CORE) ---
+  // --- FULL-SPECTRUM DNA TWINNING ENGINE ---
   const finalControlUnits = [...controlnet_units];
 
-  // Create identity prefix safely (check if already present in prompt to avoid double-prefixing)
-  const identityLockText = `### IDENTITY LOCK: ${character?.name || ''}`;
-  const identityPrefix = (character && !prompt.includes(identityLockText))
-    ? `### IDENTITY LOCK: ${character.name}, ethnicity: ${character.ethnicity || 'mixed'}, skin: ${character.skinTone || character.skin_tone || 'natural'}, hair: ${character.hairColor || character.hair_color || ''}, eyes: ${character.eyeColor || character.eye_color || ''}. MATCH VISUAL DNA EXACTLY. ### `
-    : '';
+  // Helper to construct Character Identity DNA
+  const buildIdentityDNA = (char: any) => {
+    if (!char) return '';
+    const dnaParts = [
+      `NAME: ${char.name}`,
+      `AGE: ${char.age}`,
+      `ETHNICITY: ${char.ethnicity || 'mixed'}`,
+      `BODY: ${char.bodyType || char.body_type || char.body || 'average'}`,
+      `HAIR: ${char.hairColor || char.hair_color || 'natural'}`,
+      `EYES: ${char.eyeColor || char.eye_color || 'beautiful'}`,
+      `SKIN TONE: ${char.skinTone || char.skin_tone || 'natural tone'}`,
+      `OCCUPATION: ${char.occupation || ''}`,
+      `PERSONALITY: ${char.personality || ''}`,
+      `GUIDELINES: ${char.systemPrompt || char.system_prompt || ''}`,
+    ].filter(p => !p.endsWith(': '));
 
-  const anatomyLock = character
-    ? `(Anatomy Lock: ${character.bodyType || character.body_type || 'standard'}, ${character.skinTone || character.skin_tone || 'natural'} skin:1.3), `
+    return `### [IDENTITY LOCK: ${dnaParts.join(' | ')}]. MATCH CHARACTER DNA AND BIOMETRICS EXACTLY. ### `;
+  };
+
+  const identityPrefix = buildIdentityDNA(character);
+
+  const anatomyLock = character && (character.metadata?.anatomy_reference_url || character.anatomy_reference_url)
+    ? `(ANATOMY LOCK: high anatomical accuracy, detailed realistic genitalia, ${character.skinTone || character.skin_tone || 'natural'} skin texture:1.5), `
     : '';
 
   if (character) {
-    console.log(`🧬 [Multi-Engine] Building identity lock for ${character.name}...`);
-    const referenceImages: { url: string; weight: number; label: string }[] = [];
+    console.log(`🧬 [DNA Engine] Harvesting total character DNA for ${character.name}...`);
+    const allReferences: { url: string; weight: number; model: string; source: string }[] = [];
 
     // 1. Golden Face Reference
-    if (character.metadata?.face_reference_url || character.face_reference_url) {
-      referenceImages.push({
-        url: character.metadata?.face_reference_url || character.face_reference_url,
-        weight: 1.0,
-        label: "Golden Face"
+    const faceRef = character.metadata?.face_reference_url || character.face_reference_url || character.faceReferenceUrl;
+    if (faceRef) {
+      allReferences.push({
+        url: faceRef,
+        weight: 0.85,
+        model: "ip-adapter_plus_face_xl",
+        source: "Golden Face"
       });
     }
 
-    // 2. Main Profile Image
-    const mainImg = character.image || character.imageUrl || character.image_url;
-    if (mainImg) {
-      referenceImages.push({
-        url: mainImg,
-        weight: 0.9,
-        label: "Main Profile"
+    // 2. Anatomy Lock Reference
+    const anatomyRef = character.metadata?.anatomy_reference_url || character.anatomy_reference_url || character.anatomyReferenceUrl;
+    if (anatomyRef) {
+      allReferences.push({
+        url: anatomyRef,
+        weight: 0.85,
+        model: "ip-adapter_xl",
+        source: "Anatomy Lock"
       });
     }
 
-    // 3. Additional Profile Images
-    const extraImages = character.images || character.metadata?.images || [];
-    if (Array.isArray(extraImages) && extraImages.length > 0) {
-      extraImages.slice(0, 2).forEach((img: string, idx: number) => {
-        referenceImages.push({
+    // 3. Training Set (Multi-image array)
+    const trainingSet = character.images || character.metadata?.images || [];
+    if (Array.isArray(trainingSet)) {
+      trainingSet.forEach((img: string, idx: number) => {
+        allReferences.push({
           url: img,
-          weight: 0.8,
-          label: `Additional Ref ${idx + 1}`
+          weight: 0.7,
+          model: "ip-adapter_xl",
+          source: `Training Set Image ${idx + 1}`
         });
       });
     }
 
-    // 4. Context Image (Pose/Vibe)
+    // 4. Portfolio/Gallery Feed
+    const galleryItems = character.gallery || character.character_gallery || [];
+    if (Array.isArray(galleryItems)) {
+      galleryItems.forEach((img: any, idx: number) => {
+        const url = typeof img === 'string' ? img : img.imageUrl || img.image_url;
+        if (url) {
+          allReferences.push({
+            url: url,
+            weight: 0.65,
+            model: "ip-adapter_xl",
+            source: `Portfolio Image ${idx + 1}`
+          });
+        }
+      });
+    }
+
+    // 5. Context/Pose Image (Optional context context)
     if (imageBase64) {
-      referenceImages.push({
+      allReferences.push({
         url: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
-        weight: 0.7,
-        label: "Context Image"
+        weight: 0.6,
+        model: "ip-adapter_xl",
+        source: "Context Image"
       });
     }
 
-    // 💎 ELITE FILTERING: To prevent collages (split-screen), we must minimize IP-Adapter conflict.
-    // We prioritize 1 Principal Identity Face + 1 Context/Anatomy reference. MAX 2 TOTAL.
-    const principalIdentity = referenceImages.find(r => r.label === "Golden Face") ||
-      referenceImages.find(r => r.label === "Main Profile") ||
-      referenceImages[0];
+    // Remove duplicates and cap at 12 to ensure stability
+    const uniqueRefs = allReferences.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
+    const finalRefs = uniqueRefs.slice(0, 12);
 
-    const contextReference = referenceImages.find(r => r.label === "Context Image");
+    console.log(`🧬 [DNA Engine] Studying ${finalRefs.length} assets for total likeness preservation...`);
 
-    // Clearer solo mandate in the prefix
-    const soloMandate = "(solo:1.6), (1girl:1.6), (one person only:1.5), lone identity, ";
-
-    const limitedReferences = [];
-    if (principalIdentity) limitedReferences.push(principalIdentity);
-    if (contextReference) limitedReferences.push(contextReference);
-
-    // Combine into finalControlUnits
-    for (const ref of limitedReferences) {
-      try {
-        let cleanUrl = ref.url;
-        const isFaceSource = ref.label.includes("Face") || ref.label.includes("Profile");
-
-        finalControlUnits.push({
-          model_name: isFaceSource ? "ip-adapter_plus_face_xl" : "ip-adapter_xl",
-          weight: isFaceSource ? 0.75 : 0.5, // Increased weights for better consistency
-          control_image: cleanUrl,
-          module_name: "none"
-        });
-      } catch (err) {
-        console.warn(`⚠️ [Multi-Engine] Failed reference ${ref.label}:`, err);
-      }
-    }
-
-    // 5. Anatomy Reference (Only if we have space, otherwise it's overkill)
-    if (limitedReferences.length < 2 && (character.metadata?.anatomy_reference_url || character.anatomy_reference_url)) {
+    for (const ref of finalRefs) {
       finalControlUnits.push({
-        model_name: "ip-adapter_xl",
-        weight: 0.8,
-        control_image: character.metadata?.anatomy_reference_url || character.anatomy_reference_url,
+        model_name: ref.model,
+        weight: ref.weight,
+        control_image: ref.url,
         module_name: "none"
       });
     }
   }
 
-  // Enhance prompt based on style - focus on Solitary Intimate Photography
-  // We demand a single frame and use high weighting for raw, photorealistic textures
-  let enhancedPrompt = style === 'realistic'
-    ? `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (hyper-focused face:1.3), (sharp detailed eyes:1.3), (ultra-realistic raw photography:1.4), (natural skin textures:1.4), (detailed skin pores:1.3), no collage, no split screen, full screen, unprocessed raw digital photography, ${identityPrefix}${anatomyLock}${prompt}, dynamic pose, interesting environment, natural lighting, highly detailed, sharp focus, 8k UHD, authentic raw photo`
-    : `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS ILLUSTRATION:1.4), (ONE FRAME ONLY:1.4), (perfect face:1.2), (clear eyes:1.2), (masterpiece anime art:1.2), dynamic full body or mid-shot anime pose, no collage, no split screen, ${identityPrefix}${anatomyLock}${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
+  // --- PREFERENCE INJECTION (Micro-Step 5) ---
+  const poses = character?.metadata?.preferred_poses || character?.preferredPoses || '';
+  const environments = character?.metadata?.preferred_environments || character?.preferredEnvironments || '';
+  const moods = character?.metadata?.preferred_moods || character?.preferredMoods || '';
 
-  if (enhancedPrompt.length > 1500) {
-    enhancedPrompt = enhancedPrompt.substring(0, 1500);
+  const preferencePrompt = [
+    poses ? `(STRICT POSE: ${poses}:1.4)` : '',
+    environments ? `(SETTING: ${environments}:1.3)` : '',
+    moods ? `(EXPRESSION: ${moods}:1.2)` : ''
+  ].filter(Boolean).join(', ');
+
+  // Enhance prompt based on style
+  let enhancedPrompt = style === 'realistic'
+    ? `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (hyper-focused face:1.4), (sharp detailed eyes:1.4), (ultra-realistic raw photography:1.4), (natural skin textures:1.4), (detailed skin pores:1.3), no collage, no split screen, full screen, ${identityPrefix}${anatomyLock}${preferencePrompt}, ${prompt}, dynamic pose, interesting environment, highly detailed, sharp focus, 8k UHD, authentic raw photo`
+    : `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS ILLUSTRATION:1.4), (ONE FRAME ONLY:1.4), (perfect face:1.2), (clear eyes:1.3), (masterpiece anime art:1.3), dynamic anime pose, no collage, no split screen, ${identityPrefix}${anatomyLock}${preferencePrompt}, ${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
+
+  if (enhancedPrompt.length > 2000) {
+    enhancedPrompt = enhancedPrompt.substring(0, 2000);
   }
 
   // Seedream 4.5 with retry logic

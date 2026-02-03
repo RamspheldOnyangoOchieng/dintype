@@ -313,12 +313,13 @@ export async function POST(req: NextRequest) {
         }, { status: 403 });
       }
     }
-    // --- RE-FETCH CHARACTER FROM DB FOR TWINNING ---
+    // --- RE-FETCH CHARACTER FROM DB FOR FULL SPECTRUM TWINNING ---
     let latestCharacter = character;
     if (characterId) {
       try {
         const supabaseAdmin = await createAdminClient();
         if (supabaseAdmin) {
+          // 1. Fetch character details
           const { data: dbChar } = await supabaseAdmin
             .from('characters')
             .select('*')
@@ -326,26 +327,36 @@ export async function POST(req: NextRequest) {
             .maybeSingle();
 
           if (dbChar) {
-            console.log(`🧬 Re-fetched latest traits for character: ${dbChar.name}`);
-            // Map snake_case to camelCase for the prompt builder
+            console.log(`🧬 Re-fetching total identity for: ${dbChar.name}`);
+
+            // 2. Fetch character gallery for visual study
+            const { data: galleryImages } = await supabaseAdmin
+              .from('character_gallery')
+              .select('image_url')
+              .eq('character_id', characterId)
+              .order('created_at', { ascending: false })
+              .limit(10);
+
+            // Map snake_case to camelCase and consolidate for the DNA engine
             latestCharacter = {
               ...dbChar,
+              character_gallery: galleryImages || [],
               hairColor: dbChar.hair_color || dbChar.hairColor,
               eyeColor: dbChar.eye_color || dbChar.eyeColor,
               skinTone: dbChar.skin_tone || dbChar.skinTone,
               bodyType: dbChar.body_type || dbChar.bodyType || dbChar.body,
               characterStyle: dbChar.character_style || dbChar.characterStyle || dbChar.style,
-              faceReferenceUrl: dbChar.metadata?.face_reference_url,
-              anatomyReferenceUrl: dbChar.metadata?.anatomy_reference_url,
-              preferredPoses: dbChar.metadata?.preferred_poses,
-              preferredEnvironments: dbChar.metadata?.preferred_environments,
-              preferredMoods: dbChar.metadata?.preferred_moods,
-              negativeRestrictions: dbChar.metadata?.negative_prompt_restrictions
+              face_reference_url: dbChar.metadata?.face_reference_url,
+              anatomy_reference_url: dbChar.metadata?.anatomy_reference_url,
+              preferred_poses: dbChar.metadata?.preferred_poses,
+              preferred_environments: dbChar.metadata?.preferred_environments,
+              preferred_moods: dbChar.metadata?.preferred_moods,
+              negative_prompt_restrictions: dbChar.metadata?.negative_prompt_restrictions
             };
           }
         }
       } catch (e) {
-        console.warn("⚠️ Failed to re-fetch character, using provided character data", e);
+        console.warn("⚠️ Failed to re-fetch character, using provided context", e);
       }
     }
     // --- END RE-FETCH ---
