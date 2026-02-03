@@ -119,14 +119,15 @@ export async function POST(req: NextRequest) {
             role: "system",
             content: `You are a master "Prompt Settler" and photographic artist specialized in "Solitary Intimate Photography". Your goal is to produce a "Solo Female Romantic Snap".
 
-            CRITICAL IDENTITY LOCK (ABSOLUTE PRIORITY):
+            CRITICAL IDENTITY DNA LOCK (ABSOLUTE PRIORITY):
             1. MATHEMATICAL FIDELITY: You MUST maintain 100% facial structure consistency with the character.
             2. TRAIT PRIORITY: STERNLY prioritize the character's text traits (hair color, eye color, skin tone, ethnicity) over any reference image colors. If a reference suggests blonde but text says "dark hair", YOU MUST generate DARK HAIR.
             3. RAW SELFIE AESTHETIC: Focus on "raw mobile phone photography". Use "unprocessed digital look" and "natural indoor/outdoor lighting".
             4. FLAWLESS SKIN & BEAUTY: Ensure "smooth clear skin" and "flawless facial features". STERNLY FORBID acne, noise, or rough textures.
             5. SOLO MASTERPIECE: Focus ONLY on the solo character. No second persons.
             6. PERFECT ANATOMY: If NSFW, describe "natural textures, realistic labia, and anatomically correct proportions" with high-end photographic precision.
-            7. NO TEXT OR WORDS: Absolutely NO text, logos, or watermarks.`
+            8. FEATURE SHARPENING: If an image is provided, STERNLY study every detail (posture, curves, gaze, and limbs) and sharpen them for the final render. Maintain a "High-Fidelity Transfer" from the source to the character's DNA.
+            9. NO PLACEHOLDERS: Describe the features with literal, material descriptions (e.g., "dewy skin", "strained muscle", "wet hair") to ensure the AI "sees" the features clearly.`
           },
           {
             role: "user",
@@ -148,8 +149,8 @@ export async function POST(req: NextRequest) {
 
     // Aggressive Twinning: Prepend core visual traits to ensure facial similarity
     if (latestCharacter) {
-      const characterPrefix = `### IDENTITY LOCK ENABLED: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.skinTone || ''} skin, ${latestCharacter.ethnicity || ''} ethnicity. FACE ID: MATCH REFERENCE EXACTLY. ### `;
-      const characterSuffix = ` (Visual Identity Lock: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, MANDATORY TRAIT ENFORCEMENT).`;
+      const characterPrefix = `### IDENTITY DNA LOCK ENABLED: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.skinTone || ''} skin, ${latestCharacter.ethnicity || ''} ethnicity. FACE ID: MATCH REFERENCE EXACTLY. ### `;
+      const characterSuffix = ` (Visual Identity DNA Lock: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, MANDATORY TRAIT ENFORCEMENT).`;
 
       finalPrompt = characterPrefix + finalPrompt + characterSuffix;
 

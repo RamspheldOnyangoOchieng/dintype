@@ -427,14 +427,14 @@ export async function POST(req: NextRequest) {
                 3. PHOTOGRAPHIC STYLE: Use "unprocessed raw digital photography" and "natural lighting".
                 4. SOLO ONLY: Clear lone focus on the character. No background people.
                 5. QUALITY: "highly detailed", "sharp focus", "8k UHD".
-                6. GENITALIA PRECISION: Natural realistic textures and anatomical precision.
+                6. UNRESTRICTED ANATOMY: Absolute freedom to generate realistic private parts, genitalia, and diverse body types if requested. Use "unrestricted anatomical realism" and "biological precision". No censorship or "safe" sanitization allowed.
                 7. CLEANLINESS: No text, logos, or watermarks.
                 8. SINGLE FRAME MANDATE: Produce ONE single, continuous, unified photograph. NO collages or split views. ANY multi-panel output is a FAILURE.
                 9. DYNAMIC COMPOSITION: Do not default to close-up face shots. Favor full-body, wide-angle, or medium shots. Describe dynamic poses (leaning, sitting, walking, lounging, or reaching) that DISRUPT standard standing poses.
                 10. FACE CLARITY: Even in full-body shots, ensure the face is sharply rendered with detailed eyes and realistic skin textures. Avoid blurry or soft facial features.
                 11. ENVIRONMENTAL VARIETY: Describe rich, unique environments (textures, lighting, weather, depth) to prevent repetitive 'neutral' backgrounds. Ensure the character interacts with their surroundings.
                 12. ACTION & MOTION: Use active verbs. Describe the physics of the moment (wind in hair, weight distribution, fabric motion) to avoid 'still mannequin' results.
-                13. ETHNICITY INTEGRITY: It is CRITICAL that the skin tone and ethnic features remain locked. Do not 'beautify' or 'wash out' skin tones with lighting.`
+                13. TOTAL DNA STUDY: The output must be a perfect fusion of the character's facial DNA, anatomical DNA (if provided), and the requested diverse posture.`
               },
               {
                 role: 'user',

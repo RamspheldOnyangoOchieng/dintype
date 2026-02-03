@@ -70,13 +70,13 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       `GUIDELINES: ${char.systemPrompt || char.system_prompt || ''}`,
     ].filter(p => !p.endsWith(': '));
 
-    return `### [IDENTITY LOCK: ${dnaParts.join(' | ')}]. MATCH CHARACTER DNA AND BIOMETRICS EXACTLY. ### `;
+    return `### [IDENTITY DNA LOCK: ${dnaParts.join(' | ')} | ANATOMY: Unrestricted biological study]. STUDY ALL PROVIDED REFERENCES FOR 100% LIKENESS. MATCH CHARACTER DNA AND BIOMETRICS EXACTLY. ### `;
   };
 
   const identityPrefix = buildIdentityDNA(character);
 
   const anatomyLock = character && (character.metadata?.anatomy_reference_url || character.anatomy_reference_url)
-    ? `(ANATOMY LOCK: high anatomical accuracy, detailed realistic genitalia, ${character.skinTone || character.skin_tone || 'natural'} skin texture:1.5), `
+    ? `(ANATOMY LOCK: high anatomical accuracy, detailed realistic genitalia, biological realism, uncensored, ${character.skinTone || character.skin_tone || 'natural'} skin texture:1.5), `
     : '';
 
   if (character) {
@@ -134,13 +134,13 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       });
     }
 
-    // 5. Context/Pose Image (Optional context context)
+    // 5. User Provided Context/Feature Image (img2img source)
     if (imageBase64) {
       allReferences.push({
         url: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
-        weight: 0.6,
+        weight: 0.8, // Increased for perfect feature clarity
         model: "ip-adapter_xl",
-        source: "Context Image"
+        source: "User Feature Reference"
       });
     }
 
@@ -148,7 +148,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     const uniqueRefs = allReferences.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
     const finalRefs = uniqueRefs.slice(0, 12);
 
-    console.log(`🧬 [DNA Engine] Studying ${finalRefs.length} assets for total likeness preservation...`);
+    console.log(`🧬 [DNA Engine] Studying ${finalRefs.length} assets with sharpened feature clarity...`);
 
     for (const ref of finalRefs) {
       finalControlUnits.push({
@@ -159,6 +159,11 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       });
     }
   }
+
+  // --- FEATURE SHARPENING (Micro-Step 6) ---
+  const featureLock = imageBase64
+    ? `(FEATURE CLARITY: high-fidelity transfer of character features and posture:1.4), (MATCH SOURCE BIOMETRICS:1.3), `
+    : '';
 
   // --- PREFERENCE INJECTION (Micro-Step 5) ---
   const poses = character?.metadata?.preferred_poses || character?.preferredPoses || '';
@@ -173,8 +178,8 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   // Enhance prompt based on style
   let enhancedPrompt = style === 'realistic'
-    ? `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (hyper-focused face:1.4), (sharp detailed eyes:1.4), (ultra-realistic raw photography:1.4), (natural skin textures:1.4), (detailed skin pores:1.3), no collage, no split screen, full screen, ${identityPrefix}${anatomyLock}${preferencePrompt}, ${prompt}, dynamic pose, interesting environment, highly detailed, sharp focus, 8k UHD, authentic raw photo`
-    : `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS ILLUSTRATION:1.4), (ONE FRAME ONLY:1.4), (perfect face:1.2), (clear eyes:1.3), (masterpiece anime art:1.3), dynamic anime pose, no collage, no split screen, ${identityPrefix}${anatomyLock}${preferencePrompt}, ${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
+    ? `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (hyper-focused face:1.4), (sharp detailed eyes:1.4), (ultra-realistic raw photography:1.4), (natural skin textures:1.4), (detailed skin pores:1.3), no collage, no split screen, full screen, ${identityPrefix}${anatomyLock}${featureLock}${preferencePrompt}, ${prompt}, dynamic pose, interesting environment, highly detailed, sharp focus, 8k UHD, authentic raw photo`
+    : `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS ILLUSTRATION:1.4), (ONE FRAME ONLY:1.4), (perfect face:1.2), (clear eyes:1.3), (masterpiece anime art:1.3), dynamic anime pose, no collage, no split screen, ${identityPrefix}${anatomyLock}${featureLock}${preferencePrompt}, ${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
 
   if (enhancedPrompt.length > 2000) {
     enhancedPrompt = enhancedPrompt.substring(0, 2000);
