@@ -15,7 +15,7 @@ export const isAskingForImage = (message: string): boolean => {
   if (standaloneTriggers.includes(lowerCaseMessage)) return true;
 
   // 1. High-intent direct keywords (Standalone triggers)
-  const directKeywords = ["image", "picture", "selfie", "photo", "pic", "pics", "draw", "generate", "create", "teckna", "bild", "foto", "pantry", "nude", "nudes"];
+  const directKeywords = ["image", "picture", "selfie", "photo", "pic", "pics", "draw", "generate", "create", "teckna", "bild", "foto", "pantry", "nude", "nudes", "naked", "topless", "pose", "posing", "bikini", "lingerie", "undress", "undressing"];
   if (directKeywords.some(k => lowerCaseMessage.includes(k))) return true;
 
   // 1b. Specific phrases
@@ -66,12 +66,23 @@ export const extractImagePrompt = (message: string): string => {
   ];
 
   let cleaned = message;
-  for (const trigger of triggersToStrip) {
-    if (cleaned.toLowerCase().startsWith(trigger)) {
-      cleaned = cleaned.substring(trigger.length);
-      break;
+  let changed = true;
+  while (changed) {
+    changed = false;
+    const currentLower = cleaned.toLowerCase().trim();
+    for (const trigger of triggersToStrip) {
+      if (currentLower.startsWith(trigger)) {
+        cleaned = cleaned.trim().substring(trigger.length);
+        changed = true;
+        break;
+      }
     }
   }
+
+  // Handle "another one with", "another one where", etc.
+  cleaned = cleaned.replace(/^(another\s+one\s+(with|where|when|of)?\s*)/i, "");
+  cleaned = cleaned.replace(/^(when\s+yu?\s+are\s+)/i, ""); // Handle "when yu are"
+  cleaned = cleaned.replace(/^(yu?\s+are\s+)/i, "");     // Handle "yu are"
 
   // If after cleaning it's too short or just "another", use a better default
   if (cleaned.trim().length < 3 || cleaned.toLowerCase() === "another") {

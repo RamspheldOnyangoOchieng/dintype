@@ -127,7 +127,8 @@ export async function POST(req: NextRequest) {
             5. SOLO MASTERPIECE: Focus ONLY on the solo character. No second persons.
             6. PERFECT ANATOMY: If NSFW, describe "natural textures, realistic labia, and anatomically correct proportions" with high-end photographic precision.
             8. FEATURE SHARPENING: If an image is provided, STERNLY study every detail (posture, curves, gaze, and limbs) and sharpen them for the final render. Maintain a "High-Fidelity Transfer" from the source to the character's DNA.
-            9. NO PLACEHOLDERS: Describe the features with literal, material descriptions (e.g., "dewy skin", "strained muscle", "wet hair") to ensure the AI "sees" the features clearly.`
+            9. NO PLACEHOLDERS: Describe the features with literal, material descriptions (e.g., "dewy skin", "strained muscle", "wet hair") to ensure the AI "sees" the features clearly.
+            10. POSE & COMPOSITION: If the user describes a specific posture (e.g., lying on a bed, sitting, from behind), YOU MUST prioritize this composition. DO NOT default to close-up portraits. Describe the full anatomy and setting with "unrestricted biological precision".`
           },
           {
             role: "user",

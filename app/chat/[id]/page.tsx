@@ -69,7 +69,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import { Trash2, UserCircle, Settings, Info, Share2, MessageCircle, Lock } from "lucide-react"
+import { Trash2, UserCircle, Settings, Info, Share2, MessageCircle, Lock, Reply, Copy, Smile, Forward, Pin, Star, FilePlus, Flag, ChevronDown } from "lucide-react"
 import { getStoryProgress, getChapter, initializeStoryProgress, completeChapter, type StoryChapter, type UserStoryProgress } from "@/lib/story-mode"
 import { Progress } from "@/components/ui/progress"
 
@@ -189,6 +189,120 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   // Gallery state
   const [galleryItems, setGalleryItems] = useState<any[]>([])
   const [isGalleryLoading, setIsGalleryLoading] = useState(false)
+
+  // Swipe to Reply & Reactions State
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null)
+  const [reactingToMessageId, setReactingToMessageId] = useState<string | null>(null)
+  const [swipeData, setSwipeData] = useState<{ id: string, offset: number } | null>(null)
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Swipe Handlers
+  const touchStartX = useRef(0)
+  const touchStartY = useRef(0)
+  const isSwipingRef = useRef(false)
+  const vibrationTriggeredRef = useRef(false)
+
+  const handleTouchStart = useCallback((e: React.TouchEvent, message: Message) => {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+    isSwipingRef.current = false
+    vibrationTriggeredRef.current = false
+  }, [])
+
+  const handleTouchMove = useCallback((e: React.TouchEvent, message: Message) => {
+    const deltaX = e.touches[0].clientX - touchStartX.current
+    const deltaY = e.touches[0].clientY - touchStartY.current
+
+    // Determine swipe intent (horizontal vs vertical)
+    if (!isSwipingRef.current) {
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+        isSwipingRef.current = true
+      } else if (Math.abs(deltaY) > 10) {
+        return // Probably scrolling vertically
+      }
+    }
+
+    if (isSwipingRef.current && deltaX > 0) {
+      // Add resistance to swipe: move slower than the finger
+      const resistance = 0.5
+      const offset = Math.min(deltaX * resistance, 90)
+      setSwipeData({ id: message.id, offset })
+
+      // Trigger haptic feedback exactly when threshold is met
+      if (offset >= 60 && !vibrationTriggeredRef.current) {
+        if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+          window.navigator.vibrate(20)
+        }
+        vibrationTriggeredRef.current = true
+      } else if (offset < 60) {
+        vibrationTriggeredRef.current = false
+      }
+    }
+  }, [])
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent, message: Message) => {
+    if (swipeData && swipeData.id === message.id && swipeData.offset >= 60) {
+      setReplyingTo(message)
+      if (inputRef.current) inputRef.current.focus()
+      // Small success vibration
+      if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate([10, 30])
+      }
+    }
+    setSwipeData(null)
+    isSwipingRef.current = false
+  }, [swipeData])
+
+  const handleLongPressStart = useCallback((messageId: string) => {
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current)
+    longPressTimerRef.current = setTimeout(() => {
+      setReactingToMessageId(messageId)
+      if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(50)
+      }
+    }, 500)
+  }, [])
+
+  const handleLongPressEnd = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+    }
+  }, [])
+
+  const handleAddReaction = useCallback((messageId: string, emoji: string) => {
+    setMessages(prev => prev.map(msg => {
+      if (msg.id === messageId) {
+        const reactions = { ...(msg.reactions || {}) }
+        const userId = user?.id || 'anonymous'
+        if (!reactions[emoji]) reactions[emoji] = []
+        if (reactions[emoji].includes(userId)) {
+          reactions[emoji] = reactions[emoji].filter(id => id !== userId)
+        } else {
+          reactions[emoji].push(userId)
+        }
+        if (reactions[emoji].length === 0) delete reactions[emoji]
+        return { ...msg, reactions }
+      }
+      return msg
+    }))
+    setReactingToMessageId(null)
+  }, [user?.id])
+
+  const handleCopyMessage = useCallback((content: string) => {
+    navigator.clipboard.writeText(content)
+    toast.success("Message copied to clipboard")
+  }, [])
+
+  const handleDeleteMessage = useCallback((messageId: string) => {
+    setMessages(prev => {
+      const updated = prev.filter(msg => msg.id !== messageId)
+      if (characterId) {
+        saveMessageToLocalStorage(characterId, updated as any) // Need to handle local storage properly
+      }
+      return updated
+    })
+    toast.success("Message deleted")
+  }, [characterId])
 
   // Auto-focus input when AI finish responding or generating image
   useEffect(() => {
@@ -1417,22 +1531,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
             setIsSendingMessage(false)
             return
-          } else {
-            const storyRefusalMsg: Message = {
-              id: `story-refusal-${Date.now()}`,
-              role: "assistant",
-              content: "I'm not in the mood for photos right now, let's keep focusing on our time together... 💕",
-              timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            }
-
-            setTimeout(() => {
-              setMessages((prev) => [...prev, storyRefusalMsg])
-              saveMessageToLocalStorage(character.id, storyRefusalMsg)
-              saveMessageToDatabase(character.id, storyRefusalMsg) // Save refusal to DB
-            }, 300)
-            setIsSendingMessage(false)
-            return
           }
+          // If no chImages, fall through to default AI generation below
         }
 
         const imagePrompt = extractImagePrompt(combinedContent)
@@ -1611,7 +1711,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         role: "user",
         content: content,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        replyToId: replyingTo?.id,
+        replyToContent: replyingTo?.content,
+        replyToImage: replyingTo?.imageUrl,
       }
+
+      // Reset reply state
+      setReplyingTo(null)
 
       // Add user message to chat UI immediately
       setMessages((prev) => [...prev, newMessage])
@@ -1694,6 +1800,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
+    } else if (e.key === "Escape") {
+      setReplyingTo(null)
+      setReactingToMessageId(null)
     }
   }
 
@@ -2046,16 +2155,145 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         {/* Chat Messages - Scrollable Area */}
         <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 scroll-smooth min-h-0 chat-background" style={{ overscrollBehavior: 'contain' }} data-messages-container>
           {messages.map((message) => (
-            <div key={message.id} className={`flex w-full ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+            <div
+              key={message.id}
+              className={`flex w-full mb-2 ${message.role === "user" ? "justify-end" : "justify-start"} relative group`}
+              onTouchStart={(e) => handleTouchStart(e, message)}
+              onTouchMove={(e) => handleTouchMove(e, message)}
+              onTouchEnd={(e) => handleTouchEnd(e, message)}
+            >
+              {/* Swipe Reply Indicator */}
+              {swipeData?.id === message.id && swipeData.offset > 0 && (
+                <div
+                  className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-center transition-all duration-100 ease-out z-0"
+                  style={{
+                    opacity: Math.min(swipeData.offset / 50, 1),
+                    transform: `translateX(${swipeData.offset - 50}px) scale(${Math.min(0.5 + swipeData.offset / 100, 1.2)}) rotate(${Math.min(swipeData.offset, 20)}deg)`
+                  }}
+                >
+                  <div className={cn(
+                    "p-2 rounded-full transition-all duration-200",
+                    swipeData.offset >= 60 ? "bg-primary text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.5)] scale-110" : "bg-primary/20 text-primary"
+                  )}>
+                    <Reply className="h-4 w-4" />
+                  </div>
+                </div>
+              )}
+
               <div
                 className={cn(
-                  "max-w-[85%] md:max-w-[80%] lg:max-w-[70%] rounded-2xl p-3 md:p-4 shadow-sm transition-all duration-300",
+                  "max-w-[85%] md:max-w-[80%] lg:max-w-[70%] rounded-2xl p-3 md:p-4 shadow-sm transition-all duration-300 relative z-10 group/msg",
                   message.role === "user"
                     ? "bg-[#252525] text-white rounded-tr-none"
                     : "bg-[#252525] text-white rounded-tl-none border border-white/5"
                 )}
+                style={{
+                  transform: swipeData?.id === message.id ? `translateX(${swipeData.offset}px)` : 'none',
+                  userSelect: 'none',
+                  touchAction: 'pan-y',
+                  willChange: 'transform'
+                }}
+                onMouseDown={() => handleLongPressStart(message.id)}
+                onMouseUp={handleLongPressEnd}
+                onMouseLeave={handleLongPressEnd}
+                onTouchStart={(e) => { handleTouchStart(e, message); handleLongPressStart(message.id); }}
+                onTouchEnd={(e) => { handleTouchEnd(e, message); handleLongPressEnd(); }}
               >
-                <div className="flex justify-between items-start">
+                {/* Replied To Info */}
+                {message.replyToId && (
+                  <div className="mb-2 p-2 bg-white/5 border-l-2 border-primary rounded text-xs opacity-80 cursor-pointer hover:bg-white/10 transition-colors flex justify-between gap-2"
+                    onClick={() => {
+                      const el = document.getElementById(`msg-${message.replyToId}`);
+                      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }}>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-primary mb-1 text-[10px] uppercase tracking-wider">Replying to:</p>
+                      <div className="flex items-center gap-1.5 overflow-hidden">
+                        {message.replyToImage && (
+                          <div className="flex items-center gap-1 text-[10px] opacity-70 flex-shrink-0">
+                            <FilePlus className="h-3 w-3" />
+                            <span>Photo</span>
+                          </div>
+                        )}
+                        <p className="truncate italic">
+                          {message.replyToContent ? `"${message.replyToContent}"` : (message.replyToImage ? "" : "...")}
+                        </p>
+                      </div>
+                    </div>
+                    {message.replyToImage && (
+                      <div className="h-8 w-8 rounded bg-black/40 flex-shrink-0 overflow-hidden self-center">
+                        <img
+                          src={Array.isArray(message.replyToImage) ? message.replyToImage[0] : message.replyToImage}
+                          alt="Quoted thumb"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex justify-between items-start relative" id={`msg-${message.id}`}>
+                  {/* WhatsApp style Dropdown Trigger */}
+                  {!message.isWelcome && (
+                    <div className="absolute -right-1 -top-1 md:-right-2 md:-top-1 opacity-0 group-hover/msg:opacity-100 transition-opacity z-20">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-[#1A1A1A]/80 backdrop-blur-sm shadow-xl border border-white/10 text-white/70 hover:text-white hover:bg-[#252525]">
+                            <ChevronDown className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-[#2A2A2A] border-[#3A3A3A] text-white min-w-[180px] rounded-xl shadow-2xl p-1">
+                          <DropdownMenuItem onClick={() => setReplyingTo(message)} className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg">
+                            <Reply className="h-4 w-4 opacity-70" />
+                            <span>Reply</span>
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem onClick={() => handleCopyMessage(message.content)} className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg">
+                            <Copy className="h-4 w-4 opacity-70" />
+                            <span>Copy</span>
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem onClick={() => setReactingToMessageId(message.id)} className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg">
+                            <Smile className="h-4 w-4 opacity-70" />
+                            <span>React</span>
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg opacity-50">
+                            <Forward className="h-4 w-4 opacity-70" />
+                            <span>Forward</span>
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg opacity-50">
+                            <Pin className="h-4 w-4 opacity-70" />
+                            <span>Pin</span>
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg opacity-50">
+                            <Star className="h-4 w-4 opacity-70" />
+                            <span>Star</span>
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg opacity-50">
+                            <FilePlus className="h-4 w-4 opacity-70" />
+                            <span>Add text to note</span>
+                          </DropdownMenuItem>
+
+                          <DropdownMenuSeparator className="bg-white/10 my-1" />
+
+                          <DropdownMenuItem className="flex items-center gap-3 py-2 px-3 focus:bg-red-500/10 text-red-400 cursor-pointer rounded-lg opacity-50">
+                            <Flag className="h-4 w-4" />
+                            <span>Report</span>
+                          </DropdownMenuItem>
+
+                          <DropdownMenuItem onClick={() => handleDeleteMessage(message.id)} className="flex items-center gap-3 py-2 px-3 focus:bg-red-500/10 text-red-400 cursor-pointer rounded-lg">
+                            <Trash2 className="h-4 w-4" />
+                            <span>Delete</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  )}
+
                   {message.isWelcome && character ? (
                     <WelcomeMessage
                       characterName={character.name}
@@ -2066,7 +2304,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       }}
                     />
                   ) : (
-                    <>
+                    <div className="pr-5 md:pr-6">
                       <p className="text-current leading-relaxed break-words whitespace-pre-wrap">
                         {message.content.replace(/\[TELEGRAM_LINK\]/g, '')}
                       </p>
@@ -2082,13 +2320,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                           />
                         </div>
                       )}
-                    </>
+                    </div>
                   )}
                 </div>
                 {message.isImage && message.imageUrl && (
                   <div className="mt-2">
                     <div
-                      className="relative w-full aspect-square max-w-xs rounded-2xl overflow-hidden cursor-pointer"
+                      className="relative w-full max-w-sm rounded-2xl overflow-hidden cursor-pointer"
                       onClick={() => {
                         if (message.imageUrl) {
                           const urls = Array.isArray(message.imageUrl) ? message.imageUrl : [message.imageUrl]
@@ -2101,16 +2339,49 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       <img
                         src={imageErrors[message.id] ? "/placeholder.svg" : (Array.isArray(message.imageUrl) ? message.imageUrl[0] : message.imageUrl)}
                         alt="Generated image"
-                        className="w-full h-full object-cover"
-                        style={{ borderRadius: '1rem' }}
+                        className="w-full h-auto object-contain block"
+                        style={{ borderRadius: '1rem', maxHeight: '70vh' }}
                         onError={() => handleImageError(message.id)}
                         loading="lazy"
                       />
                     </div>
-
                   </div>
                 )}
                 <span className="text-xs text-muted-foreground mt-1 block">{message.timestamp}</span>
+
+                {/* Reactions Display */}
+                {message.reactions && Object.keys(message.reactions).map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => handleAddReaction(message.id, emoji)}
+                    className={cn(
+                      "mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs transition-colors",
+                      message.reactions?.[emoji]?.includes(user?.id || 'anonymous')
+                        ? "bg-primary/20 text-primary border border-primary/20 shadow-[0_0_10px_rgba(var(--primary),0.3)]"
+                        : "bg-white/5 text-white/60 hover:bg-white/10"
+                    )}
+                  >
+                    <span>{emoji}</span>
+                    {message.reactions![emoji].length > 1 && (
+                      <span className="font-medium">{message.reactions![emoji].length}</span>
+                    )}
+                  </button>
+                ))}
+
+                {/* Reaction Picker Popover */}
+                {reactingToMessageId === message.id && (
+                  <div className="absolute -top-12 left-0 z-[100] bg-[#1A1A1A] border border-white/10 shadow-2xl rounded-full p-1.5 flex gap-1 animate-in fade-in zoom-in duration-200">
+                    {["❤️", "🔥", "😂", "😍", "😲", "😢"].map((emoji) => (
+                      <button
+                        key={emoji}
+                        onClick={(e) => { e.stopPropagation(); handleAddReaction(message.id, emoji); }}
+                        className="p-1.5 hover:bg-white/10 rounded-full transition-transform hover:scale-125 touch-manipulation"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -2149,6 +2420,44 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         {/* Chat Input */}
         <div className="p-3 md:p-4 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
+          {/* Reply To Preview */}
+          {replyingTo && (
+            <div className="mb-3 p-3 bg-primary/10 border-l-4 border-primary rounded-lg flex justify-between items-center animate-in slide-in-from-bottom-2 duration-200 gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-1">Replying to {replyingTo.role === 'user' ? 'yourself' : character?.name}</p>
+                <div className="flex items-center gap-2">
+                  {replyingTo.isImage && (
+                    <div className="flex items-center gap-1.5 text-xs text-foreground/60">
+                      <FilePlus className="h-3 w-3" />
+                      <span>Photo</span>
+                    </div>
+                  )}
+                  <p className="text-sm text-foreground/80 truncate italic">
+                    {replyingTo.content ? `"${replyingTo.content}"` : (replyingTo.isImage ? "" : "No content")}
+                  </p>
+                </div>
+              </div>
+
+              {replyingTo.isImage && replyingTo.imageUrl && (
+                <div className="h-10 w-10 rounded-md overflow-hidden bg-black/20 flex-shrink-0">
+                  <img
+                    src={Array.isArray(replyingTo.imageUrl) ? replyingTo.imageUrl[0] : replyingTo.imageUrl}
+                    alt="Quoted"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground flex-shrink-0"
+                onClick={() => setReplyingTo(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
           <div className="flex items-end gap-2">
             <Input
               ref={inputRef}

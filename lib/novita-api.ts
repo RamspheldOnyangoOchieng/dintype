@@ -162,24 +162,36 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   // --- FEATURE SHARPENING (Micro-Step 6) ---
   const featureLock = imageBase64
-    ? `(FEATURE CLARITY: high-fidelity transfer of character features and posture:1.4), (MATCH SOURCE BIOMETRICS:1.3), `
+    ? `(FACIAL IDENTITY CLARITY: high-fidelity transfer of biometric features:1.4), (MATCH CHARACTER FACE:1.3), (DISREGARD SOURCE POSTURE: prioritize prompt for body and pose), `
     : '';
 
   // --- PREFERENCE INJECTION (Micro-Step 5) ---
-  const poses = character?.metadata?.preferred_poses || character?.preferredPoses || '';
-  const environments = character?.metadata?.preferred_environments || character?.preferredEnvironments || '';
-  const moods = character?.metadata?.preferred_moods || character?.preferredMoods || '';
+  const poses = character?.metadata?.preferred_poses || character?.preferred_poses || character?.preferredPoses || '';
+  const environments = character?.metadata?.preferred_environments || character?.preferred_environments || character?.preferredEnvironments || '';
+  const moods = character?.metadata?.preferred_moods || character?.preferred_moods || character?.preferredMoods || '';
+  const promptHook = character?.prompt_hook || character?.metadata?.prompt_hook || '';
+  const charNegativeRestrictions = character?.negative_prompt_restrictions || character?.metadata?.negative_prompt_restrictions || '';
 
   const preferencePrompt = [
-    poses ? `(STRICT POSE: ${poses}:1.4)` : '',
+    poses ? `(STRICT POSE: ${poses}:1.3)` : '',
     environments ? `(SETTING: ${environments}:1.3)` : '',
-    moods ? `(EXPRESSION: ${moods}:1.2)` : ''
+    moods ? `(EXPRESSION: ${moods}:1.2)` : '',
   ].filter(Boolean).join(', ');
+
+  // Enforce negative prompt restrictions from character metadata
+  const finalNegativePrompt = `${negativePrompt}${charNegativeRestrictions ? `, ${charNegativeRestrictions}` : ''}`;
+
+  // --- BIOMETRIC ANCHOR ENGINE (Enhanced for Likeness) ---
+  const biometricAnchor = character
+    ? `### [BIOMETRIC ANCHOR: (hyper-precise facial likeness:1.6), (locked character features:1.5), (exact face from reference:1.5), (consistent identity:1.4), (match visual DNA:1.4)]. ### `
+    : '';
+
+  const styleHookInfluence = promptHook ? `(STYLE INFLUENCE: ${promptHook}:1.1), ` : '';
 
   // Enhance prompt based on style
   let enhancedPrompt = style === 'realistic'
-    ? `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (hyper-focused face:1.4), (sharp detailed eyes:1.4), (ultra-realistic raw photography:1.4), (natural skin textures:1.4), (detailed skin pores:1.3), no collage, no split screen, full screen, ${identityPrefix}${anatomyLock}${featureLock}${preferencePrompt}, ${prompt}, dynamic pose, interesting environment, highly detailed, sharp focus, 8k UHD, authentic raw photo`
-    : `(solo:1.6), (1girl:1.6), (ONE CONTINUOUS ILLUSTRATION:1.4), (ONE FRAME ONLY:1.4), (perfect face:1.2), (clear eyes:1.3), (masterpiece anime art:1.3), dynamic anime pose, no collage, no split screen, ${identityPrefix}${anatomyLock}${featureLock}${preferencePrompt}, ${prompt}, high quality anime illustration, masterwork, clean lines, vibrant colors, cel-shaded, professional anime art, detailed scenery`;
+    ? `(solo:1.6), (1girl:1.6), ${prompt}, (dynamic composition:1.3), (ONE CONTINUOUS PHOTOGRAPH:1.4), (ONE FRAME ONLY:1.4), (8k UHD:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, highly detailed textures, authentic lighting`
+    : `(solo:1.6), (1girl:1.6), ${prompt}, (dynamic anime pose:1.3), (ONE CONTINUOUS ILLUSTRATION:1.4), (ONE FRAME ONLY:1.4), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, masterpiece anime quality, clean lines`;
 
   if (enhancedPrompt.length > 2000) {
     enhancedPrompt = enhancedPrompt.substring(0, 2000);
@@ -204,7 +216,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
         },
         body: JSON.stringify({
           prompt: enhancedPrompt,
-          negative_prompt: negativePrompt,
+          negative_prompt: finalNegativePrompt,
           size: `${width}x${height}`,
           seed: seed === -1 ? Math.floor(Math.random() * 2147483647) : seed,
           steps: steps,

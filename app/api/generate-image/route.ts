@@ -351,7 +351,8 @@ export async function POST(req: NextRequest) {
               preferred_poses: dbChar.metadata?.preferred_poses,
               preferred_environments: dbChar.metadata?.preferred_environments,
               preferred_moods: dbChar.metadata?.preferred_moods,
-              negative_prompt_restrictions: dbChar.metadata?.negative_prompt_restrictions
+              negative_prompt_restrictions: dbChar.metadata?.negative_prompt_restrictions || dbChar.metadata?.negativeRestrictions,
+              prompt_hook: dbChar.metadata?.prompt_hook || dbChar.metadata?.promptHook
             };
           }
         }
