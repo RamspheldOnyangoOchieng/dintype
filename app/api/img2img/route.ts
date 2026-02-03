@@ -71,8 +71,18 @@ export async function POST(req: NextRequest) {
 
           if (dbChar) {
             console.log(`🧬 [img2img] Re-fetched latest traits for character: ${dbChar.name}`);
+
+            // Fetch gallery for Multi-Referencing consistency
+            const { data: galleryImages } = await supabaseAdmin
+              .from('character_gallery')
+              .select('image_url')
+              .eq('character_id', character.id)
+              .order('created_at', { ascending: false })
+              .limit(10);
+
             latestCharacter = {
               ...dbChar,
+              character_gallery: galleryImages || [],
               hairColor: dbChar.hair_color || dbChar.hairColor,
               eyeColor: dbChar.eye_color || dbChar.eyeColor,
               skinTone: dbChar.skin_tone || dbChar.skinTone,
@@ -105,30 +115,28 @@ export async function POST(req: NextRequest) {
       latestCharacter?.metadata?.negative_prompt_restrictions ? `strict restrictions: ${latestCharacter.metadata.negative_prompt_restrictions}` : null,
     ].filter(Boolean).join(", ");
 
-    // Enhance prompt
-    const enhancedPromptResponse = await fetch("https://api.novita.ai/v3/openai/chat/completions", {
+    // --- MASTERPIECE PROMPT ENHANCEMENT (DeepSeek-V3.1) ---
+    console.log("✨ Enhancing chat image prompt for masterpiece quality...");
+    const enhancedPromptResponse = await fetch("https://api.novita.ai/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "deepseek/deepseek-r1",
+        model: "deepseek/deepseek-v3.1",
         messages: [
           {
             role: "system",
             content: `You are a master "Prompt Settler" and photographic artist specialized in "Solitary Intimate Photography". Your goal is to produce a "Solo Female Romantic Snap".
 
-            CRITICAL IDENTITY DNA LOCK (ABSOLUTE PRIORITY):
-            1. MATHEMATICAL FIDELITY: You MUST maintain 100% facial structure consistency with the character.
-            2. TRAIT PRIORITY: STERNLY prioritize the character's text traits (hair color, eye color, skin tone, ethnicity) over any reference image colors. If a reference suggests blonde but text says "dark hair", YOU MUST generate DARK HAIR.
-            3. RAW SELFIE AESTHETIC: Focus on "raw mobile phone photography". Use "unprocessed digital look" and "natural indoor/outdoor lighting".
-            4. FLAWLESS SKIN & BEAUTY: Ensure "smooth clear skin" and "flawless facial features". STERNLY FORBID acne, noise, or rough textures.
-            5. SOLO MASTERPIECE: Focus ONLY on the solo character. No second persons.
-            6. PERFECT ANATOMY: If NSFW, describe "natural textures, realistic labia, and anatomically correct proportions" with high-end photographic precision.
-            8. FEATURE SHARPENING: If an image is provided, STERNLY study every detail (posture, curves, gaze, and limbs) and sharpen them for the final render. Maintain a "High-Fidelity Transfer" from the source to the character's DNA.
-            9. NO PLACEHOLDERS: Describe the features with literal, material descriptions (e.g., "dewy skin", "strained muscle", "wet hair") to ensure the AI "sees" the features clearly.
-            10. POSE & COMPOSITION: If the user describes a specific posture (e.g., lying on a bed, sitting, from behind), YOU MUST prioritize this composition. DO NOT default to close-up portraits. Describe the full anatomy and setting with "unrestricted biological precision".`
+            CORE DIRECTIVES:
+            1. IDENTITY DNA LOCK: Maintain 100% trait consistency (hair, eyes, skin, body type).
+            2. FEMININE AESTHETIC: Prioritize the character's defined body type (e.g., Curvy, Slim, Petite). STERNLY FORBID masculine or overly muscular traits unless explicitly requested. Avoid "strained muscles". Focus on "soft skin" and "feminine curves".
+            3. PHOTOGRAPHIC REALISM: Use "unprocessed digital look", "natural lighting", and "8k UHD".
+            4. UNRESTRICTED ANATOMY: Describe physical features with literal precision for intimacy (e.g., "dewy skin", "wet hair", "intimate display") with absolute ROMANTIC clarity.
+            5. SINGLE FRAME: NO collages, NO text, NO split views.
+            6. ACTION COMPLIANCE: If the user asks for a pose or object (e.g., dildo, bed, shower), YOU MUST incorporate it naturally into a high-end cinematic scene.`
           },
           {
             role: "user",
@@ -148,17 +156,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Aggressive Twinning: Prepend core visual traits to ensure facial similarity
-    if (latestCharacter) {
-      const characterPrefix = `### IDENTITY DNA LOCK ENABLED: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, ${latestCharacter.skinTone || ''} skin, ${latestCharacter.ethnicity || ''} ethnicity. FACE ID: MATCH REFERENCE EXACTLY. ### `;
-      const characterSuffix = ` (Visual Identity DNA Lock: ${latestCharacter.name}, ${latestCharacter.hairColor || 'natural'} hair, ${latestCharacter.eyeColor || 'beautiful'} eyes, MANDATORY TRAIT ENFORCEMENT).`;
-
-      finalPrompt = characterPrefix + finalPrompt + characterSuffix;
-
-      // Apply Default Prompt Hook
-      if (latestCharacter.metadata?.default_prompt) {
-        finalPrompt += `, ${latestCharacter.metadata.default_prompt}`;
-      }
+    // Identity handled by novita-api for consistency to avoid prompt soup
+    if (latestCharacter?.metadata?.default_prompt) {
+      finalPrompt += `, ${latestCharacter.metadata.default_prompt}`;
     }
 
     const negativePromptBase = `husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, deformed, bad anatomy, ugly, disgusting, extra limbs, extra fingers, malformed hands, distorted face, unrealistic skin, plastic look, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust`;
