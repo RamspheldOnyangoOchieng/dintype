@@ -39,13 +39,13 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   const {
     prompt,
-    negativePrompt = 'sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, husband, boyfriend, second person, another person, man, male, lady and man, man and woman, multiple people, two ladies, two people, group of people, flat light, harsh glare, orange light, closeup, headshot, portrait, cropped head, anime, illustration, cartoon, drawing, painting, digital art, stylized, 3d render, cgi, wrinkles, old, aged, grainy, man, male, couple, boy, together, two people, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, multiview, card, frame, border, comparison, side by side, collage layout, photo grid, vertical split, horizontal split, montage, comic strip, collection of images, duplicate subject, mirror image, screenshot, multi-panel, panels, quad, grid-layout, contact sheet, storyboard panels, sequence, comparison shot, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust',
+    negativePrompt = 'man, male, couple, boy, together, two people, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, wrinkles, old, aged, grainy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, multiview, card, frame, border, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate',
     width = 1600,
     height = 2400,
-    steps = 25,
+    steps = 30, // Increased for masterpiece clarity
     seed = -1,
     style = 'realistic',
-    guidance_scale = 3.5,
+    guidance_scale = 4.5, // Increased for better prompt adherence
     controlnet_units = [],
     character,
     imageBase64,
@@ -178,8 +178,21 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     moods ? `(EXPRESSION: ${moods}:1.2)` : '',
   ].filter(Boolean).join(', ');
 
-  // Enforce negative prompt restrictions from character metadata
-  const finalNegativePrompt = `${negativePrompt}${charNegativeRestrictions ? `, ${charNegativeRestrictions}` : ''}`;
+  // --- PERSPECTIVE ENGINE (Selfie vs Professional) ---
+  const isSelfieRequested = prompt.toLowerCase().includes('selfie') ||
+    prompt.toLowerCase().includes('holding phone') ||
+    prompt.toLowerCase().includes('taking a photo');
+
+  const perspectiveMode = isSelfieRequested
+    ? `(POV selfie:1.4), (lone woman taking photo:1.3), (mobile phone camera:1.2), `
+    : `(professional third-person photography:1.5), (full body shot:1.4), (wide angle:1.3), (looking away from camera:1.1), (candid masterpiece:1.3), `;
+
+  const perspectiveNegatives = isSelfieRequested
+    ? ''
+    : 'selfie, hand holding phone, arm extended, POV selfie, phone in hand, looking at phone, camera in hand, holding camera, (reaching towards camera:1.4), arm in frame, hand in frame';
+
+  // Enforce negative prompt restrictions and dynamic perspective avoidance
+  const finalNegativePrompt = `${negativePrompt}${perspectiveNegatives ? `, ${perspectiveNegatives}` : ''}${charNegativeRestrictions ? `, ${charNegativeRestrictions}` : ''}`;
 
   // --- BIOMETRIC ANCHOR ENGINE (Enhanced for Absolute Likeness) ---
   const biometricAnchor = character
@@ -193,7 +206,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   // Enhance prompt based on style
   let enhancedPrompt = style === 'realistic'
-    ? `(solo:1.6), (1girl:1.6), ${prompt}, ${outfitLiberation}(dynamic composition:1.3), (8k UHD photography:1.4), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (unprocessed raw digital photo:1.2), highly detailed skin texture`
+    ? `(solo:1.6), (1girl:1.6), ${prompt}, ${outfitLiberation}${perspectiveMode}(dynamic composition:1.3), (8k UHD photography:1.4), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.3), fascinating and sexy`
     : `(solo:1.6), (1girl:1.6), ${prompt}, ${outfitLiberation}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (masterpiece anime art:1.4), clean aesthetic lines`;
 
   if (enhancedPrompt.length > 2000) {
@@ -352,12 +365,11 @@ export function buildAttributePrompt(attributes: {
 
   // Professional photography details for realistic style
   if (style === 'realistic') {
-    parts.push('unprocessed raw mobile phone selfie');
-    parts.push('natural indoor lighting, smooth clear skin with flawless features');
-    parts.push('(solo:1.4), lone woman taking a photo of herself, ONE SINGLE CONTINUOUS FRAME');
-    parts.push('raw digital look, slight camera shake, realistic room background, NO COLLAGE');
-    parts.push('unfiltered, sharp focus on face, non-studio lighting, NO SPLIT-VIEW');
-    parts.push('raw photo, film grain, 4k, Fujifilm instax, NO SHINING, NO BOKEH, NO TEXT');
+    parts.push('professional third-person photography, captured by Canon EOS R5, 85mm lens, f/1.8');
+    parts.push('cinematic lighting, elegant masterpiece photography, sharp focus on subject');
+    parts.push('(solo:1.4), full body shot, wide angle view, ONE SINGLE CONTINUOUS FRAME');
+    parts.push('unprocessed high-fidelity digital photo, realistic environment, NO COLLAGE, NO TEXT');
+    parts.push('masterpiece quality, intimate and fascinating, NO SHINING, NO BOKEH ARTIFACTS');
   } else {
     parts.push('professional anime illustration');
     parts.push('detailed face and eyes, clean lines');
