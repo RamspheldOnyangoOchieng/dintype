@@ -99,7 +99,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     if (anatomyRef) {
       allReferences.push({
         url: anatomyRef,
-        weight: 0.45, // Reduced: Only for body proportions, don't let it bake in the clothes
+        weight: 0.35, // Reduced even more: Allow maximum pose flexibility for third-person shots
         model: "ip-adapter_xl",
         source: "Anatomy Lock"
       });
@@ -178,19 +178,19 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     moods ? `(EXPRESSION: ${moods}:1.2)` : '',
   ].filter(Boolean).join(', ');
 
-  // --- PERSPECTIVE ENGINE (Balanced & Contextual) ---
+  // --- PERSPECTIVE ENGINE (Balanced & Masterpiece Focus) ---
   const isSelfieRequested = prompt.toLowerCase().includes('selfie') ||
     prompt.toLowerCase().includes('taking a photo') ||
     prompt.toLowerCase().includes('holding phone');
 
   const perspectiveMode = isSelfieRequested
-    ? `(intimate selfie perspective:1.4), (natural close-up:1.3), (looking at camera:1.2), `
-    : `(professional third-person photography:1.5), (full body shot:1.4), (wide angle:1.3), (candid masterpiece:1.3), `;
+    ? `(intimate candid portrait:1.4), (natural close-up:1.3), (fascinating lighting:1.3), (looking at camera:1.2), `
+    : `(professional third-person photography:1.6), (full body shot:1.5), (wide angle:1.4), (candid masterpiece:1.4), (cinematic full-body shot:1.4), `;
 
-  // Soft negative weights to discourage 'selfie arms' when not requested, without a hard block
+  // Discourage 'selfie arms' and POV artifacts unless explicitly requested as a phone shot
   const perspectiveNegatives = isSelfieRequested
-    ? ''
-    : '(extended arm:1.2), (arm in frame:1.2), (distorted hand:1.3), (camera in hand:1.1)';
+    ? '(extended arm:1.1), (phone in face:1.1)'
+    : '(extended arm:1.4), (arm in frame:1.4), (distorted hand:1.4), (camera in hand:1.3), (POV selfie:1.5), (selfie arm:1.5)';
 
   // Enforce negative prompt restrictions and dynamic balance
   const finalNegativePrompt = `${negativePrompt}${perspectiveNegatives ? `, ${perspectiveNegatives}` : ''}${charNegativeRestrictions ? `, ${charNegativeRestrictions}` : ''}`;

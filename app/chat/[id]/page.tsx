@@ -1538,7 +1538,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         let imagePrompt = extractImagePrompt(combinedContent)
 
         // Contextual awareness: if prompt is generic, look back at the last user message that had detail
-        if (imagePrompt === "a beautiful and intimate selfie, natural lighting, high quality" ||
+        if (imagePrompt === "a beautiful and intimate candid masterpiece photography portrait, natural lighting, high quality" ||
           combinedContent.toLowerCase().includes("send it") ||
           combinedContent.toLowerCase().trim() === "again" ||
           combinedContent.toLowerCase().trim() === "another") {
@@ -1554,7 +1554,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             // If we found a prompt that wasn't the default generic one
             if (detailedPrompt &&
               detailedPrompt.length > 10 &&
-              detailedPrompt !== "a beautiful and intimate selfie, natural lighting, high quality") {
+              detailedPrompt !== "a beautiful and intimate candid masterpiece photography portrait, natural lighting, high quality") {
               imagePrompt = detailedPrompt;
               console.log("🔍 Context found in history:", imagePrompt);
               break;

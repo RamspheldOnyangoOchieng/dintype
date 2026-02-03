@@ -61,7 +61,7 @@ export const extractImagePrompt = (message: string): string => {
   // If it's just a "more" request without detail, provide a good default
   const genericMore = ["another", "another one", "one more", "more", "again", "give me more", "show me more", "send me more"];
   if (genericMore.includes(lower) || lower === "another selfie" || lower === "another photo") {
-    return "a beautiful and intimate selfie, natural lighting, high quality"
+    return "a beautiful and intimate candid masterpiece photography portrait, natural lighting, high quality"
   }
 
   // List of phrases to strip from the beginning of the prompt
@@ -99,7 +99,7 @@ export const extractImagePrompt = (message: string): string => {
 
   // If after cleaning it's too short or just "another", use a better default
   if (cleaned.trim().length < 3 || cleaned.toLowerCase() === "another") {
-    return "a beautiful and intimate selfie, natural lighting, high quality"
+    return "a beautiful and intimate candid masterpiece photography portrait, natural lighting, high quality"
   }
 
   return cleaned.trim()
