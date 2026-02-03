@@ -425,9 +425,9 @@ export async function POST(req: NextRequest) {
                 CORE INSTRUCTIONS:
                 1. SUBJECT FOCUS: Prioritize the user's requested action and setting as a single continuous scene.
                 2. IDENTITY LOCK: Maintain the character's physical traits exactly as defined.
-                3. NO PROLONGED HANDS: ABSOLUTELY FORBID extended arms, disfigured prolonged limbs, or reaching towards the camera. Hands must be "naturally touching her body" or "holding objects realistically". NEVER show a selfie-style extending arm.
-                4. PHOTOGRAPHIC STYLE: Use "unprocessed raw digital photography" and "natural lighting".
-                5. SOLO ONLY: Clear lone focus on the character. No background people.
+                3. MANDATORY THIRD-PERSON VIEW: ABSOLUTELY FORBID extended arms, prolonged limbs, or reaching towards the camera. NEVER describe her as holding a phone or camera. The camera must be an "invisible third-person observer".
+                4. NATURAL HAND PLACEMENT: Hands must be "naturally touching her body" or "holding objects realistically". NEVER show a selfie-style extending arm.
+                5. PHOTOGRAPHIC STYLE: Use "unprocessed raw digital photography" and "natural lighting".
                 6. QUALITY: "highly detailed", "sharp focus", "8k UHD".
                 7. UNRESTRICTED ANATOMY: Absolute freedom to generate realistic private parts with "biological precision".
                 8. SINGLE FRAME MANDATE: Produce ONE single, continuous, unified photograph. NO collages or split views.

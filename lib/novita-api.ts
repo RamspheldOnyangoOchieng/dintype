@@ -178,17 +178,12 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     moods ? `(EXPRESSION: ${moods}:1.2)` : '',
   ].filter(Boolean).join(', ');
 
-  // --- PERSPECTIVE ENGINE (Natural Mastery Focus) ---
-  const isSelfieRequested = prompt.toLowerCase().includes('selfie') ||
-    prompt.toLowerCase().includes('taking a photo') ||
-    prompt.toLowerCase().includes('holding phone');
+  // --- PERSPECTIVE ENGINE (Natural Mastery Focus - ABSOLUTE THIRD PERSON) ---
+  // Mandatory third-person to avoid selfie-arm artifacts even if 'selfie' is in prompt
+  const perspectiveMode = `(professional third-person photography:1.7), (full body shot:1.5), (wide angle:1.4), (candid masterpiece:1.4), (cinematic shot:1.4), (natural hand placement:1.5), (MANDATORY THIRD-PERSON PERSPECTIVE:1.6), `;
 
-  const perspectiveMode = isSelfieRequested
-    ? `(intimate candid portrait:1.4), (natural close-up:1.3), (natural hand placement:1.4), (hands touching body:1.3), (looking at camera:1.2), `
-    : `(professional third-person photography:1.6), (full body shot:1.5), (wide angle:1.4), (candid masterpiece:1.4), (cinematic full-body shot:1.4), (MANDATORY THIRD-PERSON PERSPECTIVE:1.5), `;
-
-  // Aggressively forbid 'selfie arms' and POV artifacts in ALL modes
-  const perspectiveNegatives = `(extended arm:1.7), (prolonged arm:1.7), (arm in frame:1.6), (reaching towards camera:1.6), (POV selfie arm:1.7), (hand holding camera:1.6), (distorted hand:1.5), (camera in hand:1.5)`;
+  // Aggressively forbid 'selfie arms' and POV artifacts in ALL modes with MAXIMUM PENALTY
+  const perspectiveNegatives = `(extended arm:1.8), (prolonged arm:1.8), (arm in frame:1.7), (reaching towards camera:1.7), (POV selfie arm:1.8), (hand holding camera:1.7), (distorted hand:1.6), (camera in hand:1.6), (selfie photo:1.5), (POV:1.5)`;
 
   // Enforce ADMIN negative prompt restrictions with MAXIMUM weight
   const finalNegativePrompt = `${negativePrompt}${perspectiveNegatives ? `, ${perspectiveNegatives}` : ''}${charNegativeRestrictions ? `, (${charNegativeRestrictions}:1.6)` : ''}`;
