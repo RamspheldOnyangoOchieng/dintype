@@ -88,7 +88,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     if (faceRef) {
       allReferences.push({
         url: faceRef,
-        weight: 1.3, // VIPER weight for the primary identity anchor
+        weight: 1.5, // EXTREME weight for the primary identity anchor
         model: "ip-adapter_plus_face_xl",
         source: "Golden Face"
       });
@@ -111,7 +111,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       trainingSet.forEach((img: string, idx: number) => {
         allReferences.push({
           url: img,
-          weight: 1.0, // Full power likeness
+          weight: 1.1, // Boosted full power likeness
           model: "ip-adapter_plus_face_xl", // Face-only model: ignores the outfit
           source: `Training Set Image ${idx + 1}`
         });
@@ -163,7 +163,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   // --- FEATURE SHARPENING (Micro-Step 6) ---
   const featureLock = character
-    ? `(FACIAL IDENTITY CLARITY: high-fidelity transfer of biometric features:1.8), (MATCH CHARACTER FACE:1.6), (MASTERPIECE LIKENESS:1.7), (IDENTICAL TO REFERENCE:1.7), (vibrant healthy skin:1.3), (natural healthy complexion:1.3), (relaxed shoulders:1.4), (natural facial expression:1.4), (DISREGARD SOURCE POSTURE: prioritize prompt for body and pose), `
+    ? `(FACIAL IDENTITY CLARITY: high-fidelity transfer of biometric features:1.9), (MATCH CHARACTER FACE:1.7), (MASTERPIECE LIKENESS:1.8), (IDENTICAL TO REFERENCE:1.8), (vibrant healthy skin:1.3), (natural healthy complexion:1.3), (relaxed shoulders:1.4), (natural facial expression:1.4), (DISREGARD SOURCE POSTURE: prioritize prompt for body and pose), `
     : '';
 
   // --- PREFERENCE INJECTION (Micro-Step 5) ---
@@ -205,7 +205,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   const styleHookInfluence = promptHook ? `(STYLE: ${promptHook}:1.1), ` : '';
 
   // --- BIO-REALISTIC ANATOMY ENGINE (Genital Clarity) ---
-  const anatomyEngine = `(perfectly detailed biological labia:1.5), (realistic anatomy:1.4), (high-fidelity private parts:1.4), (anatomically correct pussy:1.5), (detailed clitoris:1.3), (wet glistening skin:1.2), `;
+  const anatomyEngine = `(perfectly detailed biological labia:1.6), (ultra-realistic physiological pussy:1.5), (realistic anatomy:1.4), (high-fidelity private parts:1.5), (detailed clitoris:1.4), (slick wet glistening skin:1.3), (biological precision:1.5), `;
 
   // Enhance prompt based on style
   let enhancedPrompt = style === 'realistic'

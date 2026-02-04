@@ -90,10 +90,10 @@ export async function POST(req: NextRequest) {
               characterStyle: dbChar.character_style || dbChar.characterStyle || dbChar.style,
               face_reference_url: dbChar.metadata?.face_reference_url,
               anatomy_reference_url: dbChar.metadata?.anatomy_reference_url,
-              preferred_poses: dbChar.metadata?.preferred_poses,
-              preferred_environments: dbChar.metadata?.preferred_environments,
-              preferred_moods: dbChar.metadata?.preferred_moods,
-              negative_prompt_restrictions: dbChar.metadata?.negative_prompt_restrictions || dbChar.metadata?.negativeRestrictions,
+              preferredPoses: dbChar.metadata?.preferred_poses || dbChar.metadata?.preferredPoses,
+              preferredEnvironments: dbChar.metadata?.preferred_environments || dbChar.metadata?.preferredEnvironments,
+              preferredMoods: dbChar.metadata?.preferred_moods || dbChar.metadata?.preferredMoods,
+              negativeRestrictions: dbChar.metadata?.negative_prompt_restrictions || dbChar.metadata?.negativeRestrictions,
               prompt_hook: dbChar.metadata?.prompt_hook || dbChar.metadata?.promptHook
             };
           }
@@ -116,10 +116,10 @@ export async function POST(req: NextRequest) {
       latestCharacter?.personality,
       latestCharacter?.description,
       // NEW METADATA PREFERENCES
-      latestCharacter?.metadata?.preferred_poses ? `preferred poses: ${latestCharacter.metadata.preferred_poses}` : null,
-      latestCharacter?.metadata?.preferred_environments ? `preferred environments: ${latestCharacter.metadata.preferred_environments}` : null,
-      latestCharacter?.metadata?.preferred_moods ? `preferred moods: ${latestCharacter.metadata.preferred_moods}` : null,
-      latestCharacter?.metadata?.negative_prompt_restrictions ? `strict restrictions: ${latestCharacter.metadata.negative_prompt_restrictions}` : null,
+      latestCharacter?.preferredPoses ? `(STRICT POSE: ${latestCharacter.preferredPoses}:1.8)` : null,
+      latestCharacter?.preferredEnvironments ? `(SETTING: ${latestCharacter.preferredEnvironments}:1.8)` : null,
+      latestCharacter?.preferredMoods ? `(EXPRESSION: ${latestCharacter.preferredMoods}:1.4)` : null,
+      latestCharacter?.negativeRestrictions ? `(RESTRICT: ${latestCharacter.negativeRestrictions}:1.6)` : null,
     ].filter(Boolean).join(", ");
 
     // --- MASTERPIECE PROMPT ENHANCEMENT (DeepSeek-V3.1) ---
@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
             content: `You are a master "Prompt Settler" and photographic artist specialized in "Solitary Intimate Photography". Your goal is to produce a "Solo Female Romantic Snap".
 
             CORE DIRECTIVES:
-            1. IDENTITY DNA LOCK: Maintain 100% trait consistency. Study all provided references to match her established look EXACTLY. Focus on vibrant healthy complexion and radiant eyes.
+            1. IDENTITY DNA LOCK: Maintain 100% trait consistency. Study all provided references to match her established look EXACTLY. Focus on vibrant healthy complexion and matching their facial structure perfectly. 100% Likeness is MANDATORY.
             2. FEMININE AESTHETIC: Prioritize the character's defined body type. Describe a relaxed graceful posture, avoid stiff or shrugged shoulders.
             3. MANDATORY THIRD-PERSON VIEW: ABSOLUTELY FORBID any "selfie" or "camera-holding" posture.
             4. HAND PLACEMENT: Hands must be naturally touching her body or environment. NO extended arms.

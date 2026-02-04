@@ -348,10 +348,10 @@ export async function POST(req: NextRequest) {
               characterStyle: dbChar.character_style || dbChar.characterStyle || dbChar.style,
               face_reference_url: dbChar.metadata?.face_reference_url,
               anatomy_reference_url: dbChar.metadata?.anatomy_reference_url,
-              preferred_poses: dbChar.metadata?.preferred_poses,
-              preferred_environments: dbChar.metadata?.preferred_environments,
-              preferred_moods: dbChar.metadata?.preferred_moods,
-              negative_prompt_restrictions: dbChar.metadata?.negative_prompt_restrictions || dbChar.metadata?.negativeRestrictions,
+              preferredPoses: dbChar.metadata?.preferred_poses || dbChar.metadata?.preferredPoses,
+              preferredEnvironments: dbChar.metadata?.preferred_environments || dbChar.metadata?.preferredEnvironments,
+              preferredMoods: dbChar.metadata?.preferred_moods || dbChar.metadata?.preferredMoods,
+              negativeRestrictions: dbChar.metadata?.negative_prompt_restrictions || dbChar.metadata?.negativeRestrictions,
               prompt_hook: dbChar.metadata?.prompt_hook || dbChar.metadata?.promptHook
             };
           }
@@ -437,7 +437,8 @@ export async function POST(req: NextRequest) {
                 12. FACE CLARITY: Even in full-body shots, ensure the face is sharply rendered with detailed eyes and realistic skin textures. Avoid blurry or soft facial features.
                 13. ENVIRONMENTAL VARIETY: Describe rich, unique environments (textures, lighting, weather, depth) to prevent repetitive 'neutral' backgrounds. Ensure the character interacts with their surroundings.
                 14. ACTION & MOTION: Use active verbs. Describe the physics of the moment (wind in hair, weight distribution, fabric motion) to avoid 'still mannequin' results.
-                15. TOTAL DNA STUDY: The output must be a perfect fusion of the character's facial DNA, anatomical DNA (if provided), and the requested diverse posture.`
+                15. TOTAL DNA STUDY: The output must be a perfect fusion of the character's facial DNA, anatomical DNA (if provided), and the requested diverse posture.
+                16. IDENTITY OVER PROMPT: If the user's prompt conflicts with the character's established look, THE CHARACTER'S LOOK WINS. 100% Likeness is the top priority.`
               },
               {
                 role: 'user',
@@ -461,7 +462,7 @@ export async function POST(req: NextRequest) {
                 ${latestCharacter.preferredPoses ? `CHARACTER POSES (STRICT): ${latestCharacter.preferredPoses}` : ''}
                 ${latestCharacter.preferredEnvironments ? `CHARACTER ENVIRONMENTS: ${latestCharacter.preferredEnvironments}` : ''}
                 ${latestCharacter.preferredMoods ? `CHARACTER MOODS: ${latestCharacter.preferredMoods}` : ''}
-                ${latestCharacter.negativeRestrictions ? `STRICT RESTRICTIONS (AERIAL/NO-GO): ${latestCharacter.negativeRestrictions}` : ''}
+                ${latestCharacter.negativeRestrictions ? `STRICT RESTRICTIONS (ARM-LENGTH/NO-GO): ${latestCharacter.negativeRestrictions}` : ''}
                 ` : ''}
 
                 Style: ${actualModel.includes('anime') || actualModel.includes('dreamshaper') ? 'High-end stylized anime/illustration' : 'Breathtaking photorealistic photography'}. 
