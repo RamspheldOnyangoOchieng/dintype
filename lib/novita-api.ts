@@ -39,13 +39,13 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   const {
     prompt,
-    negativePrompt = '(extra hands:1.6), (three hands:1.6), (deformed limbs:1.5), (mutated fingers:1.5), (extra fingers:1.5), (long body:1.3), (disfigured:1.4), (malformed:1.4), muscular, masculine body, manly features, bodybuilder, strained muscle, man, male, couple, boy, together, two people, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, wrinkles, old, aged, grainy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, multiview, card, frame, border, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate',
+    negativePrompt: userNegativePrompt = "",
     width = 1600,
     height = 2400,
-    steps = 30, // Increased for masterpiece clarity
+    steps = 30,
     seed = -1,
     style = 'realistic',
-    guidance_scale = 4.5, // Increased for better prompt adherence
+    guidance_scale = 4.5,
     controlnet_units = [],
     character,
     imageBase64,
@@ -53,8 +53,10 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   // --- FULL-SPECTRUM DNA TWINNING ENGINE ---
   const finalControlUnits = [...controlnet_units];
+  const allReferences: { url: string; weight: number; model: string; source: string }[] = [];
+  const nativeImageUrls: string[] = [];
 
-  // Helper to construct Character Identity DNA
+  // Helper to construct Character Identity DNA (Textual)
   const buildIdentityDNA = (char: any) => {
     if (!char) return '';
     const dnaParts = [
@@ -79,94 +81,64 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     ? `(STRICT ANATOMY LOCK: uncensored high anatomical accuracy, clear and detailed display of private parts, biological realism, intimate detail, ${character.skinTone || character.skin_tone || 'natural'} skin texture:1.6), `
     : '';
 
+  // --- HARVEST REFERENCE ASSETS ---
   if (character) {
     console.log(`🧬 [DNA Engine] Harvesting total character DNA for ${character.name}...`);
-    const allReferences: { url: string; weight: number; model: string; source: string }[] = [];
 
-    // 1. Golden Face Reference (CRITICAL - THE ANCHOR)
+    // 1. Golden Face Reference
     const faceRef = character.metadata?.face_reference_url || character.face_reference_url || character.faceReferenceUrl;
     if (faceRef) {
-      allReferences.push({
-        url: faceRef,
-        weight: 1.5, // EXTREME weight for the primary identity anchor
-        model: "ip-adapter_plus_face_xl",
-        source: "Golden Face"
-      });
+      nativeImageUrls.push(faceRef);
+      allReferences.push({ url: faceRef, weight: 1.5, model: "ip-adapter_plus_face_xl", source: "Golden Face" });
     }
 
-    // 2. Anatomy Lock Reference (Body Structure)
+    // 2. Anatomy Lock Reference
     const anatomyRef = character.metadata?.anatomy_reference_url || character.anatomy_reference_url || character.anatomyReferenceUrl;
     if (anatomyRef) {
-      allReferences.push({
-        url: anatomyRef,
-        weight: 0.65, // Lowered slightly to prevent 'shrugged' stiffness from references
-        model: "ip-adapter_xl",
-        source: "Anatomy Lock"
-      });
+      nativeImageUrls.push(anatomyRef);
+      allReferences.push({ url: anatomyRef, weight: 0.65, model: "ip-adapter_xl", source: "Anatomy Lock" });
     }
 
-    // 3. Training Set (Identity & Likeness Focus)
+    // 3. Training/Likeness Set
     const trainingSet = character.images || character.metadata?.images || [];
     if (Array.isArray(trainingSet)) {
       trainingSet.forEach((img: string, idx: number) => {
-        allReferences.push({
-          url: img,
-          weight: 1.1, // Boosted full power likeness
-          model: "ip-adapter_plus_face_xl", // Face-only model: ignores the outfit
-          source: `Training Set Image ${idx + 1}`
-        });
-      });
-    }
-
-    // 4. Portfolio/Gallery Feed (Secondary Identity Support)
-    const galleryItems = character.gallery || character.character_gallery || [];
-    if (Array.isArray(galleryItems)) {
-      galleryItems.forEach((img: any, idx: number) => {
-        const url = typeof img === 'string' ? img : img.imageUrl || img.image_url;
-        if (url) {
-          allReferences.push({
-            url: url,
-            weight: 0.85, // Tightened: High consistency with portfolio
-            model: "ip-adapter_plus_face_xl", // Shifted to face-only model
-            source: `Portfolio Image ${idx + 1}`
-          });
+        if (img) {
+          nativeImageUrls.push(img);
+          allReferences.push({ url: img, weight: 1.1, model: "ip-adapter_plus_face_xl", source: `Training Image ${idx + 1}` });
         }
       });
     }
 
-    // 5. User Provided Context/Feature Image (img2img source)
-    if (imageBase64) {
-      allReferences.push({
-        url: imageBase64.replace(/^data:image\/\w+;base64,/, ""),
-        weight: 0.8,
-        model: "ip-adapter_plus_face_xl",
-        source: "User Feature Reference"
+    // 4. Portfolio Consistency
+    const galleryItems = character.gallery || character.character_gallery || [];
+    if (Array.isArray(galleryItems)) {
+      galleryItems.forEach((img: any) => {
+        const url = typeof img === 'string' ? img : img.imageUrl || img.image_url;
+        if (url) nativeImageUrls.push(url);
       });
     }
 
-    // Remove duplicates and cap at 8 for MAXIMUM IDENTITY FOCUS
-    // Too many references can cause 'sick' or 'muddy' faces due to feature blending
+    // Populate secondary ControlNets
     const uniqueRefs = allReferences.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
-    const finalRefs = uniqueRefs.slice(0, 8);
-
-    console.log(`🧬 [DNA Engine] Studying ${finalRefs.length} high-priority assets for perfect likeness...`);
-
-    for (const ref of finalRefs) {
+    uniqueRefs.slice(0, 5).forEach(ref => {
       finalControlUnits.push({
         model_name: ref.model,
-        weight: ref.weight,
+        weight: ref.weight * 0.8,
         control_image: ref.url,
         module_name: "none"
       });
-    }
+    });
   }
 
-  // --- FEATURE SHARPENING (Micro-Step 6) ---
+  const fusedImageUrls = Array.from(new Set(nativeImageUrls)).slice(0, 14);
+
+  // --- FEATURE SHARPENING ---
   const featureLock = character
     ? `(FACIAL IDENTITY CLARITY: high-fidelity transfer of biometric features:1.9), (MATCH CHARACTER FACE:1.7), (MASTERPIECE LIKENESS:1.8), (IDENTICAL TO REFERENCE:1.8), (vibrant healthy skin:1.3), (natural healthy complexion:1.3), (relaxed shoulders:1.4), (natural facial expression:1.4), (DISREGARD SOURCE POSTURE: prioritize prompt for body and pose), `
     : '';
 
-  // --- PREFERENCE INJECTION (Micro-Step 5) ---
+  // --- PREFERENCE INJECTION ---
   const poses = character?.metadata?.preferred_poses || character?.preferred_poses || character?.preferredPoses || '';
   const environments = character?.metadata?.preferred_environments || character?.preferred_environments || character?.preferredEnvironments || '';
   const moods = character?.metadata?.preferred_moods || character?.preferred_moods || character?.preferredMoods || '';
@@ -179,7 +151,6 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     moods ? `(EXPRESSION: ${moods}:1.4)` : '',
   ].filter(Boolean).join(', ');
 
-  // --- PROMPT SANITIZER (Removes selfie triggers) ---
   const sanitizePrompt = (p: string) => {
     return p.replace(/selfie/gi, 'candid photo')
       .replace(/pov/gi, 'third-person view')
@@ -189,13 +160,11 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   };
   const cleanedPrompt = sanitizePrompt(prompt);
 
-  // --- PERSPECTIVE ENGINE (Natural Mastery Focus - ABSOLUTE THIRD PERSON) ---
   const perspectiveMode = `(professional third-person photography:1.7), (full body shot:1.5), (wide angle:1.6), (remote camera:1.4), (candid from distance:1.4), (hands away from camera:1.6), (hands touching body:1.5), (MANDATORY THIRD-PERSON PERSPECTIVE:1.6), `;
-
-  // Aggressively forbid 'selfie arm' artifacts with MAXIMUM PENALTY
   const perspectiveNegatives = `(extended arm:1.9), (prolonged arm:1.9), (arm in frame:1.8), (reaching towards camera:1.8), (POV selfie arm:1.9), (hand holding camera:1.8), (distorted hand:1.7), (camera in hand:1.7), (selfie photo:1.8), (POV:1.8), (holding phone:1.8), (arm stretching:1.7)`;
 
-  const finalNegativePrompt = `${negativePrompt}${perspectiveNegatives ? `, ${perspectiveNegatives}` : ''}${charNegativeRestrictions ? `, (${charNegativeRestrictions}:1.6)` : ''}`;
+  const defaultNegatives = '(extra hands:1.6), (three hands:1.6), (deformed limbs:1.5), (mutated fingers:1.5), (extra fingers:1.5), (long body:1.3), (disfigured:1.4), (malformed:1.4), muscular, masculine body, manly features, bodybuilder, strained muscle, man, male, couple, boy, together, two people, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, wrinkles, old, aged, grainy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, multiview, card, frame, border, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate';
+  const finalNegativePrompt = `${defaultNegatives}${userNegativePrompt ? `, ${userNegativePrompt}` : ''}${perspectiveNegatives ? `, ${perspectiveNegatives}` : ''}${charNegativeRestrictions ? `, (${charNegativeRestrictions}:1.6)` : ''}`;
 
   const biometricAnchor = character
     ? `### [BIOMETRIC ANCHOR: (precise facial DNA:1.6), (match training photos:1.5), (locked identity:1.5), ${character.name} face]. ### `
@@ -204,23 +173,30 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   const outfitLiberation = `(PRIORITIZE PROMPT CLOTHING:1.5), (LIBERATE OUTFIT: ignore clothing in references:1.4), (CLOTHING VARIETY:1.3), `;
   const styleHookInfluence = promptHook ? `(STYLE: ${promptHook}:1.1), ` : '';
 
-  // --- BIO-REALISTIC ANATOMY ENGINE (Genital Clarity) ---
   const anatomyEngine = `(perfectly detailed biological labia:1.6), (ultra-realistic physiological pussy:1.5), (realistic anatomy:1.4), (high-fidelity private parts:1.5), (detailed clitoris:1.4), (slick wet glistening skin:1.3), (biological precision:1.5), `;
 
-  // Enhance prompt based on style
   let enhancedPrompt = style === 'realistic'
     ? `(solo:1.6), (1girl:1.6), (feminine body:1.5), (natural female proportions:1.4), ${cleanedPrompt}, ${outfitLiberation}${perspectiveMode}(dynamic composition:1.3), (8k UHD photography:1.4), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.4), (soft skin:1.3), fascinating and sexy, ${anatomyEngine}clear and romantic display of private parts, full nudity`
     : `(solo:1.6), (1girl:1.6), ${cleanedPrompt}, ${outfitLiberation}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (masterpiece anime art:1.4), clean aesthetic lines`;
 
-  if (enhancedPrompt.length > 2000) {
-    enhancedPrompt = enhancedPrompt.substring(0, 2000);
+  if (enhancedPrompt.length > 2000) enhancedPrompt = enhancedPrompt.substring(0, 2000);
+
+  // Pre-process image to base64 if it's a URL
+  let finalBase64 = imageBase64;
+  if (imageBase64 && imageBase64.startsWith('http')) {
+    try {
+      const res = await fetch(imageBase64);
+      const buffer = await res.arrayBuffer();
+      finalBase64 = Buffer.from(buffer).toString('base64');
+    } catch (e) {
+      console.warn("⚠️ Failed to fetch source image for base64 conversion, using raw source", e);
+    }
+  } else if (imageBase64) {
+    finalBase64 = imageBase64.replace(/^data:image\/\w+;base64,/, "");
   }
 
-  // Seedream 4.5 with retry logic
   const MAX_RETRIES = 2;
   let lastError: Error | null = null;
-
-  console.log(`🚀 Generating image with Seedream 4.5 (Max ${MAX_RETRIES} attempts)...`);
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
@@ -240,13 +216,13 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
           seed: seed === -1 ? Math.floor(Math.random() * 2147483647) : seed,
           steps: steps,
           guidance_scale: guidance_scale,
+          image_urls: fusedImageUrls,
+          image_base64: finalBase64 || undefined,
+          strength: finalBase64 ? 0.8 : undefined,
           controlnet_units: finalControlUnits,
           response_image_type: 'url',
           add_watermark: false,
           watermark: false,
-          // optimize_prompt_options: {
-          //   mode: 'standard'
-          // }
         }),
         signal: controller.signal,
       });
@@ -256,47 +232,26 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       if (response.ok) {
         const data = await response.json();
         if (data.images && data.images.length > 0) {
-          console.log(`✅ Seedream 4.5 succeeded on attempt ${attempt}`);
-
           let imageUrl = data.images[0];
           if (imageUrl && !imageUrl.startsWith('http') && !imageUrl.startsWith('data:')) {
             imageUrl = `data:image/jpeg;base64,${imageUrl}`;
           }
-
-          return {
-            url: imageUrl,
-            seed: seed,
-            width: width,
-            height: height,
-          };
+          return { url: imageUrl, seed: seed, width: width, height: height };
         } else {
           throw new Error('No images returned from Seedream 4.5');
         }
       } else {
         const errorText = await response.text();
-        console.warn(`⚠️ Seedream 4.5 attempt ${attempt} failed: ${errorText}`);
         lastError = new Error(`Seedream 4.5 error: ${errorText}`);
       }
     } catch (error: any) {
-      const errMsg = error.name === 'AbortError' ? 'Request timed out' : error.message;
-      console.warn(`⚠️ Seedream 4.5 attempt ${attempt} exception: ${errMsg}`);
-      lastError = new Error(errMsg);
+      lastError = new Error(error.name === 'AbortError' ? 'Request timed out' : error.message);
     }
-
-    if (attempt < MAX_RETRIES) {
-      console.log(`🔄 Retrying Seedream 4.5 in 1 second...`);
-      await new Promise(r => setTimeout(r, 1000));
-    }
+    if (attempt < MAX_RETRIES) await new Promise(r => setTimeout(r, 1000));
   }
-
-  // All retries failed
-  console.error('❌ Seedream 4.5 failed all attempts');
   throw lastError || new Error('Image generation failed after all retries');
 }
 
-/**
- * Build prompt for specific attributes based on detailed specifications
- */
 export function buildAttributePrompt(attributes: {
   age?: string;
   ethnicity?: string;
@@ -304,10 +259,7 @@ export function buildAttributePrompt(attributes: {
   style?: 'realistic' | 'anime';
 }): string {
   const { age, ethnicity, bodyType, style = 'realistic' } = attributes;
-
   const parts: string[] = [];
-
-  // Base style description
   if (style === 'realistic') {
     parts.push('attractive female avatar with life-like, ultra-realistic features, skin texture, and proportions');
     parts.push('idealized, polished, and highly desirable');
@@ -317,8 +269,6 @@ export function buildAttributePrompt(attributes: {
     parts.push('larger expressive eyes, stylized proportions, and vibrant color tones');
     parts.push('bold, artistic, and idealized for fantasy appeal');
   }
-
-  // Age description with detailed specifications
   if (age) {
     const ageMap: Record<string, string> = {
       '18-19': 'very youthful, fresh-faced, with smooth skin and a playful, energetic presence typical of late teens',
@@ -331,8 +281,6 @@ export function buildAttributePrompt(attributes: {
     };
     parts.push(ageMap[age] || 'beautiful woman');
   }
-
-  // Ethnicity description with detailed specifications
   if (ethnicity) {
     const ethnicityMap: Record<string, string> = {
       'Caucasian': 'attractive woman with lighter skin tones and a sharper or angular facial structure, idealized and desirable',
@@ -350,8 +298,6 @@ export function buildAttributePrompt(attributes: {
     };
     parts.push(ethnicityMap[ethnicity] || '');
   }
-
-  // Body type description with detailed specifications
   if (bodyType) {
     const bodyMap: Record<string, string> = {
       'Muscular': 'defined and strong physique, emphasizing power and intensity',
@@ -365,8 +311,6 @@ export function buildAttributePrompt(attributes: {
     };
     parts.push(bodyMap[bodyType] || '');
   }
-
-  // Professional photography details for realistic style
   if (style === 'realistic') {
     parts.push('professional third-person photography, captured by Canon EOS R5, 85mm lens, f/1.8');
     parts.push('cinematic lighting, elegant masterpiece photography, sharp focus on subject');
@@ -381,35 +325,25 @@ export function buildAttributePrompt(attributes: {
     parts.push('studio quality anime art, cel shading');
     parts.push('high detail, professional digital art');
   }
-
   return parts.filter(Boolean).join(', ');
 }
 
-/**
- * Generate images for all attribute combinations
- */
 export async function generateAttributeImages(
   style: 'realistic' | 'anime',
   category: 'age' | 'body' | 'ethnicity',
   values: string[]
 ): Promise<Map<string, GeneratedImage>> {
   const results = new Map<string, GeneratedImage>();
-
   for (const value of values) {
     try {
       const attributes: any = { style };
       attributes[category] = value;
-
       const prompt = buildAttributePrompt(attributes);
       const image = await generateImage({ prompt, style });
-
       results.set(value, image);
-
-      console.log(`Generated image for ${category}: ${value}`);
     } catch (error) {
-      console.error(`Failed to generate image for ${category}: ${value}`, error);
+      console.error(`Failed for ${category}: ${value}`, error);
     }
   }
-
   return results;
 }

@@ -23,9 +23,10 @@ interface SimpleImageGeneratorProps {
         aspectRatioLabel?: string // e.g. "Portrait (3:4)"
         title?: string
     }
+    useSourceImage?: boolean // Whether to use the current character image as a base
 }
 
-export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, characterId, characterData, settings }: SimpleImageGeneratorProps) {
+export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, characterId, characterData, settings, useSourceImage }: SimpleImageGeneratorProps) {
     const [prompt, setPrompt] = useState("")
     const [isGenerating, setIsGenerating] = useState(false)
     const [generatedImages, setGeneratedImages] = useState<string[]>([])
@@ -67,6 +68,7 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
                     guidance_scale: 4.5, // Slightly increased for better prompt adherence balanced with realism
                     characterId: characterId, // Enable Twinning/Reference Engine
                     character: characterData, // Pass live form data for instant feedback
+                    imageBase64: useSourceImage && characterData?.image ? characterData.image : undefined, // THE IMAGE TO EDIT
                     autoSave: true
                 }),
             })

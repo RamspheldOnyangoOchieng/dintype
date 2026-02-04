@@ -1630,6 +1630,7 @@ export default function EditCharacterPage() {
         onClose={() => setIsRegenModalOpen(false)}
         characterId={id}
         characterData={formData}
+        useSourceImage={true}
         onImageSelect={(url) => {
           setFormData((prev: any) => ({ ...prev, image: url }))
           setImagePreview(url)
