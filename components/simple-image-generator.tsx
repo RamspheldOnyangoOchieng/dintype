@@ -15,6 +15,7 @@ interface SimpleImageGeneratorProps {
     onClose: () => void
     onImageSelect: (imageUrl: string) => void
     characterId?: string
+    characterData?: any
     settings?: {
         width?: number
         height?: number
@@ -24,7 +25,7 @@ interface SimpleImageGeneratorProps {
     }
 }
 
-export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, characterId, settings }: SimpleImageGeneratorProps) {
+export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, characterId, characterData, settings }: SimpleImageGeneratorProps) {
     const [prompt, setPrompt] = useState("")
     const [isGenerating, setIsGenerating] = useState(false)
     const [generatedImages, setGeneratedImages] = useState<string[]>([])
@@ -65,6 +66,7 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
                     steps: 25,
                     guidance_scale: 4.5, // Slightly increased for better prompt adherence balanced with realism
                     characterId: characterId, // Enable Twinning/Reference Engine
+                    character: characterData, // Pass live form data for instant feedback
                     autoSave: true
                 }),
             })

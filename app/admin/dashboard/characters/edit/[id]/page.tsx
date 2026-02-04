@@ -1321,7 +1321,7 @@ export default function EditCharacterPage() {
                             name="isNew"
                             type="checkbox"
                             checked={formData.isNew}
-                            onChange={(e) => setFormData((prev) => ({ ...prev, isNew: e.target.checked }))}
+                            onChange={(e) => setFormData((prev: any) => ({ ...prev, isNew: e.target.checked }))}
                             className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                           />
                           <label htmlFor="isNew" className="ml-2 block text-sm text-gray-300">
@@ -1629,6 +1629,7 @@ export default function EditCharacterPage() {
         isOpen={isRegenModalOpen}
         onClose={() => setIsRegenModalOpen(false)}
         characterId={id}
+        characterData={formData}
         onImageSelect={(url) => {
           setFormData((prev: any) => ({ ...prev, image: url }))
           setImagePreview(url)
