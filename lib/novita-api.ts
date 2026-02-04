@@ -83,12 +83,12 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     console.log(`🧬 [DNA Engine] Harvesting total character DNA for ${character.name}...`);
     const allReferences: { url: string; weight: number; model: string; source: string }[] = [];
 
-    // 1. Golden Face Reference (CRITICAL)
+    // 1. Golden Face Reference (CRITICAL - THE ANCHOR)
     const faceRef = character.metadata?.face_reference_url || character.face_reference_url || character.faceReferenceUrl;
     if (faceRef) {
       allReferences.push({
         url: faceRef,
-        weight: 1.1, // OVERMAX weight for the primary identity
+        weight: 1.3, // VIPER weight for the primary identity anchor
         model: "ip-adapter_plus_face_xl",
         source: "Golden Face"
       });
@@ -111,7 +111,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       trainingSet.forEach((img: string, idx: number) => {
         allReferences.push({
           url: img,
-          weight: 0.85,
+          weight: 1.0, // Full power likeness
           model: "ip-adapter_plus_face_xl", // Face-only model: ignores the outfit
           source: `Training Set Image ${idx + 1}`
         });
@@ -163,7 +163,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   // --- FEATURE SHARPENING (Micro-Step 6) ---
   const featureLock = character
-    ? `(FACIAL IDENTITY CLARITY: high-fidelity transfer of biometric features:1.7), (MATCH CHARACTER FACE:1.6), (vibrant healthy skin:1.3), (natural healthy complexion:1.3), (relaxed shoulders:1.4), (natural facial expression:1.4), (DISREGARD SOURCE POSTURE: prioritize prompt for body and pose), `
+    ? `(FACIAL IDENTITY CLARITY: high-fidelity transfer of biometric features:1.8), (MATCH CHARACTER FACE:1.6), (MASTERPIECE LIKENESS:1.7), (IDENTICAL TO REFERENCE:1.7), (vibrant healthy skin:1.3), (natural healthy complexion:1.3), (relaxed shoulders:1.4), (natural facial expression:1.4), (DISREGARD SOURCE POSTURE: prioritize prompt for body and pose), `
     : '';
 
   // --- PREFERENCE INJECTION (Micro-Step 5) ---
@@ -204,9 +204,12 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   const outfitLiberation = `(PRIORITIZE PROMPT CLOTHING:1.5), (LIBERATE OUTFIT: ignore clothing in references:1.4), (CLOTHING VARIETY:1.3), `;
   const styleHookInfluence = promptHook ? `(STYLE: ${promptHook}:1.1), ` : '';
 
+  // --- BIO-REALISTIC ANATOMY ENGINE (Genital Clarity) ---
+  const anatomyEngine = `(perfectly detailed biological labia:1.5), (realistic anatomy:1.4), (high-fidelity private parts:1.4), (anatomically correct pussy:1.5), (detailed clitoris:1.3), (wet glistening skin:1.2), `;
+
   // Enhance prompt based on style
   let enhancedPrompt = style === 'realistic'
-    ? `(solo:1.6), (1girl:1.6), (feminine body:1.5), (natural female proportions:1.4), ${cleanedPrompt}, ${outfitLiberation}${perspectiveMode}(dynamic composition:1.3), (8k UHD photography:1.4), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.4), (soft skin:1.3), fascinating and sexy, clear and romantic display of private parts, full nudity`
+    ? `(solo:1.6), (1girl:1.6), (feminine body:1.5), (natural female proportions:1.4), ${cleanedPrompt}, ${outfitLiberation}${perspectiveMode}(dynamic composition:1.3), (8k UHD photography:1.4), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.4), (soft skin:1.3), fascinating and sexy, ${anatomyEngine}clear and romantic display of private parts, full nudity`
     : `(solo:1.6), (1girl:1.6), ${cleanedPrompt}, ${outfitLiberation}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (masterpiece anime art:1.4), clean aesthetic lines`;
 
   if (enhancedPrompt.length > 2000) {
