@@ -275,7 +275,19 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     ? `, clothing, underwear, panties, bra, lingerie, swimsuit, bikini, fabric, shirt, pants, skirt, outfit`
     : '';
 
-  const finalNegativePrompt = `${perspectiveNegatives}, ${defaultNegatives}${userNegativePrompt ? `, ${userNegativePrompt}` : ''}${charNegativeRestrictions ? `, (${charNegativeRestrictions}:1.6)` : ''}${nudityNegatives}`;
+  // GENDER ENFORCEMENT ENGINE
+  const gender = character?.gender ? character.gender.toLowerCase() : 'female';
+  const isFemale = gender === 'female' || gender === 'woman' || gender === 'girl';
+
+  const genderPositive = isFemale
+    ? `(1girl:2.0), (feminine body:1.8), (female:1.8), (woman:1.8), (lady:1.8), `
+    : `(1boy:2.0), (masculine body:1.8), (male:1.8), (man:1.8), (guy:1.8), `;
+
+  const genderNegative = isFemale
+    ? `(man:3.0), (male:3.0), (boy:3.0), (masculine:3.0), (beard:3.0), (mustache:3.0), (hairy chest:3.0), (muscular male:2.5), (guy:3.0), (gentleman:3.0), (penis:3.0), (testicles:3.0), (dick:3.0), (cock:3.0), `
+    : `(woman:3.0), (female:3.0), (girl:3.0), (feminine:3.0), (breasts:3.0), (cleavage:3.0), (lady:3.0), (vagina:3.0), (pussy:3.0), (vulva:3.0), `;
+
+  const finalNegativePrompt = `${perspectiveNegatives}, ${defaultNegatives}, ${genderNegative}${userNegativePrompt ? `, ${userNegativePrompt}` : ''}${charNegativeRestrictions ? `, (${charNegativeRestrictions}:1.6)` : ''}${nudityNegatives}`;
 
   const biometricAnchor = (character && !isBanner)
     ? `### [BIOMETRIC ANCHOR: (precise facial DNA:2.0), (match training photos:1.8), (locked identity:1.9), (100% identical face:1.9), (consistent skin tone:1.8), ${character.name} face]. ### `
@@ -314,8 +326,8 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     const trainingAssetPriority = character ? `(STRICT REFERENCE MATCH:2.0), (COPY TRAINING IMAGES:1.9), (IDENTICAL TO REFERENCE PHOTOS:1.8), (EXACT LIKENESS:1.9), ` : '';
 
     enhancedPrompt = style === 'realistic'
-      ? `${photoRealismAnchor}${trainingAssetPriority}${img2imgSync}${cleanedPrompt}, (RAW unedited photo:1.8), (photorealistic:2.0), (EXACT CHARACTER MATCH:1.6), ${skinRealismEngine}${identityPrefix}${biometricAnchor}${featureLock}(solo:1.6), (1girl:1.6), (feminine body:1.5), ${outfitLogic}${anatomyGuardrail}${nudityLock}${perspectiveMode}${anatomyLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.5), (natural soft skin:1.4), (realistic skin texture:1.6), fascinating and sexy, ${anatomyEngine}explicit details, full nudity, ultra-detailed anatomy, (no airbrushing:1.8), (no digital smoothing:1.7), (film grain:1.2), (REAL PHOTOGRAPH NOT ART:2.0)`
-      : `${photoRealismAnchor}(solo:1.6), (1girl:1.6), ${cleanedPrompt}, (semi-realistic art:1.5), ${outfitLogic}${perspectiveMode}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, clean aesthetic lines, (realistic proportions:1.4)`;
+      ? `${photoRealismAnchor}${trainingAssetPriority}${img2imgSync}${cleanedPrompt}, (RAW unedited photo:1.8), (photorealistic:2.0), (EXACT CHARACTER MATCH:1.6), ${skinRealismEngine}${identityPrefix}${biometricAnchor}${featureLock}(solo:1.6), ${genderPositive}${outfitLogic}${anatomyGuardrail}${nudityLock}${perspectiveMode}${anatomyLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.5), (natural soft skin:1.4), (realistic skin texture:1.6), fascinating and sexy, ${anatomyEngine}explicit details, full nudity, ultra-detailed anatomy, (no airbrushing:1.8), (no digital smoothing:1.7), (film grain:1.2), (REAL PHOTOGRAPH NOT ART:2.0)`
+      : `${photoRealismAnchor}(solo:1.6), ${genderPositive}${cleanedPrompt}, (semi-realistic art:1.5), ${outfitLogic}${perspectiveMode}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, clean aesthetic lines, (realistic proportions:1.4)`;
   }
 
   if (enhancedPrompt.length > 2000) enhancedPrompt = enhancedPrompt.substring(0, 2000);

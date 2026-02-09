@@ -512,6 +512,7 @@ export async function POST(req: NextRequest) {
                 Name: ${latestCharacter.name}
                 Description: ${latestCharacter.description}
                 Visual Traits: 
+                  - Gender: ${latestCharacter.gender || 'Female'}
                   - Hair: ${latestCharacter.hairColor || 'natural'}
                   - Eyes: ${latestCharacter.eyeColor || 'beautiful'}
                   - Skin Tone: ${latestCharacter.skinTone || 'natural tone'}
