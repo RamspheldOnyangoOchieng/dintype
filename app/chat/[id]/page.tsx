@@ -1130,7 +1130,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           },
           body: JSON.stringify({
             prompt: prompt,
-            negativePrompt: "bad quality, worst quality, low quality",
+            negativePrompt: "", // Let the backend apply the full structural/anatomical guardrails
             imageBase64: base64Image,
             character: character,
             autoSave: shouldAutoSave,
