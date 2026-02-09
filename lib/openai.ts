@@ -9,6 +9,17 @@ export type GenerateCharacterParams = {
   personality?: string
   interests?: string
   relationship?: string
+  ethnicity?: string
+  hairColor?: string
+  hairStyle?: string
+  eyeColor?: string
+  skinTone?: string
+  bodyType?: string
+  characterStyle?: string
+  preferredPoses?: string
+  preferredEnvironments?: string
+  preferredMoods?: string
+  negativePromptRestrictions?: string
 }
 
 export async function generateCharacterDescription(params: GenerateCharacterParams): Promise<string> {
@@ -42,8 +53,18 @@ export async function generateCharacterDescription(params: GenerateCharacterPara
       ${params.personality ? `Personality: ${params.personality}` : ""}
       ${params.interests ? `Interests/Hobbies: ${params.interests}` : ""}
       ${params.relationship ? `Relationship Status: ${params.relationship}` : ""}
+      ${params.ethnicity ? `Ethnicity: ${params.ethnicity}` : ""}
+      ${params.hairStyle ? `Hair Style: ${params.hairStyle}` : ""}
+      ${params.hairColor ? `Hair Color: ${params.hairColor}` : ""}
+      ${params.eyeColor ? `Eye Color: ${params.eyeColor}` : ""}
+      ${params.skinTone ? `Skin Tone: ${params.skinTone}` : ""}
+      ${params.bodyType ? `Body Type: ${params.bodyType}` : ""}
+      ${params.characterStyle ? `Visual Style: ${params.characterStyle}` : ""}
+      ${params.preferredEnvironments ? `Preferred Settings: ${params.preferredEnvironments}` : ""}
+      ${params.preferredMoods ? `Key Moods: ${params.preferredMoods}` : ""}
+      ${params.preferredPoses ? `Signature Poses: ${params.preferredPoses}` : ""}
       
-      The description should be 1-2 sentences long and highlight the character's most interesting qualities.
+      The description should be 1-2 sentences long and highlight the character's most interesting qualities, including a hint of their physical appearance.
     `
 
     const messages = [
@@ -111,6 +132,16 @@ export async function generateSystemPrompt(character: {
   occupation: string
   hobbies: string
   relationship?: string
+  ethnicity?: string
+  hairColor?: string
+  hairStyle?: string
+  eyeColor?: string
+  skinTone?: string
+  bodyType?: string
+  preferredPoses?: string
+  preferredEnvironments?: string
+  preferredMoods?: string
+  negativePromptRestrictions?: string
 }): Promise<string> {
   try {
     // PRIORITY: Use OPENAI_API_KEY from .env first, then fallback to NOVITA
@@ -144,8 +175,19 @@ export async function generateSystemPrompt(character: {
       Occupation: ${character.occupation}
       Hobbies: ${character.hobbies}
       ${character.relationship ? `Relationship Status: ${character.relationship}` : ""}
+      ${character.ethnicity ? `Ethnicity: ${character.ethnicity}` : ""}
+      ${character.hairStyle ? `Hair Style: ${character.hairStyle}` : ""}
+      ${character.hairColor ? `Hair Color: ${character.hairColor}` : ""}
+      ${character.eyeColor ? `Eye Color: ${character.eyeColor}` : ""}
+      ${character.skinTone ? `Skin Tone: ${character.skinTone}` : ""}
+      ${character.bodyType ? `Body Type: ${character.bodyType}` : ""}
+      ${character.preferredEnvironments ? `Preferred Settings: ${character.preferredEnvironments}` : ""}
+      ${character.preferredMoods ? `Preferred Moods: ${character.preferredMoods}` : ""}
+      ${character.preferredPoses ? `Signature Poses: ${character.preferredPoses}` : ""}
+      ${character.negativePromptRestrictions ? `Strict Content Limits: ${character.negativePromptRestrictions}` : ""}
       
       The system prompt should instruct the AI on how to behave, speak, and respond as this character.
+      It MUST incorporate their visual identity and their preferences (moods/environments) into their personality and responses.
       Keep it under 200 words and focus on the character's personality, speech patterns, and knowledge areas.
     `
 

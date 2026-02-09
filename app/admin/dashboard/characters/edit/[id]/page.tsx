@@ -693,6 +693,16 @@ export default function EditCharacterPage() {
         personality: formData.personality,
         interests: formData.hobbies,
         relationship: formData.relationship,
+        ethnicity: formData.ethnicity,
+        hairColor: formData.hairColor,
+        hairStyle: formData.hairStyle,
+        eyeColor: formData.eyeColor,
+        skinTone: formData.skinTone,
+        bodyType: formData.bodyType,
+        characterStyle: formData.characterStyle,
+        preferredEnvironments: formData.preferred_environments,
+        preferredMoods: formData.preferred_moods,
+        preferredPoses: formData.preferred_poses,
       }
 
       const description = await generateCharacterDescription(params)
@@ -723,6 +733,16 @@ export default function EditCharacterPage() {
         occupation: formData.occupation,
         hobbies: formData.hobbies,
         relationship: formData.relationship,
+        ethnicity: formData.ethnicity,
+        hairColor: formData.hairColor,
+        hairStyle: formData.hairStyle,
+        eyeColor: formData.eyeColor,
+        skinTone: formData.skinTone,
+        bodyType: formData.bodyType,
+        preferredEnvironments: formData.preferred_environments,
+        preferredMoods: formData.preferred_moods,
+        preferredPoses: formData.preferred_poses,
+        negativePromptRestrictions: formData.negative_prompt_restrictions,
       })
 
       setFormData((prev: any) => ({ ...prev, systemPrompt }))
