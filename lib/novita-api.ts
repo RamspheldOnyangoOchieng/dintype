@@ -244,10 +244,14 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   // HYPER-REALISM SKIN ENGINE - Combats plastic/artificial look
   const skinRealismEngine = `(natural human skin texture:1.8), (visible skin pores:1.6), (subsurface skin scattering:1.5), (realistic skin imperfections:1.4), (natural skin oils:1.3), (real human complexion:1.7), (organic skin surface:1.6), (epidermis detail:1.5), (authentic flesh tones:1.6), (living skin:1.5), `;
 
+  // BANNER-SPECIFIC SFW NEGATIVES - No intimate content for commercial banners
+  const bannerSFWNegatives = `(nudity:3.0), (naked:3.0), (nude:3.0), (nsfw:3.0), (explicit:3.0), (erotic:3.0), (sexy pose:2.5), (seductive:2.5), (intimate:2.5), (suggestive:2.5), (provocative:2.5), (revealing clothing:2.0), (cleavage:2.0), (lingerie:2.5), (underwear:2.5), (bikini:2.0), (exposed skin:2.0), (adult content:3.0), (sexual:3.0), (sensual:2.5), (bedroom:2.0), (bed:1.8), (laying down:1.5), (spreading legs:3.0), (exotic pose:2.5), (seductive eyes:2.0), (bedroom eyes:2.0), (woman:2.5), (girl:2.5), (lady:2.5), (female:2.5), (person:2.0), (human figure:2.0), (model:2.0)`;
+
   let enhancedPrompt = "";
 
   if (isBanner) {
-    enhancedPrompt = `${cleanedPrompt}, (commercial photography:1.5), (photorealistic:1.6), ${perspectiveMode}(unprocessed digital masterpiece:1.4), (high-end visual style:1.3), (masterpiece quality:1.4), (sharp focus:1.4)`;
+    // STRICT SFW COMMERCIAL BANNER - No people, focus on environments and abstract visuals
+    enhancedPrompt = `${cleanedPrompt}, (professional commercial advertisement:1.7), (brand marketing visual:1.6), (corporate photography:1.5), (luxury product showcase:1.4), (abstract design:1.3), (scenic landscape:1.4), (architectural photography:1.3), (geometric patterns:1.2), (premium texture:1.3), (high-end editorial:1.4), (magazine cover quality:1.3), (clean minimalist design:1.4), (sophisticated color palette:1.3), (elegant composition:1.4), (professional lighting:1.5), (commercial grade quality:1.4), (advertising campaign:1.3), (8k UHD:1.3), (sharp focus:1.4), (depth of field:1.3), NO PEOPLE, NO HUMANS, NO FIGURES, abstract art, product photography, scenic view, architectural detail, texture close-up`;
   } else {
     enhancedPrompt = style === 'realistic'
       ? `${img2imgSync}${cleanedPrompt}, (RAW unedited photo:1.7), (photorealistic:1.8), (EXACT CHARACTER MATCH:1.4), ${skinRealismEngine}${identityPrefix}${biometricAnchor}${featureLock}(solo:1.6), (1girl:1.6), (feminine body:1.5), ${outfitLogic}${anatomyGuardrail}${nudityLock}${perspectiveMode}${anatomyLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.5), (natural soft skin:1.4), (realistic skin texture:1.6), fascinating and sexy, ${anatomyEngine}explicit details, full nudity, ultra-detailed anatomy, (no airbrushing:1.8), (no digital smoothing:1.7), (film grain:1.2)`
@@ -286,7 +290,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
         },
         body: JSON.stringify({
           prompt: enhancedPrompt,
-          negative_prompt: finalNegativePrompt,
+          negative_prompt: isBanner ? `${finalNegativePrompt}, ${bannerSFWNegatives}` : finalNegativePrompt,
           size: `${width}x${height}`,
           seed: seed === -1 ? Math.floor(Math.random() * 2147483647) : seed,
           steps: steps,
