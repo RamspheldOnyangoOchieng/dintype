@@ -1068,7 +1068,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   // Voice generation removed - will be added to roadmap
 
   // Function to generate an image
-  const generateImage = async (prompt: string) => {
+  const generateImage = async (prompt: string, overrideBaseImage?: string) => {
     if (!isMounted) return
 
     try {
@@ -1084,19 +1084,29 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
       setIsGeneratingImage(true)
 
-      // Get the character's image URL
-      const characterImageUrl = character?.image || "/placeholder.svg"
+      // Get the character's image URL or use reply context
+      let base64Image = null;
+      const targetBaseImage = overrideBaseImage || replyingTo?.imageUrl || replyingTo?.replyToImage;
 
-      // Convert the image to base64
-      console.log("Converting image to base64:", characterImageUrl)
-      const base64Image = await imageUrlToBase64(characterImageUrl)
-      if (!base64Image) {
-        throw new Error("Failed to convert image to base64")
+      if (targetBaseImage) {
+        console.log("Converting TARGET image to base64:", targetBaseImage)
+        base64Image = await imageUrlToBase64(targetBaseImage as string)
+      } else {
+        // Fallback: If no base image, we still pass the face reference to ensure likeness if possible
+        const charRef = character?.metadata?.face_reference_url || character?.image || character?.image_url;
+        if (charRef) {
+          console.log("Using character reference for identity anchor...");
+          base64Image = await imageUrlToBase64(charRef);
+        }
       }
 
       if (!isMounted) return
 
-      console.log("Base64 conversion successful, length:", base64Image.length)
+      if (!base64Image) {
+        console.warn("No base image or character reference found for image generation. Proceeding without base image.");
+      } else {
+        console.log("Base64 conversion successful, length:", base64Image.length);
+      }
 
       // Try the real API first
       let response
@@ -1562,8 +1572,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           }
         }
 
+        const currentBaseImg = replyingTo?.imageUrl || replyingTo?.image_url;
         setIsSendingMessage(false)
-        await generateImage(imagePrompt)
+        await generateImage(imagePrompt, currentBaseImg as string)
         return
       }
 
