@@ -218,10 +218,11 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     : `(MATCH REFERENCE OUTFIT:1.4), (CONSISTENT CLOTHING:1.3), (SAME OUTFIT AS ASSET:1.3), `;
   const styleHookInfluence = promptHook ? `(STYLE: ${promptHook}:1.1), ` : '';
 
+  const img2imgSync = imageBase64 ? `(STRICT POSE SYNC: match source image composition and background:1.4), (DEEP RESKIN: apply character DNA to provided template:1.5), ` : '';
   const anatomyEngine = `(perfectly detailed biological anatomy:1.7), (smoothed structured anatomy:1.8), (clean well-defined biological structure:1.7), (perfect breast and teat form:1.6), (exact reference replication:1.6), (realistic physiological details:1.6), (high-fidelity private parts:1.6), (biological precision:1.6), `;
 
   let enhancedPrompt = style === 'realistic'
-    ? `${cleanedPrompt}, (RAW photo:1.5), (photorealistic:1.6), (EXACT CHARACTER MATCH:1.4), ${identityPrefix}${biometricAnchor}${featureLock}(solo:1.6), (1girl:1.6), (feminine body:1.5), ${outfitLogic}${anatomyGuardrail}${nudityLock}${perspectiveMode}${anatomyLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.4), (soft skin:1.3), fascinating and sexy, ${anatomyEngine}explicit details, full nudity, ultra-detailed anatomy`
+    ? `${img2imgSync}${cleanedPrompt}, (RAW photo:1.5), (photorealistic:1.6), (EXACT CHARACTER MATCH:1.4), ${identityPrefix}${biometricAnchor}${featureLock}(solo:1.6), (1girl:1.6), (feminine body:1.5), ${outfitLogic}${anatomyGuardrail}${nudityLock}${perspectiveMode}${anatomyLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.4), (soft skin:1.3), fascinating and sexy, ${anatomyEngine}explicit details, full nudity, ultra-detailed anatomy`
     : `(solo:1.6), (1girl:1.6), ${cleanedPrompt}, (masterpiece anime art:1.5), ${outfitLogic}${perspectiveMode}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, clean aesthetic lines`;
 
   if (enhancedPrompt.length > 2000) enhancedPrompt = enhancedPrompt.substring(0, 2000);
@@ -263,7 +264,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
           guidance_scale: guidance_scale,
           image_urls: fusedImageUrls,
           image_base64: finalBase64 || undefined,
-          strength: finalBase64 ? 0.8 : undefined,
+          strength: finalBase64 ? 0.7 : undefined, // Optimized to 0.7 for "Proper & Deeper" reskinning
           controlnet_units: finalControlUnits,
           response_image_type: 'url',
           add_watermark: false,

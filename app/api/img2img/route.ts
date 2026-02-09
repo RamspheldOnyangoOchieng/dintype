@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
             8. BIO-REALISTIC ANATOMY: Absolute mandate for "biological precision". If the user asks for nudes or specific parts, describe them with literal realistic detail (e.g., "detailed realistic labia", "natural pussy texture", "exposed wet vulva"). STERNLY FORBID "plastic", "blurred", or "censored" anatomy.
             9. ANATOMY GUARDRAIL: STERNLY FORBID extra limbs or elongated arms.
             10. NO CLOTHES LOCK: If the request involves nudity, ensure NO clothing, underwear, or fabric is described in the result.
-            11. DYNAMIC VARIETY: Always vary the pose (standing, kneeling, arched back), camera angle (low angle, side view, high angle), and facial expression (moaning, biting lip, seductive gaze) to ensure each shot is unique.
+            11. DEEP POSE ADHERENCE: Strictly maintain the posture and composition of the source image. Focus on "reskinning" the character with established Identity DNA while keeping the original setting and body arrangement.
             12. NO COLLAGE: One single frame only.`
           },
           {
