@@ -74,7 +74,9 @@ export async function POST(req: NextRequest) {
       character,
       imageBase64,
       autoSave = false,
-      type = "character", // Default to character for backward compatibility
+      type = "character",
+      lora,
+      loraStrength
     } = body;
 
     // Use frontend parameters if available, otherwise fall back to defaults
@@ -398,35 +400,30 @@ export async function POST(req: NextRequest) {
     let [width, height] = (size || "1600x2400").split("x").map(Number);
     // Enforce minimum resolution for Seedream 4.5 (>3.6MP)
     if (width * height < 3600000) {
-      if (type === 'banner') {
-        const currentMP = width * height;
-        const targetMP = 3600000;
-        const scaleFactor = Math.sqrt(targetMP / currentMP);
-        width = Math.round(width * scaleFactor);
-        height = Math.round(height * scaleFactor);
+      const currentMP = width * height;
+      const targetMP = 3600000;
+      const scaleFactor = Math.sqrt(targetMP / currentMP);
+      width = Math.round(width * scaleFactor);
+      height = Math.round(height * scaleFactor);
 
-        // Ensure even dimensions for API compatibility
+      // Ensure even dimensions for API compatibility
+      if (width % 2 !== 0) width++;
+      if (height % 2 !== 0) height++;
+
+      console.log(`📏 Upscaling ${type} to ${width}x${height} to meet MP requirement while preserving ratio`);
+
+      // CAP the max dimension to 2560px to prevent API failure (Novita/Seedream limits)
+      const MAX_DIM = 2560;
+      if (width > MAX_DIM || height > MAX_DIM) {
+        const capFactor = MAX_DIM / Math.max(width, height);
+        width = Math.round(width * capFactor);
+        height = Math.round(height * capFactor);
+
+        // Re-ensure even dimensions
         if (width % 2 !== 0) width++;
         if (height % 2 !== 0) height++;
 
-        console.log(`📏 Upscaling banner to ${width}x${height} to meet 3.6MP requirement while preserving ratio`);
-
-        // CAP the max dimension to 2560px to prevent API failure (Novita/Seedream limits)
-        const MAX_BANNER_DIM = 2560;
-        if (width > MAX_BANNER_DIM || height > MAX_BANNER_DIM) {
-          const capFactor = MAX_BANNER_DIM / Math.max(width, height);
-          width = Math.round(width * capFactor);
-          height = Math.round(height * capFactor);
-
-          // Re-ensure even dimensions
-          if (width % 2 !== 0) width++;
-          if (height % 2 !== 0) height++;
-
-          console.log(`📏 Capped banner dimensions to ${width}x${height} for stability`);
-        }
-      } else {
-        width = 1600;
-        height = 2400;
+        console.log(`📏 Capped ${type} dimensions to ${width}x${height} for stability`);
       }
     }
 
@@ -489,6 +486,8 @@ export async function POST(req: NextRequest) {
               {
                 role: 'user',
                 content: `Masterpiece refinement for prompt: "${prompt}".
+                ${lora ? `Style/LoRA requested: ${lora} (Strength: ${loraStrength || 0.8})` : ""}
+                ${selectedModel ? `Target Model: ${selectedModel}` : ""}
                 
                 ${latestCharacter ? `
                 IMPORTANT - CHARACTER CONTEXT (YOU MUST DESCRIBE THIS CHARACTER):
@@ -803,12 +802,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Return the combined task ID to the frontend
+    // Return the combined task ID and images to the frontend
     return NextResponse.json({
       task_id: combinedTaskId,
+      images: normalizedSeedreamUrls,
       tokens_used: isAdmin ? 0 : tokenCost,
       webhook_enabled: true,
-      message: `${taskIds.length} tasks submitted successfully for diverse environments.`,
+      message: `${taskIds.length} tasks completed successfully.`,
     })
   } catch (error) {
     console.error("❌ Error generating image:", error);

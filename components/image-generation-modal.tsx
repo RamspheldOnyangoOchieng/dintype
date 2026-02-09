@@ -39,7 +39,7 @@ interface ImageGenerationModalProps {
 export function ImageGenerationModal({ isOpen, onClose, onImageSelect, trigger }: ImageGenerationModalProps) {
   const [imageGenerationPrompt, setImageGenerationPrompt] = useState("")
   const [imageGenerationNegativePrompt, setImageGenerationNegativePrompt] = useState("")
-  const [selectedImageModel, setSelectedImageModel] = useState<"stability" | "flux">("stability")
+  const [selectedImageModel, setSelectedImageModel] = useState<"stability" | "flux" | "seedream-4.5">("seedream-4.5")
   const [imageGenerationCount, setImageGenerationCount] = useState(1)
   const [isGeneratingImage, setIsGeneratingImage] = useState(false)
   const [generatedImages, setGeneratedImages] = useState<string[]>([])
@@ -334,16 +334,16 @@ export function ImageGenerationModal({ isOpen, onClose, onImageSelect, trigger }
         // Use stability model (default)
         const [width, height] =
           aspectRatio === "1:1"
-            ? [1024, 1024]
+            ? [2048, 2048]
             : aspectRatio === "3:4"
-              ? [768, 1024]
+              ? [1536, 2048]
               : aspectRatio === "4:3"
-                ? [1024, 768]
+                ? [2048, 1536]
                 : aspectRatio === "9:16"
-                  ? [576, 1024]
+                  ? [1152, 2048]
                   : aspectRatio === "16:9"
-                    ? [1024, 576]
-                    : [1024, 1024]
+                    ? [2048, 1152]
+                    : [2048, 2048]
 
         requestBody = {
           prompt: imageGenerationPrompt,
@@ -357,6 +357,7 @@ export function ImageGenerationModal({ isOpen, onClose, onImageSelect, trigger }
           lora: selectedLora,
           loraStrength: loraStrength,
           loraBlendMode: loraBlendMode,
+          selectedModel: selectedImageModel,
         }
         endpoint = "/api/generate-image"
       }
@@ -377,19 +378,21 @@ export function ImageGenerationModal({ isOpen, onClose, onImageSelect, trigger }
 
       const data = await response.json()
 
-      if (selectedImageModel === "flux") {
-        // FLUX model returns images directly
-        if (data.images && data.images.length > 0) {
-          setGeneratedImages(data.images)
-          setIsGeneratingImage(false)
-        } else {
-          throw new Error("No images returned from FLUX model")
-        }
+      // Check for direct image results (FLUX or Seedream 4.5)
+      if (data.images && data.images.length > 0) {
+        setGeneratedImages(data.images)
+        setIsGeneratingImage(false)
+        console.log("✅ Success: Images received directly from API")
+        return;
+      }
+
+      // Fallback to task polling if no images returned yet
+      const task_id = data.task_id || data.taskId;
+      if (task_id) {
+        setCurrentImageTaskId(task_id)
+        startImageStatusCheck(task_id)
       } else {
-        // Stability model uses task polling
-        const taskId = data.taskId
-        setCurrentImageTaskId(taskId)
-        startImageStatusCheck(taskId)
+        throw new Error("No images or task ID returned from API")
       }
     } catch (error) {
       console.error("Error generating image:", error)
@@ -900,6 +903,19 @@ export function ImageGenerationModal({ isOpen, onClose, onImageSelect, trigger }
                         }
                       >
                         Stability AI + LoRA
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={selectedImageModel === "seedream-4.5" ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedImageModel("seedream-4.5")}
+                        className={
+                          selectedImageModel === "seedream-4.5"
+                            ? "bg-[#00A3FF] hover:bg-[#00A3FF]/90 text-white"
+                            : "bg-transparent border-[#333] hover:bg-[#252525]"
+                        }
+                      >
+                        Seedream 4.5 (Masterpiece)
                       </Button>
                       <Button
                         type="button"
