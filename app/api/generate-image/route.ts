@@ -410,6 +410,20 @@ export async function POST(req: NextRequest) {
         if (height % 2 !== 0) height++;
 
         console.log(`📏 Upscaling banner to ${width}x${height} to meet 3.6MP requirement while preserving ratio`);
+
+        // CAP the max dimension to 2560px to prevent API failure (Novita/Seedream limits)
+        const MAX_BANNER_DIM = 2560;
+        if (width > MAX_BANNER_DIM || height > MAX_BANNER_DIM) {
+          const capFactor = MAX_BANNER_DIM / Math.max(width, height);
+          width = Math.round(width * capFactor);
+          height = Math.round(height * capFactor);
+
+          // Re-ensure even dimensions
+          if (width % 2 !== 0) width++;
+          if (height % 2 !== 0) height++;
+
+          console.log(`📏 Capped banner dimensions to ${width}x${height} for stability`);
+        }
       } else {
         width = 1600;
         height = 2400;
@@ -597,6 +611,8 @@ export async function POST(req: NextRequest) {
     const { generateImage } = await import("@/lib/novita-api");
 
     // Process all images in the batch
+    let generationErrorMessage = "";
+
     const seedreamResults = await Promise.all(
       Array.from({ length: actualImageCount }).map(async (_, idx) => {
         try {
@@ -616,6 +632,7 @@ export async function POST(req: NextRequest) {
           return { success: true, image: result.url };
         } catch (e: any) {
           console.warn(`⚠️ Seedream 4.5 image ${idx + 1} failed: ${e.message}`);
+          if (!generationErrorMessage) generationErrorMessage = e.message;
           return { success: false, error: e.message };
         }
       })
@@ -625,7 +642,7 @@ export async function POST(req: NextRequest) {
     const failedIndices = seedreamResults.map((r, i) => r.success ? -1 : i).filter(i => i !== -1);
 
     if (failedIndices.length > 0) {
-      console.log(`⚠️ ${failedIndices.length} Seedream tasks failed after all retries`);
+      console.log(`⚠️ ${failedIndices.length} Seedream tasks failed after all retries. Last error: ${generationErrorMessage}`);
     }
 
     // Persist Seedream results temporarily to generation_tasks (NOT generated_images)
@@ -648,14 +665,22 @@ export async function POST(req: NextRequest) {
       console.log(`✅ ${successfullySavedCount} Seedream images ready for batch ${batchId}`);
     }
 
-    if (taskIds.length === 0 || (successfulSeedreams.length > 0 && successfullySavedCount === 0)) {
-      // Refund if ALL failed or ALL failed to save
+    if (taskIds.length === 0) {
+      // Refund if ALL failed
       if (tokenCost > 0 && !isAdmin) {
-        await refundTokens(userId, tokenCost, "Refund for failed generation (DB persistence failed)");
+        await refundTokens(userId, tokenCost, `Refund for failed generation: ${generationErrorMessage}`);
       }
       return NextResponse.json({
-        error: "Failed to save generated images to database",
-        details: lastError || "The generation succeeded but we couldn't save the results. Your tokens have been refunded."
+        error: "Generation failed",
+        details: generationErrorMessage || "The AI model failed to produce images. Please try a different prompt or settings.",
+        refunded: tokenCost > 0 && !isAdmin
+      }, { status: 500 });
+    }
+
+    if (successfullySavedCount === 0 && successfulSeedreams.length > 0) {
+      return NextResponse.json({
+        error: "Database error",
+        details: "The generation succeeded but we couldn't process the results. Your tokens have been refunded."
       }, { status: 500 });
     }
 
