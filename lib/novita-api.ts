@@ -140,19 +140,43 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       });
     }
 
-    // Select PRIMARY Master Reference for Face (highest weight)
-    if (availableReferences.length > 0) {
-      const masterRefIndex = Math.floor(Math.random() * availableReferences.length);
-      const masterRefUrl = availableReferences[masterRefIndex];
+    // Select PRIMARY Master Reference for Face (Strict Priority: Face Ref > Avatar > First Image)
+    let masterRefUrl = "";
+    let masterSourceType = "";
 
-      console.log(`   - 💎 Primary Master Reference: [Image ${masterRefIndex + 1}]`);
+    // 1. Priority: Face Reference (Golden Face)
+    if (faceRef) {
+      masterRefUrl = faceRef;
+      masterSourceType = "Golden Face Reference";
+    }
+    // 2. Priority: Avatar / Profile Image
+    else if (character.avatar_url || character.avatar) {
+      masterRefUrl = character.avatar_url || character.avatar;
+      masterSourceType = "Profile Avatar";
+      // Ensure avatar is in the native URLs list for fusion
+      nativeImageUrls.push(masterRefUrl);
+    }
+    // 3. Priority: First Image in Training Set (The "Profile Photo")
+    else if (trainingSet.length > 0) {
+      masterRefUrl = trainingSet[0];
+      masterSourceType = "Primary Training Image (Profile)";
+    }
+    // 4. Fallback: Any available reference
+    else if (availableReferences.length > 0) {
+      masterRefUrl = availableReferences[0];
+      masterSourceType = "Fallback Reference";
+    }
 
-      // BOOSTED: Use this as the PRIMARY identity anchor with MAXIMUM weight
+    if (masterRefUrl) {
+      console.log(`   - 💎 DEFINITIVE MASTER REFERENCE Selected: [${masterSourceType}]`);
+      console.log(`   - 🎯 URL: ${masterRefUrl.substring(0, 50)}...`);
+
+      // BOOSTED: Use this SPECIFIC profile image as the Absolute Identity Anchor
       allReferences.push({
         url: masterRefUrl,
-        weight: 2.5, // MAXIMUM BOOST for exact face likeness
+        weight: 3.5, // EXTREME BOOST for exact profile photo likeness
         model: "ip-adapter_plus_face_xl",
-        source: "Primary Master Reference (Face DNA)"
+        source: `Master Anchor (${masterSourceType})`
       });
 
       // HAIR & HEAD SHAPE ANCHOR - Also boosted
@@ -164,8 +188,8 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       });
 
       // 3. ADD SECONDARY REFERENCES for reinforcement
-      // Pick up to 2 more training images to reinforce the identity
-      const secondaryRefs = availableReferences.filter((_, i) => i !== masterRefIndex).slice(0, 2);
+      // Pick up to 2 other images (different from Master Ref) to reinforce the identity
+      const secondaryRefs = availableReferences.filter(url => url !== masterRefUrl).slice(0, 2);
       secondaryRefs.forEach((refUrl, idx) => {
         allReferences.push({
           url: refUrl,
