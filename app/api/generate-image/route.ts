@@ -398,8 +398,22 @@ export async function POST(req: NextRequest) {
     let [width, height] = (size || "1600x2400").split("x").map(Number);
     // Enforce minimum resolution for Seedream 4.5 (>3.6MP)
     if (width * height < 3600000) {
-      width = 1600;
-      height = 2400;
+      if (type === 'banner') {
+        const currentMP = width * height;
+        const targetMP = 3600000;
+        const scaleFactor = Math.sqrt(targetMP / currentMP);
+        width = Math.round(width * scaleFactor);
+        height = Math.round(height * scaleFactor);
+
+        // Ensure even dimensions for API compatibility
+        if (width % 2 !== 0) width++;
+        if (height % 2 !== 0) height++;
+
+        console.log(`📏 Upscaling banner to ${width}x${height} to meet 3.6MP requirement while preserving ratio`);
+      } else {
+        width = 1600;
+        height = 2400;
+      }
     }
 
     // --- START PROMPT ENHANCEMENT ---
@@ -413,14 +427,14 @@ export async function POST(req: NextRequest) {
         const BANNER_SYSTEM_PROMPT = `You are an expert graphic designer and prompt engineer for commercial advertisements and promotional banners. Your goal is to produce high-impact, professional visual assets for a premium platform.
 
                 CORE INSTRUCTIONS:
-                1. COMMERCIAL IMPACT: Focus on vibrant, eye-catching compositions that feel like professional marketing assets.
-                2. WIDE ASPECT RATIO: Since these are banners, design the composition to work perfectly in wide, panoramic formats. Ensure key visual elements are balanced across the frame.
-                3. GRAPHIC DESIGN AESTHETIC: Descriptions should include high-end lighting, clean backgrounds, and a polished "ad campaign" feel.
-                4. VARIETY: If multiple options are requested, provide diverse themes (e.g., luxury, futuristic, cozy, professional).
-                5. NO CHARACTER DNA: Do not include specific character consistency or biological precision unless explicitly mentioned in the user prompt. Focus on general high-quality subjects if people are requested.
-                6. QUALITY: Use terms like "commercial photography", "studio lighting", "8k UHD", "premium quality".
-                7. CLEAN CANVAS: Ensure there is no accidental text, logos, or watermarks in the description.
-                8. SINGLE FRAME MANDATE: Produce ONE single, continuous, unified image. NO collages or split views.`;
+                1. COMMERCIAL IMPACT: Focus on vibrant, eye-catching compositions that feel like professional marketing assets. High-end luxury aesthetic is preferred.
+                2. WIDE ASPECT RATIO (PANORAMIC): Since these are banners, the composition MUST be horizontal and panoramic. key visual elements MUST be balanced across the wide horizontal plane. Avoid vertical subjects unless they are framed in a wide landscape.
+                3. GRAPHIC DESIGN AESTHETIC: Descriptions should include cinematic lighting, soft shallow depth of field, clean backgrounds, and a polished "ad campaign" feel.
+                4. VARIETY: Provide diverse themes (e.g., luxury penthouse, beach sunset, futuristic studio, cozy bedroom) if multiple options are requested.
+                5. NO CHARACTER DNA: Do not include specific character consistency unless explicitly mentioned. Focus on general high-quality subjects.
+                6. QUALITY: Use terms like "commercial photography", "8k UHD", "masterpiece", "cinematic anamorphic shot", "wide angle landscape".
+                7. CLEAN CANVAS: No text, logos, or watermarks.
+                8. SINGLE FRAME MANDATE: Produce ONE single, continuous, unified panoramic image. NO collages or split views.`;
 
         const CHARACTER_SYSTEM_PROMPT = `You are an expert prompt engineer for ultra-realistic photography. Your goal is to produce high-end photographic descriptions with 100% facial consistency.
 
@@ -442,7 +456,8 @@ export async function POST(req: NextRequest) {
                 13. ENVIRONMENTAL VARIETY: Describe rich, unique environments (textures, lighting, weather, depth) to prevent repetitive 'neutral' backgrounds. Ensure the character interacts with their surroundings.
                 14. ACTION & MOTION: Use active verbs. Describe the physics of the moment (wind in hair, weight distribution, fabric motion) to avoid 'still mannequin' results.
                 15. TOTAL DNA STUDY: The output must be a perfect fusion of the character's facial DNA, anatomical DNA (if provided), and the requested diverse posture.
-                16. IDENTITY OVER PROMPT: If the user's prompt conflicts with the character's established look, THE CHARACTER'S LOOK WINS. 100% Likeness is the top priority.`;
+                16. IDENTITY OVER PROMPT: If the user's prompt conflicts with the character's established look, THE CHARACTER'S LOOK WINS. 100% Likeness is the top priority.
+                17. BODY CONSISTENCY: Maintain the exact breast size and body proportions as described in the character visual traits. Do not vary the character's bust size between images.`;
 
         const enhancementResponse = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
           method: 'POST',
@@ -470,6 +485,14 @@ export async function POST(req: NextRequest) {
                   - Eyes: ${latestCharacter.eyeColor || 'beautiful'}
                   - Skin Tone: ${latestCharacter.skinTone || 'natural tone'}
                   - Body Type: ${latestCharacter.bodyType || 'average'}
+                  - Bust Size: ${(() => {
+                      const b = (latestCharacter.bodyType || 'average').toLowerCase();
+                      if (b.includes('curvy')) return 'large breasts, full bust';
+                      if (b.includes('plus')) return 'very large breasts';
+                      if (b.includes('slim')) return 'small firm breasts';
+                      if (b.includes('athletic')) return 'medium firm breasts';
+                      return 'natural medium breasts';
+                    })()}
                   - Ethnicity: ${latestCharacter.ethnicity || 'mixed'}
                   - Style: ${latestCharacter.characterStyle || 'realistic'}
                   - Mood: ${latestCharacter.mood || 'neutral'}

@@ -65,11 +65,26 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   // Helper to construct Character Identity DNA (Textual)
   const buildIdentityDNA = (char: any) => {
     if (!char || isBanner) return '';
+
+    const bodyType = char.bodyType || char.body_type || char.body || 'average';
+
+    // Explicit Body Shape & Bust Mapping for Consistency
+    const getBustDNA = (body: string) => {
+      const b = body.toLowerCase();
+      if (b.includes('curvy')) return 'CURVY: large heavy breasts, full cleavage, hourglass figure';
+      if (b.includes('plus')) return 'PROPORTIONAL PLUS: very large breasts, soft body, wide hips';
+      if (b.includes('slim')) return 'SLENDER: small firm breasts, petite bust, thin waist';
+      if (b.includes('athletic')) return 'ATHLETIC: medium firm breasts, toned bust, fit physique';
+      if (b.includes('muscular')) return 'MUSCULAR: small breasts, hard pectorals, defined body';
+      return 'NATURAL: medium natural breasts, average bust';
+    };
+
     const dnaParts = [
       `NAME: ${char.name}`,
       `AGE: ${char.age}`,
       `ETHNICITY: ${char.ethnicity || 'mixed'}`,
-      `BODY: ${char.bodyType || char.body_type || char.body || 'average'}`,
+      `BODY: ${bodyType}`,
+      `BUST: ${getBustDNA(bodyType)}`, // Explicit Bust Lock
       `HAIR: ${char.hairStyle || char.hair_style || ''} ${char.hairColor || char.hair_color || 'natural'}`,
       `EYES: ${char.eyeColor || char.eye_color || 'beautiful'}`,
       `SKIN TONE: ${char.skinTone || char.skin_tone || 'natural tone'}`,
@@ -78,7 +93,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       `GUIDELINES: ${char.systemPrompt || char.system_prompt || ''}`,
     ].filter(p => !p.endsWith(': ') && !p.endsWith(':'));
 
-    return `### [CHARACTER: ${dnaParts.join(', ')}]. ### `;
+    return `### [CHARACTER IDENTITY DNA: ${dnaParts.join(', ')}]. ### `;
   };
 
   const identityPrefix = buildIdentityDNA(character);
@@ -168,7 +183,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   // --- FEATURE SHARPENING ---
   const featureLock = (character && !isBanner)
-    ? `(FACIAL IDENTITY CLARITY: strict biometric replication:1.9), (EXACT COPY OF REFERENCE:1.8), (SAME PERSON:1.9), (IDENTICAL BIOMETRICS:1.9), (IDENTICAL HAIR STYLE:1.8), ${skinToneLock}(consistent anatomy:1.7), (vibrant skin texture:1.5), (consistent breast form:1.4), `
+    ? `(FACIAL IDENTITY CLARITY: strict biometric replication:1.9), (EXACT COPY OF REFERENCE:1.8), (SAME PERSON:1.9), (IDENTICAL BIOMETRICS:1.9), (IDENTICAL HAIR STYLE:1.8), ${skinToneLock}(consistent anatomy:1.7), (vibrant skin texture:1.5), (STRICT CONSISTENT BUST SIZE:1.9), (LOCKED BODY PROPORTIONS:1.8), `
     : '';
 
   // --- PREFERENCE INJECTION ---
@@ -224,7 +239,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   const styleHookInfluence = promptHook ? `(STYLE: ${promptHook}:1.1), ` : '';
 
   const img2imgSync = imageBase64 ? `(STRICT POSE SYNC: match source image composition and background:1.4), (DEEP RESKIN: apply character DNA to provided template:1.5), ` : '';
-  const anatomyEngine = `(perfectly detailed biological anatomy:1.7), (smoothed structured anatomy:1.8), (clean well-defined biological structure:1.7), (perfect breast and teat form:1.6), (exact reference replication:1.6), (realistic physiological details:1.6), (high-fidelity private parts:1.6), (biological precision:1.6), `;
+  const anatomyEngine = `(perfectly detailed biological anatomy:1.7), (smoothed structured anatomy:1.8), (clean well-defined biological structure:1.7), (STRICT BUST AND TEAT CONSISTENCY:1.9), (IDENTICAL BODY DNA:1.8), (exact reference replication:1.6), (realistic physiological details:1.6), (high-fidelity private parts:1.6), (biological precision:1.6), `;
 
   let enhancedPrompt = "";
 

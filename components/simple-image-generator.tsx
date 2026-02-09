@@ -252,7 +252,7 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
                                             src={img}
                                             alt={`Generated ${idx + 1}`}
                                             fill
-                                            className="object-contain" // Contain instead of cover to show full frame
+                                            className="object-cover"
                                         />
                                         {selectedImage === img && (
                                             <div className="absolute top-3 right-3 bg-[#00A3FF] rounded-full p-1.5 shadow-lg animate-in zoom-in">
