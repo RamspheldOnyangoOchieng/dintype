@@ -199,8 +199,18 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     : '';
 
   // --- FEATURE SHARPENING ---
+  // Build explicit hair DNA from character data
+  const hairStyleDNA = (character && !isBanner) ? (() => {
+    const style = character.hairStyle || character.hair_style || '';
+    const color = character.hairColor || character.hair_color || '';
+    const length = style.toLowerCase().includes('long') ? 'long'
+      : style.toLowerCase().includes('short') ? 'short'
+        : style.toLowerCase().includes('medium') ? 'medium' : '';
+    return `(EXACT HAIR MATCH:2.0), (${color} hair:1.9), (${style} hairstyle:1.9), ${length ? `(${length} hair:1.8), ` : ''}(IDENTICAL HAIR FROM TRAINING:2.0), (COPY REFERENCE HAIR EXACTLY:1.9), `;
+  })() : '';
+
   const featureLock = (character && !isBanner)
-    ? `(FACIAL IDENTITY CLARITY: strict biometric replication:1.9), (EXACT COPY OF REFERENCE:1.8), (SAME PERSON:1.9), (IDENTICAL BIOMETRICS:1.9), (IDENTICAL HAIR STYLE:1.8), ${skinToneLock}(consistent anatomy:1.7), (vibrant skin texture:1.5), (STRICT CONSISTENT BUST SIZE:1.9), (LOCKED BODY PROPORTIONS:1.8), `
+    ? `(FACIAL IDENTITY CLARITY: strict biometric replication:2.0), (EXACT COPY OF REFERENCE:2.0), (SAME PERSON:2.0), (IDENTICAL BIOMETRICS:2.0), ${hairStyleDNA}${skinToneLock}(consistent anatomy:1.8), (vibrant skin texture:1.6), (STRICT CONSISTENT BUST SIZE:2.0), (LOCKED BODY PROPORTIONS:1.9), (TRAINING IMAGE FEATURES:2.0), `
     : '';
 
   // --- PREFERENCE INJECTION ---
@@ -255,8 +265,11 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     : `(MATCH REFERENCE OUTFIT:1.4), (CONSISTENT CLOTHING:1.3), (SAME OUTFIT AS ASSET:1.3), `;
   const styleHookInfluence = promptHook ? `(STYLE: ${promptHook}:1.1), ` : '';
 
-  const img2imgSync = imageBase64 ? `(STRICT POSE SYNC: match source image composition and background:1.4), (DEEP RESKIN: apply character DNA to provided template:1.5), ` : '';
-  const anatomyEngine = `(perfectly detailed biological anatomy:1.7), (smoothed structured anatomy:1.8), (clean well-defined biological structure:1.7), (STRICT BUST AND TEAT CONSISTENCY:1.9), (IDENTICAL BODY DNA:1.8), (exact reference replication:1.6), (realistic physiological details:1.6), (high-fidelity private parts:1.6), (biological precision:1.6), `;
+  // ENHANCED IMG2IMG SYNC - Preserves ALL features from training assets including hairstyle
+  const img2imgSync = imageBase64
+    ? `(STRICT POSE SYNC: match source image composition and background:1.6), (DEEP RESKIN: apply character DNA to provided template:1.7), (PRESERVE ALL TRAINING FEATURES:1.9), (EXACT HAIR FROM REFERENCES:1.8), (MATCH REFERENCE HAIRSTYLE:1.9), (IDENTICAL PHYSICAL FEATURES:1.8), (COPY TRAINING ASSET APPEARANCE:1.9), `
+    : (character ? `(MATCH ALL TRAINING FEATURES:1.8), (EXACT HAIRSTYLE FROM REFERENCES:1.9), (COPY REFERENCE APPEARANCE:1.8), (IDENTICAL TO TRAINING IMAGES:1.9), ` : '');
+  const anatomyEngine = `(perfectly detailed biological anatomy:1.7), (smoothed structured anatomy:1.8), (clean well-defined biological structure:1.7), (STRICT BUST AND TEAT CONSISTENCY:2.0), (IDENTICAL BODY DNA:1.9), (exact reference replication:1.8), (realistic physiological details:1.6), (high-fidelity private parts:1.6), (biological precision:1.6), `;
 
   // HYPER-REALISM SKIN ENGINE - Combats plastic/artificial look
   const skinRealismEngine = `(natural human skin texture:1.8), (visible skin pores:1.6), (subsurface skin scattering:1.5), (realistic skin imperfections:1.4), (natural skin oils:1.3), (real human complexion:1.7), (organic skin surface:1.6), (epidermis detail:1.5), (authentic flesh tones:1.6), (living skin:1.5), `;
