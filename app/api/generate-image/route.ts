@@ -74,6 +74,7 @@ export async function POST(req: NextRequest) {
       character,
       imageBase64,
       autoSave = false,
+      type = "character", // Default to character for backward compatibility
     } = body;
 
     // Use frontend parameters if available, otherwise fall back to defaults
@@ -409,18 +410,19 @@ export async function POST(req: NextRequest) {
     try {
       const { key: novitaApiKey } = await getUnifiedNovitaKey();
       if (novitaApiKey) {
-        const enhancementResponse = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${novitaApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'deepseek/deepseek-v3.1',
-            messages: [
-              {
-                role: 'system',
-                content: `You are an expert prompt engineer for ultra-realistic photography. Your goal is to produce high-end photographic descriptions with 100% facial consistency.
+        const BANNER_SYSTEM_PROMPT = `You are an expert graphic designer and prompt engineer for commercial advertisements and promotional banners. Your goal is to produce high-impact, professional visual assets for a premium platform.
+
+                CORE INSTRUCTIONS:
+                1. COMMERCIAL IMPACT: Focus on vibrant, eye-catching compositions that feel like professional marketing assets.
+                2. WIDE ASPECT RATIO: Since these are banners, design the composition to work perfectly in wide, panoramic formats. Ensure key visual elements are balanced across the frame.
+                3. GRAPHIC DESIGN AESTHETIC: Descriptions should include high-end lighting, clean backgrounds, and a polished "ad campaign" feel.
+                4. VARIETY: If multiple options are requested, provide diverse themes (e.g., luxury, futuristic, cozy, professional).
+                5. NO CHARACTER DNA: Do not include specific character consistency or biological precision unless explicitly mentioned in the user prompt. Focus on general high-quality subjects if people are requested.
+                6. QUALITY: Use terms like "commercial photography", "studio lighting", "8k UHD", "premium quality".
+                7. CLEAN CANVAS: Ensure there is no accidental text, logos, or watermarks in the description.
+                8. SINGLE FRAME MANDATE: Produce ONE single, continuous, unified image. NO collages or split views.`;
+
+        const CHARACTER_SYSTEM_PROMPT = `You are an expert prompt engineer for ultra-realistic photography. Your goal is to produce high-end photographic descriptions with 100% facial consistency.
 
                 CORE INSTRUCTIONS:
                 1. SUBJECT FOCUS: Prioritize the user's requested action and setting as a single continuous scene.
@@ -440,7 +442,20 @@ export async function POST(req: NextRequest) {
                 13. ENVIRONMENTAL VARIETY: Describe rich, unique environments (textures, lighting, weather, depth) to prevent repetitive 'neutral' backgrounds. Ensure the character interacts with their surroundings.
                 14. ACTION & MOTION: Use active verbs. Describe the physics of the moment (wind in hair, weight distribution, fabric motion) to avoid 'still mannequin' results.
                 15. TOTAL DNA STUDY: The output must be a perfect fusion of the character's facial DNA, anatomical DNA (if provided), and the requested diverse posture.
-                16. IDENTITY OVER PROMPT: If the user's prompt conflicts with the character's established look, THE CHARACTER'S LOOK WINS. 100% Likeness is the top priority.`
+                16. IDENTITY OVER PROMPT: If the user's prompt conflicts with the character's established look, THE CHARACTER'S LOOK WINS. 100% Likeness is the top priority.`;
+
+        const enhancementResponse = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${novitaApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'deepseek/deepseek-v3.1',
+            messages: [
+              {
+                role: 'system',
+                content: type === 'banner' ? BANNER_SYSTEM_PROMPT : CHARACTER_SYSTEM_PROMPT
               },
               {
                 role: 'user',
@@ -572,7 +587,8 @@ export async function POST(req: NextRequest) {
             guidance_scale: finalGuidanceScale,
             style: actualModel.includes('anime') ? 'anime' : 'realistic',
             character: latestCharacter,
-            imageBase64: imageBase64
+            imageBase64: imageBase64,
+            type: type as 'character' | 'banner'
           });
           return { success: true, image: result.url };
         } catch (e: any) {

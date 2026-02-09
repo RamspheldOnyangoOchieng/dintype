@@ -24,9 +24,10 @@ interface SimpleImageGeneratorProps {
         title?: string
     }
     useSourceImage?: boolean // Whether to use the current character image as a base
+    type?: 'character' | 'banner' // Add type parameter
 }
 
-export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, characterId, characterData, settings, useSourceImage }: SimpleImageGeneratorProps) {
+export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, characterId, characterData, settings, useSourceImage, type = 'character' }: SimpleImageGeneratorProps) {
     const [prompt, setPrompt] = useState("")
     const [isGenerating, setIsGenerating] = useState(false)
     const [generatedImages, setGeneratedImages] = useState<string[]>([])
@@ -69,7 +70,8 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
                     characterId: characterId, // Enable Twinning/Reference Engine
                     character: characterData, // Pass live form data for instant feedback
                     imageBase64: useSourceImage && characterData?.image ? characterData.image : undefined, // THE IMAGE TO EDIT
-                    autoSave: true
+                    autoSave: true,
+                    type: type
                 }),
             })
 
@@ -201,7 +203,9 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
                         {config.title}
                     </DialogTitle>
                     <DialogDescription className="text-gray-400">
-                        Generate 4 options using the Multi-Reference Twinning Engine.
+                        {type === 'banner'
+                            ? "Generate high-impact promotional assets for your campaigns."
+                            : "Generate 4 options using the Multi-Reference Twinning Engine."}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -209,7 +213,9 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
                     <div className="space-y-2">
                         <Label className="text-sm font-medium text-gray-300">Prompt Description</Label>
                         <Textarea
-                            placeholder={`Describe the image you want. Explicitly mention "full body" if needed.`}
+                            placeholder={type === 'banner'
+                                ? "Describe the promotional banner you want..."
+                                : `Describe the image you want. Explicitly mention "full body" if needed.`}
                             className="bg-[#252525] border-[#333] text-white min-h-[100px] focus:border-[#00A3FF]"
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
@@ -223,16 +229,21 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
                         {isGenerating ? (
                             <div className="flex flex-col items-center gap-3">
                                 <Loader2 className="h-10 w-10 text-[#00A3FF] animate-spin" />
-                                <span className="text-xs text-gray-400 font-medium animate-pulse">DNA Twinning in progress...</span>
+                                <span className="text-xs text-gray-400 font-medium animate-pulse">
+                                    {type === 'banner' ? "Generating promotional assets..." : "DNA Twinning in progress..."}
+                                </span>
                             </div>
                         ) : generatedImages.length > 0 ? (
-                            <div className="grid grid-cols-2 gap-4 w-full h-full p-2">
+                            <div className={cn(
+                                "grid gap-4 w-full h-full p-2 outline-none",
+                                type === 'banner' ? "grid-cols-1" : "grid-cols-2"
+                            )}>
                                 {generatedImages.map((img, idx) => (
                                     <div
                                         key={idx}
                                         className={cn(
                                             "relative rounded-xl overflow-hidden cursor-pointer transition-all border-2",
-                                            "aspect-[2/3] w-full bg-[#111]", // Fixed aspect ratio for portrait references
+                                            type === 'banner' ? "aspect-[1222/244] w-full bg-[#111]" : "aspect-[2/3] w-full bg-[#111]",
                                             selectedImage === img ? "border-[#00A3FF] ring-4 ring-[#00A3FF]/20 shadow-2xl scale-[1.02] z-10" : "border-[#333] opacity-90 hover:opacity-100 hover:scale-[1.01]"
                                         )}
                                         onClick={() => setSelectedImage(img)}

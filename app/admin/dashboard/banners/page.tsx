@@ -16,7 +16,6 @@ import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { cn } from "@/lib/utils"
-import { ImageGenerationModal } from "@/components/image-generation-modal"
 import { SimpleImageGenerator } from "@/components/simple-image-generator"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 
@@ -635,6 +634,7 @@ export default function AdminBannersPage() {
         isOpen={showGenerationModal}
         onClose={() => setShowGenerationModal(false)}
         onImageSelect={handleGeneratedImage}
+        type="banner"
         settings={{
           width: 1222,
           height: 244,

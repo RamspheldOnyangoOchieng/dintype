@@ -18,6 +18,7 @@ export interface ImageGenerationParams {
   controlnet_units?: any[];
   character?: any; // Add character object for Multi-Referencing Engine
   imageBase64?: string; // Optional context image
+  type?: 'character' | 'banner'; // Add type parameter
 }
 
 export interface GeneratedImage {
@@ -50,7 +51,11 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     controlnet_units = [],
     character,
     imageBase64,
+    type = 'character'
   } = params;
+
+  // Skip DNA Twinning for banners
+  const isBanner = type === 'banner';
 
   // --- FULL-SPECTRUM DNA TWINNING ENGINE ---
   const finalControlUnits = [...controlnet_units];
@@ -59,7 +64,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   // Helper to construct Character Identity DNA (Textual)
   const buildIdentityDNA = (char: any) => {
-    if (!char) return '';
+    if (!char || isBanner) return '';
     const dnaParts = [
       `NAME: ${char.name}`,
       `AGE: ${char.age}`,
@@ -83,7 +88,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     : '';
 
   // --- HARVEST REFERENCE ASSETS (SINGLE SOURCE MODE) ---
-  if (character) {
+  if (character && !isBanner) {
     console.log(`🧬 [DNA Engine] initializing Single-Source Replication for ${character.name}...`);
 
     // 1. ANATOMY REFERENCE (Critical for body/genital consistency)
@@ -157,12 +162,12 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   const skinToneVal = character?.skinTone || character?.skin_tone || 'natural';
   const isPale = /white|fair|pale|light/i.test(skinToneVal);
-  const skinToneLock = character
+  const skinToneLock = (character && !isBanner)
     ? `(STRICT SKIN TONE MATCH:1.9), (IDENTICAL COMPLEXION:1.8), (${skinToneVal} skin:1.8), ${isPale ? '(very white skin:1.8), (pale complexion:1.7), (no tan:1.6), ' : ''}`
     : '';
 
   // --- FEATURE SHARPENING ---
-  const featureLock = character
+  const featureLock = (character && !isBanner)
     ? `(FACIAL IDENTITY CLARITY: strict biometric replication:1.9), (EXACT COPY OF REFERENCE:1.8), (SAME PERSON:1.9), (IDENTICAL BIOMETRICS:1.9), (IDENTICAL HAIR STYLE:1.8), ${skinToneLock}(consistent anatomy:1.7), (vibrant skin texture:1.5), (consistent breast form:1.4), `
     : '';
 
@@ -206,7 +211,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   const finalNegativePrompt = `${perspectiveNegatives}, ${defaultNegatives}${userNegativePrompt ? `, ${userNegativePrompt}` : ''}${charNegativeRestrictions ? `, (${charNegativeRestrictions}:1.6)` : ''}${nudityNegatives}`;
 
-  const biometricAnchor = character
+  const biometricAnchor = (character && !isBanner)
     ? `### [BIOMETRIC ANCHOR: (precise facial DNA:2.0), (match training photos:1.8), (locked identity:1.9), (100% identical face:1.9), (consistent skin tone:1.8), ${character.name} face]. ### `
     : '';
 
@@ -221,9 +226,15 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   const img2imgSync = imageBase64 ? `(STRICT POSE SYNC: match source image composition and background:1.4), (DEEP RESKIN: apply character DNA to provided template:1.5), ` : '';
   const anatomyEngine = `(perfectly detailed biological anatomy:1.7), (smoothed structured anatomy:1.8), (clean well-defined biological structure:1.7), (perfect breast and teat form:1.6), (exact reference replication:1.6), (realistic physiological details:1.6), (high-fidelity private parts:1.6), (biological precision:1.6), `;
 
-  let enhancedPrompt = style === 'realistic'
-    ? `${img2imgSync}${cleanedPrompt}, (RAW photo:1.5), (photorealistic:1.6), (EXACT CHARACTER MATCH:1.4), ${identityPrefix}${biometricAnchor}${featureLock}(solo:1.6), (1girl:1.6), (feminine body:1.5), ${outfitLogic}${anatomyGuardrail}${nudityLock}${perspectiveMode}${anatomyLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.4), (soft skin:1.3), fascinating and sexy, ${anatomyEngine}explicit details, full nudity, ultra-detailed anatomy`
-    : `(solo:1.6), (1girl:1.6), ${cleanedPrompt}, (masterpiece anime art:1.5), ${outfitLogic}${perspectiveMode}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, clean aesthetic lines`;
+  let enhancedPrompt = "";
+
+  if (isBanner) {
+    enhancedPrompt = `${cleanedPrompt}, (commercial photography:1.5), (photorealistic:1.6), ${perspectiveMode}(unprocessed digital masterpiece:1.4), (high-end visual style:1.3), (masterpiece quality:1.4), (sharp focus:1.4)`;
+  } else {
+    enhancedPrompt = style === 'realistic'
+      ? `${img2imgSync}${cleanedPrompt}, (RAW photo:1.5), (photorealistic:1.6), (EXACT CHARACTER MATCH:1.4), ${identityPrefix}${biometricAnchor}${featureLock}(solo:1.6), (1girl:1.6), (feminine body:1.5), ${outfitLogic}${anatomyGuardrail}${nudityLock}${perspectiveMode}${anatomyLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.4), (soft skin:1.3), fascinating and sexy, ${anatomyEngine}explicit details, full nudity, ultra-detailed anatomy`
+      : `(solo:1.6), (1girl:1.6), ${cleanedPrompt}, (masterpiece anime art:1.5), ${outfitLogic}${perspectiveMode}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, clean aesthetic lines`;
+  }
 
   if (enhancedPrompt.length > 2000) enhancedPrompt = enhancedPrompt.substring(0, 2000);
 
