@@ -81,6 +81,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
     const dnaParts = [
       `NAME: ${char.name}`,
+      `GENDER: ${char.gender || 'Female'}`,
       `AGE: ${char.age}`,
       `ETHNICITY: ${char.ethnicity || 'mixed'}`,
       `BODY: ${bodyType}`,
