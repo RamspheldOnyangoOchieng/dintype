@@ -630,12 +630,17 @@ export default function EditCharacterPage() {
       const uploadPromises = Array.from(files).map(file => uploadImage(file))
       const uploadedUrls = await Promise.all(uploadPromises)
 
+      const newImages = [...(formData.images || []), ...uploadedUrls]
+
       setFormData((prev: any) => ({
         ...prev,
-        images: [...(prev.images || []), ...uploadedUrls]
+        images: newImages
       }))
 
-      toast.success(`Successfully uploaded ${uploadedUrls.length} reference images`)
+      // Auto-save the new images list
+      await updateCharacter(id, { images: newImages })
+
+      toast.success(`Successfully uploaded and saved ${uploadedUrls.length} reference images`)
     } catch (err) {
       console.error("Error uploading reference images:", err)
       setError(`Failed to upload some images: ${err instanceof Error ? err.message : "Unknown error"}`)
@@ -645,11 +650,27 @@ export default function EditCharacterPage() {
     }
   }
 
-  const removeReferenceImage = (index: number) => {
+  const removeReferenceImage = async (index: number) => {
+    const newImages = (formData.images || []).filter((_: any, i: number) => i !== index)
+
     setFormData((prev: any) => ({
       ...prev,
-      images: prev.images.filter((_: any, i: number) => i !== index)
+      images: newImages
     }))
+
+    try {
+      await updateCharacter(id, { images: newImages })
+      toast.success("Reference image removed and saved")
+    } catch (err) {
+      console.error("Error removing reference image:", err)
+      toast.error("Failed to save changes")
+
+      // Revert state on failure
+      setFormData((prev: any) => ({
+        ...prev,
+        images: formData.images
+      }))
+    }
   }
 
   const handleGenerateDescription = async () => {

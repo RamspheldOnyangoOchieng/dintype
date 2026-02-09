@@ -425,14 +425,16 @@ export async function POST(req: NextRequest) {
                 CORE INSTRUCTIONS:
                 1. SUBJECT FOCUS: Prioritize the user's requested action and setting as a single continuous scene.
                 2. IDENTITY LOCK: Maintain the character's physical traits exactly as defined. STUDY ALL ADMIN REFERENCES FOR 100% LIKENESS. Focus on a vibrant healthy complexion and matching their facial structure perfectly.
-                3. BIO-REALISTIC ANATOMY: Absolute mandate for "biological precision". Describe private parts with literal realistic detail (e.g., "detailed realistic labia", "natural pussy texture"). STERNLY FORBID "plastic" or "blurred" anatomy.
+                3. BIO-REALISTIC ANATOMY: Absolute mandate for "biological precision". If the request involves nudes, describe private parts with literal realistic detail (e.g., "detailed realistic labia", "natural pussy texture", "exposed wet vulva"). STERNLY FORBID "plastic", "blurred", or "censored" anatomy.
                 4. ADMIN SETTINGS ADHERENCE (CRITICAL): Strictly follow the character's "Preferred Poses", "Preferred Environments", and "Preferred Moods" as defined in their profile.
                 5. VIBRANT POSTURE: Describe a relaxed graceful posture, avoid stiff or shrugged shoulders.
                 6. MANDATORY THIRD-PERSON VIEW: ABSOLUTELY FORBID extended arms, prolonged limbs, or reaching towards the camera.
                 7. NATURAL HAND PLACEMENT: Hands must be "naturally touching her body" or "holding objects realistically".
                 8. PHOTOGRAPHIC STYLE: Use "unprocessed raw digital photography" and "natural lighting".
                 9. QUALITY: "highly detailed", "sharp focus", "8k UHD".
-                10. SINGLE FRAME MANDATE: Produce ONE single, continuous, unified photograph. NO collages or split views.
+                10. NO CLOTHES LOCK: If the request is for nudity, ensure NO clothing, underwear, or fabric is described. 
+                11. DYNAMIC VARIETY: Mandate high variety in posture (bending over, legs spread, lying down), camera perspective (close-up, wide-angle, from behind), and expressions (pleasure, intensity, moaning).
+                12. SINGLE FRAME MANDATE: Produce ONE single, continuous, unified photograph. NO collages or split views.
                 11. DYNAMIC COMPOSITION: Favor full-body, wide-angle, or medium shots. Ensure hands are visible but naturally integrated into the pose.
                 12. FACE CLARITY: Even in full-body shots, ensure the face is sharply rendered with detailed eyes and realistic skin textures. Avoid blurry or soft facial features.
                 13. ENVIRONMENTAL VARIETY: Describe rich, unique environments (textures, lighting, weather, depth) to prevent repetitive 'neutral' backgrounds. Ensure the character interacts with their surroundings.

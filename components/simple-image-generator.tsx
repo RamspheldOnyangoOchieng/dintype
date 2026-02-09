@@ -122,6 +122,9 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
     const handleUseImage = () => {
         if (selectedImage) {
             onImageSelect(selectedImage)
+            setGeneratedImages([])
+            setSelectedImage(null)
+            setSavedImages(new Set())
             onClose()
         }
     }
@@ -285,15 +288,28 @@ export function SimpleImageGenerator({ isOpen, onClose, onImageSelect, character
                             Cancel
                         </Button>
                         {generatedImages.length > 0 && (
-                            <Button
-                                variant="outline"
-                                onClick={handleSaveAll}
-                                disabled={isSavingAll || savedImages.size === generatedImages.length}
-                                className="border-[#333] text-gray-300 hover:bg-[#252525]"
-                            >
-                                {isSavingAll ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2 text-amber-500" />}
-                                Save All to Gallery
-                            </Button>
+                            <>
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => {
+                                        setGeneratedImages([])
+                                        setSelectedImage(null)
+                                        setSavedImages(new Set())
+                                    }}
+                                    className="text-gray-400 hover:text-red-400 hover:bg-red-900/10"
+                                >
+                                    Clear
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    onClick={handleSaveAll}
+                                    disabled={isSavingAll || savedImages.size === generatedImages.length}
+                                    className="border-[#333] text-gray-300 hover:bg-[#252525]"
+                                >
+                                    {isSavingAll ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2 text-amber-500" />}
+                                    Save All to Gallery
+                                </Button>
+                            </>
                         )}
                     </div>
                     {selectedImage ? (

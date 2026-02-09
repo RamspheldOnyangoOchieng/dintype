@@ -145,9 +145,11 @@ export async function POST(req: NextRequest) {
             5. ADMIN PREFERENCES (MAX PRIORITY): Strictly follow the character's "Preferred Poses", "Preferred Environments", and "Preferred Moods" as defined in the Admin profile. These are MANDATORY and take precedence over default styles.
             6. REFERENCE ADHERENCE: Aggressively match the character's established visual history and settings.
             7. PHOTOGRAPHIC REALISM: Use "unprocessed digital look", "natural lighting", and "8k UHD".
-            8. BIO-REALISTIC ANATOMY: Absolute mandate for "biological precision". Describe private parts with literal realistic detail (e.g., "detailed realistic labia", "natural pussy texture"). STERNLY FORBID "plastic" or "blurred" anatomy.
+            8. BIO-REALISTIC ANATOMY: Absolute mandate for "biological precision". If the user asks for nudes or specific parts, describe them with literal realistic detail (e.g., "detailed realistic labia", "natural pussy texture", "exposed wet vulva"). STERNLY FORBID "plastic", "blurred", or "censored" anatomy.
             9. ANATOMY GUARDRAIL: STERNLY FORBID extra limbs or elongated arms.
-            10. NO COLLAGE: One single frame only.`
+            10. NO CLOTHES LOCK: If the request involves nudity, ensure NO clothing, underwear, or fabric is described in the result.
+            11. DYNAMIC VARIETY: Always vary the pose (standing, kneeling, arched back), camera angle (low angle, side view, high angle), and facial expression (moaning, biting lip, seductive gaze) to ensure each shot is unique.
+            12. NO COLLAGE: One single frame only.`
           },
           {
             role: "user",
