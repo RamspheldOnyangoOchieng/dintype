@@ -65,15 +65,15 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       `AGE: ${char.age}`,
       `ETHNICITY: ${char.ethnicity || 'mixed'}`,
       `BODY: ${char.bodyType || char.body_type || char.body || 'average'}`,
-      `HAIR: ${char.hairColor || char.hair_color || 'natural'}`,
+      `HAIR: ${char.hairStyle || char.hair_style || ''} ${char.hairColor || char.hair_color || 'natural'}`,
       `EYES: ${char.eyeColor || char.eye_color || 'beautiful'}`,
       `SKIN TONE: ${char.skinTone || char.skin_tone || 'natural tone'}`,
       `OCCUPATION: ${char.occupation || ''}`,
       `PERSONALITY: ${char.personality || ''}`,
       `GUIDELINES: ${char.systemPrompt || char.system_prompt || ''}`,
-    ].filter(p => !p.endsWith(': '));
+    ].filter(p => !p.endsWith(': ') && !p.endsWith(':'));
 
-    return `### [IDENTITY DNA LOCK: ${dnaParts.join(' | ')} | ANATOMY: Unrestricted biological study]. STUDY ALL PROVIDED REFERENCES FOR 100% LIKENESS. MATCH CHARACTER DNA AND BIOMETRICS EXACTLY. ### `;
+    return `### [IDENTITY DNA LOCK: ${dnaParts.join(' | ')} | ANATOMY: Unrestricted biological study]. STUDY ALL PROVIDED REFERENCES FOR 100% LIKENESS. MATCH CHARACTER HAIR STYLE AND BIOMETRICS EXACTLY. ### `;
   };
 
   const identityPrefix = buildIdentityDNA(character);
@@ -126,7 +126,15 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
         url: masterRefUrl,
         weight: 1.6, // Increased weight for exact likeness
         model: "ip-adapter_plus_face_xl",
-        source: "Master Context Reference"
+        source: "Master Context Reference (Face)"
+      });
+
+      // HAIR & HEAD SHAPE ANCHOR (Capture non-facial traits that Face models skip)
+      allReferences.push({
+        url: masterRefUrl,
+        weight: 0.85,
+        model: "ip-adapter_xl",
+        source: "Master Context Reference (Hair/Style)"
       });
     }
 
@@ -147,9 +155,15 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   const fusedImageUrls = Array.from(new Set(nativeImageUrls)).slice(0, 14);
 
+  const skinToneVal = character?.skinTone || character?.skin_tone || 'natural';
+  const isPale = /white|fair|pale|light/i.test(skinToneVal);
+  const skinToneLock = character
+    ? `(STRICT SKIN TONE MATCH:1.9), (IDENTICAL COMPLEXION:1.8), (${skinToneVal} skin:1.8), ${isPale ? '(very white skin:1.8), (pale complexion:1.7), (no tan:1.6), ' : ''}`
+    : '';
+
   // --- FEATURE SHARPENING ---
   const featureLock = character
-    ? `(FACIAL IDENTITY CLARITY: strict biometric replication:1.9), (EXACT COPY OF REFERENCE:1.8), (SAME PERSON:1.9), (IDENTICAL BIOMETRICS:1.9), (consistent anatomy:1.7), (vibrant skin texture:1.5), (consistent breast form:1.4), `
+    ? `(FACIAL IDENTITY CLARITY: strict biometric replication:1.9), (EXACT COPY OF REFERENCE:1.8), (SAME PERSON:1.9), (IDENTICAL BIOMETRICS:1.9), (IDENTICAL HAIR STYLE:1.8), ${skinToneLock}(consistent anatomy:1.7), (vibrant skin texture:1.5), (consistent breast form:1.4), `
     : '';
 
   // --- PREFERENCE INJECTION ---
@@ -182,7 +196,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   const defaultNegatives = '(extra hands:1.6), (three hands:1.6), (deformed limbs:1.5), (mutated fingers:1.5), (extra fingers:1.5), (long body:1.3), (disfigured:1.4), (malformed:1.4), muscular, masculine body, manly features, bodybuilder, strained muscle, man, male, couple, boy, together, two people, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, wrinkles, old, aged, grainy, symmetrical face, smooth skin, plastic skin, waxy skin, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate';
   const isNudeRequest = containsNSFW(cleanedPrompt);
   const nudityLock = isNudeRequest
-    ? `(erotic masterpiece:1.6), (completely naked:1.9), (no clothes:1.9), (uncovered skin:1.7), (detailed anatomy:1.8), (perfect realistic breast form:1.7), (detailed nipples and teats:1.6), (detailed realistic pussy:1.8), (hyper-realistic vulva:1.7), (natural pussy texture:1.7), (high variety of erotic poses:1.6), `
+    ? `(erotic masterpiece:1.6), (completely naked:1.9), (no clothes:1.9), (uncovered skin:1.7), (detailed anatomy:1.8), (smoothed structured anatomy:1.7), (clean well-defined biological structure:1.7), (perfect realistic breast form:1.7), (detailed nipples and teats:1.6), (detailed realistic pussy:1.8), (hyper-realistic vulva:1.7), (natural pussy texture:1.7), (high variety of erotic poses:1.6), `
     : '';
   const nudityNegatives = isNudeRequest
     ? `, clothing, underwear, panties, bra, lingerie, swimsuit, bikini, fabric, shirt, pants, skirt, outfit`
@@ -191,13 +205,13 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   const finalNegativePrompt = `${defaultNegatives}${userNegativePrompt ? `, ${userNegativePrompt}` : ''}${perspectiveNegatives ? `, ${perspectiveNegatives}` : ''}${charNegativeRestrictions ? `, (${charNegativeRestrictions}:1.6)` : ''}${nudityNegatives}`;
 
   const biometricAnchor = character
-    ? `### [BIOMETRIC ANCHOR: (precise facial DNA:2.0), (match training photos:1.8), (locked identity:1.9), (100% identical face:1.9), ${character.name} face]. ### `
+    ? `### [BIOMETRIC ANCHOR: (precise facial DNA:2.0), (match training photos:1.8), (locked identity:1.9), (100% identical face:1.9), (consistent skin tone:1.8), ${character.name} face]. ### `
     : '';
 
   const outfitLiberation = `(PRIORITIZE PROMPT CLOTHING:1.5), (LIBERATE OUTFIT: ignore clothing in references:1.4), (CLOTHING VARIETY:1.3), `;
   const styleHookInfluence = promptHook ? `(STYLE: ${promptHook}:1.1), ` : '';
 
-  const anatomyEngine = `(perfectly detailed biological anatomy:1.7), (perfect breast and teat form:1.6), (exact reference replication:1.6), (realistic physiological details:1.6), (high-fidelity private parts:1.6), (biological precision:1.6), `;
+  const anatomyEngine = `(perfectly detailed biological anatomy:1.7), (smoothed structured anatomy:1.8), (clean well-defined biological structure:1.7), (perfect breast and teat form:1.6), (exact reference replication:1.6), (realistic physiological details:1.6), (high-fidelity private parts:1.6), (biological precision:1.6), `;
 
   let enhancedPrompt = style === 'realistic'
     ? `(solo:1.6), (1girl:1.6), (feminine body:1.5), (natural female proportions:1.4), ${cleanedPrompt}, ${outfitLiberation}${nudityLock}${perspectiveMode}${varietyEngine}(dynamic composition:1.3), (8k UHD photography:1.4), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.4), (soft skin:1.3), fascinating and sexy, ${anatomyEngine}explicit details, full nudity, ultra-detailed anatomy`

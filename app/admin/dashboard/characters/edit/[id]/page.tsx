@@ -103,6 +103,7 @@ export default function EditCharacterPage() {
     characterStyle: "realistic",
     artStyle: "digital_art",
     hairColor: "brown",
+    hairStyle: "",
     eyeColor: "brown",
     skinTone: "fair",
     clothing: "casual",
@@ -191,8 +192,9 @@ export default function EditCharacterPage() {
         bodyType: character.bodyType || (character.metadata?.characterDetails?.bodyType) || "average",
         characterStyle: character.characterStyle || (character.metadata?.characterDetails?.characterStyle) || "realistic",
         artStyle: character.artStyle || (character.metadata?.characterDetails?.artStyle) || "digital_art",
-        hairColor: character.hairColor || (character.metadata?.characterDetails?.hairColor) || "brown",
-        eyeColor: character.eyeColor || (character.metadata?.characterDetails?.eyeColor) || "brown",
+        hairColor: (character as any).hairColor || ((character as any).metadata?.characterDetails?.hairColor) || "brown",
+        hairStyle: (character as any).hairStyle || ((character as any).metadata?.characterDetails?.hairStyle) || "",
+        eyeColor: (character as any).eyeColor || ((character as any).metadata?.characterDetails?.eyeColor) || "brown",
         skinTone: character.skinTone || (character.metadata?.characterDetails?.skinTone) || "fair",
         clothing: character.clothing || (character.metadata?.characterDetails?.clothing) || "casual",
         pose: character.pose || (character.metadata?.characterDetails?.pose) || "portrait",
@@ -535,7 +537,7 @@ export default function EditCharacterPage() {
       personality, occupation, hobbies, body,
       ethnicity, language, relationship,
       systemPrompt, isNew, category, images,
-      hairColor, eyeColor, skinTone, characterStyle,
+      hairColor, hairStyle, eyeColor, skinTone, characterStyle,
       story_conflict, story_setting, story_plot
     } = data
 
@@ -547,6 +549,7 @@ export default function EditCharacterPage() {
       characterStyle: data.characterStyle,
       artStyle: data.artStyle,
       hairColor: data.hairColor,
+      hairStyle: data.hairStyle,
       eyeColor: data.eyeColor,
       skinTone: data.skinTone,
       clothing: data.clothing,
@@ -601,7 +604,7 @@ export default function EditCharacterPage() {
 
     // Include appearance traits at top level if columns exist
     const topLevelTraits = [
-      'hairColor', 'eyeColor', 'skinTone', 'characterStyle',
+      'hairColor', 'hairStyle', 'eyeColor', 'skinTone', 'characterStyle',
       'artStyle', 'clothing', 'pose', 'background', 'mood',
       'characterGender', 'characterAge', 'bodyType'
     ]
@@ -1103,6 +1106,20 @@ export default function EditCharacterPage() {
                           onChange={handleChange}
                           className="bg-[#252525] border-[#333] text-white"
                           placeholder="e.g., Brown, Blue, Blonde"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="hairStyle" className="block text-sm font-medium text-gray-300">
+                          Hair Style
+                        </label>
+                        <Input
+                          id="hairStyle"
+                          name="hairStyle"
+                          value={formData.hairStyle}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Long straight, Curly bob, Buzz cut"
                         />
                       </div>
 
