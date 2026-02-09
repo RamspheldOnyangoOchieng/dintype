@@ -22,18 +22,21 @@ async function addAllTraitColumns() {
         console.log('➕ Adding all character trait columns to characters table...');
 
         const columns = [
-            'character_gender TEXT',
-            'character_age TEXT',
-            'body_type TEXT',
-            'character_style TEXT',
-            'art_style TEXT',
-            'hair_color TEXT',
-            'eye_color TEXT',
-            'skin_tone TEXT',
+            'characterGender TEXT', 'character_gender TEXT',
+            'characterAge TEXT', 'character_age TEXT',
+            'bodyType TEXT', 'body_type TEXT',
+            'characterStyle TEXT', 'character_style TEXT',
+            'artStyle TEXT', 'art_style TEXT',
+            'hairColor TEXT', 'hair_color TEXT',
+            'hairStyle TEXT', 'hair_style TEXT',
+            'eyeColor TEXT', 'eye_color TEXT',
+            'skinTone TEXT', 'skin_tone TEXT',
             'clothing TEXT',
             'pose TEXT',
             'background TEXT',
-            'mood TEXT'
+            'mood TEXT',
+            '"isStorylineActive" BOOLEAN DEFAULT FALSE',
+            'is_storyline_active BOOLEAN DEFAULT FALSE'
         ];
 
         for (const column of columns) {

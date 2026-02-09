@@ -21,6 +21,7 @@ export type Character = {
   characterStyle?: string
   artStyle?: string
   hairColor?: string
+  hairStyle?: string
   eyeColor?: string
   skinTone?: string
   clothing?: string

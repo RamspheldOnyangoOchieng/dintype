@@ -43,6 +43,7 @@ export default function CreateCharacterPage() {
     characterStyle: "realistic",
     artStyle: "digital_art",
     hairColor: "brown",
+    hairStyle: "Long straight",
     eyeColor: "brown",
     skinTone: "fair",
     clothing: "casual",
@@ -328,6 +329,7 @@ export default function CreateCharacterPage() {
         ethnicity, language, relationship,
         systemPrompt, category, images,
         preferred_moods, negative_prompt_restrictions, default_prompt, negative_prompt,
+        hairColor, hairStyle, eyeColor, skinTone, characterStyle, artStyle, bodyType,
       } = formData
 
       const characterData = {
@@ -336,6 +338,7 @@ export default function CreateCharacterPage() {
         ethnicity, language, relationship,
         systemPrompt, category, images,
         preferred_moods, negative_prompt_restrictions, default_prompt, negative_prompt,
+        hairColor, hairStyle, eyeColor, skinTone, characterStyle, artStyle, bodyType,
         is_storyline_active: !!formData.isStorylineActive,
         isStorylineActive: !!formData.isStorylineActive,
       }
@@ -735,6 +738,22 @@ export default function CreateCharacterPage() {
                       </div>
 
                       <div className="space-y-2">
+                        <label htmlFor="hairStyle" className="block text-sm font-medium text-gray-300">
+                          Hair Style
+                        </label>
+                        <Input
+                          id="hairStyle"
+                          name="hairStyle"
+                          value={formData.hairStyle}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Long straight, Curly bob"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
                         <label htmlFor="eyeColor" className="block text-sm font-medium text-gray-300">
                           Eye Color
                         </label>
@@ -745,6 +764,20 @@ export default function CreateCharacterPage() {
                           onChange={handleChange}
                           className="bg-[#252525] border-[#333] text-white"
                           placeholder="e.g., Brown, Blue, Green"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label htmlFor="skinTone" className="block text-sm font-medium text-gray-300">
+                          Skin Tone
+                        </label>
+                        <Input
+                          id="skinTone"
+                          name="skinTone"
+                          value={formData.skinTone}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Fair, Tan, Pale"
                         />
                       </div>
                     </div>

@@ -1138,6 +1138,20 @@ export default function EditCharacterPage() {
                       </div>
 
                       <div className="space-y-2">
+                        <label htmlFor="skinTone" className="block text-sm font-medium text-gray-300">
+                          Skin Tone
+                        </label>
+                        <Input
+                          id="skinTone"
+                          name="skinTone"
+                          value={formData.skinTone}
+                          onChange={handleChange}
+                          className="bg-[#252525] border-[#333] text-white"
+                          placeholder="e.g., Fair, Tan, Pale"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
                         <label htmlFor="characterStyle" className="block text-sm font-medium text-gray-300">
                           Visual Style
                         </label>

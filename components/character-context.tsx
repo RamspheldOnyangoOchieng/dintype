@@ -73,7 +73,12 @@ const camelToSnake = (obj: any): any => {
 
   // List of known columns that exist in BOTH camelCase and snake_case in the DB
   // We ONLY keep the camelCase version for these specific fields to avoid "column not found" errors
-  const knownDuplicates = ['systemPrompt', 'userId', 'isPublic', 'videoUrl']
+  const knownDuplicates = [
+    'systemPrompt', 'userId', 'isPublic', 'videoUrl',
+    'hairColor', 'hairStyle', 'eyeColor', 'skinTone',
+    'characterStyle', 'artStyle', 'bodyType', 'isNew',
+    'isStorylineActive'
+  ]
 
   return Object.keys(obj).reduce((acc, key) => {
     // If it's already snake_case, keep it
