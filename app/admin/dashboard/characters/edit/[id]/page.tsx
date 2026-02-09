@@ -127,6 +127,9 @@ export default function EditCharacterPage() {
     default_prompt: "",
     negative_prompt: "",
     isStorylineActive: false,
+    storyPlot: "",
+    storySetting: "",
+    storyConflict: "",
   })
 
   const [isGenerating, setIsGenerating] = useState(false)
@@ -217,6 +220,10 @@ export default function EditCharacterPage() {
         negative_prompt_restrictions: character.metadata?.negative_prompt_restrictions || "",
         default_prompt: character.metadata?.default_prompt || "",
         negative_prompt: character.metadata?.negative_prompt || "",
+        // Storyline specific fields
+        storyPlot: (character as any).storyPlot || (character as any).story_plot || character.metadata?.characterDetails?.story_plot || character.metadata?.characterDetails?.storyPlot || "",
+        storySetting: (character as any).storySetting || (character as any).story_setting || character.metadata?.characterDetails?.story_setting || character.metadata?.characterDetails?.storySetting || "",
+        storyConflict: (character as any).storyConflict || (character as any).story_conflict || character.metadata?.characterDetails?.story_conflict || character.metadata?.characterDetails?.storyConflict || "",
       })
 
       // Set image preview if character has an image
@@ -700,6 +707,14 @@ export default function EditCharacterPage() {
         skinTone: formData.skinTone,
         bodyType: formData.bodyType,
         characterStyle: formData.characterStyle,
+        storyPlot: formData.storyPlot,
+        storySetting: formData.storySetting,
+        storyConflict: formData.storyConflict,
+        language: formData.language,
+        artStyle: formData.artStyle,
+        clothing: formData.clothing,
+        background: formData.background,
+        mood: formData.mood,
         preferredEnvironments: formData.preferred_environments,
         preferredMoods: formData.preferred_moods,
         preferredPoses: formData.preferred_poses,
@@ -739,6 +754,14 @@ export default function EditCharacterPage() {
         eyeColor: formData.eyeColor,
         skinTone: formData.skinTone,
         bodyType: formData.bodyType,
+        storyPlot: formData.storyPlot,
+        storySetting: formData.storySetting,
+        storyConflict: formData.storyConflict,
+        language: formData.language,
+        artStyle: formData.artStyle,
+        clothing: formData.clothing,
+        background: formData.background,
+        mood: formData.mood,
         preferredEnvironments: formData.preferred_environments,
         preferredMoods: formData.preferred_moods,
         preferredPoses: formData.preferred_poses,
@@ -1214,6 +1237,65 @@ export default function EditCharacterPage() {
                       </div>
                     </div>
 
+                    {/* Visual Meta Section */}
+                    <div className="space-y-4 pt-4 border-t border-[#333]">
+                      <h3 className="text-lg font-medium text-pink-400">Visual Persona 🎨</h3>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label htmlFor="artStyle" className="block text-sm font-medium text-gray-300">Artistic Style</label>
+                          <Input
+                            id="artStyle"
+                            name="artStyle"
+                            value={formData.artStyle}
+                            onChange={handleChange}
+                            className="bg-[#252525] border-[#333] text-white"
+                            placeholder="e.g., digital art, oil painting, 3d render"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label htmlFor="clothing" className="block text-sm font-medium text-gray-300">Clothing / Outfit</label>
+                          <Input
+                            id="clothing"
+                            name="clothing"
+                            value={formData.clothing}
+                            onChange={handleChange}
+                            className="bg-[#252525] border-[#333] text-white"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label htmlFor="pose" className="block text-sm font-medium text-gray-300">Signature Pose</label>
+                          <Input
+                            id="pose"
+                            name="pose"
+                            value={formData.pose}
+                            onChange={handleChange}
+                            className="bg-[#252525] border-[#333] text-white"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label htmlFor="background" className="block text-sm font-medium text-gray-300">Default Backdrop</label>
+                          <Input
+                            id="background"
+                            name="background"
+                            value={formData.background}
+                            onChange={handleChange}
+                            className="bg-[#252525] border-[#333] text-white"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label htmlFor="mood" className="block text-sm font-medium text-gray-300">Core Mood</label>
+                          <Input
+                            id="mood"
+                            name="mood"
+                            value={formData.mood}
+                            onChange={handleChange}
+                            className="bg-[#252525] border-[#333] text-white"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Additional Details */}
                     <div className="space-y-4">
                       <h3 className="text-lg font-medium">Additional Details</h3>
@@ -1421,6 +1503,44 @@ export default function EditCharacterPage() {
                           />
                         </div>
                       </div>
+
+                      {formData.isStorylineActive && (
+                        <div className="space-y-4 p-4 rounded-lg bg-[#252525]/20 border border-[#333] animate-in fade-in slide-in-from-top-2">
+                          <div className="space-y-2">
+                            <label htmlFor="storySetting" className="block text-sm font-medium text-gray-300">Story Setting</label>
+                            <Input
+                              id="storySetting"
+                              name="storySetting"
+                              value={formData.storySetting}
+                              onChange={handleChange}
+                              className="bg-[#252525] border-[#333] text-white"
+                              placeholder="e.g., A luxury yacht in the Mediterranean"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label htmlFor="storyPlot" className="block text-sm font-medium text-gray-300">Story Plot Arc</label>
+                            <Textarea
+                              id="storyPlot"
+                              name="storyPlot"
+                              value={formData.storyPlot}
+                              onChange={handleChange}
+                              className="bg-[#252525] border-[#333] text-white min-h-[60px]"
+                              placeholder="Describe the overall narrative goal..."
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label htmlFor="storyConflict" className="block text-sm font-medium text-gray-300">Ongoing Conflict</label>
+                            <Input
+                              id="storyConflict"
+                              name="storyConflict"
+                              value={formData.storyConflict}
+                              onChange={handleChange}
+                              className="bg-[#252525] border-[#333] text-white"
+                              placeholder="e.g., Struggling to keep a secret from her best friend"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 

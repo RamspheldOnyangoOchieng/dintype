@@ -20,6 +20,14 @@ export type GenerateCharacterParams = {
   preferredEnvironments?: string
   preferredMoods?: string
   negativePromptRestrictions?: string
+  storyPlot?: string
+  storySetting?: string
+  storyConflict?: string
+  language?: string
+  artStyle?: string
+  clothing?: string
+  background?: string
+  mood?: string
 }
 
 export async function generateCharacterDescription(params: GenerateCharacterParams): Promise<string> {
@@ -63,8 +71,18 @@ export async function generateCharacterDescription(params: GenerateCharacterPara
       ${params.preferredEnvironments ? `Preferred Settings: ${params.preferredEnvironments}` : ""}
       ${params.preferredMoods ? `Key Moods: ${params.preferredMoods}` : ""}
       ${params.preferredPoses ? `Signature Poses: ${params.preferredPoses}` : ""}
+      ${params.storyPlot ? `Current Plot Arc: ${params.storyPlot}` : ""}
+      ${params.storySetting ? `Story Setting: ${params.storySetting}` : ""}
+      ${params.storyConflict ? `Story Conflict: ${params.storyConflict}` : ""}
+      ${params.language ? `Primary Language: ${params.language}` : "English"}
+      ${params.artStyle ? `Artistic Style: ${params.artStyle}` : ""}
+      ${params.clothing ? `Signature Clothing: ${params.clothing}` : ""}
+      ${params.background ? `Typical Background: ${params.background}` : ""}
+      ${params.mood ? `General Mood: ${params.mood}` : ""}
       
-      The description should be 1-2 sentences long and highlight the character's most interesting qualities, including a hint of their physical appearance.
+      The description should be 2-3 sentences long, written in a captivating, high-quality literary style.
+      It should seamlessly blend their visual archetype (${params.characterStyle || 'realistic'} style) with their current situation.
+      Avoid generic phrasing; focus on unique visual hooks and personality "masks" they might wear.
     `
 
     const messages = [
@@ -142,6 +160,14 @@ export async function generateSystemPrompt(character: {
   preferredEnvironments?: string
   preferredMoods?: string
   negativePromptRestrictions?: string
+  storyPlot?: string
+  storySetting?: string
+  storyConflict?: string
+  language?: string
+  artStyle?: string
+  clothing?: string
+  background?: string
+  mood?: string
 }): Promise<string> {
   try {
     // PRIORITY: Use OPENAI_API_KEY from .env first, then fallback to NOVITA
@@ -185,10 +211,27 @@ export async function generateSystemPrompt(character: {
       ${character.preferredMoods ? `Preferred Moods: ${character.preferredMoods}` : ""}
       ${character.preferredPoses ? `Signature Poses: ${character.preferredPoses}` : ""}
       ${character.negativePromptRestrictions ? `Strict Content Limits: ${character.negativePromptRestrictions}` : ""}
+      ${character.storyPlot ? `Ongoing Plot: ${character.storyPlot}` : ""}
+      ${character.storySetting ? `Setting: ${character.storySetting}` : ""}
+      ${character.storyConflict ? `Conflict/Obstacle: ${character.storyConflict}` : ""}
+      ${character.language ? `Chat Language: ${character.language}` : "English"}
+      ${character.artStyle ? `Art Style: ${character.artStyle}` : ""}
+      ${character.clothing ? `Clothing Style: ${character.clothing}` : ""}
+      ${character.background ? `Common Backdrop: ${character.background}` : ""}
+      ${character.mood ? `Signature Mood: ${character.mood}` : ""}
       
-      The system prompt should instruct the AI on how to behave, speak, and respond as this character.
-      It MUST incorporate their visual identity and their preferences (moods/environments) into their personality and responses.
-      Keep it under 200 words and focus on the character's personality, speech patterns, and knowledge areas.
+      The system prompt MUST define:
+      1. A unique 'Inner Voice' and 'Public Persona' based on their personality: ${character.personality}.
+      2. How they view the USER based on their relationship: ${character.relationship}.
+      3. Their current physical presence in the ${character.storySetting || 'immediate environment'}.
+      4. How the ongoing conflict (${character.storyConflict || 'none'}) colors their mood.
+      5. Linguistic nuances: Use ${character.language || "English"} with specific slang or mannerisms suitable for a ${character.age}-year-old ${character.occupation}.
+      
+      Instructions:
+      - Write in a professional prompt engineering style.
+      - Ensure the AI understands its visual identity (Hair: ${character.hairStyle}, Eyes: ${character.eyeColor}, etc.).
+      - Encourage natural, raw, and reactive conversation.
+      - Keep it under 250 words.
     `
 
     const messages = [

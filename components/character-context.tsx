@@ -77,7 +77,7 @@ const camelToSnake = (obj: any): any => {
     'systemPrompt', 'userId', 'isPublic', 'videoUrl',
     'hairColor', 'hairStyle', 'eyeColor', 'skinTone',
     'characterStyle', 'artStyle', 'bodyType', 'isNew',
-    'isStorylineActive'
+    'isStorylineActive', 'storyPlot', 'storySetting', 'storyConflict'
   ]
 
   return Object.keys(obj).reduce((acc, key) => {

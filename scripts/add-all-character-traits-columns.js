@@ -36,7 +36,10 @@ async function addAllTraitColumns() {
             'background TEXT',
             'mood TEXT',
             '"isStorylineActive" BOOLEAN DEFAULT FALSE',
-            'is_storyline_active BOOLEAN DEFAULT FALSE'
+            'is_storyline_active BOOLEAN DEFAULT FALSE',
+            '"storyPlot" TEXT', 'story_plot TEXT',
+            '"storySetting" TEXT', 'story_setting TEXT',
+            '"storyConflict" TEXT', 'story_conflict TEXT'
         ];
 
         for (const column of columns) {
