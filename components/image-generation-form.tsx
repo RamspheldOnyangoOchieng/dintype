@@ -110,7 +110,7 @@ export default function ImageGenerationForm() {
         body: JSON.stringify({
           prompt,
           negativePrompt,
-          imageCount,
+          selectedCount: imageCount,
           width,
           height,
         }),
@@ -240,6 +240,8 @@ export default function ImageGenerationForm() {
       <PremiumUpgradeModal
         isOpen={showUpgradeModal}
         onClose={() => setShowUpgradeModal(false)}
+        feature="Multiple Image Generation"
+        description="Upgrade to Premium to generate multiple images at once and unlock more styles!"
       />
 
       <h1 className="text-3xl font-bold mb-6">Generate Images</h1>
@@ -329,7 +331,7 @@ export default function ImageGenerationForm() {
 
                 <Button
                   onClick={handleGenerate}
-                  disabled={isGenerating || (user && !isPremium && hasUsedFreeImage && imageCount === 1 && !prompt.trim())}
+                  disabled={isGenerating || !!(user && !isPremium && hasUsedFreeImage && imageCount === 1 && !prompt.trim())}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground mt-2 relative overflow-hidden group"
                 >
                   <span className="relative z-10 flex items-center justify-center">

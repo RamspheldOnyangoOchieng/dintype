@@ -321,14 +321,15 @@ export function ImageGenerationModal({ isOpen, onClose, onImageSelect, trigger }
       let requestBody: any
 
       if (selectedImageModel === "flux") {
-        // Use FLUX model
-        endpoint = "/api/generate/flux"
+        // Use FLUX model via main API
+        endpoint = "/api/generate-image"
         requestBody = {
           prompt: imageGenerationPrompt,
-          imageCount: imageGenerationCount,
+          selectedCount: imageGenerationCount,
           aspectRatio: aspectRatio,
           lora: selectedLora,
           loraStrength: loraStrength,
+          selectedModel: "flux",
         }
       } else {
         // Use stability model (default)
@@ -348,7 +349,7 @@ export function ImageGenerationModal({ isOpen, onClose, onImageSelect, trigger }
         requestBody = {
           prompt: imageGenerationPrompt,
           negativePrompt: imageGenerationNegativePrompt,
-          imageCount: imageGenerationCount,
+          selectedCount: imageGenerationCount,
           width,
           height,
           cfgScale,
