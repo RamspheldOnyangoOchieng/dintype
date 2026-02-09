@@ -398,11 +398,12 @@ export async function POST(req: NextRequest) {
     }
 
     let [width, height] = (size || "1600x2400").split("x").map(Number);
-    // Enforce minimum resolution for Seedream 4.5 (>3.6MP)
-    if (width * height < 3600000) {
+    // Enforce minimum resolution for Seedream 4.5: MUST be at least 3,686,400 pixels (1920x1920)
+    const MIN_SEEDREAM_PIXELS = 3686400;
+
+    if (width * height < MIN_SEEDREAM_PIXELS) {
       const currentMP = width * height;
-      const targetMP = 3600000;
-      const scaleFactor = Math.sqrt(targetMP / currentMP);
+      const scaleFactor = Math.sqrt(MIN_SEEDREAM_PIXELS / currentMP) * 1.05; // 5% buffer to be safe
       width = Math.round(width * scaleFactor);
       height = Math.round(height * scaleFactor);
 
@@ -410,20 +411,37 @@ export async function POST(req: NextRequest) {
       if (width % 2 !== 0) width++;
       if (height % 2 !== 0) height++;
 
-      console.log(`📏 Upscaling ${type} to ${width}x${height} to meet MP requirement while preserving ratio`);
+      console.log(`📏 Upscaling ${type} to ${width}x${height} to meet ${MIN_SEEDREAM_PIXELS} pixel requirement`);
+    }
 
-      // CAP the max dimension to 2560px to prevent API failure (Novita/Seedream limits)
-      const MAX_DIM = 2560;
-      if (width > MAX_DIM || height > MAX_DIM) {
-        const capFactor = MAX_DIM / Math.max(width, height);
-        width = Math.round(width * capFactor);
-        height = Math.round(height * capFactor);
+    // CAP logic: Ensure we don't exceed the max stable dimensions, but PRIORITIZE the MIN_SEEDREAM_PIXELS
+    // If capping width/height drops pixels below minimum, we must allow the larger dimension.
+    const MAX_DIM = type === 'banner' ? 5120 : 3072; // Banners need more width
+    if (width > MAX_DIM || height > MAX_DIM) {
+      const capFactor = MAX_DIM / Math.max(width, height);
+      const newWidth = Math.round(width * capFactor);
+      const newHeight = Math.round(height * capFactor);
 
+      // Check if this cap would break the minimum pixel requirement
+      if (newWidth * newHeight >= MIN_SEEDREAM_PIXELS) {
+        width = newWidth;
+        height = newHeight;
         // Re-ensure even dimensions
         if (width % 2 !== 0) width++;
         if (height % 2 !== 0) height++;
-
-        console.log(`📏 Capped ${type} dimensions to ${width}x${height} for stability`);
+        console.log(`📏 Capped ${type} dimensions to ${width}x${height} (still above min pixels)`);
+      } else {
+        console.log(`⚠️ Scaling: Cannot cap ${type} to ${MAX_DIM} as it would drop pixels (${newWidth * newHeight}) below Seedream 4.5 minimum requirement.`);
+        // In this case, we keep the upscaled dimensions but ensure they aren't INSANELY large
+        const EMERGENCY_MAX = 6144;
+        if (width > EMERGENCY_MAX || height > EMERGENCY_MAX) {
+          const emergencyFactor = EMERGENCY_MAX / Math.max(width, height);
+          width = Math.round(width * emergencyFactor);
+          height = Math.round(height * emergencyFactor);
+          if (width % 2 !== 0) width++;
+          if (height % 2 !== 0) height++;
+          console.log(`📏 Emergency cap ${type} to ${width}x${height}`);
+        }
       }
     }
 
