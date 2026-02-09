@@ -508,84 +508,69 @@ ${branchInfo}
 }
 
 /**
- * Load chat history from database
+ * Load chat history from database - PROGRESSIVE LOADING
+ * priorityLoad: if true, only fetches latest 10 messages for instant display
+ * offset: for pagination, how many messages to skip (for loading older messages)
  */
 export async function loadChatHistory(
   characterId: string,
   userId: string,
-  limit: number = 50
-): Promise<Message[]> {
+  limit: number = 50,
+  priorityLoad: boolean = false,
+  offset: number = 0
+): Promise<{ messages: Message[], hasMore: boolean, totalCount: number }> {
   try {
     const supabase = await createAdminClient() as any
-    if (!supabase) return []
+    if (!supabase) return { messages: [], hasMore: false, totalCount: 0 }
 
-    let finalLimit = limit;
-    if (finalLimit === 50) {
+    // For priority load (initial load), enforce small limit for instant display
+    let finalLimit = priorityLoad ? 10 : limit;
+    if (!priorityLoad && finalLimit === 50) {
       try {
         const planInfo = await getUserPlanInfo(userId);
         finalLimit = planInfo.planType === 'premium' ? 200 : 50;
       } catch (e) { }
     }
 
-    console.log(`[loadChatHistory] Fetching for user: ${userId}, char: ${characterId}`);
+    console.log(`[loadChatHistory] Fetching for user: ${userId}, char: ${characterId}, limit: ${finalLimit}, offset: ${offset}, priority: ${priorityLoad}`);
 
-    // Try RPC first (standard API method)
-    const { data: rpcMessages, error: rpcError } = await supabase.rpc('get_conversation_history', {
-      p_user_id: userId,
-      p_character_id: characterId,
-      p_limit: finalLimit
-    });
+    // Get session IDs first
+    const { data: sessions } = await supabase
+      .from('conversation_sessions')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('character_id', characterId)
+      .eq('is_archived', false);
 
-    if (!rpcError && rpcMessages && rpcMessages.length > 0) {
-      return rpcMessages.map((m: any) => ({
-        id: m.id,
-        role: m.role,
-        content: m.content,
-        timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        isImage: m.is_image || m.isImage,
-        imageUrl: m.image_url || m.imageUrl
-      }));
+    if (!sessions || sessions.length === 0) {
+      return { messages: [], hasMore: false, totalCount: 0 };
     }
 
+    const sessionIds = sessions.map((s: any) => s.id);
+
+    // Get total count for "hasMore" indicator
+    const { count: totalCount } = await supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .in('session_id', sessionIds);
+
+    // Fetch messages with offset for pagination
     const { data: messages, error: msgError } = await supabase
       .from('messages')
-      .select('id, role, content, created_at, is_image, image_url, conversation_sessions!inner(id, user_id, character_id)')
-      .eq('conversation_sessions.user_id', userId)
-      .eq('conversation_sessions.character_id', characterId)
+      .select('id, role, content, created_at, is_image, image_url')
+      .in('session_id', sessionIds)
       .order('created_at', { ascending: false })
-      .limit(finalLimit);
+      .range(offset, offset + finalLimit - 1);
 
-    if (msgError || !messages || messages.length === 0) {
-      const { data: sessions } = await supabase
-        .from('conversation_sessions')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('character_id', characterId);
-
-      if (sessions && sessions.length > 0) {
-        const sIds = sessions.map((s: any) => s.id);
-        const { data: fallMsgs } = await supabase
-          .from('messages')
-          .select('*')
-          .in('session_id', sIds)
-          .order('created_at', { ascending: false })
-          .limit(finalLimit);
-
-        if (fallMsgs && fallMsgs.length > 0) {
-          return fallMsgs.reverse().map((m: any) => ({
-            id: m.id,
-            role: m.role,
-            content: m.content,
-            timestamp: new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            isImage: m.is_image,
-            imageUrl: m.image_url
-          }));
-        }
-      }
-      return [];
+    if (msgError || !messages) {
+      console.error('[loadChatHistory] Query error:', msgError);
+      return { messages: [], hasMore: false, totalCount: totalCount || 0 };
     }
 
-    return (messages || []).reverse().map((m: any) => ({
+    const hasMore = (offset + messages.length) < (totalCount || 0);
+
+    // Reverse to chronological order (newest at bottom)
+    const formattedMessages = messages.reverse().map((m: any) => ({
       id: m.id,
       role: m.role,
       content: m.content,
@@ -593,9 +578,32 @@ export async function loadChatHistory(
       isImage: m.is_image,
       imageUrl: m.image_url
     }));
+
+    console.log(`[loadChatHistory] Fetched ${formattedMessages.length} messages, hasMore: ${hasMore}, total: ${totalCount}`);
+
+    return { messages: formattedMessages, hasMore, totalCount: totalCount || 0 };
   } catch (error) {
     console.error("[loadChatHistory] Fatal error:", error);
-    return []
+    return { messages: [], hasMore: false, totalCount: 0 };
+  }
+}
+
+/**
+ * Load OLDER chat messages (for infinite scroll up)
+ * This is called when user scrolls to the top of the chat
+ */
+export async function loadOlderMessages(
+  characterId: string,
+  userId: string,
+  currentMessageCount: number,
+  batchSize: number = 20
+): Promise<{ messages: Message[], hasMore: boolean }> {
+  try {
+    const result = await loadChatHistory(characterId, userId, batchSize, false, currentMessageCount);
+    return { messages: result.messages, hasMore: result.hasMore };
+  } catch (error) {
+    console.error("[loadOlderMessages] Error:", error);
+    return { messages: [], hasMore: false };
   }
 }
 

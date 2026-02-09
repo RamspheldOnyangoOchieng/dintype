@@ -630,8 +630,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               setCurrentChapter(ch)
 
               // Calculate initial sub-progress based on history
-              const history = await loadChatHistoryDB(characterId, user.id);
-              const chImagesSeen = Array.from(new Set(history.filter(m => m.isImage && m.imageUrl).map(m => m.imageUrl))) as string[];
+              const historyResult = await loadChatHistoryDB(characterId, user.id, 100, false, 0);
+              const history = historyResult.messages;
+              const chImagesSeen = Array.from(new Set(history.filter((m: Message) => m.isImage && m.imageUrl).map((m: Message) => m.imageUrl))) as string[];
 
               // Merge with current in-memory sent images to avoid resets
               const mergedSent = [...new Set([...sentChapterImagesRef.current, ...chImagesSeen])];
@@ -844,8 +845,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   }, [])
 
   // Load chat history from database (fallback to localStorage if empty/failed)
+  // PROGRESSIVE LOADING: First load only latest 10 messages for instant display
+  const [hasMoreMessages, setHasMoreMessages] = useState(false)
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false)
+  const chatContainerRef = useRef<HTMLDivElement>(null)
+
   const loadChatHistory = useCallback(async () => {
-    if (!character || !isMounted || !user?.id) { // Added user?.id check
+    if (!character || !isMounted || !user?.id) {
       console.log("Missing character, user, or component not mounted, skipping chat history load")
       setIsLoadingHistory(false)
       return
@@ -859,15 +865,17 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     }))
 
     try {
-      console.log("Loading chat history from DB for character:", characterId)
+      console.log("⚡ PRIORITY Loading latest 10 messages for character:", characterId)
 
-      // 1. Try to get history from Database
-      const dbHistory = await loadChatHistoryDB(character.id, user.id) // Pass userId
+      // 1. PRIORITY LOAD: Get ONLY latest 10 messages for instant display
+      const dbResult = await loadChatHistoryDB(character.id, user.id, 10, true, 0)
 
-      if (dbHistory && dbHistory.length > 0) {
-        console.log(`Loaded ${dbHistory.length} messages from database`)
-        setMessages(dbHistory as any) // Cast to any to match existing Message type
+      if (dbResult && dbResult.messages.length > 0) {
+        console.log(`⚡ Instant display: ${dbResult.messages.length} messages, hasMore: ${dbResult.hasMore}`)
+        setMessages(dbResult.messages as any)
+        setHasMoreMessages(dbResult.hasMore)
         setIsLoadingHistory(false)
+        setIsInitialLoad(false)
         return
       }
 
@@ -883,9 +891,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       }))
 
       if (localHistory.length > 0) {
-        setMessages(localHistory)
-
-        // OPTIONAL: One-time migration to DB could be triggered here
+        // Show only latest 10 for instant display
+        const latestLocal = localHistory.slice(-10)
+        setMessages(latestLocal)
+        setHasMoreMessages(localHistory.length > 10)
         console.log("Migration candidate: local messages exist but DB is empty")
       } else {
         console.log("No history found anywhere, setting default welcome message")
@@ -904,6 +913,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           }
           setMessages([defaultMessage])
         }
+        setHasMoreMessages(false)
       }
     } catch (error) {
       console.error("Error loading history:", error)
@@ -919,10 +929,45 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           isWelcome: true
         },
       ])
+      setHasMoreMessages(false)
     } finally {
       setIsLoadingHistory(false)
+      setIsInitialLoad(false)
     }
   }, [character, characterId, isMounted, user])
+
+  // Load OLDER messages when scrolling up (lazy loading)
+  const loadOlderMessages = useCallback(async () => {
+    if (!character || !user?.id || isLoadingOlder || !hasMoreMessages) return
+
+    setIsLoadingOlder(true)
+    try {
+      const { loadOlderMessages: fetchOlderMessages } = await import("@/lib/chat-actions-db")
+      const result = await fetchOlderMessages(character.id, user.id, messages.length, 20)
+
+      if (result.messages.length > 0) {
+        // Prepend older messages to the beginning
+        setMessages(prev => [...result.messages, ...prev])
+        setHasMoreMessages(result.hasMore)
+        console.log(`📜 Loaded ${result.messages.length} older messages, hasMore: ${result.hasMore}`)
+      } else {
+        setHasMoreMessages(false)
+      }
+    } catch (error) {
+      console.error("Error loading older messages:", error)
+    } finally {
+      setIsLoadingOlder(false)
+    }
+  }, [character, user?.id, isLoadingOlder, hasMoreMessages, messages.length])
+
+  // Detect scroll to top for loading older messages
+  const handleChatScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const container = e.currentTarget
+    // If user scrolls near the top (within 100px), load older messages
+    if (container.scrollTop < 100 && hasMoreMessages && !isLoadingOlder) {
+      loadOlderMessages()
+    }
+  }, [hasMoreMessages, isLoadingOlder, loadOlderMessages])
 
   // Effect to load chat history when component mounts or character changes
   useEffect(() => {
@@ -1572,7 +1617,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           }
         }
 
-        const currentBaseImg = replyingTo?.imageUrl || replyingTo?.image_url;
+        const currentBaseImg = replyingTo?.imageUrl;
         setIsSendingMessage(false)
         await generateImage(imagePrompt, currentBaseImg as string)
         return
@@ -2189,8 +2234,34 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           </div>
         </div>
 
-        {/* Chat Messages - Scrollable Area */}
-        <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 scroll-smooth min-h-0 chat-background" style={{ overscrollBehavior: 'contain' }} data-messages-container>
+        {/* Chat Messages - Scrollable Area with Lazy Loading */}
+        <div
+          ref={chatContainerRef}
+          onScroll={handleChatScroll}
+          className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 scroll-smooth min-h-0 chat-background"
+          style={{ overscrollBehavior: 'contain' }}
+          data-messages-container
+        >
+          {/* Load More Indicator at Top */}
+          {hasMoreMessages && (
+            <div className="flex justify-center py-3">
+              {isLoadingOlder ? (
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Loading older messages...</span>
+                </div>
+              ) : (
+                <button
+                  onClick={loadOlderMessages}
+                  className="text-primary text-sm hover:underline flex items-center gap-1"
+                >
+                  <ChevronDown className="h-4 w-4 rotate-180" />
+                  Load earlier messages
+                </button>
+              )}
+            </div>
+          )}
+
           {messages.map((message) => (
             <div
               key={message.id}
