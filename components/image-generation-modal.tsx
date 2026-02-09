@@ -263,21 +263,42 @@ export function ImageGenerationModal({ isOpen, onClose, onImageSelect, trigger }
     { value: "linear_burn", label: "Linear Burn" },
   ]
 
+
   const generatePromptFromControls = () => {
-    const parts = []
+    const parts: string[] = []
 
-    // Character basics
-    parts.push(`${characterAge.replace("_", " ")} ${characterGender}`)
+    // MANDATORY REALISM ANCHOR - Forces photorealistic output
+    parts.push("(RAW photo:1.6)")
+    parts.push("(photorealistic:1.7)")
+    parts.push("(unprocessed digital photography:1.5)")
+    parts.push("(natural skin texture:1.6)")
+    parts.push("(realistic pores:1.4)")
+    parts.push("(subsurface skin scattering:1.3)")
 
-    // Physical attributes
-    parts.push(`${bodyType} body type`)
-    parts.push(`${hairColor} hair`)
-    parts.push(`${eyeColor} eyes`)
-    parts.push(`${skinTone} skin`)
+    // Character basics with realism focus
+    parts.push(`beautiful ${characterAge.replace("_", " ")} ${characterGender}`)
 
-    // Style and art
-    parts.push(`${characterStyle} style`)
-    parts.push(`${artStyle}`)
+    // Physical attributes with natural descriptors
+    parts.push(`natural ${bodyType} body type`)
+    parts.push(`${hairColor} hair with realistic texture`)
+    parts.push(`${eyeColor} eyes with natural iris detail`)
+    parts.push(`${skinTone} skin with natural complexion`)
+
+    // Style override - FORCE realistic regardless of UI selection
+    if (characterStyle === "anime" || characterStyle === "cartoon" || characterStyle === "chibi" || characterStyle === "manga") {
+      // For anime/cartoon styles, still add some realism
+      parts.push(`${characterStyle} inspired but with realistic proportions`)
+    } else {
+      parts.push("hyperrealistic portrait")
+    }
+
+    // Art style with realism focus
+    if (artStyle === "photorealistic" || artStyle === "digital_art") {
+      parts.push("professional photography")
+      parts.push("Canon EOS R5, 85mm f/1.4 lens")
+    } else {
+      parts.push(`${artStyle} with photorealistic rendering`)
+    }
 
     // Clothing and pose
     parts.push(`wearing ${clothing} clothing`)
@@ -285,16 +306,33 @@ export function ImageGenerationModal({ isOpen, onClose, onImageSelect, trigger }
 
     // Mood and background
     parts.push(`${mood} expression`)
-    parts.push(`${background} background`)
+    parts.push(`${background} background with depth of field`)
 
-    // LoRA-specific enhancements
+    // LoRA tag (if selected) - kept for model guidance but not the primary driver
     const selectedLoraData = loraOptions.find((lora) => lora.value === selectedLora)
-    if (selectedLoraData) {
+    if (selectedLoraData && selectedLora !== "realistic_portrait") {
       parts.push(`<lora:${selectedLora}:${loraStrength}>`)
     }
 
-    // Quality tags
-    parts.push("high quality", "detailed", "masterpiece", "best quality")
+    // CRITICAL QUALITY TAGS for realism
+    parts.push("(masterpiece:1.4)")
+    parts.push("(best quality:1.4)")
+    parts.push("(8k UHD:1.3)")
+    parts.push("(sharp focus:1.4)")
+    parts.push("(professional lighting:1.3)")
+    parts.push("(cinematic composition:1.2)")
+    parts.push("(natural ambient lighting:1.3)")
+    parts.push("(realistic shadows:1.2)")
+    parts.push("(detailed facial features:1.4)")
+    parts.push("(realistic eye reflections:1.3)")
+
+    // ANTI-PLASTIC MANDATE
+    parts.push("(no plastic skin:1.8)")
+    parts.push("(no airbrushed look:1.7)")
+    parts.push("(no waxy appearance:1.6)")
+    parts.push("(no mannequin features:1.5)")
+    parts.push("(no CGI look:1.6)")
+    parts.push("(no smooth doll skin:1.5)")
 
     return parts.join(", ")
   }
