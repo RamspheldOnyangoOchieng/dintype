@@ -210,14 +210,19 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     ? `### [BIOMETRIC ANCHOR: (precise facial DNA:2.0), (match training photos:1.8), (locked identity:1.9), (100% identical face:1.9), (consistent skin tone:1.8), ${character.name} face]. ### `
     : '';
 
-  const outfitLiberation = `(PRIORITIZE PROMPT CLOTHING:1.5), (LIBERATE OUTFIT: ignore clothing in references:1.4), (CLOTHING VARIETY:1.3), `;
+  const clothingKeywords = /\b(wearing|dressed|outfit|clothes|shirt|pants|dress|swimsuit|bikini|lingerie|suit|jacket|top|bottom|skirt|blouse)\b/i;
+  const hasSpecificClothing = clothingKeywords.test(cleanedPrompt);
+
+  const outfitLogic = hasSpecificClothing
+    ? `(PRIORITIZE PROMPT CLOTHING:1.6), (LIBERATE OUTFIT: ignore clothing in references:1.5), `
+    : `(MATCH REFERENCE OUTFIT:1.4), (CONSISTENT CLOTHING:1.3), (SAME OUTFIT AS ASSET:1.3), `;
   const styleHookInfluence = promptHook ? `(STYLE: ${promptHook}:1.1), ` : '';
 
   const anatomyEngine = `(perfectly detailed biological anatomy:1.7), (smoothed structured anatomy:1.8), (clean well-defined biological structure:1.7), (perfect breast and teat form:1.6), (exact reference replication:1.6), (realistic physiological details:1.6), (high-fidelity private parts:1.6), (biological precision:1.6), `;
 
   let enhancedPrompt = style === 'realistic'
-    ? `${cleanedPrompt}, (RAW photo:1.4), (photorealistic:1.5), (masterpiece:1.3), ${identityPrefix}${biometricAnchor}${featureLock}(solo:1.6), (1girl:1.6), (feminine body:1.5), ${outfitLiberation}${anatomyGuardrail}${nudityLock}${perspectiveMode}${anatomyLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.4), (soft skin:1.3), fascinating and sexy, ${anatomyEngine}explicit details, full nudity, ultra-detailed anatomy`
-    : `(solo:1.6), (1girl:1.6), ${cleanedPrompt}, (masterpiece anime art:1.5), ${outfitLiberation}${perspectiveMode}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, clean aesthetic lines`;
+    ? `${cleanedPrompt}, (RAW photo:1.5), (photorealistic:1.6), (EXACT CHARACTER MATCH:1.4), ${identityPrefix}${biometricAnchor}${featureLock}(solo:1.6), (1girl:1.6), (feminine body:1.5), ${outfitLogic}${anatomyGuardrail}${nudityLock}${perspectiveMode}${anatomyLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.4), (soft skin:1.3), fascinating and sexy, ${anatomyEngine}explicit details, full nudity, ultra-detailed anatomy`
+    : `(solo:1.6), (1girl:1.6), ${cleanedPrompt}, (masterpiece anime art:1.5), ${outfitLogic}${perspectiveMode}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, clean aesthetic lines`;
 
   if (enhancedPrompt.length > 2000) enhancedPrompt = enhancedPrompt.substring(0, 2000);
 
