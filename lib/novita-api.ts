@@ -102,67 +102,82 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     ? `(STRICT ANATOMY LOCK: uncensored high anatomical accuracy, clear and detailed display of private parts, biological realism, intimate detail, ${character.skinTone || character.skin_tone || 'natural'} skin texture:1.6), `
     : '';
 
-  // --- HARVEST REFERENCE ASSETS (SINGLE SOURCE MODE) ---
+  // --- HARVEST REFERENCE ASSETS (MULTI-SOURCE FUSION MODE) ---
+  // Training assets are CRITICAL - they define the character's true appearance
   if (character && !isBanner) {
-    console.log(`🧬 [DNA Engine] initializing Single-Source Replication for ${character.name}...`);
+    console.log(`🧬 [DNA Engine] Initializing ENHANCED Multi-Source Fusion for ${character.name}...`);
 
     // 1. ANATOMY REFERENCE (Critical for body/genital consistency)
     const anatomyRef = character.metadata?.anatomy_reference_url || character.anatomy_reference_url || character.anatomyReferenceUrl;
     if (anatomyRef) {
-      console.log("   - 🔒 Anatomy Lock Active");
+      console.log("   - 🔒 Anatomy Lock Active (MAXIMUM WEIGHT)");
       nativeImageUrls.push(anatomyRef);
-      // High weight for structure to ensure anatomy matches reference
-      allReferences.push({ url: anatomyRef, weight: 0.85, model: "ip-adapter_xl", source: "Anatomy Lock" });
+      // BOOSTED: High weight for structure to ensure anatomy matches reference
+      allReferences.push({ url: anatomyRef, weight: 1.2, model: "ip-adapter_xl", source: "Anatomy Lock" });
     }
 
-    // 2. IDENTITY SOURCE (Pick STRICTLY ONE from the pool to avoid blending/averaging)
+    // 2. IDENTITY SOURCE - USE MULTIPLE TRAINING IMAGES for stronger likeness
     const availableReferences: string[] = [];
 
-    // a) Add Golden Face if available
+    // a) Add Golden Face if available (PRIORITY)
     const faceRef = character.metadata?.face_reference_url || character.face_reference_url || character.faceReferenceUrl;
-    if (faceRef) availableReferences.push(faceRef);
+    if (faceRef) {
+      availableReferences.push(faceRef);
+      // Add face ref directly to native URLs with high priority
+      nativeImageUrls.push(faceRef);
+      console.log("   - 👤 Golden Face Reference Added");
+    }
 
-    // b) Add Training Set (Pick ONE random for master context)
+    // b) Add ALL Training Set images for maximum fusion
     const trainingSet = character.images || character.metadata?.images || [];
-    if (Array.isArray(trainingSet)) {
-      trainingSet.forEach((img: string) => {
-        if (img) availableReferences.push(img);
+    if (Array.isArray(trainingSet) && trainingSet.length > 0) {
+      console.log(`   - 📸 Found ${trainingSet.length} training images - ADDING ALL for fusion`);
+      trainingSet.forEach((img: string, idx: number) => {
+        if (img) {
+          availableReferences.push(img);
+          nativeImageUrls.push(img);
+        }
       });
     }
 
-    // Select ONE Master Reference
+    // Select PRIMARY Master Reference for Face (highest weight)
     if (availableReferences.length > 0) {
-      // If we have a dedicated Face Ref, use it 40% of the time, otherwise pick from training set for variety
-      // OR, per user request: "exact one of the images in the training set". 
-      // We will perform a purely random selection from ALL valid references to ensure precise replication of that specific shot.
       const masterRefIndex = Math.floor(Math.random() * availableReferences.length);
       const masterRefUrl = availableReferences[masterRefIndex];
 
-      console.log(`   - 💎 Selected Master Reference: [Image ${masterRefIndex + 1}]`);
-      nativeImageUrls.push(masterRefUrl);
+      console.log(`   - 💎 Primary Master Reference: [Image ${masterRefIndex + 1}]`);
 
-      // Use this SINGLE image as the heavy lifter for Identity
+      // BOOSTED: Use this as the PRIMARY identity anchor with MAXIMUM weight
       allReferences.push({
         url: masterRefUrl,
-        weight: 1.8, // Boosted to 1.8 for exact likeness
+        weight: 2.5, // MAXIMUM BOOST for exact face likeness
         model: "ip-adapter_plus_face_xl",
-        source: "Master Context Reference (Face)"
+        source: "Primary Master Reference (Face DNA)"
       });
 
-      // HAIR & HEAD SHAPE ANCHOR
+      // HAIR & HEAD SHAPE ANCHOR - Also boosted
       allReferences.push({
         url: masterRefUrl,
-        weight: 1.2, // Boosted to 1.2 for hair and style match
+        weight: 1.8, // BOOSTED for hair and style match
         model: "ip-adapter_xl",
-        source: "Master Context Reference (Hair/Style)"
+        source: "Primary Master Reference (Hair/Style)"
+      });
+
+      // 3. ADD SECONDARY REFERENCES for reinforcement
+      // Pick up to 2 more training images to reinforce the identity
+      const secondaryRefs = availableReferences.filter((_, i) => i !== masterRefIndex).slice(0, 2);
+      secondaryRefs.forEach((refUrl, idx) => {
+        allReferences.push({
+          url: refUrl,
+          weight: 1.5, // Strong secondary weight
+          model: "ip-adapter_plus_face_xl",
+          source: `Secondary Reference ${idx + 1} (Reinforcement)`
+        });
+        console.log(`   - 🔗 Secondary Reference ${idx + 1} added for reinforcement`);
       });
     }
 
-    // 3. (Optional) Portfolio Consistency - strictly limited to NOT dilute the master ref
-    // We do NOT add these to the active reference list to prevent blending artifacts.
-    // The "Single Source" philosophy means we ignore the rest of the gallery for this specific generation.
-
-    // Populate ControlNets based on our strict selection (max 2 items: Anatomy + Master Ref)
+    // Populate ControlNets based on our enhanced selection
     allReferences.forEach(ref => {
       finalControlUnits.push({
         model_name: ref.model,
@@ -171,6 +186,8 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
         module_name: "none"
       });
     });
+
+    console.log(`   - ✅ Total references in fusion: ${allReferences.length}, Native URLs: ${nativeImageUrls.length}`);
   }
 
   const fusedImageUrls = Array.from(new Set(nativeImageUrls)).slice(0, 14);
@@ -215,7 +232,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
 
   const anatomyGuardrail = `(cleanly human:2.0), (coherent physical form:2.0), (limbs attached to torso:1.9), (anatomically logical:1.9), (correct number of limbs:1.9), (perfectly placed body parts:1.9), (no extra parts:1.9), (biological integrity:1.8), `;
 
-  const defaultNegatives = '(plastic skin:3.0), (waxy skin:3.0), (airbrushed skin:2.5), (smooth doll skin:2.5), (mannequin look:2.5), (CGI look:2.5), (artificial skin:2.5), (porcelain skin:2.0), (over-smooth texture:2.0), (shiny plastic:2.5), (rubbery texture:2.5), (synthetic look:2.5), (extra limbs:3.0), (multiple legs:3.0), (extra arms:3.0), (three legs:3.0), (three arms:3.0), (extra hands:3.0), (three hands:3.0), (ghost hands:3.0), (mutated body:2.0), (broken body:2.0), (extra fingers:2.0), (mutated fingers:2.0), (fused fingers:2.0), (deformed limbs:2.0), (long neck:1.8), (distorted body:1.8), (disfigured:1.5), (malformed:1.5), (anatomical error:2.0), (extra head:2.5), (misplaced belly:2.0), (no anime:3.0), (no drawing:3.0), (no illustration:3.0), (no painting:3.0), (no 3d render:3.0), muscular, masculine body, manly features, bodybuilder, strained muscle, man, male, couple, boy, together, two people, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, wrinkles, old, aged, grainy, symmetrical face, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate';
+  const defaultNegatives = '(anime:3.5), (cartoon:3.5), (manga:3.5), (illustration:3.5), (drawing:3.5), (painted:3.5), (digital art style:3.0), (cel shading:3.0), (line art:3.0), (comic:3.0), (stylized:3.0), (2d:3.0), (animated:3.0), (disney style:3.0), (pixar style:3.0), (game art:3.0), (concept art:3.0), (large anime eyes:3.5), (anime face:3.5), (manga style:3.5), (plastic skin:3.0), (waxy skin:3.0), (airbrushed skin:2.5), (smooth doll skin:2.5), (mannequin look:2.5), (CGI look:2.5), (artificial skin:2.5), (porcelain skin:2.0), (over-smooth texture:2.0), (shiny plastic:2.5), (rubbery texture:2.5), (synthetic look:2.5), (extra limbs:3.0), (multiple legs:3.0), (extra arms:3.0), (three legs:3.0), (three arms:3.0), (extra hands:3.0), (three hands:3.0), (ghost hands:3.0), (mutated body:2.0), (broken body:2.0), (extra fingers:2.0), (mutated fingers:2.0), (fused fingers:2.0), (deformed limbs:2.0), (long neck:1.8), (distorted body:1.8), (disfigured:1.5), (malformed:1.5), (anatomical error:2.0), (extra head:2.5), (misplaced belly:2.0), muscular, masculine body, manly features, bodybuilder, strained muscle, man, male, couple, boy, together, two people, sparkles, bloom, bokeh, ethereal, glowing, backlight, sun flare, glares, light artifacts, glitter, lens flare, bright spots, floating particles, magic glow, fairy dust, wrinkles, old, aged, grainy, symmetrical face, collage, grid, split view, two images, multiple images, diptych, triptych, multiple views, several views, watermark, text, logo, signature, letters, numbers, words, typography, font, sign, tattoo, writing, callout, poor background, messy room, cluttered environment, blurred background, low quality, blurry, distorted, deformed genitalia, malformed pussy, distorted private parts, unrealistic anatomy, missing labia, blurry genitals, bad pussy anatomy, ugly, disgusting, distorted face, uneven eyes, unrealistic skin, plastic look, double limbs, broken legs, floating body parts, lowres, error, cropped, worst quality, normal quality, jpeg artifacts, duplicate';
   const isNudeRequest = containsNSFW(cleanedPrompt);
   const nudityLock = isNudeRequest
     ? `(erotic masterpiece:1.6), (completely naked:1.9), (no clothes:1.9), (uncovered skin:1.7), (detailed anatomy:1.8), (smoothed structured anatomy:1.7), (clean well-defined biological structure:1.7), (perfect realistic breast form:1.7), (detailed nipples and teats:1.6), (detailed realistic pussy:1.8), (hyper-realistic vulva:1.7), (natural pussy texture:1.7), (high variety of erotic poses:1.6), `
@@ -253,9 +270,15 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     // STRICT SFW COMMERCIAL BANNER - No people, focus on environments and abstract visuals
     enhancedPrompt = `${cleanedPrompt}, (professional commercial advertisement:1.7), (brand marketing visual:1.6), (corporate photography:1.5), (luxury product showcase:1.4), (abstract design:1.3), (scenic landscape:1.4), (architectural photography:1.3), (geometric patterns:1.2), (premium texture:1.3), (high-end editorial:1.4), (magazine cover quality:1.3), (clean minimalist design:1.4), (sophisticated color palette:1.3), (elegant composition:1.4), (professional lighting:1.5), (commercial grade quality:1.4), (advertising campaign:1.3), (8k UHD:1.3), (sharp focus:1.4), (depth of field:1.3), NO PEOPLE, NO HUMANS, NO FIGURES, abstract art, product photography, scenic view, architectural detail, texture close-up`;
   } else {
+    // MANDATORY PHOTOREALISM ANCHOR - Applied to ALL character generations
+    const photoRealismAnchor = `(MANDATORY PHOTOREALISTIC:2.0), (real photograph:1.9), (camera shot:1.8), (NOT anime:2.5), (NOT cartoon:2.5), (NOT illustration:2.5), (NOT drawing:2.5), (real human being:1.8), (actual person:1.7), `;
+
+    // TRAINING ASSET PRIORITY - Force the model to honor reference images
+    const trainingAssetPriority = character ? `(STRICT REFERENCE MATCH:2.0), (COPY TRAINING IMAGES:1.9), (IDENTICAL TO REFERENCE PHOTOS:1.8), (EXACT LIKENESS:1.9), ` : '';
+
     enhancedPrompt = style === 'realistic'
-      ? `${img2imgSync}${cleanedPrompt}, (RAW unedited photo:1.7), (photorealistic:1.8), (EXACT CHARACTER MATCH:1.4), ${skinRealismEngine}${identityPrefix}${biometricAnchor}${featureLock}(solo:1.6), (1girl:1.6), (feminine body:1.5), ${outfitLogic}${anatomyGuardrail}${nudityLock}${perspectiveMode}${anatomyLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.5), (natural soft skin:1.4), (realistic skin texture:1.6), fascinating and sexy, ${anatomyEngine}explicit details, full nudity, ultra-detailed anatomy, (no airbrushing:1.8), (no digital smoothing:1.7), (film grain:1.2)`
-      : `(solo:1.6), (1girl:1.6), ${cleanedPrompt}, (masterpiece anime art:1.5), ${outfitLogic}${perspectiveMode}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, clean aesthetic lines`;
+      ? `${photoRealismAnchor}${trainingAssetPriority}${img2imgSync}${cleanedPrompt}, (RAW unedited photo:1.8), (photorealistic:2.0), (EXACT CHARACTER MATCH:1.6), ${skinRealismEngine}${identityPrefix}${biometricAnchor}${featureLock}(solo:1.6), (1girl:1.6), (feminine body:1.5), ${outfitLogic}${anatomyGuardrail}${nudityLock}${perspectiveMode}${anatomyLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.5), (natural soft skin:1.4), (realistic skin texture:1.6), fascinating and sexy, ${anatomyEngine}explicit details, full nudity, ultra-detailed anatomy, (no airbrushing:1.8), (no digital smoothing:1.7), (film grain:1.2), (REAL PHOTOGRAPH NOT ART:2.0)`
+      : `${photoRealismAnchor}(solo:1.6), (1girl:1.6), ${cleanedPrompt}, (semi-realistic art:1.5), ${outfitLogic}${perspectiveMode}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, clean aesthetic lines, (realistic proportions:1.4)`;
   }
 
   if (enhancedPrompt.length > 2000) enhancedPrompt = enhancedPrompt.substring(0, 2000);
