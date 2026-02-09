@@ -73,7 +73,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       `GUIDELINES: ${char.systemPrompt || char.system_prompt || ''}`,
     ].filter(p => !p.endsWith(': ') && !p.endsWith(':'));
 
-    return `### [IDENTITY DNA: ${dnaParts.join(', ')}]. ### `;
+    return `### [CHARACTER: ${dnaParts.join(', ')}]. ### `;
   };
 
   const identityPrefix = buildIdentityDNA(character);
@@ -124,7 +124,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       // Use this SINGLE image as the heavy lifter for Identity
       allReferences.push({
         url: masterRefUrl,
-        weight: 1.6, // Increased weight for exact likeness
+        weight: 1.8, // Boosted to 1.8 for exact likeness
         model: "ip-adapter_plus_face_xl",
         source: "Master Context Reference (Face)"
       });
@@ -132,7 +132,7 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       // HAIR & HEAD SHAPE ANCHOR
       allReferences.push({
         url: masterRefUrl,
-        weight: 0.9,
+        weight: 1.2, // Boosted to 1.2 for hair and style match
         model: "ip-adapter_xl",
         source: "Master Context Reference (Hair/Style)"
       });
@@ -174,9 +174,9 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   const charNegativeRestrictions = character?.negative_prompt_restrictions || character?.metadata?.negative_prompt_restrictions || '';
 
   const preferencePrompt = [
-    poses ? `(STRICT POSE: ${poses}:1.8)` : '',
-    environments ? `(SETTING: ${environments}:1.8)` : '',
-    moods ? `(EXPRESSION: ${moods}:1.4)` : '',
+    poses ? `(suggested pose: ${poses}:1.1)` : '',
+    environments ? `(suggested environment: ${environments}:1.1)` : '',
+    moods ? `(suggested mood: ${moods}:1.1)` : '',
   ].filter(Boolean).join(', ');
 
   const sanitizePrompt = (p: string) => {
@@ -216,8 +216,8 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
   const anatomyEngine = `(perfectly detailed biological anatomy:1.7), (smoothed structured anatomy:1.8), (clean well-defined biological structure:1.7), (perfect breast and teat form:1.6), (exact reference replication:1.6), (realistic physiological details:1.6), (high-fidelity private parts:1.6), (biological precision:1.6), `;
 
   let enhancedPrompt = style === 'realistic'
-    ? `(RAW photo:1.3), (photorealistic:1.4), ${cleanedPrompt}, (masterpiece:1.2), ${identityPrefix}${biometricAnchor}${featureLock}(solo:1.6), (1girl:1.6), (feminine body:1.5), (natural human proportions:1.6), ${outfitLiberation}${anatomyGuardrail}${nudityLock}${perspectiveMode}${varietyEngine}(dynamic composition:1.3), (8k UHD photography:1.4), ${anatomyLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.4), (soft skin:1.3), fascinated and sexy, ${anatomyEngine}explicit details, full nudity, ultra-detailed anatomy`
-    : `(solo:1.6), (1girl:1.6), ${cleanedPrompt}, (masterpiece anime art:1.4), ${outfitLiberation}${perspectiveMode}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, clean aesthetic lines`;
+    ? `${cleanedPrompt}, (RAW photo:1.4), (photorealistic:1.5), (masterpiece:1.3), ${identityPrefix}${biometricAnchor}${featureLock}(solo:1.6), (1girl:1.6), (feminine body:1.5), ${outfitLiberation}${anatomyGuardrail}${nudityLock}${perspectiveMode}${anatomyLock}${styleHookInfluence}${preferencePrompt}, (unprocessed digital masterpiece:1.4), (soft skin:1.3), fascinating and sexy, ${anatomyEngine}explicit details, full nudity, ultra-detailed anatomy`
+    : `(solo:1.6), (1girl:1.6), ${cleanedPrompt}, (masterpiece anime art:1.5), ${outfitLiberation}${perspectiveMode}(dynamic pose:1.3), ${biometricAnchor}${identityPrefix}${anatomyLock}${featureLock}${styleHookInfluence}${preferencePrompt}, clean aesthetic lines`;
 
   if (enhancedPrompt.length > 2000) enhancedPrompt = enhancedPrompt.substring(0, 2000);
 
