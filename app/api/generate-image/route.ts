@@ -583,6 +583,8 @@ export async function POST(req: NextRequest) {
       }
       finalPrompt = promptsForTasks[0];
     }
+
+    console.log("📝 Final Prompts for generation:", promptsForTasks);
     // --- END PROMPT ENHANCEMENT ---
 
     // Get webhook URL for automatic result processing
@@ -836,7 +838,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       error: "Internal server error",
-      details: "An unexpected error occurred. If tokens were deducted, they have been refunded.",
+      details: error instanceof Error ? error.message : String(error),
       refunded: !!userId && !!tokenCost
     }, { status: 500 });
   }
