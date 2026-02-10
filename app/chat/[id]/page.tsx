@@ -1971,12 +1971,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   return (
     <div
       key="chat-page-root"
-      className="flex flex-col md:flex-row bg-background w-full overflow-hidden fixed inset-0"
+      className="flex flex-col md:flex-row bg-background w-full overflow-hidden h-full"
       style={{ height: '100dvh', maxHeight: '100dvh' }}
       suppressHydrationWarning
     >
       {/* Left Sidebar - Chat List - Independent Scroll */}
-      <div className="hidden md:flex md:w-72 border-b md:border-b-0 md:border-r border-border flex-col rounded-tr-2xl rounded-br-2xl h-full overflow-hidden">
+      <div className="hidden md:flex md:w-72 border-b md:border-b-0 md:border-r border-border flex-col rounded-tr-2xl rounded-br-2xl h-full overflow-hidden flex-shrink-0">
         <div className="p-4 border-b border-border flex items-center justify-between">
           <div className="flex items-center">
             <Button variant="ghost" size="icon" className="mr-2 md:hidden" onClick={toggle}>
