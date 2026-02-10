@@ -101,6 +101,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const { openLoginModal } = useAuthModal()
   const { t } = useTranslations()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const lastMessageIdRef = useRef<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const searchParams = useSearchParams()
@@ -782,29 +783,53 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     [isMounted],
   )
 
-  // Scroll to bottom when messages change
-  useEffect(() => {
+  // Scroll to bottom helper
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
     if (!isMounted) return
 
-    // Use a timeout to ensure the DOM has been updated
-    const scrollTimeout = setTimeout(() => {
+    // Use a small timeout to ensure DOM has updated
+    setTimeout(() => {
       if (messagesEndRef.current) {
         try {
-          messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+          messagesEndRef.current.scrollIntoView({ behavior })
         } catch (error) {
           console.error("Error scrolling to bottom:", error)
-          // Fallback to a simpler scroll method
-          try {
-            messagesEndRef.current.scrollIntoView()
-          } catch (fallbackError) {
-            console.error("Fallback scroll also failed:", fallbackError)
+          // Fallback
+          if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
           }
         }
+      } else if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight
       }
-    }, 100)
+    }, behavior === "smooth" ? 100 : 50)
+  }, [isMounted])
 
-    return () => clearTimeout(scrollTimeout)
-  }, [messages, isMounted])
+  // EFFECT: Handle initial load and character changes (Instant Jump)
+  useEffect(() => {
+    if (isMounted && !isLoadingHistory && messages.length > 0) {
+      console.log("⚡ Auto-scrolling to bottom on load/switch")
+      scrollToBottom("auto")
+    }
+  }, [characterId, isLoadingHistory, isMounted, scrollToBottom])
+
+  // EFFECT: Handle new messages (Smooth Scroll)
+  useEffect(() => {
+    // Skip if loading history or messages is empty
+    if (!isMounted || isLoadingHistory || messages.length === 0) return
+
+    const lastMessage = messages[messages.length - 1]
+    
+    // Check if the last message is actually "new" (different from what we saw last)
+    if (lastMessage && lastMessage.id !== lastMessageIdRef.current) {
+      lastMessageIdRef.current = lastMessage.id
+      
+      // Don't smooth scroll if it's just the initial welcome or it's early in the cycle
+      if (!lastMessage.isWelcome) {
+        scrollToBottom("smooth")
+      }
+    }
+  }, [messages, isMounted, isLoadingHistory, scrollToBottom])
 
   // Check API key
   useEffect(() => {
@@ -1067,13 +1092,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     }
   }, [character])
 
-  // Scroll to bottom when messages load
-  useEffect(() => {
-    const messagesContainer = document.querySelector('[data-messages-container]')
-    if (messagesContainer) {
-      messagesContainer.scrollTop = messagesContainer.scrollHeight
-    }
-  }, [messages])
+  // Refined scroll on message change handled above
 
   useEffect(() => {
     const lastMessage = messages[messages.length - 1]
@@ -2238,7 +2257,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         <div
           ref={chatContainerRef}
           onScroll={handleChatScroll}
-          className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 scroll-smooth min-h-0 chat-background"
+          className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 min-h-0 chat-background"
           style={{ overscrollBehavior: 'contain' }}
           data-messages-container
         >
@@ -2450,7 +2469,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                         className="w-full h-auto object-contain block"
                         style={{ borderRadius: '1rem', maxHeight: '70vh' }}
                         onError={() => handleImageError(message.id)}
-                        loading="lazy"
+                        onLoad={() => {
+                          // Scroll again after image loads to account for height change
+                          if (!isLoadingHistory) scrollToBottom("auto");
+                        }}
+                        loading="eager" // Eager for latest messages
                       />
                     </div>
                   </div>
