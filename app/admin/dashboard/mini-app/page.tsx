@@ -177,27 +177,34 @@ export default function MiniAppManagementPage() {
 
         setSaving(true)
         try {
-            const formData = new FormData()
-            formData.append('file', file)
-            formData.append('upload_preset', 'pocketlove')
+            // Convert to base64
+            const base64 = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader()
+                reader.readAsDataURL(file)
+                reader.onload = () => resolve(reader.result as string)
+                reader.onerror = error => reject(error)
+            })
 
-            const response = await fetch(
-                `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-                {
-                    method: 'POST',
-                    body: formData,
-                }
-            )
+            const formData = new FormData()
+            formData.append('file', base64)
+            formData.append('folder', 'bot-avatars')
+
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            })
 
             const data = await response.json()
             if (data.secure_url) {
                 setSettings(prev => ({ ...prev, bot_avatar_url: data.secure_url }))
                 setSaveMessage("Avatar uploaded! Remember to save all settings.")
                 setTimeout(() => setSaveMessage(""), 3000)
+            } else {
+                throw new Error(data.error || "Upload failed")
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("Upload error:", err)
-            setSaveMessage("Failed to upload avatar")
+            setSaveMessage("Failed to upload avatar: " + err.message)
         } finally {
             setSaving(false)
         }
@@ -691,14 +698,24 @@ export default function MiniAppManagementPage() {
                                     </p>
                                 </div>
 
-                                <Button
-                                    className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white"
-                                    onClick={handleSyncToTelegram}
-                                    disabled={syncing}
-                                >
-                                    {syncing ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-                                    Sync Name & About to Telegram
-                                </Button>
+                                <div className="flex gap-2 mt-4">
+                                    <Button
+                                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                                        onClick={handleSyncToTelegram}
+                                        disabled={syncing}
+                                    >
+                                        {syncing ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                                        Sync Identities to Telegram
+                                    </Button>
+                                    <Button
+                                        variant="secondary"
+                                        onClick={handleSaveSettings}
+                                        disabled={saving}
+                                    >
+                                        <Save className="h-4 w-4 mr-2" />
+                                        Save Locally
+                                    </Button>
+                                </div>
                             </CardContent>
                         </Card>
 
@@ -781,10 +798,23 @@ export default function MiniAppManagementPage() {
                             <Alert>
                                 <Globe className="h-4 w-4" />
                                 <AlertDescription>
-                                    <p className="font-medium mb-2">Mini App URL</p>
-                                    <code className="bg-muted px-2 py-1 rounded text-sm">
-                                        {effectiveSiteUrl}/telegram
-                                    </code>
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <p className="font-medium mb-2">Mini App URL</p>
+                                            <code className="bg-muted px-2 py-1 rounded text-sm">
+                                                {effectiveSiteUrl}/telegram
+                                            </code>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-muted-foreground ml-2"
+                                            onClick={() => router.push('/admin/dashboard')}
+                                        >
+                                            <Settings className="h-3 w-3 mr-1" />
+                                            Change in General Settings
+                                        </Button>
+                                    </div>
                                 </AlertDescription>
                             </Alert>
 
