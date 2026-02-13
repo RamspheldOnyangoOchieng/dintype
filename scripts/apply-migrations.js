@@ -5,6 +5,7 @@
 */
 const fs = require('fs')
 const path = require('path')
+require('dotenv').config()
 const { Client } = require('pg')
 
 function getDbUrl() {
@@ -62,7 +63,7 @@ async function run() {
     const port = u.port || '5432'
     const pooled = /pooler|pgbouncer/i.test(dbUrl)
     console.log(`[migrate] Connecting to ${host}:${port} (pooled=${pooled}) ...`)
-  } catch {}
+  } catch { }
 
   // Connect with a timeout to avoid hanging indefinitely
   await client.connect()

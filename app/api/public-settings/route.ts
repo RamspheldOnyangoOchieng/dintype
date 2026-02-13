@@ -9,7 +9,7 @@ export async function GET() {
         const { data: rawSettings } = await supabase
             .from('settings')
             .select('*')
-            .in('key', ['currency_config', 'site_name', 'logo_text'])
+            .in('key', ['currency_config', 'site_name', 'logo_text', 'site_url'])
 
         const settings: Record<string, any> = {}
         rawSettings?.forEach(s => {
@@ -21,7 +21,8 @@ export async function GET() {
             settings: {
                 currency: settings.currency_config || { code: 'USD', symbol: '$', rate: 1.0 },
                 siteName: settings.site_name || "Pocketlove",
-                logoText: settings.logo_text || "Pocketlove"
+                logoText: settings.logo_text || "Pocketlove",
+                siteUrl: settings.site_url || ""
             }
         })
     } catch (error: any) {

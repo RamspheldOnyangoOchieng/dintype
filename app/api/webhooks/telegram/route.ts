@@ -7,7 +7,16 @@ import { getNovitaApiKey } from '@/lib/api-keys';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
-const SITE_URL = 'https://pocketlove-ai.vercel.app';
+
+// Helper to get effective Site URL
+async function getSiteUrl() {
+    const supabase = await createAdminClient();
+    if (supabase) {
+        const { data } = await supabase.from('settings').select('value').eq('key', 'site_url').maybeSingle();
+        if (data?.value) return data.value.replace(/\/$/, '');
+    }
+    return (process.env.NEXT_PUBLIC_APP_URL || 'https://pocketlove-ai.vercel.app').replace(/\/$/, '');
+}
 
 // Helper to send messages to Telegram
 async function sendTelegramMessage(chatId: number, text: string, options?: { reply_markup?: any }) {
@@ -77,6 +86,7 @@ async function getTelegramFileBase64(fileId: string): Promise<string | null> {
 
 // Helper to set the persistent Menu Button (The blue "Menu" button)
 async function setChatMenuButton(chatId?: number) {
+    const siteUrl = await getSiteUrl();
     try {
         await fetch(`${TELEGRAM_API_URL}/setChatMenuButton`, {
             method: 'POST',
@@ -86,7 +96,7 @@ async function setChatMenuButton(chatId?: number) {
                 menu_button: {
                     type: "web_app",
                     text: "Explore ✨",
-                    web_app: { url: `${SITE_URL}/telegram` }
+                    web_app: { url: `${siteUrl}/telegram` }
                 }
             }),
         });
@@ -506,6 +516,7 @@ async function getUserFavoriteCharacters(supabase: any, userId: string, limit: n
 }
 
 export async function POST(request: NextRequest) {
+    const siteUrl = await getSiteUrl();
     try {
         const update = await request.json();
         console.log('[Telegram Webhook] Received update:', JSON.stringify(update, null, 2));
@@ -590,7 +601,7 @@ export async function POST(request: NextRequest) {
                             await sendTelegramMessage(chatId, `💕 <b>${character.name}</b>\n\n${charGreeting}\n\n<i>Tip: Link your account for full history sync!</i>`, {
                                 reply_markup: {
                                     inline_keyboard: [
-                                        [{ text: '🔗 Link Account', url: `${SITE_URL}/chat/${valueId}` }],
+                                        [{ text: '🔗 Link Account', url: `${siteUrl}/chat/${valueId}` }],
                                         [{ text: '🔄 Switch Character', callback_data: 'show_chars' }]
                                     ]
                                 }
@@ -662,7 +673,7 @@ export async function POST(request: NextRequest) {
                 const buttons = characters.map((char: any) => ([
                     { text: char.name, callback_data: `select_char:${char.id}` }
                 ]));
-                buttons.push([{ text: '🌐 See All on Pocketlove', url: `${SITE_URL}/characters` }]);
+                buttons.push([{ text: '🌐 See All on Pocketlove', url: `${siteUrl}/characters` }]);
 
                 await sendTelegramMessage(chatId, `💕 <b>Choose Your Companion</b>\n\nWho would you like to chat with today?`, {
                     reply_markup: { inline_keyboard: buttons }
@@ -797,13 +808,13 @@ export async function POST(request: NextRequest) {
                                 reply_markup: {
                                     keyboard: [[{
                                         text: "Open App ✨",
-                                        web_app: { url: `${SITE_URL}/telegram` }
+                                        web_app: { url: `${siteUrl}/telegram` }
                                     }]],
                                     resize_keyboard: true,
                                     is_persistent: true,
                                     inline_keyboard: [
-                                        [{ text: '🔗 Link to Web Account', url: `${SITE_URL}/chat/${character.id}` }],
-                                        [{ text: '🔄 Switch Character', web_app: { url: `${SITE_URL}/telegram` } }]
+                                        [{ text: '🔗 Link to Web Account', url: `${siteUrl}/chat/${character.id}` }],
+                                        [{ text: '🔄 Switch Character', web_app: { url: `${siteUrl}/telegram` } }]
                                     ]
                                 }
                             }
@@ -887,12 +898,12 @@ export async function POST(request: NextRequest) {
                                 reply_markup: {
                                     keyboard: [[{
                                         text: "Open App ✨",
-                                        web_app: { url: `${SITE_URL}/telegram` }
+                                        web_app: { url: `${siteUrl}/telegram` }
                                     }]],
                                     resize_keyboard: true,
                                     is_persistent: true,
                                     inline_keyboard: [[
-                                        { text: '🔄 Switch Character', web_app: { url: `${SITE_URL}/telegram` } }
+                                        { text: '🔄 Switch Character', web_app: { url: `${siteUrl}/telegram` } }
                                     ]]
                                 }
                             }
@@ -960,12 +971,12 @@ export async function POST(request: NextRequest) {
                                 reply_markup: {
                                     keyboard: [[{
                                         text: "Open App ✨",
-                                        web_app: { url: `${SITE_URL}/telegram` }
+                                        web_app: { url: `${siteUrl}/telegram` }
                                     }]],
                                     resize_keyboard: true,
                                     is_persistent: true,
                                     inline_keyboard: [
-                                        [{ text: '🔄 Switch Character', web_app: { url: `${SITE_URL}/telegram` } }]
+                                        [{ text: '🔄 Switch Character', web_app: { url: `${siteUrl}/telegram` } }]
                                     ]
                                 }
                             }
@@ -982,12 +993,12 @@ export async function POST(request: NextRequest) {
                         reply_markup: {
                             keyboard: [[{
                                 text: "Explore Characters ✨",
-                                web_app: { url: `${SITE_URL}/telegram` }
+                                web_app: { url: `${siteUrl}/telegram` }
                             }]],
                             resize_keyboard: true,
                             is_persistent: true,
                             inline_keyboard: [
-                                [{ text: '🌐 Open Mini App', web_app: { url: `${SITE_URL}/telegram` } }]
+                                [{ text: '🌐 Open Mini App', web_app: { url: `${siteUrl}/telegram` } }]
                             ]
                         }
                     }
@@ -1004,7 +1015,7 @@ export async function POST(request: NextRequest) {
                     {
                         reply_markup: {
                             inline_keyboard: [[
-                                { text: '🌐 Open Mini App', web_app: { url: `${SITE_URL}/telegram` } }
+                                { text: '🌐 Open Mini App', web_app: { url: `${siteUrl}/telegram` } }
                             ]]
                         }
                     }
@@ -1022,7 +1033,7 @@ export async function POST(request: NextRequest) {
                     { text: char.name, callback_data: `select_char:${char.id}` }
                 ]));
 
-                buttons.push([{ text: '🌐 See All on Pocketlove', url: `${SITE_URL}/characters` }]);
+                buttons.push([{ text: '🌐 See All on Pocketlove', url: `${siteUrl}/characters` }]);
 
                 await sendTelegramMessage(
                     chatId,
@@ -1053,7 +1064,7 @@ export async function POST(request: NextRequest) {
                             {
                                 reply_markup: {
                                     inline_keyboard: [[
-                                        { text: '💎 Go Premium', url: `${SITE_URL}/premium` }
+                                        { text: '💎 Go Premium', url: `${siteUrl}/premium` }
                                     ]]
                                 }
                             }
@@ -1306,7 +1317,7 @@ export async function POST(request: NextRequest) {
                             replyMarkup = {
                                 inline_keyboard: [
                                     ...inlineButtons,
-                                    [{ text: '🔄 Switch Character', web_app: { url: `${SITE_URL}/telegram` } }]
+                                    [{ text: '🔄 Switch Character', web_app: { url: `${siteUrl}/telegram` } }]
                                 ]
                             };
                         }

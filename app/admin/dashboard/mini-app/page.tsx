@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/components/auth-context"
+import { useSite } from "@/components/site-context"
 import {
     Settings,
     RefreshCw,
@@ -20,7 +21,11 @@ import {
     Users,
     MessageSquare,
     ToggleLeft,
-    ToggleRight
+    ToggleRight,
+    User,
+    Upload,
+    Trash2,
+    Image as ImageIcon
 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -45,6 +50,9 @@ type MiniAppSettings = {
         character_creation: boolean
         premium_features: boolean
     }
+    bot_name?: string
+    about_text?: string
+    bot_avatar_url?: string
 }
 
 type MiniAppStats = {
@@ -56,6 +64,7 @@ type MiniAppStats = {
 
 export default function MiniAppManagementPage() {
     const { user, isLoading } = useAuth()
+    const { settings: siteSettings } = useSite()
     const router = useRouter()
     const [settings, setSettings] = useState<MiniAppSettings>({
         enabled: true,
@@ -73,7 +82,10 @@ export default function MiniAppManagementPage() {
             image_generation: true,
             character_creation: true,
             premium_features: true,
-        }
+        },
+        bot_name: "PocketLove",
+        about_text: "Your AI companion",
+        bot_avatar_url: ""
     })
 
     const [stats, setStats] = useState<MiniAppStats>({
@@ -127,6 +139,70 @@ export default function MiniAppManagementPage() {
         }
     }
 
+    const [syncing, setSyncing] = useState(false)
+    const [syncResult, setSyncResult] = useState<any>(null)
+
+    const handleSyncToTelegram = async () => {
+        setSyncing(true)
+        setSyncResult(null)
+        try {
+            const response = await fetch('/api/admin/telegram/sync-bot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: settings.bot_name,
+                    short_description: settings.about_text,
+                    description: settings.description
+                })
+            })
+            const data = await response.json()
+            if (data.success) {
+                setSaveMessage("Bot identity synced to Telegram!")
+                setSyncResult(data.results)
+                setTimeout(() => setSaveMessage(""), 3000)
+            } else {
+                setSaveMessage("Sync failed: " + data.error)
+            }
+        } catch (err) {
+            console.error("Sync error:", err)
+            setSaveMessage("Error syncing with Telegram")
+        } finally {
+            setSyncing(false)
+        }
+    }
+
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setSaving(true)
+        try {
+            const formData = new FormData()
+            formData.append('file', file)
+            formData.append('upload_preset', 'pocketlove')
+
+            const response = await fetch(
+                `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+                {
+                    method: 'POST',
+                    body: formData,
+                }
+            )
+
+            const data = await response.json()
+            if (data.secure_url) {
+                setSettings(prev => ({ ...prev, bot_avatar_url: data.secure_url }))
+                setSaveMessage("Avatar uploaded! Remember to save all settings.")
+                setTimeout(() => setSaveMessage(""), 3000)
+            }
+        } catch (err) {
+            console.error("Upload error:", err)
+            setSaveMessage("Failed to upload avatar")
+        } finally {
+            setSaving(false)
+        }
+    }
+
     const handleSaveSettings = async () => {
         setSaving(true)
         try {
@@ -152,6 +228,8 @@ export default function MiniAppManagementPage() {
             setSaving(false)
         }
     }
+
+    const effectiveSiteUrl = siteSettings.siteUrl ? siteSettings.siteUrl.replace(/\/$/, '') : (typeof window !== 'undefined' ? window.location.origin : '')
 
     if (isLoading) {
         return (
@@ -279,6 +357,10 @@ export default function MiniAppManagementPage() {
                     <TabsTrigger value="integration" className="gap-2">
                         <Globe className="h-4 w-4" />
                         Integration
+                    </TabsTrigger>
+                    <TabsTrigger value="identity" className="gap-2">
+                        <User className="h-4 w-4" />
+                        Bot Identity
                     </TabsTrigger>
                 </TabsList>
 
@@ -534,6 +616,161 @@ export default function MiniAppManagementPage() {
                     </Card>
                 </TabsContent>
 
+                <TabsContent value="identity" className="space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Editor */}
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Bot Profile Details</CardTitle>
+                                <CardDescription>Manage how your bot appears to users in Telegram</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="botName">Display Name</Label>
+                                    <Input
+                                        id="botName"
+                                        value={settings.bot_name}
+                                        onChange={(e) => setSettings(prev => ({ ...prev, bot_name: e.target.value }))}
+                                        placeholder="PocketLove"
+                                    />
+                                    <p className="text-xs text-muted-foreground">The name users see at the top of the chat</p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="aboutText">About (Short Description)</Label>
+                                    <Input
+                                        id="aboutText"
+                                        value={settings.about_text}
+                                        onChange={(e) => setSettings(prev => ({ ...prev, about_text: e.target.value }))}
+                                        placeholder="Your AI companion"
+                                    />
+                                    <p className="text-xs text-muted-foreground">Shown in the bot's profile and search results</p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="longDescription">Description (Full)</Label>
+                                    <Textarea
+                                        id="longDescription"
+                                        value={settings.description}
+                                        onChange={(e) => setSettings(prev => ({ ...prev, description: e.target.value }))}
+                                        placeholder="What can this bot do?..."
+                                        rows={4}
+                                    />
+                                    <p className="text-xs text-muted-foreground">Shown when a user clicks 'What can this bot do?'</p>
+                                </div>
+
+                                <div className="space-y-2 pt-4 border-t">
+                                    <Label className="text-base font-bold">Bot Avatar</Label>
+                                    <div className="flex items-center gap-4 mt-2">
+                                        <div className="relative w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-slate-300">
+                                            {settings.bot_avatar_url ? (
+                                                <img src={settings.bot_avatar_url} alt="Bot Avatar" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <ImageIcon className="w-8 h-8 text-slate-400" />
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <Button variant="outline" size="sm" className="relative cursor-pointer" asChild>
+                                                <label>
+                                                    <Upload className="h-4 w-4 mr-2" />
+                                                    Upload New Photo
+                                                    <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
+                                                </label>
+                                            </Button>
+                                            {settings.bot_avatar_url && (
+                                                <Button variant="ghost" size="sm" className="text-destructive" onClick={() => setSettings(prev => ({ ...prev, bot_avatar_url: "" }))}>
+                                                    <Trash2 className="h-4 w-4 mr-2" />
+                                                    Remove
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-amber-600 mt-2 font-medium">
+                                        Note: Telegram API does not support setting the official bot avatar yet.
+                                        Please upload this image to @BotFather manually.
+                                    </p>
+                                </div>
+
+                                <Button
+                                    className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+                                    onClick={handleSyncToTelegram}
+                                    disabled={syncing}
+                                >
+                                    {syncing ? <RefreshCw className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                                    Sync Name & About to Telegram
+                                </Button>
+                            </CardContent>
+                        </Card>
+
+                        {/* Telegram Profile Preview */}
+                        <div className="flex flex-col gap-4">
+                            <h3 className="font-bold text-lg px-2">Telegram Profile Preview</h3>
+                            <div className="bg-[#17212b] rounded-2xl shadow-2xl overflow-hidden text-white font-sans max-w-[360px] mx-auto w-full border border-slate-700">
+                                {/* Header / Top Bar */}
+                                <div className="p-4 flex items-center gap-4 border-b border-[#0e161e]">
+                                    <div className="relative w-16 h-16 rounded-full bg-[#2b5278] flex items-center justify-center overflow-hidden flex-shrink-0">
+                                        {settings.bot_avatar_url ? (
+                                            <img src={settings.bot_avatar_url} alt="Bot" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span className="text-2xl font-bold">{(settings.bot_name || "P").charAt(0)}</span>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="text-xl font-bold truncate">{settings.bot_name || "PocketLove"}</h4>
+                                        <p className="text-[#6c7883] text-sm">bot</p>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex p-4 gap-4 border-b border-[#0e161e]">
+                                    <div className="flex-1 bg-[#242f3d] py-2 rounded-lg flex flex-col items-center gap-1 cursor-pointer hover:bg-[#2b394a] transition-colors">
+                                        <MessageSquare className="w-5 h-5 text-[#4ea4f6]" />
+                                        <span className="text-[#4ea4f6] text-xs font-medium">Message</span>
+                                    </div>
+                                    <div className="flex-1 bg-[#242f3d] py-2 rounded-lg flex flex-col items-center gap-1 cursor-pointer hover:bg-[#2b394a] transition-colors">
+                                        <Activity className="w-5 h-5 text-[#4ea4f6]" />
+                                        <span className="text-[#4ea4f6] text-xs font-medium">Mute</span>
+                                    </div>
+                                </div>
+
+                                {/* Details */}
+                                <div className="p-4 space-y-6">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-6 flex justify-center pt-1">
+                                            <Users className="w-5 h-5 text-[#6c7883]" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[#4ea4f6] font-medium">@{settings.bot_username || "pocketloveaibot"}</p>
+                                            <p className="text-[#6c7883] text-xs">Username</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-6 flex justify-center pt-1">
+                                            <ImageIcon className="w-5 h-5 text-[#6c7883]" />
+                                        </div>
+                                        <div>
+                                            <p className="text-white">4 photos</p>
+                                            <p className="text-[#6c7883] text-xs">Media gallery</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-2 space-y-4">
+                                        <div className="flex items-center justify-between text-[#4ea4f6] cursor-pointer hover:bg-slate-800/50 p-1 rounded">
+                                            <span className="text-sm font-medium">Bot Privacy Policy</span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-[#ef5350] cursor-pointer hover:bg-slate-800/50 p-1 rounded">
+                                            <span className="text-sm font-medium">Report</span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-[#ef5350] cursor-pointer hover:bg-slate-800/50 p-1 rounded">
+                                            <span className="text-sm font-medium">Stop and block bot</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </TabsContent>
                 <TabsContent value="integration" className="space-y-6">
                     <Card>
                         <CardHeader>
@@ -546,7 +783,7 @@ export default function MiniAppManagementPage() {
                                 <AlertDescription>
                                     <p className="font-medium mb-2">Mini App URL</p>
                                     <code className="bg-muted px-2 py-1 rounded text-sm">
-                                        {typeof window !== 'undefined' ? window.location.origin : ''}/telegram
+                                        {effectiveSiteUrl}/telegram
                                     </code>
                                 </AlertDescription>
                             </Alert>
@@ -561,7 +798,7 @@ export default function MiniAppManagementPage() {
                                         @{settings.bot_username}<br />
                                         {settings.app_name}<br />
                                         {settings.description}<br />
-                                        {typeof window !== 'undefined' ? window.location.origin : ''}/telegram
+                                        {effectiveSiteUrl}/telegram
                                     </code>
                                 </AlertDescription>
                             </Alert>

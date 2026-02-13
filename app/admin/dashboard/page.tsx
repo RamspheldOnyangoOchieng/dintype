@@ -41,6 +41,7 @@ export default function AdminDashboardPage() {
   const router = useRouter()
   const [siteName, setSiteName] = useState(settings.siteName)
   const [logoText, setLogoText] = useState(settings.logoText)
+  const [siteUrl, setSiteUrl] = useState(settings.siteUrl || "")
   const [currency, setCurrency] = useState(settings.pricing.currency)
   const [currencyPosition, setCurrencyPosition] = useState(settings.pricing.currencyPosition)
   const [monthlyPrice, setMonthlyPrice] = useState(settings.pricing.monthly.price.toString())
@@ -272,6 +273,7 @@ export default function AdminDashboardPage() {
       updateSettings({
         siteName,
         logoText,
+        siteUrl,
         pricing: {
           currency,
           currencyPosition,
@@ -330,6 +332,11 @@ export default function AdminDashboardPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ key: "logo_text", value: logoText })
+        })
+        await fetch("/api/admin/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: "site_url", value: siteUrl })
         })
       } catch (e) {
         console.error("Failed to save settings to DB")
@@ -592,6 +599,19 @@ export default function AdminDashboardPage() {
                   />
                   <p className="text-[11px] text-slate-500 italic">
                     Affects page titles and metadata across the platform.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="siteUrl" className="font-bold">Official Site URL</Label>
+                  <Input
+                    id="siteUrl"
+                    value={siteUrl}
+                    onChange={(e) => setSiteUrl(e.target.value)}
+                    placeholder="https://yourdomain.com"
+                  />
+                  <p className="text-[11px] text-slate-500 italic">
+                    The primary domain of your application. Used for Telegram integration and absolute links.
                   </p>
                 </div>
 

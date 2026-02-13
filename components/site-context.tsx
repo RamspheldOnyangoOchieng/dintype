@@ -6,6 +6,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from "
 type SiteSettings = {
   siteName: string
   logoText: string
+  siteUrl: string
   language: "en" | "sv" // Add language setting
   pricing: {
     currency: string
@@ -32,6 +33,7 @@ type SiteSettings = {
 const defaultSettings: SiteSettings = {
   siteName: "Pocketlove",
   logoText: "Pocketlove",
+  siteUrl: "",
   language: "en", // Default to English
   pricing: {
     currency: "$",
@@ -86,6 +88,7 @@ export function SiteProvider({ children }: { children: ReactNode }) {
               ...prev,
               siteName: data.settings.siteName,
               logoText: data.settings.logoText,
+              siteUrl: data.settings.siteUrl || "",
               pricing: {
                 ...prev.pricing,
                 currency: data.settings.currency.symbol
