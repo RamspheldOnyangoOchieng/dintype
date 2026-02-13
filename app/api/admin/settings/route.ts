@@ -13,8 +13,20 @@ export async function GET(request: Request) {
         const isAdmin = await isUserAdmin(supabase, user.id)
         if (!isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
-        const { data: settings } = await supabase.from('settings').select('*')
-        
+        const { searchParams } = new URL(request.url)
+        const key = searchParams.get('key')
+
+        let query = supabase.from('settings').select('*')
+
+        if (key) {
+            query = query.eq('key', key)
+            const { data: settings, error } = await query.single()
+            if (error && error.code !== 'PGRST116') throw error
+            return NextResponse.json({ success: true, value: settings?.value || null })
+        }
+
+        const { data: settings } = await query
+
         return NextResponse.json({ success: true, settings })
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 })

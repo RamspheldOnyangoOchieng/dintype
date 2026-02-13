@@ -21,6 +21,7 @@ type CharacterContextType = {
   initDb: () => Promise<boolean>
   storageBucketExists: boolean
   createAdminUsersTable: () => Promise<boolean>
+  createTelegramTables: () => Promise<boolean>
   refreshCharacters: () => Promise<void>
 }
 
@@ -488,6 +489,85 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
     return characters.find((char) => char.id === id)
   }
 
+  const createTelegramTables = async (): Promise<boolean> => {
+    try {
+      const createTablesSQL = `
+        -- Create telegram_users table
+        CREATE TABLE IF NOT EXISTS public.telegram_users (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          telegram_user_id TEXT UNIQUE NOT NULL,
+          username TEXT,
+          first_name TEXT,
+          last_name TEXT,
+          profile_image_url TEXT,
+          bio TEXT,
+          active_character_id UUID REFERENCES public.characters(id) ON DELETE SET NULL,
+          last_active_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+        );
+
+        -- Create telegram_links table
+        CREATE TABLE IF NOT EXISTS public.telegram_links (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          telegram_id TEXT NOT NULL UNIQUE,
+          user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+          character_id UUID REFERENCES public.characters(id) ON DELETE CASCADE,
+          telegram_username TEXT,
+          telegram_first_name TEXT,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+        );
+
+        -- Create indexes
+        CREATE INDEX IF NOT EXISTS idx_telegram_users_telegram_id ON public.telegram_users(telegram_user_id);
+        CREATE INDEX IF NOT EXISTS idx_telegram_users_last_active ON public.telegram_users(last_active_at);
+        CREATE INDEX IF NOT EXISTS idx_telegram_links_telegram_id ON public.telegram_links(telegram_id);
+
+        -- Enable RLS
+        ALTER TABLE public.telegram_users ENABLE ROW LEVEL SECURITY;
+        ALTER TABLE public.telegram_links ENABLE ROW LEVEL SECURITY;
+
+        -- Policies for telegram_users
+        DROP POLICY IF EXISTS "Allow public read for telegram_users" ON public.telegram_users;
+        CREATE POLICY "Allow public read for telegram_users" ON public.telegram_users
+          FOR SELECT USING (true);
+
+        -- Policies for telegram_links
+        DROP POLICY IF EXISTS "Users can view their own telegram links" ON public.telegram_links;
+        CREATE POLICY "Users can view their own telegram links" ON public.telegram_links
+          FOR SELECT TO authenticated USING (auth.uid() = user_id);
+
+        -- Add triggers for updated_at
+        CREATE OR REPLACE FUNCTION update_updated_at_column()
+        RETURNS TRIGGER AS $$
+        BEGIN
+            NEW.updated_at = NOW();
+            RETURN NEW;
+        END;
+        $$ language 'plpgsql';
+
+        DROP TRIGGER IF EXISTS update_telegram_users_updated_at ON public.telegram_users;
+        CREATE TRIGGER update_telegram_users_updated_at BEFORE UPDATE ON public.telegram_users FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+        
+        DROP TRIGGER IF EXISTS update_telegram_links_updated_at ON public.telegram_links;
+        CREATE TRIGGER update_telegram_links_updated_at BEFORE UPDATE ON public.telegram_links FOR EACH ROW EXECUTE PROCEDURE update_updated_at_column();
+      `
+
+      const { error } = await (supabase as any).rpc("exec_sql", { sql: createTablesSQL })
+
+      if (error) {
+        console.error("Error creating telegram tables:", error)
+        return false
+      }
+
+      return true
+    } catch (error) {
+      console.error("Error in createTelegramTables:", error)
+      return false
+    }
+  }
+
   const createAdminUsersTable = async (): Promise<boolean> => {
     try {
       // First check if the table exists by trying to query it
@@ -547,10 +627,6 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.error("Error creating admin_users table:", error)
-        // Try fallback if exec_sql doesn't exist
-        if (error.message.includes("Could not find the function")) {
-          console.warn("exec_sql function not found, cannot create table via RPC")
-        }
         return false
       }
 
@@ -575,6 +651,7 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
     initDb,
     storageBucketExists,
     createAdminUsersTable,
+    createTelegramTables,
     refreshCharacters: fetchCharacters,
   }), [
     characters,
@@ -582,6 +659,7 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
     error,
     activeType,
     storageBucketExists,
+    createTelegramTables,
   ])
 
   return <CharacterContext.Provider value={contextValue}>{children}</CharacterContext.Provider>

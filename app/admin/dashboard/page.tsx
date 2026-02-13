@@ -24,6 +24,7 @@ import {
   Sparkles,
   Shield,
   Coins,
+  Smartphone,
 } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
@@ -70,6 +71,7 @@ export default function AdminDashboardPage() {
   const [totalUsers, setTotalUsers] = useState<number | undefined>(undefined)
   const [recentActivity, setRecentActivity] = useState<any[]>([])
   const [usageStats, setUsageStats] = useState<{ totalTokens: number, totalCredits: number, premiumCount: number, monthlyApiCost: number } | null>(null)
+  const [telegramStats, setTelegramStats] = useState<{ total_users: number, active_today: number } | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -177,6 +179,16 @@ export default function AdminDashboardPage() {
       } catch (e) {
         console.error("Failed to load settings from DB")
       }
+
+      try {
+        const telegramStatsResponse = await fetch("/api/telegram/stats")
+        if (telegramStatsResponse.ok) {
+          const telegramData = await telegramStatsResponse.json()
+          setTelegramStats(telegramData)
+        }
+      } catch (e) {
+        console.error("Failed to fetch telegram stats")
+      }
     }
 
     fetchData()
@@ -235,6 +247,13 @@ export default function AdminDashboardPage() {
       change: "Issued",
       changeType: "neutral",
       icon: Shield,
+    },
+    {
+      title: "Telegram Users",
+      value: telegramStats?.total_users?.toString() || "0",
+      change: `${telegramStats?.active_today || 0} active today`,
+      changeType: "neutral",
+      icon: Smartphone,
     },
     {
       title: "Tokens Balance",

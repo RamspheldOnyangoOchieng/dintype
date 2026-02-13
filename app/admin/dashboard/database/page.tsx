@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/components/auth-context"
 import { useCharacters } from "@/components/character-context"
-import { Home, RefreshCw, Check, AlertTriangle, Copy, ExternalLink, Database } from "lucide-react"
+import { Home, RefreshCw, Check, AlertTriangle, Copy, ExternalLink, Database, Smartphone } from "lucide-react"
 
 export default function AdminDatabasePage() {
   const { user, isLoading } = useAuth()
-  const { initDb, error: dbError, storageBucketExists, createAdminUsersTable } = useCharacters()
+  const { initDb, error: dbError, storageBucketExists, createAdminUsersTable, createTelegramTables } = useCharacters()
   const router = useRouter()
   const [isInitializing, setIsInitializing] = useState(false)
   const [initStatus, setInitStatus] = useState<"idle" | "success" | "error" | "warning">("idle")
@@ -198,6 +198,51 @@ export default function AdminDatabasePage() {
                   <Database className="mr-2 h-4 w-4" />
                   Initialize Admin Users Table
                 </Button>
+
+                <div className="mt-8 border-t border-[#252525] pt-6">
+                  <h4 className="font-medium mb-4 text-white flex items-center">
+                    <Smartphone className="mr-2 h-5 w-5 text-primary" />
+                    Telegram Integration Tables
+                  </h4>
+                  <p className="text-gray-400 mb-4">
+                    Create the necessary tables for Telegram Mini App management and profile tracking.
+                  </p>
+                  <Button
+                    onClick={async () => {
+                      setIsInitializing(true)
+                      try {
+                        const success = await createTelegramTables()
+                        if (success) {
+                          setInitStatus("success")
+                          setStatusMessage("Telegram tables created successfully!")
+                        } else {
+                          setInitStatus("error")
+                          setStatusMessage("Failed to create Telegram tables.")
+                        }
+                      } catch (error) {
+                        console.error("Error creating telegram tables:", error)
+                        setInitStatus("error")
+                        setStatusMessage("An error occurred while creating telegram tables.")
+                      } finally {
+                        setIsInitializing(false)
+                      }
+                    }}
+                    disabled={isInitializing}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
+                    {isInitializing ? (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                        Initializing...
+                      </>
+                    ) : (
+                      <>
+                        <Database className="mr-2 h-4 w-4" />
+                        Initialize Telegram Tables
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
 

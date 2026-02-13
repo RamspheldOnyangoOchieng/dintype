@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart, CreditCard, Home, Settings, Users, Image, MessageSquare, DollarSign, FileText, Package, Gem, Activity, Search, FileEdit, Upload, Shield, PanelLeft } from "lucide-react"
+import { BarChart, CreditCard, Home, Settings, Users, Image, MessageSquare, DollarSign, FileText, Package, Gem, Activity, Search, FileEdit, Upload, Shield, PanelLeft, Smartphone, UserCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // Make sure the Settings link is pointing to the correct path
@@ -16,6 +16,8 @@ const navigation = [
   { name: "Blog Posts", href: "/admin/dashboard/blog", icon: FileText },
   { name: "Characters", href: "/admin/dashboard/characters", icon: MessageSquare },
   { name: "Users", href: "/admin/dashboard/users", icon: Users },
+  { name: "Telegram Profiles", href: "/admin/dashboard/telegram-profiles", icon: UserCircle },
+  { name: "Mini App Management", href: "/admin/dashboard/mini-app", icon: Smartphone },
   { name: "Image Suggestions", href: "/admin/dashboard/image-suggestions", icon: Image },
   { name: "Banners", href: "/admin/dashboard/banners", icon: BarChart },
   { name: "Token Packages", href: "/admin/dashboard/token-packages", icon: Package },
@@ -25,6 +27,7 @@ const navigation = [
   { name: "Settings", href: "/admin/settings", icon: Settings },
   { name: "Legal", href: "/admin/dashboard/documents", icon: FileText },
 ]
+
 
 export default function AdminSidebar({
   onNavigate,
