@@ -83,7 +83,7 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
     )
   }
 
-  const telegramLink = `https://t.me/pocketloveaibot?start=char_${character.id?.substring(0, 8)}`
+  const telegramLink = `https://t.me/dintypebot?start=char_${character.id?.substring(0, 8)}`
 
   return (
     <div className="container py-8 max-w-5xl">

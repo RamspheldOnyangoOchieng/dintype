@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/auth-context"
 import { useSite } from "@/components/site-context"
 import { useCharacters } from "@/components/character-context"
+import { useTranslations } from "@/lib/use-translations"
 import {
   Home,
   Save,
@@ -39,6 +40,7 @@ export default function AdminDashboardPage() {
   const { settings, updateSettings } = useSite()
   const { characters } = useCharacters()
   const router = useRouter()
+  const { t } = useTranslations()
   const [siteName, setSiteName] = useState(settings.siteName)
   const [logoText, setLogoText] = useState(settings.logoText)
   const [siteUrl, setSiteUrl] = useState(settings.siteUrl || "")
@@ -201,65 +203,65 @@ export default function AdminDashboardPage() {
 
   const stats = [
     {
-      title: "Total Users",
+      title: t("admin.stat.totalUsers"),
       value: typeof totalUsers === 'number' ? totalUsers.toString() : "0",
-      change: "All time",
+      change: t("admin.stat.allTime"),
       changeType: "neutral",
       icon: Users,
     },
     {
-      title: "Active Characters",
+      title: t("admin.stat.activeCharacters"),
       value: characters?.length?.toString() || "0",
       change: "0%",
       changeType: "neutral",
       icon: MessageSquare,
     },
     {
-      title: "Monthly Revenue",
+      title: t("admin.stat.monthlyRevenue"),
       value: typeof monthlyRevenue === 'number' ? `${currency} ${monthlyRevenue.toFixed(2)}` : `${currency} 0.00`,
-      change: "This month",
+      change: t("admin.stat.thisMonth"),
       changeType: "neutral",
       icon: DollarSign,
     },
     {
-      title: "API Costs",
+      title: t("admin.stat.apiCosts"),
       value: usageStats ? `${currency} ${usageStats.monthlyApiCost.toFixed(2)}` : `${currency} 0.00`,
-      change: "This month",
+      change: t("admin.stat.thisMonth"),
       changeType: "negative",
       icon: Activity,
     },
     {
-      title: "Total Revenue",
+      title: t("admin.stat.totalRevenue"),
       value: typeof totalRevenue === 'number' ? `${currency} ${totalRevenue.toFixed(2)}` : `${currency} 0.00`,
-      change: "All time",
+      change: t("admin.stat.allTime"),
       changeType: "positive",
       icon: CreditCard,
     },
     {
-      title: "Premium Members",
+      title: t("admin.stat.premiumMembers"),
       value: usageStats ? usageStats.premiumCount.toString() : "0",
-      change: "Active",
+      change: t("admin.stat.allTime"),
       changeType: "positive",
       icon: Sparkles,
     },
     {
-      title: "Credits Balance",
+      title: t("admin.stat.activeCharacters"),
       value: usageStats ? usageStats.totalCredits.toString() : "0",
-      change: "Issued",
+      change: t("admin.stat.allTime"),
       changeType: "neutral",
       icon: Shield,
     },
     {
-      title: "Telegram Users",
+      title: t("admin.nav.telegramProfiles"),
       value: telegramStats?.total_users?.toString() || "0",
-      change: `${telegramStats?.active_today || 0} active today`,
+      change: `${telegramStats?.active_today || 0} ${t("admin.stat.allTime")}`,
       changeType: "neutral",
       icon: Smartphone,
     },
     {
-      title: "Tokens Balance",
+      title: t("admin.stat.totalRevenue"),
       value: usageStats ? usageStats.totalTokens.toString() : "0",
-      change: "In Circulation",
+      change: t("admin.stat.allTime"),
       changeType: "neutral",
       icon: Coins,
     },
@@ -357,7 +359,7 @@ export default function AdminDashboardPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-600 dark:text-slate-400">Loading dashboard...</p>
+          <p className="text-slate-600 dark:text-slate-400">{t("admin.dashboard.loading")}</p>
         </div>
       </div>
     )
@@ -368,12 +370,12 @@ export default function AdminDashboardPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Dashboard</h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">Welcome back! Here's your platform overview.</p>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{t("admin.dashboard.title")}</h1>
+          <p className="text-slate-600 dark:text-slate-400 mt-1">{t("admin.dashboard.welcome")}</p>
         </div>
         <Button onClick={() => router.push("/")} variant="outline" className="flex items-center space-x-2">
           <Home className="h-4 w-4" />
-          <span>View Site</span>
+          <span>{t("admin.dashboard.viewSite")}</span>
         </Button>
       </div>
 
@@ -595,7 +597,7 @@ export default function AdminDashboardPage() {
                     id="siteName"
                     value={siteName}
                     onChange={(e) => setSiteName(e.target.value)}
-                    placeholder="Pocketlove"
+                    placeholder="Dintype"
                   />
                   <p className="text-[11px] text-slate-500 italic">
                     Affects page titles and metadata across the platform.
@@ -621,7 +623,7 @@ export default function AdminDashboardPage() {
                     id="logoText"
                     value={logoText}
                     onChange={(e) => setLogoText(e.target.value)}
-                    placeholder="Pocketlove"
+                    placeholder="Dintype"
                   />
                   <p className="text-[11px] text-slate-500 italic">The wordmark displayed in the header.</p>
                 </div>

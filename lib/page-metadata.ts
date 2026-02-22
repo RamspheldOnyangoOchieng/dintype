@@ -1,6 +1,23 @@
 import { createAdminClient } from './supabase-admin'
 import { Metadata } from 'next'
 
+/** Fetch the site name from the settings table (server-side, cached per-request). */
+async function getSiteName(): Promise<string> {
+  try {
+    const supabase = await createAdminClient()
+    const { data } = await supabase
+      .from('settings')
+      .select('key, value')
+      .in('key', ['site_name', 'logo_text'])
+    if (data) {
+      const map: Record<string, string> = {}
+      data.forEach((r) => { map[r.key] = r.value })
+      return map['site_name'] || map['logo_text'] || 'Dintype'
+    }
+  } catch {}
+  return 'Dintype'
+}
+
 interface PageMeta {
   meta_title: string | null
   meta_description: string | null
@@ -23,6 +40,7 @@ interface PageMeta {
 export async function getPageMetadata(pagePath: string): Promise<Metadata> {
   try {
     const supabase = await createAdminClient()
+    const siteName = await getSiteName()
 
     const { data: pageMeta } = await supabase
       .from('page_meta')
@@ -31,19 +49,18 @@ export async function getPageMetadata(pagePath: string): Promise<Metadata> {
       .single()
 
     if (!pageMeta) {
-      // Return default metadata if page not found
-      return getDefaultMetadata()
+      return getDefaultMetadata(siteName)
     }
 
     const meta: PageMeta = pageMeta as PageMeta
 
     return {
-      title: meta.meta_title || 'Pocketlove',
+      title: meta.meta_title || siteName,
       description: meta.meta_description || 'Create and chat with AI characters',
       keywords: meta.meta_keywords?.split(',').map((k) => k.trim()),
       robots: meta.robots || 'index,follow',
       openGraph: {
-        title: meta.og_title || meta.meta_title || 'Pocketlove',
+        title: meta.og_title || meta.meta_title || siteName,
         description: meta.og_description || meta.meta_description || '',
         images: meta.og_image ? [{ url: meta.og_image }] : [],
         type: (meta.og_type as any) || 'website',
@@ -51,7 +68,7 @@ export async function getPageMetadata(pagePath: string): Promise<Metadata> {
       },
       twitter: {
         card: (meta.twitter_card as any) || 'summary_large_image',
-        title: meta.og_title || meta.meta_title || 'Pocketlove',
+        title: meta.og_title || meta.meta_title || siteName,
         description: meta.og_description || meta.meta_description || '',
         images: meta.og_image ? [meta.og_image] : [],
       },
@@ -68,21 +85,22 @@ export async function getPageMetadata(pagePath: string): Promise<Metadata> {
 /**
  * Get default metadata fallback
  */
-function getDefaultMetadata(): Metadata {
+async function getDefaultMetadata(siteName?: string): Promise<Metadata> {
+  const name = siteName || await getSiteName()
   return {
-    title: 'Pocketlove',
+    title: name,
     description: 'Create and chat with personal AI companions',
     keywords: ['ai partner', 'ai chat', 'virtual companion'],
     robots: 'index,follow',
     openGraph: {
-      title: 'Pocketlove',
+      title: name,
       description: 'Create and chat with personal AI companions',
       type: 'website',
       locale: 'en_US',
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Pocketlove',
+      title: name,
       description: 'Create and chat with personal AI companions',
     },
   }

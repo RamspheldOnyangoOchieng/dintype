@@ -160,7 +160,7 @@ export default function Home() {
           <h2 className="text-3xl font-bold mb-4">{t("home.complaints.title")}</h2>
           <p className="text-muted-foreground mb-6">{t("home.complaints.description")}</p>
           <div className="space-y-2 text-sm md:text-base">
-            <p>{t("home.complaints.email")}: <a href="mailto:support@pocketlove.ai" className="text-primary hover:underline">support@pocketlove.ai</a></p>
+            <p>{t("home.complaints.email")}: <a href="mailto:support@dintype.se" className="text-primary hover:underline">support@dintype.se</a></p>
             <p>{t("home.complaints.note1")}</p>
             <p>{t("home.complaints.note2")}</p>
           </div>
@@ -273,8 +273,8 @@ export default function Home() {
         initialPreferences={consent?.preferences}
       />
 
-      {/* Welcome Marketing Modal */}
-      <WelcomeModal pageType="home" />
+      {/* Welcome Marketing Modal - only shown after consent is confirmed */}
+      {!modalOpen && <WelcomeModal pageType="home" />}
     </div>
   )
 }

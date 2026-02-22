@@ -168,12 +168,12 @@ export function TelegramConnectButton({
                             <p className="text-sm text-muted-foreground text-center">
                                 You can now chat with {characterName} at{' '}
                                 <a
-                                    href="https://t.me/pocketloveaibot"
+                                    href="https://t.me/dintypebot"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-primary hover:underline"
                                 >
-                                    @pocketloveaibot
+                                    @dintypebot
                                 </a>
                             </p>
 
@@ -229,7 +229,7 @@ export function TelegramConnectButton({
                                 ) : (
                                     <Link2 className="h-4 w-4" />
                                 )}
-                                Connect to @pocketloveaibot
+                                Connect to @dintypebot
                             </Button>
 
                             <p className="text-xs text-muted-foreground text-center">

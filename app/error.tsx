@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle, Home, RefreshCw, ArrowLeft } from "lucide-react"
+import { useTranslations } from "@/lib/use-translations"
 
 export default function Error({
   error,
@@ -12,6 +13,8 @@ export default function Error({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  const { t } = useTranslations()
+
   useEffect(() => {
     // Log the error to an error reporting service
     console.error(error)
@@ -29,35 +32,35 @@ export default function Error({
             <AlertTriangle className="h-24 w-24 text-destructive mx-auto animate-pulse" />
           </div>
 
-          <h2 className="text-3xl font-semibold text-foreground">Something Went Wrong</h2>
+          <h2 className="text-3xl font-semibold text-foreground">{t("error.title")}</h2>
 
           <div className="max-w-md mx-auto">
-            <p className="text-muted-foreground text-lg">Our AI characters encountered an unexpected error.</p>
-            {error.digest && <p className="text-sm text-muted-foreground mt-2">Error ID: {error.digest}</p>}
+            <p className="text-muted-foreground text-lg">{t("error.description")}</p>
+            {error.digest && <p className="text-sm text-muted-foreground mt-2">{t("error.errorId")} {error.digest}</p>}
           </div>
         </div>
 
         <div className="relative w-full my-8 p-6 bg-card/50 border border-border rounded-lg">
-          <p className="text-muted-foreground">{error.message || "An unexpected error occurred"}</p>
+          <p className="text-muted-foreground">{error.message || t("error.defaultMessage")}</p>
         </div>
 
         <div className="relative z-10">
           <div className="flex flex-wrap gap-4 justify-center">
             <Button onClick={reset} size="lg" variant="default" className="group">
               <RefreshCw className="mr-2 h-5 w-5 group-hover:animate-spin" />
-              Try Again
+              {t("error.tryAgain")}
             </Button>
 
             <Button asChild size="lg" variant="outline" className="group">
               <Link href="/">
                 <Home className="mr-2 h-5 w-5 group-hover:animate-bounce" />
-                Return Home
+                {t("error.returnHome")}
               </Link>
             </Button>
 
             <Button variant="ghost" size="lg" onClick={() => window.history.back()} className="group">
               <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
-              Go Back
+              {t("error.goBack")}
             </Button>
           </div>
         </div>

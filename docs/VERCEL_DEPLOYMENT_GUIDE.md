@@ -1,4 +1,4 @@
-# Vercel Deployment Guide for Pocketlove
+# Vercel Deployment Guide for Dintype
 
 ## Prerequisites
 
@@ -134,7 +134,7 @@ Test these features:
 - [ ] Homepage loads correctly
 - [ ] User registration works
 - [ ] User login works
-- [ ] Admin login works (support@pocketlove.ai)
+- [ ] Admin login works (support@dintype.se)
 - [ ] Character creation works
 - [ ] Image generation works
 - [ ] Stripe payment flow works
@@ -147,7 +147,7 @@ To use a custom domain:
 
 1. Go to **Project Settings → Domains**
 2. Click "Add Domain"
-3. Enter your domain (e.g., `pocketlove.ai`)
+3. Enter your domain (e.g., `dintype.se`)
 4. Follow DNS configuration instructions
 5. Update `NEXT_PUBLIC_APP_URL` to your custom domain
 6. Update Supabase and Stripe webhook URLs
@@ -240,7 +240,7 @@ To disable auto-deployment:
 
 ## Admin Credentials
 
-**Email:** support@pocketlove.ai  
+**Email:** support@dintype.se  
 **Password:** jdAlx!02!A  
 **User ID:** e3885385-f2ee-45c3-b92f-32bc4e3a9958  
 **Token Balance:** 10,000  

@@ -95,8 +95,8 @@ GRANT ALL ON footer_content TO authenticated; -- Needed for upsert if policy all
 -- Insert default footer content if empty
 INSERT INTO footer_content (id, content)
 SELECT 1, '{
-    "companyName": "Pocketlove",
-    "companyDescription": "Pocketlove delivers immersive experiences with AI companions that feel real, allowing users to generate images and chat.",
+    "companyName": "Dintype",
+    "companyDescription": "Dintype delivers immersive experiences with AI companions that feel real, allowing users to generate images and chat.",
     "features": [
       { "id": 1, "title": "Create Image", "url": "/generate" },
       { "id": 2, "title": "Chat", "url": "/chat" },

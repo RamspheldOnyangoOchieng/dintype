@@ -33,7 +33,7 @@ export function UserHeader() {
           </Button>
           <Link href="/" className="flex items-center">
             <span className="text-xl font-bold text-white">
-              POCKETLOVE<span className="text-primary">.AI</span>
+              {(settings.logoText || settings.siteName || "").toUpperCase()}<span className="text-primary">.AI</span>
             </span>
           </Link>
         </div>

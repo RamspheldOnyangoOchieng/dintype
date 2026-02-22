@@ -94,7 +94,7 @@ export default function TelegramProfilesPage() {
         try {
             const formData = new FormData()
             formData.append('file', imageFile)
-            formData.append('upload_preset', 'pocketlove')
+            formData.append('upload_preset', 'dintype')
 
             const response = await fetch(
                 `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,

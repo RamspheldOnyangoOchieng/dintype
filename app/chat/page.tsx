@@ -1,9 +1,8 @@
 import { Suspense } from "react"
-import Link from "next/link"
-import { ArrowRight, Sparkles, MessageCircle, Users } from "lucide-react"
 import { createClient } from "@/lib/supabase-server"
 import { CharacterGrid } from "@/components/character-grid"
 import { ClientChatList } from "@/components/client-chat-list"
+import { ChatPageHero, ChatPageRecentHeader, ChatPageDirectoryHeader } from "@/components/chat-page-hero"
 
 export const dynamic = "force-dynamic";
 
@@ -64,41 +63,11 @@ export default async function ChatPage() {
       <div className="flex-1 overflow-y-auto px-4 md:px-8 py-10 space-y-12 relative scroll-smooth no-scrollbar">
 
         {/* Hero Section */}
-        <div className="relative z-10">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-primary font-bold tracking-widest text-xs uppercase">
-                <Sparkles className="w-4 h-4" />
-                Your Pocket Universe
-              </div>
-              <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">
-                Conversations
-              </h1>
-              <p className="text-gray-400 max-w-md">
-                Reconnect with your favorites or explore new personalities crafted just for you.
-              </p>
-            </div>
-
-            <div className="flex gap-3">
-              <div className="px-4 py-2 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-sm font-medium text-white/70">
-                  {characters.length} Personalities Online
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ChatPageHero characterCount={characters.length} />
 
         {/* Recent Conversations Card Container */}
         <section className="relative z-10">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-primary/20 rounded-xl">
-              <MessageCircle className="w-5 h-5 text-primary" />
-            </div>
-            <h2 className="text-2xl font-bold text-white">Recent Chats</h2>
-          </div>
-
+          <ChatPageRecentHeader />
           <div className="bg-[#121212]/50 border border-white/5 rounded-[2.5rem] p-6 backdrop-blur-xl shadow-2xl">
             <ClientChatList />
           </div>
@@ -106,22 +75,7 @@ export default async function ChatPage() {
 
         {/* Directory Section */}
         <section className="relative z-10 pb-20">
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500/20 rounded-xl">
-                <Users className="w-5 h-5 text-purple-400" />
-              </div>
-              <h2 className="text-2xl font-bold text-white">Discover All</h2>
-            </div>
-
-            <Link
-              href="/characters"
-              className="group flex items-center gap-2 text-sm font-bold text-primary hover:text-white transition-all"
-            >
-              Browse Category
-              <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
+          <ChatPageDirectoryHeader />
 
           <div className="min-h-[400px]">
             <Suspense fallback={

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { useTranslations } from "@/lib/use-translations"
 import { Calendar, User, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -32,6 +33,7 @@ interface Category {
 }
 
 export default function BlogPage() {
+  const { t } = useTranslations()
   const [posts, setPosts] = useState<BlogPost[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
@@ -89,14 +91,14 @@ export default function BlogPage() {
     <div className="min-h-screen bg-background">
       <div className="border-b bg-background">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
-          <h1 className="text-3xl md:text-4xl font-bold text-center mb-6 text-zinc-800 dark:text-white">BLOG</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-center mb-6 text-zinc-800 dark:text-white">{t("blog.title")}</h1>
           <div className="flex justify-center">
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="All categories" />
+                <SelectValue placeholder={t("blog.allCategories")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
+                <SelectItem value="all">{t("blog.allCategories")}</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.slug}>
                     {cat.name_en || cat.name_sv}
@@ -110,9 +112,9 @@ export default function BlogPage() {
 
       <div className="container mx-auto px-4 py-12 max-w-7xl">
         {loading ? (
-          <div className="text-center py-12">Loading posts...</div>
+          <div className="text-center py-12">{t("blog.loadingPosts")}</div>
         ) : posts.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">No posts found</div>
+          <div className="text-center py-12 text-muted-foreground">{t("blog.noPosts")}</div>
         ) : (
           <>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -150,7 +152,7 @@ export default function BlogPage() {
 
                         <div className="mt-auto pt-4 border-t">
                           <span className="inline-flex items-center gap-2 text-primary font-medium text-sm group-hover:gap-3 transition-all">
-                            Read more →
+                            {t("blog.readMore")}
                           </span>
                         </div>
                       </div>
@@ -167,7 +169,7 @@ export default function BlogPage() {
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                 >
-                  Previous
+                  {t("blog.previous")}
                 </Button>
                 <span className="flex items-center px-4 text-zinc-600 dark:text-zinc-400">
                   Page {currentPage} of {totalPages}
@@ -177,7 +179,7 @@ export default function BlogPage() {
                   onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                 >
-                  Next
+                  {t("blog.next")}
                 </Button>
               </div>
             )}

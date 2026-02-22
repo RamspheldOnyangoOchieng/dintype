@@ -23,6 +23,7 @@ import {
   ExternalLink
 } from "lucide-react"
 import { useAuth } from "@/components/auth-context"
+import { useTranslations } from "@/lib/use-translations"
 // import { UserModelAnalytics } from "@/components/user-model-analytics"
 // import { WithdrawalRequestForm } from "@/components/withdrawal-request-form-new"
 // import { WithdrawalHistory } from "@/components/withdrawal-history-new"
@@ -31,6 +32,7 @@ import { useMemo } from "react"
 // import { UserModelsDisplay } from "@/components/user-models-display"
 
 function RecentActivity() {
+  const { t } = useTranslations()
   const [items, setItems] = useState<any[] | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -66,7 +68,7 @@ function RecentActivity() {
     return (
       <div className="text-center py-4">
         <p className="text-sm text-muted-foreground">
-          Activity will appear here as you use the platform
+          {t("monetization.activityDesc")}
         </p>
       </div>
     )
@@ -131,6 +133,8 @@ export default function MonetizationPage() {
     models: [],
     loading: true
   })
+
+  const { t } = useTranslations()
 
   useEffect(() => {
     setMounted(true)
@@ -263,12 +267,12 @@ export default function MonetizationPage() {
           <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6">
             <AlertCircle className="h-8 w-8 text-gray-500" />
           </div>
-          <h1 className="text-3xl font-bold mb-4">Monetization Unavailable</h1>
+          <h1 className="text-3xl font-bold mb-4">{t("monetization.unavailable")}</h1>
           <p className="text-muted-foreground mb-6">
-            Monetization features are currently disabled. Please check back later.
+            {t("monetization.unavailableDesc")}
           </p>
           <Button onClick={() => router.push("/")} variant="outline">
-            Return to Home
+            {t("monetization.returnHome")}
           </Button>
         </div>
       </div>
@@ -278,9 +282,9 @@ export default function MonetizationPage() {
   return (
     <div className="container max-w-6xl py-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Monetization Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-2">{t("monetization.title")}</h1>
         <p className="text-muted-foreground">
-          Manage your earnings, models, and withdrawal requests
+          {t("monetization.subtitle")}
         </p>
       </div>
 
@@ -288,60 +292,60 @@ export default function MonetizationPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Token Balance</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("monetization.tokenBalance")}</CardTitle>
             <Coins className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-[#FF8C00]">
-              {stats.loading ? "Loading..." : (stats.tokenBalance ?? 0)}
+              {stats.loading ? t("monetization.loading") : (stats.tokenBalance ?? 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Available for image generation
+              {t("monetization.forImageGen")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("monetization.totalEarnings")}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {modelEarnings.loading ? "Loading..." : `$ ${(modelEarnings.totalTokens * 0.0001).toFixed(4)}`}
+              {modelEarnings.loading ? t("monetization.loading") : `$ ${(modelEarnings.totalTokens * 0.0001).toFixed(4)}`}
             </div>
             <p className="text-xs text-muted-foreground">
-              From {modelEarnings.totalTokens.toLocaleString()} tokens earned
+              From {modelEarnings.totalTokens.toLocaleString()} {t("monetization.tokensEarned")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Models Owned</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("monetization.modelsOwned")}</CardTitle>
             <Cpu className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {stats.loading ? "Loading..." : (stats.modelsOwned ?? 0)}
+              {stats.loading ? t("monetization.loading") : (stats.modelsOwned ?? 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Premium models purchased
+              {t("monetization.premiumModels")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available for Withdrawal</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("monetization.availableWithdrawal")}</CardTitle>
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {modelEarnings.loading ? "Loading..." : `$ ${(modelEarnings.totalTokens * 0.0001).toFixed(2)}`}
+              {modelEarnings.loading ? t("monetization.loading") : `$ ${(modelEarnings.totalTokens * 0.0001).toFixed(2)}`}
             </div>
             <p className="text-xs text-muted-foreground">
-              {modelEarnings.totalTokens * 0.0001 >= 50 ? "Ready to withdraw" : `Need $ ${(50 - (modelEarnings.totalTokens * 0.0001)).toFixed(2)} more`}
+              {modelEarnings.totalTokens * 0.0001 >= 50 ? t("monetization.readyToWithdraw") : `Need $ ${(50 - (modelEarnings.totalTokens * 0.0001)).toFixed(2)} more`}
             </p>
           </CardContent>
         </Card>

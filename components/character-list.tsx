@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { MoreVertical, Edit, Trash2, Plus, Globe, MessageSquare } from "lucide-react"
 import { useAuth } from "@/components/auth-context"
+import { useTranslations } from "@/lib/use-translations"
 
 interface CharacterListProps {
   characters: CharacterProfile[]
@@ -29,6 +30,7 @@ interface CharacterListProps {
 
 export function CharacterList({ characters }: CharacterListProps) {
   const { user } = useAuth()
+  const { t } = useTranslations()
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set())
 
@@ -46,19 +48,19 @@ export function CharacterList({ characters }: CharacterListProps) {
       const result = await deleteCharacter(id)
       if (result.error) {
         toast({
-          title: "Error",
+          title: t("characterList.error"),
           description: result.error,
           variant: "destructive",
         })
       } else {
         toast({
-          title: "Character Deleted",
-          description: "The character has been successfully deleted.",
+          title: t("characterList.deleted"),
+          description: t("characterList.deletedDesc"),
         })
       }
     } catch (error) {
       toast({
-        title: "Error",
+        title: t("characterList.error"),
         description: (error as Error).message,
         variant: "destructive",
       })
@@ -70,12 +72,12 @@ export function CharacterList({ characters }: CharacterListProps) {
   if (validCharacters.length === 0) {
     return (
       <div className="text-center py-20 bg-white/5 rounded-[2rem] border border-white/10 backdrop-blur-xl">
-        <h3 className="text-2xl font-bold mb-2">No characters found</h3>
-        <p className="text-white/40 mb-8 max-w-xs mx-auto text-sm">Create your first character to begin your adventure.</p>
+        <h3 className="text-2xl font-bold mb-2">{t("characterList.noCharacters")}</h3>
+        <p className="text-white/40 mb-8 max-w-xs mx-auto text-sm">{t("characterList.createFirst")}</p>
         <Button asChild className="bg-primary hover:bg-primary/90 h-12 px-8 rounded-xl font-bold text-white shadow-lg shadow-primary/20">
           <Link href="/create-character">
             <Plus className="mr-2 h-5 w-5" />
-            Create Character
+            {t("characterList.createCharacter")}
           </Link>
         </Button>
       </div>
@@ -99,7 +101,7 @@ export function CharacterList({ characters }: CharacterListProps) {
               />
             ) : (
               <div className="h-full w-full bg-[#111] flex items-center justify-center">
-                <span className="text-white/20 text-xs uppercase tracking-widest font-bold">No Portrait</span>
+                <span className="text-white/20 text-xs uppercase tracking-widest font-bold">{t("characterList.noPortrait")}</span>
               </div>
             )}
 
@@ -112,7 +114,7 @@ export function CharacterList({ characters }: CharacterListProps) {
               {character.is_public ? (
                 <div className="bg-black/60 backdrop-blur-md border border-white/20 px-3 py-1 rounded-full flex items-center gap-2 text-white shadow-lg">
                   <Globe className="h-3 w-3 text-primary animate-pulse" />
-                  <span className="text-[10px] font-bold uppercase tracking-tighter drop-shadow-md">Public</span>
+                  <span className="text-[10px] font-bold uppercase tracking-tighter drop-shadow-md">{t("characterList.public")}</span>
                 </div>
               ) : (
                 <div />
@@ -129,31 +131,31 @@ export function CharacterList({ characters }: CharacterListProps) {
                     <DropdownMenuItem asChild className="rounded-lg hover:bg-white/10 focus:bg-white/10 transition-colors">
                       <Link href={`/characters/${character.id}/edit`} className="flex items-center w-full px-2 py-1.5">
                         <Edit className="mr-2 h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium">Edit Profile</span>
+                        <span className="text-sm font-medium">{t("characterList.editProfile")}</span>
                       </Link>
                     </DropdownMenuItem>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <button className="flex items-center w-full px-2 py-1.5 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-lg transition-colors">
                           <Trash2 className="mr-2 h-4 w-4" />
-                          Delete Character
+                          {t("characterList.deleteCharacter")}
                         </button>
                       </AlertDialogTrigger>
                       <AlertDialogContent className="bg-[#0f0f0f] border-white/10 text-white rounded-[2rem] p-8">
                         <AlertDialogHeader>
                           <AlertDialogTitle className="text-2xl font-bold">Delete "{character.name}"?</AlertDialogTitle>
                           <AlertDialogDescription className="text-white/40 text-base">
-                            This action is permanent and will delete all memory and prompts associated with this AI.
+                            {t("characterList.deleteDesc")}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter className="mt-6">
-                          <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10 rounded-xl transition-all">Cancel</AlertDialogCancel>
+                          <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10 rounded-xl transition-all">{t("characterList.cancel")}</AlertDialogCancel>
                           <AlertDialogAction
                             onClick={() => character.id && handleDelete(character.id)}
                             disabled={isDeleting === character.id}
                             className="bg-red-500 hover:bg-red-600 border-none rounded-xl font-bold transition-all"
                           >
-                            {isDeleting === character.id ? "Deleting..." : "Confirm Delete"}
+                            {isDeleting === character.id ? t("characterList.deleting") : t("characterList.confirmDelete")}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -177,12 +179,12 @@ export function CharacterList({ characters }: CharacterListProps) {
 
             <div className="flex flex-col sm:flex-row gap-2 md:opacity-0 md:group-hover:opacity-100 transition-all duration-500 delay-100">
               <Button asChild variant="outline" className="flex-1 h-9 md:h-10 text-xs md:text-sm border-white/20 hover:bg-white/10 rounded-xl bg-black/40 backdrop-blur-md text-white transition-all">
-                <Link href={`/characters/${character.id}`}>Details</Link>
+                <Link href={`/characters/${character.id}`}>{t("characterList.details")}</Link>
               </Button>
               <Button asChild className="flex-1 h-9 md:h-10 text-xs md:text-sm bg-primary hover:bg-primary/90 text-white font-black rounded-xl transition-all shadow-lg shadow-primary/20">
                 <Link href={`/chat/${character.id}`} className="flex items-center justify-center gap-2">
                   <MessageSquare className="h-3 w-3 md:h-4 md:w-4" />
-                  Chat Now
+                  {t("characterList.chatNow")}
                 </Link>
               </Button>
             </div>

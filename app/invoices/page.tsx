@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useAuth } from "@/components/auth-context"
+import { useTranslations } from "@/lib/use-translations"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { FileText, Download, RefreshCw } from "lucide-react"
@@ -29,6 +30,7 @@ export default function InvoicesPage() {
   const { user } = useAuth()
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const { t } = useTranslations()
 
   useEffect(() => {
     if (user) {
@@ -139,36 +141,36 @@ export default function InvoicesPage() {
         <div>
           <h1 className="text-3xl font-bold flex items-center">
             <FileText className="mr-3 h-8 w-8" />
-            Invoices & Receipts
+            {t("invoices.title")}
           </h1>
-          <p className="text-muted-foreground mt-2">View and download your payment receipts</p>
+          <p className="text-muted-foreground mt-2">{t("invoices.subtitle")}</p>
         </div>
         <Button onClick={loadInvoices} variant="outline">
           <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
+          {t("invoices.refresh")}
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Payment History</CardTitle>
-          <CardDescription>All your payment transactions and invoices</CardDescription>
+          <CardTitle>{t("invoices.paymentHistory")}</CardTitle>
+          <CardDescription>{t("invoices.allPayments")}</CardDescription>
         </CardHeader>
         <CardContent>
           {invoices.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No invoices found</p>
+              <p>{t("invoices.noInvoices")}</p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Invoice Date</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t("invoices.invoiceDate")}</TableHead>
+                  <TableHead>{t("invoices.description")}</TableHead>
+                  <TableHead>{t("invoices.amount")}</TableHead>
+                  <TableHead>{t("invoices.status")}</TableHead>
+                  <TableHead>{t("invoices.actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -177,7 +179,7 @@ export default function InvoicesPage() {
                     <TableCell>
                       {new Date(invoice.created_at).toLocaleDateString()}
                     </TableCell>
-                    <TableCell>{invoice.plan_name || "Token Purchase"}</TableCell>
+                    <TableCell>{invoice.plan_name || t("invoices.tokenPurchase")}</TableCell>
                     <TableCell className="font-semibold">
                       $ {invoice.amount.toFixed(2)}
                     </TableCell>
@@ -199,7 +201,7 @@ export default function InvoicesPage() {
                         onClick={() => downloadInvoice(invoice)}
                       >
                         <Download className="mr-2 h-4 w-4" />
-                        Download
+                        {t("invoices.download")}
                       </Button>
                     </TableCell>
                   </TableRow>

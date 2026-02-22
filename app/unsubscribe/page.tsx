@@ -19,7 +19,7 @@ export default function UnsubscribePage() {
     <div className="min-h-screen flex items-center justify-center bg-black text-white">
       <div className="bg-[#232323] rounded-xl shadow-lg w-full max-w-md flex flex-col items-center justify-center p-10">
         <div className="mb-6">
-          <Image src="/favicon.png" alt="Pocketlove" width={48} height={48} />
+          <Image src="/favicon.png" alt="Dintype" width={48} height={48} />
         </div>
         <h2 className="text-2xl font-bold mb-4">{t.unsubscribe}</h2>
         <p className="text-gray-300 text-center mb-8">{t.success}</p>

@@ -4,6 +4,7 @@ import type React from "react"
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "@/lib/use-translations"
 import { Button } from "@/components/ui/button"
 import {
   ArrowLeft,
@@ -23,6 +24,7 @@ import { motion, AnimatePresence } from "framer-motion"
 
 export default function NotFound() {
   const router = useRouter()
+  const { t } = useTranslations()
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [isHovering, setIsHovering] = useState(false)
   const [showEasterEgg, setShowEasterEgg] = useState(false)
@@ -200,7 +202,7 @@ export default function NotFound() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            Character Not Found
+            {t("notFound.title")}
           </motion.h2>
 
           <motion.div
@@ -210,10 +212,10 @@ export default function NotFound() {
             transition={{ delay: 0.3 }}
           >
             <p className="text-muted-foreground text-lg">
-              Oops! It seems this AI character has wandered off into the digital void.
+              {t("notFound.description")}
             </p>
             <p className="text-muted-foreground mt-2 text-sm">
-              Perhaps they're exploring another dimension or just taking a break from the digital world.
+              {t("notFound.subDescription")}
             </p>
           </motion.div>
         </div>
@@ -227,7 +229,7 @@ export default function NotFound() {
               aria-selected={activeTab === "home"}
             >
               <Home className="mr-2 h-4 w-4" />
-              <span>Home</span>
+              <span>{t("notFound.homeTab")}</span>
             </button>
             <button
               onClick={() => handleTabChange("search")}
@@ -235,7 +237,7 @@ export default function NotFound() {
               aria-selected={activeTab === "search"}
             >
               <Search className="mr-2 h-4 w-4" />
-              <span>Search</span>
+              <span>{t("notFound.searchTab")}</span>
             </button>
             <button
               onClick={() => handleTabChange("chat")}
@@ -243,7 +245,7 @@ export default function NotFound() {
               aria-selected={activeTab === "chat"}
             >
               <MessageSquare className="mr-2 h-4 w-4" />
-              <span>Chat</span>
+              <span>{t("notFound.chatTab")}</span>
             </button>
           </div>
 
@@ -492,7 +494,7 @@ export default function NotFound() {
                     <input
                       ref={searchRef}
                       type="text"
-                      placeholder="Search for characters..."
+                      placeholder={t("notFound.searchPlaceholder")}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50"
@@ -538,7 +540,7 @@ export default function NotFound() {
                 </form>
 
                 <div className="text-sm text-muted-foreground">
-                  <p>Popular searches:</p>
+                  <p>{t("notFound.popularSearches")}</p>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {["Einstein", "Sherlock", "Curie", "Tesla"].map((term) => (
                       <button
@@ -559,8 +561,8 @@ export default function NotFound() {
                   >
                     <ImageIcon className="h-5 w-5 text-primary" />
                     <div className="text-left">
-                      <p className="font-medium">Collections</p>
-                      <p className="text-xs text-muted-foreground">Browse character collections</p>
+                      <p className="font-medium">{t("notFound.collections")}</p>
+                      <p className="text-xs text-muted-foreground">{t("notFound.browseCharacterCollections")}</p>
                     </div>
                   </Link>
                   <Link
@@ -569,8 +571,8 @@ export default function NotFound() {
                   >
                     <Users className="h-5 w-5 text-primary" />
                     <div className="text-left">
-                      <p className="font-medium">Characters</p>
-                      <p className="text-xs text-muted-foreground">View all characters</p>
+                      <p className="font-medium">{t("notFound.characters")}</p>
+                      <p className="text-xs text-muted-foreground">{t("notFound.viewAllCharacters")}</p>
                     </div>
                   </Link>
                 </div>
@@ -589,15 +591,15 @@ export default function NotFound() {
                 <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
                   <h3 className="font-medium flex items-center gap-2 mb-2">
                     <Zap className="h-4 w-4 text-primary" />
-                    Start a new conversation
+                    {t("notFound.startConversation")}
                   </h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Choose a character to chat with or start a new conversation
+                    {t("notFound.chooseCharacter")}
                   </p>
                   <Button asChild className="w-full">
                     <Link href="/chat" className="flex items-center justify-center gap-2">
                       <MessageSquare className="h-4 w-4" />
-                      Start Chatting
+                      {t("notFound.startChatting")}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Link>
                   </Button>
@@ -638,14 +640,14 @@ export default function NotFound() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <p className="text-muted-foreground mb-6">Don't worry! You can try one of these paths instead:</p>
+          <p className="text-muted-foreground mb-6">{t("notFound.dontWorry")}</p>
 
           <div className="flex flex-wrap gap-4 justify-center">
             <Button asChild size="lg" variant="default" className="group relative overflow-hidden">
               <Link href="/">
                 <span className="absolute inset-0 bg-gradient-to-r from-primary/10 to-secondary/10 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></span>
                 <Home className="mr-2 h-5 w-5 group-hover:animate-bounce" />
-                <span className="relative z-10">Return Home</span>
+                <span className="relative z-10">{t("notFound.returnHome")}</span>
               </Link>
             </Button>
 
@@ -653,7 +655,7 @@ export default function NotFound() {
               <Link href="/collections">
                 <span className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></span>
                 <Search className="mr-2 h-5 w-5 group-hover:rotate-12 transition-transform" />
-                <span className="relative z-10">Browse Collections</span>
+                <span className="relative z-10">{t("notFound.browseCollections")}</span>
               </Link>
             </Button>
 
@@ -661,18 +663,18 @@ export default function NotFound() {
               <Link href="/chat">
                 <span className="absolute inset-0 bg-gradient-to-r from-secondary/10 to-primary/10 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></span>
                 <MessageSquare className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-                <span className="relative z-10">Start a Chat</span>
+                <span className="relative z-10">{t("notFound.startChat")}</span>
               </Link>
             </Button>
 
             <Button variant="ghost" size="lg" onClick={() => window.history.back()} className="group">
               <ArrowLeft className="mr-2 h-5 w-5 group-hover:-translate-x-1 transition-transform" />
-              Go Back
+              {t("notFound.goBack")}
             </Button>
 
             <Button variant="link" onClick={() => window.location.reload()} className="group">
               <RefreshCw className="mr-2 h-4 w-4 group-hover:animate-spin" />
-              Refresh Page
+              {t("notFound.refreshPage")}
             </Button>
           </div>
         </motion.div>
@@ -684,7 +686,7 @@ export default function NotFound() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
         >
-          <p>Lost in the digital realm? Try searching for another character.</p>
+          <p>{t("notFound.lostInDigital")}</p>
         </motion.div>
       </motion.div>
     </div>

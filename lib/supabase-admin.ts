@@ -1,5 +1,3 @@
-"use server"
-
 import { createClient } from "@supabase/supabase-js"
 
 // Export the function with both names for compatibility

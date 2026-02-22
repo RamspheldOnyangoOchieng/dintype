@@ -57,21 +57,21 @@ async function searchAndReplaceBrand() {
                             // JSON replacement is tricky, we'll just REPLACE on the text representation which is risky but often works for simple string replacements
                             updateQuery = `
                  UPDATE "${tableName}" 
-                 SET "${colName}" = REPLACE(REPLACE("${colName}"::text, 'YourFantasy.ai', 'Pocketlove.ai'), 'YourFantasy', 'Pocketlove')::jsonb 
+                 SET "${colName}" = REPLACE(REPLACE("${colName}"::text, 'YourFantasy.ai', 'Dintype.se'), 'YourFantasy', 'Dintype')::jsonb 
                  WHERE "${colName}"::text ILIKE '%YourFantasy%';
                  
                  UPDATE "${tableName}" 
-                 SET "${colName}" = REPLACE(REPLACE("${colName}"::text, 'Dintyp.se', 'Pocketlove.ai'), 'Dintyp', 'Pocketlove')::jsonb 
+                 SET "${colName}" = REPLACE(REPLACE("${colName}"::text, 'Dintyp.se', 'Dintype.se'), 'Dintyp', 'Dintype')::jsonb 
                  WHERE "${colName}"::text ILIKE '%Dintyp%';
                `;
                         } else {
                             updateQuery = `
                  UPDATE "${tableName}" 
-                 SET "${colName}" = REPLACE(REPLACE("${colName}", 'YourFantasy.ai', 'Pocketlove.ai'), 'YourFantasy', 'Pocketlove') 
+                 SET "${colName}" = REPLACE(REPLACE("${colName}", 'YourFantasy.ai', 'Dintype.se'), 'YourFantasy', 'Dintype') 
                  WHERE "${colName}" ILIKE '%YourFantasy%';
 
                  UPDATE "${tableName}" 
-                 SET "${colName}" = REPLACE(REPLACE("${colName}", 'Dintyp.se', 'Pocketlove.ai'), 'Dintyp', 'Pocketlove') 
+                 SET "${colName}" = REPLACE(REPLACE("${colName}", 'Dintyp.se', 'Dintype.se'), 'Dintyp', 'Dintype') 
                  WHERE "${colName}" ILIKE '%Dintyp%';
                `;
                         }

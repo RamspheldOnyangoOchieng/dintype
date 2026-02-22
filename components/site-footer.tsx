@@ -5,11 +5,13 @@ import Link from "next/link"
 import Image from "next/image"
 import { useTranslations } from "@/lib/use-translations"
 import { useAuth } from "@/components/auth-context"
+import { useSite } from "@/components/site-context"
 import { Pencil, Save, X, Plus, Trash } from "lucide-react"
 import { createClient } from "@/utils/supabase/client"
 
 export function SiteFooter() {
   const { t, language } = useTranslations()
+  const { settings } = useSite()
   const currentYear = new Date().getFullYear()
   const { user } = useAuth()
   // Derive admin flag if user role metadata is available
@@ -18,31 +20,31 @@ export function SiteFooter() {
   const [isEditing, setIsEditing] = useState(false)
 
   const defaultData = useMemo(() => ({
-    companyName: "Pocketlove",
-    companyDescription: "Pocketlove provides immersive experiences with AI companions that feel real, allowing users to create images and chat.",
+    companyName: settings.logoText || settings.siteName || "Dintype",
+    companyDescription: t("footer.companyDescription"),
     features: [
-      { id: 1, title: "Create Image", url: "/generate" },
-      { id: 2, title: "Chat", url: "/chat" },
-      { id: 3, title: "Create Companion", url: "/create-character" },
-      { id: 4, title: "Explore", url: "/characters" },
+      { id: 1, title: t("footer.features.createImage"), url: "/generate" },
+      { id: 2, title: t("footer.features.chat"), url: "/chat" },
+      { id: 3, title: t("footer.features.createCharacter"), url: "/create-character" },
+      { id: 4, title: t("footer.features.explore"), url: "/characters" },
     ],
     legal: [
-      { id: 1, title: "Terms and Conditions", url: "/terms" },
-      { id: 2, title: "Privacy Policy", url: "/privacy-policy" },
-      { id: 3, title: "Report and Complaints", url: "/report" },
-      { id: 4, title: "Guidelines", url: "/guidelines" },
-      { id: 5, title: "Cookies", url: "/cookies" },
+      { id: 1, title: t("footer.legal.terms"), url: "/terms" },
+      { id: 2, title: t("footer.legal.privacyPolicy"), url: "/privacy-policy" },
+      { id: 3, title: t("footer.legal.reportComplaints"), url: "/report" },
+      { id: 4, title: t("footer.legal.guidelines"), url: "/guidelines" },
+      { id: 5, title: t("footer.legal.cookies"), url: "/cookies" },
     ],
     aboutUs: [
-      { id: 1, title: "How it Works", url: "/how-it-works" },
-      { id: 2, title: "About Us", url: "/about-us" },
-      { id: 3, title: "Roadmap", url: "/roadmap" },
-      { id: 4, title: "Blog", url: "/blog" },
-      { id: 5, title: "Guide", url: "/guide" },
-      { id: 6, title: "Contact Us", url: "/contact" },
-      { id: 7, title: "FAQ", url: "/faq" },
+      { id: 1, title: t("footer.about.howItWorks"), url: "/how-it-works" },
+      { id: 2, title: t("footer.about.aboutUs"), url: "/about-us" },
+      { id: 3, title: t("footer.about.roadmap"), url: "/roadmap" },
+      { id: 4, title: t("footer.about.blog"), url: "/blog" },
+      { id: 5, title: t("footer.about.guide"), url: "/guide" },
+      { id: 6, title: t("footer.contact"), url: "/contact" },
+      { id: 7, title: t("faq.title"), url: "/faq" },
     ],
-  }), [language])
+  }), [language, settings.logoText, settings.siteName])
 
   const [footerData, setFooterData] = useState(defaultData)
   const [tempData, setTempData] = useState(defaultData)
@@ -51,7 +53,7 @@ export function SiteFooter() {
   useEffect(() => {
     const loadFooterData = async () => {
       try {
-        const { data, error } = await supabase.from("footer_content").select("*").single()
+        const { data, error } = await supabase.from("footer_content").select("*").single() as { data: any; error: any }
 
         if (data && !error) {
           setFooterData(data.content)
@@ -179,15 +181,15 @@ export function SiteFooter() {
           <div className="space-y-4">
             <Link href="/" className="inline-block">
               <h2 className="text-xl font-bold text-zinc-100 dark:text-foreground">
-                Pocketlove<span className="text-primary">.ai</span>
+                {settings.logoText || settings.siteName}<span className="text-primary">.ai</span>
               </h2>
             </Link>
             <p className="text-zinc-400 dark:text-muted-foreground text-sm">{tempData.companyDescription}</p>
           </div>
 
-          {/* AI-flickvänner Section */}
+          {/* AI Companions Section */}
           <div className="space-y-3">
-            <h3 className="text-base font-medium text-zinc-100 dark:text-foreground">AI Companions</h3>
+            <h3 className="text-base font-medium text-zinc-100 dark:text-foreground">{t("footer.colAiCompanions")}</h3>
             <ul className="space-y-2">
               {tempData.features.map((item: any) => (
                 <li key={item.id}>
@@ -199,9 +201,9 @@ export function SiteFooter() {
             </ul>
           </div>
 
-          {/* Villkor Section */}
+          {/* Legal Section */}
           <div className="space-y-3">
-            <h3 className="text-base font-medium text-zinc-100 dark:text-foreground">Legal</h3>
+            <h3 className="text-base font-medium text-zinc-100 dark:text-foreground">{t("footer.colLegal")}</h3>
             <ul className="space-y-2">
               {tempData.legal.map((item: any) => (
                 <li key={item.id}>
@@ -213,9 +215,9 @@ export function SiteFooter() {
             </ul>
           </div>
 
-          {/* Om oss Section */}
+          {/* About Us Section */}
           <div className="space-y-3">
-            <h3 className="text-base font-medium text-zinc-100 dark:text-foreground">About Us</h3>
+            <h3 className="text-base font-medium text-zinc-100 dark:text-foreground">{t("footer.colAboutUs")}</h3>
             <ul className="space-y-2">
               {tempData.aboutUs.map((item: any) => (
                 <li key={item.id}>
@@ -248,7 +250,7 @@ export function SiteFooter() {
                   />
                 ) : (
                   <span className="text-zinc-100 dark:text-foreground">
-                    Pocketlove<span className="text-primary">.ai</span>
+                    {settings.logoText || settings.siteName}<span className="text-primary">.ai</span>
                   </span>
                 )}
               </h2>
@@ -268,9 +270,9 @@ export function SiteFooter() {
             </p>
           </div>
 
-          {/* Column 2: AI-flickvänner */}
+          {/* Column 2: AI Companions */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-zinc-100 dark:text-foreground">AI Companions</h3>
+            <h3 className="text-lg font-medium text-zinc-100 dark:text-foreground">{t("footer.colAiCompanions")}</h3>
             <ul className="space-y-3">
               {tempData.features.map((item: any) => (
                 <li key={item.id}>
@@ -310,9 +312,9 @@ export function SiteFooter() {
             </ul>
           </div>
 
-          {/* Column 3: Villkor */}
+          {/* Column 3: Legal */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-zinc-100 dark:text-foreground">Legal</h3>
+            <h3 className="text-lg font-medium text-zinc-100 dark:text-foreground">{t("footer.colLegal")}</h3>
             <ul className="space-y-3">
               {tempData.legal.map((item: any) => (
                 <li key={item.id}>
@@ -341,9 +343,9 @@ export function SiteFooter() {
             </ul>
           </div>
 
-          {/* Column 4: Om oss */}
+          {/* Column 4: About Us */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-zinc-100 dark:text-foreground">About Us</h3>
+            <h3 className="text-lg font-medium text-zinc-100 dark:text-foreground">{t("footer.colAboutUs")}</h3>
             <ul className="space-y-3">
               {tempData.aboutUs.map((item: any) => (
                 <li key={item.id}>
@@ -375,7 +377,7 @@ export function SiteFooter() {
 
         {/* Bottom */}
         <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-border">
-          <div className="text-muted-foreground text-xs text-center">© {currentYear} Pocketlove.ai. All rights reserved.</div>
+          <div className="text-muted-foreground text-xs text-center">© {currentYear} {settings.logoText || settings.siteName}. {t("footer.rightsReserved")}.</div>
         </div>
       </div>
     </div>

@@ -67,37 +67,37 @@ export default function AppSidebar() {
     },
     {
       icon: <Sparkles className="h-5 w-5" />,
-      label: "Generate Image",
+      label: t("nav.generateImage"),
       href: "/generate",
       active: pathname?.startsWith("/generate"),
     },
     {
       icon: <Users className="h-5 w-5" />,
-      label: "Create Character",
+      label: t("nav.createCharacter"),
       href: "/create-character",
       active: pathname?.startsWith("/create-character"),
     },
     {
       icon: <Heart className="h-5 w-5 text-pink-500" />,
-      label: "My AI Character",
+      label: t("nav.myAI"),
       href: "/my-ai",
       active: pathname?.startsWith("/my-ai"),
     },
     {
       icon: <FolderHeart className="h-5 w-5" />,
-      label: "My Images",
+      label: t("nav.myImages"),
       href: "/collections",
       active: pathname?.startsWith("/collections"),
     },
     {
       icon: <DollarSign className="h-5 w-5 text-green-500" />,
-      label: "Premium",
+      label: t("nav.premium"),
       href: "/premium",
       active: pathname?.startsWith("/premium"),
     },
     {
       icon: <Crown className="h-5 w-5 text-yellow-500" />,
-      label: "Admin Panel",
+      label: t("nav.adminPanel"),
       href: "/admin/dashboard",
       active: pathname?.startsWith("/admin"),
       adminOnly: true,
@@ -131,9 +131,10 @@ export default function AppSidebar() {
             {isOpen ? (
               <div className="flex items-center justify-between w-full">
                 <Link href="/" className="flex items-center gap-2">
-                  <span className="text-2xl font-bold">
-                    <span className="text-foreground">POCKET</span>
-                    <span className="text-primary">LOVE</span>
+                  <span className="text-2xl font-bold tracking-tight">
+                    {settings.logoText
+                      ? <span className="text-primary">{settings.logoText.toUpperCase()}</span>
+                      : <><span className="text-foreground">POCKET</span><span className="text-primary">LOVE</span></>}
                   </span>
                 </Link>
                 <button

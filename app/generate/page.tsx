@@ -27,6 +27,7 @@ import { useCharacters } from "@/components/character-context"
 import { imageUrlToBase64 } from "@/lib/image-utils"
 import { cn } from "@/lib/utils"
 import { WelcomeModal } from "@/components/welcome-modal"
+import { useTranslations } from "@/lib/use-translations"
 
 // Remove the static imageOptions array and replace with dynamic calculation
 // Get selected option for token calculation - move this logic up and make it dynamic
@@ -51,6 +52,7 @@ export default function GenerateImagePage() {
 
 function GenerateContent() {
   const { toast } = useToast()
+  const { t } = useTranslations()
   const { user, isLoading, refreshUser } = useAuth()
   const { openLoginModal } = useAuthModal()
   const router = useRouter()
@@ -788,7 +790,7 @@ function GenerateContent() {
         next.delete(imageUrl)
       } else {
         next.add(imageUrl)
-        toast({ title: "Image liked!", description: "Added to your favorites." })
+        toast({ title: t("generate.imageLiked"), description: t("generate.addedToFavorites") })
       }
       return next
     })
@@ -823,7 +825,7 @@ function GenerateContent() {
                 </Button>
                 <Wand2 className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'}`} />
                 <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold`}>
-                  Generate Image
+                  {t("generate.title")}
                 </h1>
 
                 {user && (
@@ -838,7 +840,7 @@ function GenerateContent() {
                 {characterId && (
                   <div className="ml-2 flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-400 animate-pulse-slow">
                     <Lock className="w-3 h-3" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Locked Face Twinning Active</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">{t("generate.lockedFaceTwinning")}</span>
                   </div>
                 )}
 
@@ -854,7 +856,7 @@ function GenerateContent() {
 
             {/* Suggestions */}
             <div className={`${isMobile ? 'mb-4' : 'mb-6'}`} key="suggestions-container">
-              <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold ${isMobile ? 'mb-3' : 'mb-4'}`}>Create your love from suggestions</h3>
+              <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold ${isMobile ? 'mb-3' : 'mb-4'}`}>{t("generate.createFromSuggestions")}</h3>
               <div className="min-h-[100px]" key="suggestions-stable-wrapper">
                 {categories.length > 0 ? (
                   <Tabs defaultValue={categories[0]} value={activeCategory} onValueChange={handleCategoryChange} key="suggestions-tabs">
@@ -941,7 +943,7 @@ function GenerateContent() {
                 <button
                   onClick={() => {
                     setPrompt("")
-                    toast({ title: "Prompt cleared" })
+                    toast({ title: t("generate.promptCleared") })
                   }}
                   className="p-2 hover:bg-gray-600 rounded transition-colors"
                   title="Clear"
@@ -966,21 +968,21 @@ function GenerateContent() {
                 onClick={() => setShowNegativePrompt(!showNegativePrompt)}
                 className={`text-muted-foreground hover:text-foreground ${isMobile ? 'text-xs' : ''}`}
               >
-                {showNegativePrompt ? "Hide Negative Prompt" : "Show Negative Prompt"}
+                {showNegativePrompt ? t("generate.hideNegativePrompt") : t("generate.showNegativePrompt")}
               </Button>
 
               {/* Negative Prompt Input - Only shown when toggled */}
               {showNegativePrompt && (
                 <div className={`${isMobile ? 'mt-2' : 'mt-3'}`}>
                   <label htmlFor="negative-prompt" className={`block ${isMobile ? 'text-xs' : 'text-sm'} font-medium text-muted-foreground ${isMobile ? 'mb-1' : 'mb-2'}`}>
-                    Negative Prompt (what to avoid in the image)
+                    {t("generate.negativePromptLabel")}
                   </label>
                   <textarea
                     id="negative-prompt"
                     value={negativePrompt}
                     onChange={(e) => setNegativePrompt(e.target.value)}
                     className={`w-full ${isMobile ? 'h-16 text-xs p-3' : 'h-20 p-4 text-sm'} bg-card rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary border border-border`}
-                    placeholder="Elements to exclude from the image..."
+                    placeholder={t("generate.negativePromptPlaceholder")}
                   />
                 </div>
               )}
@@ -991,10 +993,10 @@ function GenerateContent() {
             {/* Number of Images */}
             <div className={`${isMobile ? 'mb-4' : 'mb-6'}`}>
               <div className="flex items-center justify-between mb-3">
-                <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold`}>Number of Images</h3>
+                <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold`}>{t("generate.numberOfImages")}</h3>
                 {!isPremium && !isCheckingPremium && !user?.isAdmin && (
                   <span className="text-xs text-muted-foreground">
-                    🆓 Free: 1 image only
+                    {t("generate.freeOnly1Image")}
                   </span>
                 )}
               </div>
@@ -1030,12 +1032,12 @@ function GenerateContent() {
                         <div className="flex flex-col items-center">
                           <div className={`flex items-center gap-1 ${isSelected ? 'text-primary-foreground/90' : 'text-amber-500'} font-black text-[9px] uppercase tracking-tighter`}>
                             <Sparkles className="h-2.5 w-2.5" />
-                            <span>Premium Required</span>
+                            <span>{t("generate.premiumRequired")}</span>
                           </div>
                           <span className={`${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'} text-[9px] font-medium`}>{option.tokens} tokens</span>
                         </div>
                       ) : (
-                        <span className={`${isSelected ? 'text-primary-foreground/90' : 'text-emerald-500'} font-black text-[9px] uppercase tracking-wider`}>GRATIS SFW</span>
+                        <span className={`${isSelected ? 'text-primary-foreground/90' : 'text-emerald-500'} font-black text-[9px] uppercase tracking-wider`}>{t("generate.freeSFW")}</span>
                       )}
                       {isDisabled && (
                         <div className="absolute -top-2 -right-2 bg-amber-500 text-black p-0.5 rounded-full shadow-md">
@@ -1049,10 +1051,10 @@ function GenerateContent() {
               {!isPremium && !isCheckingPremium && !user?.isAdmin && (
                 <div className={`${isMobile ? 'mt-2 p-2' : 'mt-3 p-3'} bg-primary/10 border border-primary/20 rounded-lg`}>
                   <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-foreground mb-2`}>
-                    <span className="font-semibold">Want to generate multiple images?</span>
+                    <span className="font-semibold">{t("generate.wantMultipleImages")}</span>
                   </p>
                   <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mb-2`}>
-                    Upgrade to Premium to generate 4, 6, or 8 images at once!
+                    {t("generate.upgradeForMultiple")}
                   </p>
                   <Button
                     size={isMobile ? "sm" : "default"}
@@ -1060,13 +1062,13 @@ function GenerateContent() {
                     className="w-full"
                     onClick={() => setShowPremiumModal(true)}
                   >
-                    Upgrade to Premium
+                    {t("generate.upgradeToPremium")}
                   </Button>
                 </div>
               )}
               {selectedCount !== "1" && (
                 <div className={`${isMobile ? 'mt-1 text-xs' : 'mt-2 text-sm'} text-muted-foreground`}>
-                  5 tokens per image
+                  {t("generate.tokensPerImage")}
                 </div>
               )}
             </div>
@@ -1089,12 +1091,12 @@ function GenerateContent() {
                 {isGenerating ? (
                   <>
                     <Loader2 className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'} animate-spin`} />
-                    Generating... {Math.round(generationProgress)}%
+                    {t("generate.generatingProgress").replace("{{progress}}", String(Math.round(generationProgress)))}
                   </>
                 ) : (
                   <>
                     <Wand2 className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                    Generate Image ({tokensRequired === 0 ? 'Free' : `${tokensRequired} tokens`})
+                    {tokensRequired === 0 ? t("generate.generateFree") : t("generate.generateWithTokens").replace("{{tokens}}", String(tokensRequired))}
                   </>
                 )}
               </Button>

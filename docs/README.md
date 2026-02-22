@@ -1,3 +1,3 @@
-# Pocketlove.ai Documentation
+# Dintype.se Documentation
 
 This directory contains project documentation. Please see the [root README.md](../README.md) for the main project overview.

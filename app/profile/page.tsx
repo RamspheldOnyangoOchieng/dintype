@@ -37,6 +37,7 @@ import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "@/lib/use-translations"
 import DeleteFeedbackModal from "@/components/delete-feedback-modal"
 import DeleteConfirmationModal from "@/components/delete-confirmation-modal"
 import { TokenTransactionHistory } from "@/components/token-transaction-history"
@@ -66,6 +67,7 @@ const rules = [
 export default function ProfilePage() {
   const { user, isLoading, logout, refreshUser, tokenBalance, creditBalance } = useAuth()
   const router = useRouter()
+  const { t } = useTranslations()
 
   const [mounted, setMounted] = useState(false)
 
@@ -353,13 +355,13 @@ export default function ProfilePage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-border/40 pb-4">
             <TabsList className="bg-muted/50 p-1 rounded-xl h-11 border border-border/40">
               <TabsTrigger value="account" className="rounded-lg font-bold text-xs uppercase tracking-widest px-6 h-9">
-                <User className="w-4 h-4 mr-2" /> Account
+                <User className="w-4 h-4 mr-2" /> {t("profile.overview")}
               </TabsTrigger>
               <TabsTrigger value="activity" className="rounded-lg font-bold text-xs uppercase tracking-widest px-6 h-9">
-                <Activity className="w-4 h-4 mr-2" /> History
+                <Activity className="w-4 h-4 mr-2" /> {t("profile.activity")}
               </TabsTrigger>
               <TabsTrigger value="security" className="rounded-lg font-bold text-xs uppercase tracking-widest px-6 h-9">
-                <Shield className="w-4 h-4 mr-2" /> Security
+                <Shield className="w-4 h-4 mr-2" /> {t("profile.security")}
               </TabsTrigger>
             </TabsList>
 
@@ -396,7 +398,7 @@ export default function ProfilePage() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="gender" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Gender</Label>
+                        <Label htmlFor="gender" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("profile.gender")}</Label>
                         <div className="relative">
                           <select
                             id="gender"
@@ -404,9 +406,9 @@ export default function ProfilePage() {
                             value={profileData.gender}
                             onChange={(e) => setProfileData({ ...profileData, gender: e.target.value })}
                           >
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
+                            <option value="Male">{t("profile.male")}</option>
+                            <option value="Female">{t("profile.female")}</option>
+                            <option value="Other">{t("profile.other")}</option>
                           </select>
                           <ChevronRight className="absolute right-3 top-3.5 h-4 w-4 text-muted-foreground rotate-90 pointer-events-none" />
                         </div>
@@ -429,7 +431,7 @@ export default function ProfilePage() {
                         <p className="text-[10px] text-muted-foreground italic">NOTE: Changing email requires verification.</p>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Phone Number</Label>
+                        <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("profile.phone")}</Label>
                         <div className="relative">
                           <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -467,7 +469,7 @@ export default function ProfilePage() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Notifications</Label>
+                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("profile.notifications")}</Label>
                         <div className="flex items-center gap-3 bg-muted/40 p-3 rounded-xl border border-border/40 transition-colors hover:bg-muted/60 min-h-[50px]">
                           <Bell className={cn("w-5 h-5 transition-colors", profileData.notifications ? "text-primary" : "text-muted-foreground")} />
                           <div className="flex-1">
@@ -491,7 +493,7 @@ export default function ProfilePage() {
                       disabled={isSaving}
                     >
                       {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                      {isSaving ? "SAVING..." : "SAVE CHANGES"}
+                      {isSaving ? t("profile.saving") : t("profile.saveProfile")}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -643,7 +645,7 @@ export default function ProfilePage() {
             <Card className="border-red-500/20 bg-red-500/5 shadow-inner">
               <CardHeader>
                 <CardTitle className="text-red-500 flex items-center gap-2 italic font-black uppercase tracking-wider">
-                  <AlertTriangle className="w-5 h-5" /> Danger Zone
+                  <AlertTriangle className="w-5 h-5" /> {t("profile.dangerZone")}
                 </CardTitle>
                 <CardDescription className="text-red-500/70 font-medium">
                   Actions here cannot be undone. Be careful when handling data deletion.

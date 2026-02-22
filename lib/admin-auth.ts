@@ -20,13 +20,11 @@ export async function isUserAdmin(supabase: SupabaseClient, userId: string): Pro
         // 2. Check profiles logic (Fallback)
         const { data: profile } = await supabase
             .from('profiles')
-            .select('is_admin, role')
+            .select('is_admin')
             .eq('id', userId)
             .maybeSingle()
 
-        // Check bool flag (new standard) OR string role (legacy)
         if (profile?.is_admin === true) return true
-        if (profile?.role === 'admin') return true
 
         // 3. User metadata (Last resort)
         // Note: Calling getUser() again might be redundant if we already have the user object

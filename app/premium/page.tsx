@@ -28,6 +28,7 @@ import { toast } from "sonner"
 import { useAuth } from "@/components/auth-context"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "@/lib/use-translations"
 import {
   Dialog,
   DialogContent,
@@ -58,6 +59,7 @@ export default function PremiumPage() {
 
   const router = useRouter()
   const { user, refreshUser } = useAuth()
+  const { t } = useTranslations()
   const statusCheckRef = useRef<boolean>(false)
 
   // Fetch token packages
@@ -259,13 +261,13 @@ export default function PremiumPage() {
         {/* Header Section */}
         <div className="text-center space-y-4">
           <Badge variant="outline" className="px-3 py-1 border-primary/20 text-primary bg-primary/5 backdrop-blur-sm">
-            POCKETLOVE PREMIUM
+            {t("premium.dintypePremium")}
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-b from-foreground to-foreground/70 bg-clip-text text-transparent italic leading-tight">
-            Upgrade Your Experience
+            {t("premium.upgradeExperience")}
           </h1>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-            Unlock unlimited potential, exclusive content, and monthly credits.
+            {t("premium.unlockDesc")}
           </p>
 
           {/* Balance Cards (Compact) */}
@@ -282,9 +284,9 @@ export default function PremiumPage() {
                   {user.isAdmin ? <Lock className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
                 </div>
                 <div className="text-left">
-                  <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold leading-none mb-0.5">Status</p>
+                  <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold leading-none mb-0.5">{t("premium.statusLabel")}</p>
                   <p className="text-sm font-bold leading-tight">
-                    {user.isAdmin ? "Administrator" : isPremium ? "Premium Active" : "Free Version"}
+                    {user.isAdmin ? t("premium.administrator") : isPremium ? "Premium Active" : t("premium.freeVersion")}
                   </p>
                 </div>
               </div>
@@ -294,9 +296,9 @@ export default function PremiumPage() {
                   <Shield className="w-4 h-4" />
                 </div>
                 <div className="text-left">
-                  <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold leading-none mb-0.5">Credits</p>
+                  <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold leading-none mb-0.5">{t("premium.creditsLabel")}</p>
                   <p className="text-lg font-black tracking-tight leading-tight">
-                    {user.isAdmin ? "∞" : creditBalance} <span className="text-[10px] font-medium text-muted-foreground italic">Credits</span>
+                    {user.isAdmin ? "∞" : creditBalance} <span className="text-[10px] font-medium text-muted-foreground italic">{t("premium.creditsLabel")}</span>
                   </p>
                 </div>
               </div>
@@ -306,9 +308,9 @@ export default function PremiumPage() {
                   <Coins className="w-4 h-4" />
                 </div>
                 <div className="text-left">
-                  <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold leading-none mb-0.5">Tokens</p>
+                  <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold leading-none mb-0.5">{t("premium.tokensLabel")}</p>
                   <p className="text-lg font-black tracking-tight leading-tight">
-                    {tokenBalance} <span className="text-[10px] font-medium text-muted-foreground italic">Tokens</span>
+                    {tokenBalance} <span className="text-[10px] font-medium text-muted-foreground italic">{t("premium.tokensLabel")}</span>
                   </p>
                 </div>
               </div>
@@ -321,16 +323,16 @@ export default function PremiumPage() {
           {/* Free Tier */}
           <Card className="group relative overflow-hidden border-border/40 bg-card/30 backdrop-blur-lg flex flex-col transition-all hover:bg-card/40">
             <CardHeader className="p-6 pb-2">
-              <CardTitle className="text-xl font-bold italic">Free Plan</CardTitle>
-              $ 0 <span className="text-xs font-medium text-muted-foreground italic">per month</span>
+              <CardTitle className="text-xl font-bold italic">{t("premium.freePlan")}</CardTitle>
+              $ 0 <span className="text-xs font-medium text-muted-foreground italic">{t("premium.perMonth")}</span>
             </CardHeader>
             <CardContent className="p-6 pt-4 space-y-4 flex-grow">
               <div className="space-y-3">
                 {[
-                  { icon: <CreditCard className="w-3.5 h-3.5" />, text: "No monthly credits" },
-                  { icon: <MessageSquare className="w-3.5 h-3.5" />, text: "3 free messages per day" },
-                  { icon: <Lock className="w-3.5 h-3.5" />, text: "Cannot create AI character" },
-                  { icon: <ImageIcon className="w-3.5 h-3.5" />, text: "Only 1 free image (SFW)" }
+                  { icon: <CreditCard className="w-3.5 h-3.5" />, text: t("premium.noMonthlyCredits") },
+                  { icon: <MessageSquare className="w-3.5 h-3.5" />, text: t("premium.freeMessagesPerDay") },
+                  { icon: <Lock className="w-3.5 h-3.5" />, text: t("premium.cannotCreateCharacter") },
+                  { icon: <ImageIcon className="w-3.5 h-3.5" />, text: t("premium.oneFreeImage") }
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2.5 text-muted-foreground/80">
                     <div className="p-1 rounded-full bg-muted/50 text-muted-foreground">
@@ -343,7 +345,7 @@ export default function PremiumPage() {
             </CardContent>
             <CardFooter className="p-6 pt-0">
               <Button variant="outline" disabled className="w-full h-10 rounded-lg text-sm font-bold opacity-50">
-                Current Plan
+                {t("premium.currentPlanBtn")}
               </Button>
             </CardFooter>
           </Card>
@@ -351,25 +353,25 @@ export default function PremiumPage() {
           {/* Premium Tier */}
           <Card className="group relative overflow-hidden border-primary/30 bg-gradient-to-br from-primary/5 via-card/40 to-blue-500/5 backdrop-blur-lg flex flex-col shadow-lg ring-1 ring-primary/10">
             <Badge className="absolute top-4 right-4 bg-primary text-primary-foreground font-black text-[10px] tracking-wider px-2 py-0.5">
-              MOST POPULAR
+              {t("premium.mostPopular")}
             </Badge>
 
             <CardHeader className="p-6 pb-2">
               <CardTitle className="text-xl font-bold flex items-center gap-2 italic">
-                Premium Plan <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                {t("premium.premiumPlan")} <Sparkles className="w-4 h-4 text-primary animate-pulse" />
               </CardTitle>
-              $ 11.99 <span className="text-xs font-medium text-muted-foreground italic">per month</span>
+              $ 11.99 <span className="text-xs font-medium text-muted-foreground italic">{t("premium.perMonth")}</span>
             </CardHeader>
 
             <CardContent className="p-6 pt-4 space-y-4 flex-grow">
               <div className="h-px bg-gradient-to-r from-primary/30 to-transparent mb-4" />
               <div className="space-y-3">
                 {[
-                  { text: "110 Credits included every month", highlight: "text-primary" },
-                  { text: "Unlimited text messages", highlight: "text-emerald-500" },
-                  { text: "Create unlimited AI characters", highlight: "text-emerald-500" },
-                  { text: "Unlimited images (NSFW/SFW)", highlight: "text-emerald-500" },
-                  { text: "Buy tokens with your credits", highlight: "text-primary" }
+                  { text: t("premium.monthlyCreditsIncluded"), highlight: "text-primary" },
+                  { text: t("premium.unlimitedMessages"), highlight: "text-emerald-500" },
+                  { text: t("premium.unlimitedCharacters"), highlight: "text-emerald-500" },
+                  { text: t("premium.unlimitedImages"), highlight: "text-emerald-500" },
+                  { text: t("premium.buyTokensWithCredits"), highlight: "text-primary" }
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2.5">
                     <div className={cn("p-1 rounded-full bg-primary/10", item.highlight)}>
@@ -385,13 +387,13 @@ export default function PremiumPage() {
               {user?.isAdmin ? (
                 <div className="w-full text-center py-2.5 bg-primary/5 rounded-lg border border-primary/10">
                   <p className="text-xs text-primary font-bold italic flex items-center justify-center gap-2">
-                    <Shield className="w-3.5 h-3.5" /> Admin Account
+                    <Shield className="w-3.5 h-3.5" /> {t("premium.adminAccount")}
                   </p>
                 </div>
               ) : isPremium ? (
                 <div className="w-full text-center py-2.5 bg-emerald-500/10 rounded-lg border border-emerald-500/10">
                   <p className="text-xs text-emerald-500 font-bold italic flex items-center justify-center gap-2">
-                    <Check className="w-4 h-4" /> Subscription Active
+                    <Check className="w-4 h-4" /> {t("premium.subscriptionActiveLabel")}
                   </p>
                 </div>
               ) : (
@@ -401,7 +403,7 @@ export default function PremiumPage() {
                   disabled={isLoading}
                   className="w-full h-11 rounded-lg text-base font-black bg-gradient-to-r from-primary to-blue-600 hover:shadow-lg transition-all"
                 >
-                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "BECOME PREMIUM"}
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : t("premium.becomePremium")}
                 </Button>
               )}
             </CardFooter>
@@ -411,9 +413,9 @@ export default function PremiumPage() {
         {/* Feature Highlights - Very Compact */}
         <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { title: "Chat", value: "5 Tokens", desc: "per message", icon: <MessageSquare className="w-5 h-5 text-blue-500" /> },
-            { title: "Create AI", value: "2 Tokens", desc: "per profile", icon: <UserPlus className="w-5 h-5 text-primary" /> },
-            { title: "Images", value: "5-10 Tokens", desc: "per image", icon: <ImageIcon className="w-5 h-5 text-blue-500" /> }
+            { title: t("premium.chatLabel"), value: "5 Tokens", desc: t("premium.perMessage"), icon: <MessageSquare className="w-5 h-5 text-blue-500" /> },
+            { title: t("premium.createAILabel"), value: "2 Tokens", desc: t("premium.perProfile"), icon: <UserPlus className="w-5 h-5 text-primary" /> },
+            { title: t("premium.imagesLabel"), value: "5-10 Tokens", desc: t("premium.perImage"), icon: <ImageIcon className="w-5 h-5 text-blue-500" /> }
           ].map((item, i) => (
             <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-card/20 border border-border/40 backdrop-blur-sm">
               <div className="p-2.5 rounded-xl bg-muted/40">
@@ -431,8 +433,8 @@ export default function PremiumPage() {
         {/* Purchase Interface - Tighter Layout */}
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="text-center">
-            <h2 className="text-2xl font-bold italic">Top Up Tokens</h2>
-            <p className="text-sm text-muted-foreground font-medium">Convert your credits to tokens for special features</p>
+            <h2 className="text-2xl font-bold italic">{t("premium.topUpTokens")}</h2>
+            <p className="text-sm text-muted-foreground font-medium">{t("premium.convertCreditsDesc")}</p>
           </div>
 
           <Card className="border-border/40 bg-card/40 backdrop-blur-xl shadow-xl relative overflow-hidden">
@@ -441,25 +443,25 @@ export default function PremiumPage() {
                 <div className="p-3 rounded-full bg-amber-500/10 border border-amber-500/20 mb-3">
                   <Lock className="w-6 h-6 text-amber-500" />
                 </div>
-                <h4 className="text-lg font-bold">Premium Required</h4>
-                <p className="text-xs text-muted-foreground mb-4">You need Premium to be able to use tokens.</p>
+                <h4 className="text-lg font-bold">{t("generate.premiumRequired")}</h4>
+                <p className="text-xs text-muted-foreground mb-4">{t("premium.premiumRequiredForTokens")}</p>
                 <Button onClick={handlePremiumPurchase} className="h-10 px-6 rounded-lg bg-primary font-bold text-sm">
-                  UPGRADE NOW
+                  {t("premium.upgradeNow")}
                 </Button>
               </div>
             )}
 
             <CardHeader className="p-6 border-b border-border/10">
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <h3 className="text-lg font-bold italic tracking-tight">Select a package</h3>
+                <h3 className="text-lg font-bold italic tracking-tight">{t("premium.selectPackage")}</h3>
                 <div className="flex items-center gap-4 px-4 py-2 rounded-xl bg-muted/40 border border-border/40">
                   <div className="text-center">
-                    <p className="text-[8px] font-black text-muted-foreground uppercase leading-none pb-0.5">Credits</p>
+                    <p className="text-[8px] font-black text-muted-foreground uppercase leading-none pb-0.5">{t("premium.creditsLabel")}</p>
                     <p className="text-sm font-black italic leading-none">{user?.isAdmin ? "∞" : creditBalance}</p>
                   </div>
                   <div className="w-px h-6 bg-border/40" />
                   <div className="text-center">
-                    <p className="text-[8px] font-black text-muted-foreground uppercase leading-none pb-0.5">Tokens</p>
+                    <p className="text-[8px] font-black text-muted-foreground uppercase leading-none pb-0.5">{t("premium.tokensLabel")}</p>
                     <p className="text-sm font-black italic leading-none">{tokenBalance}</p>
                   </div>
                 </div>
@@ -486,7 +488,7 @@ export default function PremiumPage() {
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{pkg.name}</p>
                     <p className="text-2xl font-black tracking-tighter py-1">{pkg.tokens.toLocaleString()}</p>
                     <div className="pt-2 border-t border-border/20 mt-2 flex justify-between items-center">
-                      <span className="text-[9px] font-bold text-muted-foreground">PRICE</span>
+                      <span className="text-[9px] font-bold text-muted-foreground">{t("premium.priceLabel")}</span>
                       <span className="text-sm font-black text-primary italic">
                         {user?.isAdmin ? "FREE" : (pkg.priceDisplay || `$ ${pkg.price}`)}
                       </span>
@@ -504,12 +506,12 @@ export default function PremiumPage() {
                   )}
                   disabled={!selectedTokenPackageId || isLoading}
                 >
-                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : user?.isAdmin ? "GRANT TOKENS" : "BUY TOKENS"}
+                  {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : user?.isAdmin ? t("premium.grantTokens") : t("premium.buyTokensBtn")}
                 </Button>
                 <p className="text-[10px] text-center text-muted-foreground italic">
                   {user?.isAdmin
-                    ? "As an administrator, you can add tokens at no cost."
-                    : "Credits are automatically deducted from your balance."}
+                    ? t("premium.adminCanAddFree")
+                    : t("premium.creditsDeducted")}
                 </p>
               </div>
             </CardContent>
@@ -518,9 +520,9 @@ export default function PremiumPage() {
 
         {/* Footer Trust - Minimalist */}
         <div className="flex flex-wrap items-center justify-center gap-8 py-4 opacity-40 text-[10px] font-bold tracking-widest uppercase">
-          <div className="flex items-center gap-2"><Shield className="w-3 h-3" /> SECURE</div>
-          <div className="flex items-center gap-2"><Lock className="w-3 h-3" /> PRIVATE</div>
-          <div className="flex items-center gap-2"><Sparkles className="w-3 h-3" /> UNLIMITED</div>
+          <div className="flex items-center gap-2"><Shield className="w-3 h-3" /> {t("premium.secureLabel")}</div>
+          <div className="flex items-center gap-2"><Lock className="w-3 h-3" /> {t("premium.privateLabel")}</div>
+          <div className="flex items-center gap-2"><Sparkles className="w-3 h-3" /> {t("premium.unlimitedLabel")}</div>
         </div>
       </div>
 
@@ -532,33 +534,33 @@ export default function PremiumPage() {
               <PartyPopper className="w-8 h-8 text-primary" />
             </div>
             <DialogTitle className="text-2xl font-black text-center tracking-tight italic">
-              TOKENS GRANTED!
+              {t("premium.tokensGranted")}
             </DialogTitle>
             <DialogDescription className="text-center text-muted-foreground font-medium pt-1">
-              Your administrator account has been updated successfully.
+              {t("premium.adminUpdated")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="py-6">
             <div className="flex flex-col items-center justify-center p-6 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/10">
-              <span className="text-sm font-bold text-primary uppercase tracking-widest mb-1">New Balance</span>
+              <span className="text-sm font-bold text-primary uppercase tracking-widest mb-1">{t("premium.newBalance")}</span>
               <div className="flex items-center gap-3">
                 <Coins className="w-6 h-6 text-yellow-500" />
                 <span className="text-4xl font-black tabular-nums">{tokenBalance}</span>
               </div>
               <div className="mt-3 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                <p className="text-[10px] font-black text-emerald-500 uppercase">+{lastGrantedAmount} Tokens Added</p>
+                <p className="text-[10px] font-black text-emerald-500 uppercase">{t("premium.tokensAdded").replace("{{amount}}", String(lastGrantedAmount))}</p>
               </div>
             </div>
 
             <div className="mt-6 space-y-3">
               <div className="flex items-center gap-3 text-xs font-semibold text-muted-foreground bg-muted/30 p-3 rounded-lg">
                 <Shield className="w-4 h-4 text-primary" />
-                <span>System logs updated with administrator action.</span>
+                <span>{t("premium.systemLogsUpdated")}</span>
               </div>
               <div className="flex items-center gap-3 text-xs font-semibold text-muted-foreground bg-muted/30 p-3 rounded-lg">
                 <Trophy className="w-4 h-4 text-yellow-500" />
-                <span>Your profile and balance have been synchronized globally.</span>
+                <span>{t("premium.balanceSynced")}</span>
               </div>
             </div>
           </div>
@@ -570,7 +572,7 @@ export default function PremiumPage() {
               className="w-full h-11 text-base font-black tracking-tight"
               onClick={() => setShowSuccessDialog(false)}
             >
-              CONTINUE TO DASHBOARD
+              {t("premium.continueToDashboard")}
             </Button>
           </DialogFooter>
         </DialogContent>

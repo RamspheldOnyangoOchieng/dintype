@@ -1,8 +1,8 @@
-# Pocketlove.ai — Your Ultimate AI Companion Experience
+# Dintype.se — Your Ultimate AI Companion Experience
 
-![Pocketlove AI Banner](https://pocketlove-ai.vercel.app/og-image.png)
+![Dintype AI Banner](https://dintype.se/og-image.png)
 
-Pocketlove.ai is a state-of-the-art platform designed to provide immersive, realistic, and highly customizable experiences with AI companions. Whether you're looking for deep conversations, creative image generation, or building your own unique character, Pocketlove brings AI magic to your fingertips.
+Dintype.se is a state-of-the-art platform designed to provide immersive, realistic, and highly customizable experiences with AI companions. Whether you're looking for deep conversations, creative image generation, or building your own unique character, Dintype brings AI magic to your fingertips.
 
 ## ✨ Key Features
 
@@ -15,7 +15,7 @@ Pocketlove.ai is a state-of-the-art platform designed to provide immersive, real
 
 ## 🚀 Tech Stack
 
-Pocketlove.ai is built with a modern, high-performance stack:
+Dintype.se is built with a modern, high-performance stack:
 
 - **Framework**: [Next.js 15](https://nextjs.org/) (App Router, Server Actions)
 - **Frontend**: [React 18](https://reactjs.org/), [Tailwind CSS](https://tailwindcss.com/)
@@ -48,8 +48,8 @@ Pocketlove.ai is built with a modern, high-performance stack:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/RamspheldOnyangoOchieng/Pocketlove.ai.git
-   cd Pocketlove.ai
+   git clone https://github.com/Dintype.se.git
+   cd Dintype.se
    ```
 
 2. Install dependencies:
@@ -74,15 +74,15 @@ Pocketlove.ai is built with a modern, high-performance stack:
 
 ## ⚖️ Legal & Privacy
 
-- [Terms and Conditions](https://pocketlove-ai.vercel.app/terms)
-- [Privacy Policy](https://pocketlove-ai.vercel.app/privacy-policy)
-- [Safety Guidelines](https://pocketlove-ai.vercel.app/guidelines)
+- [Terms and Conditions](https://dintype.se/terms)
+- [Privacy Policy](https://dintype.se/privacy-policy)
+- [Safety Guidelines](https://dintype.se/guidelines)
 
 ## 📩 Contact & Support
 
 Questions or feedback? Reach out to us:
-- **Email**: [support@pocketlove.ai](mailto:support@pocketlove.ai)
-- **Website**: [Pocketlove.ai](https://pocketlove-ai.vercel.app/)
+- **Email**: [support@dintype.se](mailto:support@dintype.se)
+- **Website**: [Dintype.se](https://dintype.se/)
 
 ---
-*Built with ❤️ by the Pocketlove Team.*
+*Built with ❤️ by the Dintype Team.*

@@ -71,7 +71,7 @@ const args = process.argv.slice(2);
 const command = args[0];
 
 if (command === 'set' && args[1]) {
-    // Example: node setup-telegram-webhook.js set https://pocketlove.ai/api/webhooks/telegram
+    // Example: node setup-telegram-webhook.js set https://dintype.se/api/webhooks/telegram
     setWebhook(args[1]);
 } else if (command === 'info') {
     getWebhookInfo();
@@ -79,7 +79,7 @@ if (command === 'set' && args[1]) {
     deleteWebhook();
 } else {
     console.log(`
-Telegram Webhook Setup Script for Pocketlove
+Telegram Webhook Setup Script for Dintype
 
 Usage:
   node setup-telegram-webhook.js set <webhook_url>   Set the webhook URL
@@ -87,6 +87,6 @@ Usage:
   node setup-telegram-webhook.js delete              Delete the webhook
 
 Example:
-  node setup-telegram-webhook.js set https://pocketlove.ai/api/webhooks/telegram
+  node setup-telegram-webhook.js set https://dintype.se/api/webhooks/telegram
   `);
 }

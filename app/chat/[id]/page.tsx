@@ -932,7 +932,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           const defaultMessage: Message = {
             id: Date.now().toString(),
             role: "assistant",
-            content: `Hey there, my love... 💕 I'm ${character.name}. I've been waiting for someone like you.\n\nSo tell me... what brings you here tonight? You can message me right here, or find me on Telegram @pocketloveaibot for something more... private. 🌹`,
+            content: `Hey there, my love... 💕 I'm ${character.name}. I've been waiting for someone like you.\n\nSo tell me... what brings you here tonight? You can message me right here, or find me on Telegram @dintypebot for something more... private. 🌹`,
             timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             isWelcome: true
           }
@@ -1867,7 +1867,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         const welcomeMessage: Message = {
           id: `welcome-${characterId}-${Date.now()}`,
           role: "assistant",
-          content: `Hey there... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\nTell me about yourself... or take me with you on Telegram @pocketloveaibot. Either way, I'm all yours. 🌹`,
+          content: `Hey there... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\nTell me about yourself... or take me with you on Telegram @dintypebot. Either way, I'm all yours. 🌹`,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           isWelcome: true
         }

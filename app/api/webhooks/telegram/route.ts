@@ -15,7 +15,7 @@ async function getSiteUrl() {
         const { data } = await supabase.from('settings').select('value').eq('key', 'site_url').maybeSingle();
         if (data?.value) return data.value.replace(/\/$/, '');
     }
-    return (process.env.NEXT_PUBLIC_APP_URL || 'https://pocketlove-ai.vercel.app').replace(/\/$/, '');
+    return (process.env.NEXT_PUBLIC_APP_URL || 'https://dintype.se').replace(/\/$/, '');
 }
 
 // Helper to send messages to Telegram
@@ -673,7 +673,7 @@ export async function POST(request: NextRequest) {
                 const buttons = characters.map((char: any) => ([
                     { text: char.name, callback_data: `select_char:${char.id}` }
                 ]));
-                buttons.push([{ text: '🌐 See All on Pocketlove', url: `${siteUrl}/characters` }]);
+                buttons.push([{ text: '🌐 See All on Dintype', url: `${siteUrl}/characters` }]);
 
                 await sendTelegramMessage(chatId, `💕 <b>Choose Your Companion</b>\n\nWho would you like to chat with today?`, {
                     reply_markup: { inline_keyboard: buttons }
@@ -1033,7 +1033,7 @@ export async function POST(request: NextRequest) {
                     { text: char.name, callback_data: `select_char:${char.id}` }
                 ]));
 
-                buttons.push([{ text: '🌐 See All on Pocketlove', url: `${siteUrl}/characters` }]);
+                buttons.push([{ text: '🌐 See All on Dintype', url: `${siteUrl}/characters` }]);
 
                 await sendTelegramMessage(
                     chatId,
@@ -1454,6 +1454,6 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
     return NextResponse.json({
         status: 'Telegram webhook endpoint active',
-        bot: '@pocketloveaibot'
+        bot: '@dintypebot'
     });
 }

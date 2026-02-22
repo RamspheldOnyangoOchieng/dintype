@@ -68,9 +68,9 @@ export default function MiniAppManagementPage() {
     const router = useRouter()
     const [settings, setSettings] = useState<MiniAppSettings>({
         enabled: true,
-        bot_username: "pocketlove_bot",
-        app_name: "PocketLove Mini",
-        short_name: "PocketLove",
+        bot_username: "dintype_bot",
+        app_name: "Dintype Mini",
+        short_name: "Dintype",
         description: "Your AI companion in Telegram",
         theme_color: "#ff0080",
         header_color: "#000000",
@@ -83,7 +83,7 @@ export default function MiniAppManagementPage() {
             character_creation: true,
             premium_features: true,
         },
-        bot_name: "PocketLove",
+        bot_name: "Dintype",
         about_text: "Your AI companion",
         bot_avatar_url: ""
     })
@@ -638,7 +638,7 @@ export default function MiniAppManagementPage() {
                                         id="botName"
                                         value={settings.bot_name}
                                         onChange={(e) => setSettings(prev => ({ ...prev, bot_name: e.target.value }))}
-                                        placeholder="PocketLove"
+                                        placeholder="Dintype"
                                     />
                                     <p className="text-xs text-muted-foreground">The name users see at the top of the chat</p>
                                 </div>
@@ -733,7 +733,7 @@ export default function MiniAppManagementPage() {
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="text-xl font-bold truncate">{settings.bot_name || "PocketLove"}</h4>
+                                        <h4 className="text-xl font-bold truncate">{settings.bot_name || "Dintype"}</h4>
                                         <p className="text-[#6c7883] text-sm">bot</p>
                                     </div>
                                 </div>
@@ -757,7 +757,7 @@ export default function MiniAppManagementPage() {
                                             <Users className="w-5 h-5 text-[#6c7883]" />
                                         </div>
                                         <div>
-                                            <p className="text-[#4ea4f6] font-medium">@{settings.bot_username || "pocketloveaibot"}</p>
+                                            <p className="text-[#4ea4f6] font-medium">@{settings.bot_username || "dintypebot"}</p>
                                             <p className="text-[#6c7883] text-xs">Username</p>
                                         </div>
                                     </div>

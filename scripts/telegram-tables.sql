@@ -1,7 +1,7 @@
--- Telegram Integration Tables for Pocketlove
+-- Telegram Integration Tables for Dintype
 -- Run this migration in Supabase SQL Editor
 
--- Table to store active links between Telegram users and Pocketlove accounts
+-- Table to store active links between Telegram users and Dintype accounts
 CREATE TABLE IF NOT EXISTS public.telegram_links (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   telegram_id TEXT NOT NULL UNIQUE,
@@ -75,5 +75,5 @@ GRANT EXECUTE ON FUNCTION cleanup_expired_telegram_codes() TO service_role;
 -- Add telegram_message_id to messages metadata for sync tracking
 -- (No schema change needed - we use JSONB metadata column)
 
-COMMENT ON TABLE public.telegram_links IS 'Links between Telegram accounts and Pocketlove user accounts';
+COMMENT ON TABLE public.telegram_links IS 'Links between Telegram accounts and Dintype user accounts';
 COMMENT ON TABLE public.telegram_link_codes IS 'One-time codes for linking Telegram accounts';

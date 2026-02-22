@@ -1,6 +1,6 @@
-# PocketLove.ai - Romantic Email Templates
+# Dintype.se - Romantic Email Templates
 
-These templates are designed for Supabase Authentication emails. They feature a romantic, premium aesthetic consistent with the PocketLove brand.
+These templates are designed for Supabase Authentication emails. They feature a romantic, premium aesthetic consistent with the Dintype brand.
 
 ## 🎨 Styles & Theme
 - **Background**: Dark premium (`#1a1a1a`)
@@ -19,7 +19,7 @@ These templates are designed for Supabase Authentication emails. They feature a 
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Welcome to PocketLove.ai</title>
+    <title>Welcome to Dintype.se</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #0a0a0a; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0a0a0a; padding-bottom: 40px;">
@@ -64,7 +64,7 @@ These templates are designed for Supabase Authentication emails. They feature a 
         </tr>
         <tr>
             <td align="center" style="padding-top: 20px;">
-                <p style="color: #404040; font-size: 12px;">&copy; 2026 PocketLove.ai - Your desires, reimagined.</p>
+                <p style="color: #404040; font-size: 12px;">&copy; 2026 Dintype.se - Your desires, reimagined.</p>
             </td>
         </tr>
     </table>
@@ -114,7 +114,7 @@ These templates are designed for Supabase Authentication emails. They feature a 
 
 ## 3. Magic Link (Passwordless)
 
-**Subject:** Your magic key to PocketLove ✨
+**Subject:** Your magic key to Dintype ✨
 
 ```html
 <!DOCTYPE html>
@@ -176,7 +176,7 @@ These templates are designed for Supabase Authentication emails. They feature a 
                         <td align="center" style="padding: 50px 40px;">
                             <h2 style="color: #ffffff; font-size: 24px; font-weight: 600; margin-bottom: 20px;">Confirm Email Update</h2>
                             <p style="color: #a3a3a3; font-size: 16px; margin-bottom: 30px; line-height: 24px;">
-                                We received a request to update the email address for your <strong>PocketLove</strong> account.
+                                We received a request to update the email address for your <strong>Dintype</strong> account.
                                 <br><br>
                                 Please confirm this change by clicking the button below.
                             </p>

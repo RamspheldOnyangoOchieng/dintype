@@ -324,7 +324,7 @@ export default function SEOMetaAdminPage() {
                             value={selectedPage.meta_title || ''}
                             onChange={(e) => updateField('meta_title', e.target.value)}
                             className="bg-muted/30 border-muted placeholder:text-muted-foreground/30 font-medium h-11"
-                            placeholder="e.g. Pocketlove - Your AI Companion"
+                            placeholder="e.g. Dintype - Your AI Companion"
                             maxLength={70}
                           />
                           <div className="flex justify-between items-center px-1">
@@ -390,7 +390,7 @@ export default function SEOMetaAdminPage() {
                               value={selectedPage.canonical_url || ''}
                               onChange={(e) => updateField('canonical_url', e.target.value)}
                               className="bg-muted/30 border-muted pr-10 font-medium"
-                              placeholder="https://pocketlove.ai/page"
+                              placeholder="https://dintype.se/page"
                             />
                           </div>
                         </div>
@@ -559,11 +559,11 @@ export default function SEOMetaAdminPage() {
                         <div className="flex items-center gap-2 mb-1">
                           <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold">P</div>
                           <div className="text-[12px] text-[#202124] dark:text-[#bdc1c6] truncate">
-                            pocketlove.ai <span className="text-[#4d5156] dark:text-[#9aa0a6] font-normal">› {selectedPage.page_path === '/' ? 'home' : selectedPage.page_path.replace('/', '')}</span>
+                            dintype.se <span className="text-[#4d5156] dark:text-[#9aa0a6] font-normal">› {selectedPage.page_path === '/' ? 'home' : selectedPage.page_path.replace('/', '')}</span>
                           </div>
                         </div>
                         <h3 className="text-[20px] text-[#1a0dab] dark:text-[#8ab4f8] hover:underline cursor-pointer leading-[1.3] truncate">
-                          {selectedPage.meta_title || 'Pocketlove - Create Your AI Companion'}
+                          {selectedPage.meta_title || 'Dintype - Create Your AI Companion'}
                         </h3>
                         <p className="text-[14px] text-[#4d5156] dark:text-[#bdc1c6] leading-[1.58] line-clamp-2">
                           <span className="text-[#70757a] font-normal mr-1">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} —</span>
@@ -590,9 +590,9 @@ export default function SEOMetaAdminPage() {
                           </div>
                         )}
                         <div className="p-3 bg-[#f0f2f5] dark:bg-[#3a3b3c]">
-                          <p className="text-[12px] text-muted-foreground uppercase font-black tracking-widest leading-none mb-1">POCKETLOVE.AI</p>
+                          <p className="text-[12px] text-muted-foreground uppercase font-black tracking-widest leading-none mb-1">DINTYPE.SE</p>
                           <h4 className="text-[16px] font-bold text-black dark:text-white leading-tight truncate">
-                            {selectedPage.og_title || selectedPage.meta_title || 'Pocketlove AI'}
+                            {selectedPage.og_title || selectedPage.meta_title || 'Dintype AI'}
                           </h4>
                           <p className="text-[13px] text-muted-foreground line-clamp-1 mt-1">
                             {selectedPage.og_description || selectedPage.meta_description || 'Chat, flirt and build a deep relationship...'}
@@ -617,7 +617,7 @@ export default function SEOMetaAdminPage() {
                                 <Globe className="w-8 h-8 opacity-10" />
                               </div>
                             )}
-                            <Badge className="absolute bottom-2 left-2 bg-black/60 text-[10px] font-black border-white/20">pocketlove.ai</Badge>
+                            <Badge className="absolute bottom-2 left-2 bg-black/60 text-[10px] font-black border-white/20">dintype.se</Badge>
                           </div>
                           <div className="p-3 border-t border-[#333]">
                             <p className="text-[14px] font-bold text-white line-clamp-1">

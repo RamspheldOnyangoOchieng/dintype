@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { MessageCircle, X } from "lucide-react"
 import Image from "next/image"
+import { useTranslations } from "@/lib/use-translations"
 
 interface CharacterDetailModalProps {
   characterId: string | null
@@ -24,6 +25,7 @@ export function CharacterDetailModal({ characterId, open, onOpenChange }: Charac
   const [character, setCharacter] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { t } = useTranslations()
 
   useEffect(() => {
     if (characterId && open) {
@@ -71,7 +73,7 @@ export function CharacterDetailModal({ characterId, open, onOpenChange }: Charac
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold">{character.name}</DialogTitle>
               <DialogDescription>
-                {character.age && `${character.age} years old`}
+                {character.age && `${character.age} ${t("characterDetail.yearsOld")}`}
                 {character.ethnicity && ` • ${character.ethnicity}`}
                 {character.personality && ` • ${character.personality}`}
               </DialogDescription>
@@ -89,7 +91,7 @@ export function CharacterDetailModal({ characterId, open, onOpenChange }: Charac
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                    No image available
+                    {t("characterDetail.noImage")}
                   </div>
                 )}
               </div>
@@ -97,7 +99,7 @@ export function CharacterDetailModal({ characterId, open, onOpenChange }: Charac
               {/* Character Description */}
               {character.description && (
                 <div>
-                  <h3 className="font-semibold mb-2">About</h3>
+                  <h3 className="font-semibold mb-2">{t("characterDetail.about")}</h3>
                   <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
                     {character.description}
                   </p>
@@ -107,35 +109,35 @@ export function CharacterDetailModal({ characterId, open, onOpenChange }: Charac
               {/* Character Attributes */}
               {character.metadata && (
                 <div>
-                  <h3 className="font-semibold mb-2">Details</h3>
+                  <h3 className="font-semibold mb-2">{t("characterDetail.details")}</h3>
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     {character.metadata.style && (
                       <div>
-                        <span className="text-muted-foreground">Style:</span>
+                        <span className="text-muted-foreground">{t("characterDetail.style")}</span>
                         <span className="ml-2 capitalize">{character.metadata.style}</span>
                       </div>
                     )}
                     {character.metadata.eyeColor && (
                       <div>
-                        <span className="text-muted-foreground">Eye Color:</span>
+                        <span className="text-muted-foreground">{t("characterDetail.eyeColor")}</span>
                         <span className="ml-2 capitalize">{character.metadata.eyeColor}</span>
                       </div>
                     )}
                     {character.metadata.hairColor && (
                       <div>
-                        <span className="text-muted-foreground">Hair:</span>
+                        <span className="text-muted-foreground">{t("characterDetail.hair")}</span>
                         <span className="ml-2 capitalize">{character.metadata.hairColor} {character.metadata.hairLength}</span>
                       </div>
                     )}
                     {character.metadata.bodyType && (
                       <div>
-                        <span className="text-muted-foreground">Body Type:</span>
+                        <span className="text-muted-foreground">{t("characterDetail.bodyType")}</span>
                         <span className="ml-2 capitalize">{character.metadata.bodyType}</span>
                       </div>
                     )}
                     {character.metadata.relationship && (
                       <div>
-                        <span className="text-muted-foreground">Relationship:</span>
+                        <span className="text-muted-foreground">{t("characterDetail.relationship")}</span>
                         <span className="ml-2 capitalize">{character.metadata.relationship}</span>
                       </div>
                     )}
@@ -150,20 +152,20 @@ export function CharacterDetailModal({ characterId, open, onOpenChange }: Charac
                 onClick={() => onOpenChange(false)}
                 className="flex-1"
               >
-                Close
+                {t("characterDetail.close")}
               </Button>
               <Button
                 onClick={handleStartChat}
                 className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
               >
                 <MessageCircle className="mr-2 h-4 w-4" />
-                Start Chat
+                {t("characterDetail.startChat")}
               </Button>
             </DialogFooter>
           </>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
-            Character not found
+            {t("characterDetail.notFound")}
           </div>
         )}
       </DialogContent>

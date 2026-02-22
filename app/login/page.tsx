@@ -8,12 +8,14 @@ import { useAuth } from "@/components/auth-context"
 import { useAuthModal } from "@/components/auth-modal-context"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle } from "lucide-react"
+import { useTranslations } from "@/lib/use-translations"
 
 export default function LoginPage() {
     const search = useSearchParams()
     const router = useRouter()
     const { user } = useAuth()
     const { openLoginModal } = useAuthModal()
+    const { t } = useTranslations()
 
     const redirectTo = search.get("redirect") || "/"
     const message = search.get("message")
@@ -36,11 +38,11 @@ export default function LoginPage() {
                     </Alert>
                 )}
                 <div className="text-center mb-6">
-                    <h1 className="text-2xl font-bold mb-2">Logga in</h1>
-                    <p className="text-muted-foreground">Fortsätt för att komma till {redirectTo}</p>
+                    <h1 className="text-2xl font-bold mb-2">{t("login.title")}</h1>
+                    <p className="text-muted-foreground">{t("login.continueToAccess")} {redirectTo}</p>
                 </div>
                 <Button className="w-full" onClick={openLoginModal}>
-                    Öppna inloggningsruta
+                    {t("login.openLoginDialog")}
                 </Button>
             </Card>
         </div>

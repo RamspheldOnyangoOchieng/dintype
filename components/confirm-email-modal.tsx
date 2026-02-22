@@ -74,7 +74,7 @@ export default function ConfirmEmailModal({
             <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-[#333]">
               <Image
                 src="/signup-placeholder.jpeg"
-                alt="Pocketlove"
+                alt="Dintype"
                 fill
                 className="object-cover"
               />

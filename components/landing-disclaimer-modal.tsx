@@ -149,8 +149,24 @@ export default function LandingDisclaimerModal({
   const saveCustom = () => ensureReady(() => saveAndClose(prefs));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="bg-gradient-to-r from-primary/90 to-primary rounded-xl shadow-xl w-[95%] md:w-[75%] max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col p-4 md:p-8 relative border border-primary/30">
+    <div className="fixed inset-0 z-[10000] flex items-start sm:items-center justify-center bg-black/85 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+      <div
+        className="bg-gradient-to-br from-primary via-primary/95 to-primary/90 shadow-2xl w-full max-w-2xl overflow-y-auto flex flex-col p-5 sm:p-7 md:p-9 relative border border-white/15 my-auto"
+        style={{
+          borderRadius: '1.5rem 0.25rem 1.5rem 0.25rem',
+          boxShadow: '0 25px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.08)',
+          maxHeight: 'min(90vh, 820px)',
+        }}
+      >
+        {/* Top accent strip */}
+        <div
+          className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-400 via-rose-300 to-red-400 pointer-events-none flex-shrink-0"
+          style={{ borderRadius: '1.5rem 0.25rem 0 0' }}
+        />
+        {/* 18+ Badge */}
+        <div className="absolute top-3 right-3 sm:top-5 sm:right-5 bg-gradient-to-r from-red-500 to-rose-600 text-white text-[9px] sm:text-[11px] font-black px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-lg border border-white/20 uppercase tracking-widest cursor-default select-none z-10 flex items-center gap-1">
+          🔞 <span>18+</span>
+        </div>
         {!showSettings && (
           <>
             <h2 className="text-2xl font-bold mb-2 text-primary-foreground">{t.ageTitle}</h2>
@@ -193,7 +209,7 @@ export default function LandingDisclaimerModal({
             <div className="flex flex-col lg:flex-row gap-3 mt-2">
               <div className="flex flex-1 gap-3">
                 <Button
-                  className="bg-white text-primary hover:text-primary/80 font-semibold flex-1 border border-white/20 hover:border-white/40 shadow-sm pointer-events-auto hover:bg-white/90"
+                  className="bg-white text-primary hover:text-primary/80 font-semibold flex-1 border border-white/20 hover:border-white/40 shadow-sm pointer-events-auto hover:bg-white/90 cursor-pointer"
                   type="button"
                   onClick={() => setShowSettings(true)}
                 >
@@ -201,7 +217,7 @@ export default function LandingDisclaimerModal({
                 </Button>
                 <Button
                   variant="destructive"
-                  className={`bg-red-500 hover:bg-red-600 text-white font-semibold flex-1 shadow ${!ready && "opacity-60"}`}
+                  className={`bg-red-500 hover:bg-red-600 text-white font-semibold flex-1 shadow cursor-pointer ${!ready && "opacity-60"}`}
                   type="button"
                   onClick={rejectNonEssential}
                   aria-disabled={!ready}
@@ -210,7 +226,7 @@ export default function LandingDisclaimerModal({
                 </Button>
               </div>
               <Button
-                className={`bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold flex-1 shadow focus:ring-2 focus:ring-offset-2 focus:ring-primary ${!ready && "opacity-60"}`}
+                className={`bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold flex-1 shadow focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer ${!ready && "opacity-60"}`}
                 type="button"
                 onClick={acceptAll}
                 aria-disabled={!ready}
@@ -226,7 +242,7 @@ export default function LandingDisclaimerModal({
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold">{t.cookieTitle}</h2>
               <button
-                className="text-sm underline hover:text-white/80 transition-colors"
+                className="text-sm underline hover:text-white/80 transition-colors cursor-pointer"
                 onClick={() => setShowSettings(false)}
               >
                 ← Back
@@ -280,7 +296,7 @@ export default function LandingDisclaimerModal({
               <div className="flex flex-1 gap-3">
                 <Button
                   variant="outline"
-                  className={`bg-white text-primary hover:text-primary/80 font-semibold flex-1 border border-white/20 hover:border-white/40 shadow-sm ${!ready && "opacity-60"}`}
+                  className={`bg-white text-primary hover:text-primary/80 font-semibold flex-1 border border-white/20 hover:border-white/40 shadow-sm cursor-pointer ${!ready && "opacity-60"}`}
                   type="button"
                   onClick={saveCustom}
                   aria-disabled={!ready}
@@ -289,7 +305,7 @@ export default function LandingDisclaimerModal({
                 </Button>
                 <Button
                   variant="destructive"
-                  className={`bg-red-500 hover:bg-red-600 text-white font-semibold flex-1 shadow ${!ready && "opacity-60"}`}
+                  className={`bg-red-500 hover:bg-red-600 text-white font-semibold flex-1 shadow cursor-pointer ${!ready && "opacity-60"}`}
                   type="button"
                   onClick={rejectNonEssential}
                   aria-disabled={!ready}
@@ -298,7 +314,7 @@ export default function LandingDisclaimerModal({
                 </Button>
               </div>
               <Button
-                className={`bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold flex-1 shadow focus:ring-2 focus:ring-offset-2 focus:ring-primary ${!ready && "opacity-60"}`}
+                className={`bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold flex-1 shadow focus:ring-2 focus:ring-offset-2 focus:ring-primary cursor-pointer ${!ready && "opacity-60"}`}
                 type="button"
                 onClick={acceptAll}
                 aria-disabled={!ready}

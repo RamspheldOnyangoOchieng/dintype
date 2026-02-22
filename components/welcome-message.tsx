@@ -12,7 +12,7 @@ interface WelcomeMessageProps {
 }
 
 export function WelcomeMessage({ characterName, characterId, onStartChat }: WelcomeMessageProps) {
-    const telegramLink = `https://t.me/pocketloveaibot?start=char_${characterId.substring(0, 8)}`
+    const telegramLink = `https://t.me/dintypebot?start=char_${characterId.substring(0, 8)}`
 
     return (
         <div className="space-y-4">

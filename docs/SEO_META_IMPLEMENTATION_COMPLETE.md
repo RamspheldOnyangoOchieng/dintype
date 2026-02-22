@@ -161,7 +161,7 @@ curl -s https://yourdomain.com/premium | grep -i "meta"
 ### Meta Title
 - **Length**: 50-60 characters (avoid truncation)
 - **Format**: `Primary Keyword | Brand Name`
-- **Example**: `Premium AI Companion - Unlimited Chat | Pocketlove`
+- **Example**: `Premium AI Companion - Unlimited Chat | Dintype`
 
 ### Meta Description
 - **Length**: 120-160 characters
@@ -267,7 +267,7 @@ export default function PremiumLayout({ children }: { children: React.ReactNode 
 
 Then in admin UI (`/admin/dashboard/seo`):
 1. Select `/premium`
-2. Meta Title: `Premium AI Companion - Unlimited Chat | Pocketlove`
+2. Meta Title: `Premium AI Companion - Unlimited Chat | Dintype`
 3. Meta Description: `Upgrade to Premium and get unlimited chat with AI companions. Exclusive features, faster responses. Try it for free!`
 4. Keywords: `premium ai companion, unlimited chat, virtual partner, ai dating`
 5. OG Image: `https://yourdomain.com/og-premium.jpg`

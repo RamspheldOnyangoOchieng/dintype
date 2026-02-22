@@ -32,10 +32,10 @@ COMMENT ON COLUMN page_meta.robots IS 'index,follow or noindex,nofollow';
 
 -- Insert default SEO for main pages
 INSERT INTO page_meta (page_path, meta_title, meta_description, meta_keywords) VALUES
-  ('/', 'Pocketlove - Your AI Companion', 'Create and chat with personal AI companions. Realistic conversations, customizable personalities.', 'ai companion, ai chat, virtual partner, ai character'),
+  ('/', 'Dintype - Your AI Companion', 'Create and chat with personal AI companions. Realistic conversations, customizable personalities.', 'ai companion, ai chat, virtual partner, ai character'),
   ('/premium', 'Premium Plan - Unlimited AI Chat', 'Upgrade to Premium for unlimited messages, more AI companions, and exclusive features.', 'premium ai, unlimited chat, ai subscription'),
   ('/blog', 'AI Companion Blog - Tips & Guides', 'Read about AI dating, virtual relationships, and how to get the most out of your AI companion.', 'ai dating blog, ai relationships, virtual dating'),
-  ('/faq', 'Frequently Asked Questions - Pocketlove', 'Answers to common questions about AI companions, tokens, subscriptions, and features.', 'faq, help, ai questions'),
+  ('/faq', 'Frequently Asked Questions - Dintype', 'Answers to common questions about AI companions, tokens, subscriptions, and features.', 'faq, help, ai questions'),
   ('/create-character', 'Create Your AI Companion - Custom Personality', 'Create your perfect AI companion with custom personality, appearance, and interests.', 'create ai companion, custom ai, ai character design')
 ON CONFLICT (page_path) DO NOTHING;
 
@@ -69,7 +69,7 @@ INSERT INTO content_blocks (block_key, block_type, content, description, page_pa
   ('homepage_features_title', 'text', 'Why Choose Us?', 'Features section title', '/'),
   ('pricing_title', 'text', 'Choose Your Plan', 'Pricing section title', '/premium'),
   ('pricing_subtitle', 'text', 'Start for free or upgrade for unlimited access', 'Pricing subtitle', '/premium'),
-  ('faq_intro', 'html', '<p>Here you will find answers to the most common questions about Pocketlove.</p>', 'FAQ intro text', '/faq')
+  ('faq_intro', 'html', '<p>Here you will find answers to the most common questions about Dintype.</p>', 'FAQ intro text', '/faq')
 ON CONFLICT (block_key) DO NOTHING;
 
 -- =============================================

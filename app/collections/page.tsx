@@ -32,6 +32,7 @@ import { getAllImages, deleteExistingImage, toggleImageFavorite, addImageToExist
 import { getAllCollections, createNewCollection } from "@/lib/collection-actions"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { useTranslations } from "@/lib/use-translations"
 
 interface GeneratedImage {
   id: string
@@ -57,6 +58,7 @@ interface Collection {
 export default function CollectionsPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslations()
 
   const [images, setImages] = useState<GeneratedImage[]>([])
   const [userId, setUserId] = useState<string | null>(null)
@@ -154,14 +156,14 @@ export default function CollectionsPage() {
       const formData = new FormData(e.currentTarget)
       const result = await createNewCollection(formData)
       if (result.success) {
-        toast({ title: "Collection created successfully" })
+        toast({ title: t("collection.collectionCreated") })
         setShowCreateCollectionDialog(false)
         fetchCollections()
       } else {
-        toast({ title: "Error creating collection", description: result.error, variant: "destructive" })
+        toast({ title: t("collection.errorCreatingCollection"), description: result.error, variant: "destructive" })
       }
     } catch (error) {
-      toast({ title: "Error creating collection", variant: "destructive" })
+      toast({ title: t("collection.errorCreatingCollection"), variant: "destructive" })
     } finally {
       setIsCreatingCollection(false)
     }
@@ -182,9 +184,9 @@ export default function CollectionsPage() {
     try {
       await deleteExistingImage(id, userId || undefined)
       setImages(images.filter((img) => img.id !== id))
-      toast({ title: "Image deleted successfully" })
+      toast({ title: t("collection.imageDeleted") })
     } catch (error) {
-      toast({ title: "Error deleting image", variant: "destructive" })
+      toast({ title: t("collection.deleteError"), variant: "destructive" })
     } finally {
       setIsDeleting(null)
     }
@@ -303,7 +305,7 @@ export default function CollectionsPage() {
     <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <h1 className="text-2xl sm:text-3xl font-bold">My Images</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">{t("collection.imagesTitle")}</h1>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             {!isSelectionMode ? (
               <>
@@ -341,7 +343,7 @@ export default function CollectionsPage() {
                   ) : (
                     <Trash2 className="h-4 w-4 mr-2" />
                   )}
-                  Delete selected
+                  {t("collection.bulkDelete")}
                 </Button>
               </>
             )}
@@ -379,12 +381,12 @@ export default function CollectionsPage() {
               {selectedImages.size === images.length ? (
                 <>
                   <CheckSquare className="h-4 w-4" />
-                  Deselect all
+                  {t("collection.deselectAll")}
                 </>
               ) : (
                 <>
                   <Square className="h-4 w-4" />
-                  Select all
+                  {t("collection.selectAll")}
                 </>
               )}
             </Button>

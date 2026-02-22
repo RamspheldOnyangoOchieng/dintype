@@ -10,7 +10,7 @@ interface WelcomeModalProps {
 
 const pageContent = {
     home: {
-        title: "Welcome to PocketLove",
+        title: "Welcome to Dintype",
         subtitle: "Your AI Companion Awaits",
         icon: Heart,
         gradient: "from-sky-400 via-cyan-500 to-sky-500",
@@ -91,27 +91,27 @@ export function WelcomeModal({ pageType, onClose }: WelcomeModalProps) {
 
     return (
         <div
-            className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-all duration-300 ${isClosing ? "opacity-0" : "opacity-100"
+            className={`fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 transition-all duration-300 ${isClosing ? "opacity-0" : "opacity-100"
                 }`}
         >
             {/* Backdrop with blur */}
             <div
-                className="absolute inset-0 bg-black/70 backdrop-blur-md"
+                className="absolute inset-0 bg-black/70 backdrop-blur-md cursor-pointer"
                 onClick={handleClose}
             />
 
             {/* Glittering particles background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {[...Array(30)].map((_, i) => (
+                {[...Array(18)].map((_, i) => (
                     <div
                         key={i}
-                        className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
+                        className="absolute w-0.5 h-0.5 bg-white rounded-full animate-pulse"
                         style={{
                             left: `${Math.random() * 100}%`,
                             top: `${Math.random() * 100}%`,
                             animationDelay: `${Math.random() * 2}s`,
                             animationDuration: `${1 + Math.random() * 2}s`,
-                            opacity: 0.3 + Math.random() * 0.7,
+                            opacity: 0.3 + Math.random() * 0.5,
                         }}
                     />
                 ))}
@@ -119,84 +119,79 @@ export function WelcomeModal({ pageType, onClose }: WelcomeModalProps) {
 
             {/* Modal */}
             <div
-                className={`relative w-full max-w-md transform transition-all duration-500 ${isClosing ? "scale-95 opacity-0" : "scale-100 opacity-100"
+                className={`relative w-full max-w-xs sm:max-w-sm transform transition-all duration-500 ${isClosing ? "scale-95 opacity-0" : "scale-100 opacity-100"
                     }`}
             >
-                {/* Outer glow effect */}
+                {/* Outer glow */}
                 <div
-                    className={`absolute -inset-4 bg-gradient-to-r ${content.gradient} rounded-[3rem] blur-2xl opacity-40 animate-pulse`}
-                />
-                <div
-                    className={`absolute -inset-2 bg-gradient-to-r ${content.gradient} rounded-[2.5rem] blur-xl opacity-30`}
+                    className={`absolute -inset-3 bg-gradient-to-r ${content.gradient} blur-xl opacity-30 animate-pulse`}
+                    style={{ borderRadius: '2rem 0.5rem 2rem 0.5rem' }}
                 />
 
                 {/* Main card */}
-                <div className="relative bg-gradient-to-b from-gray-900/95 via-gray-900/98 to-black/95 rounded-[2rem] border border-white/10 overflow-hidden shadow-2xl">
-                    {/* Animated border gradient */}
-                    <div className={`absolute inset-0 bg-gradient-to-r ${content.gradient} opacity-20`} />
-                    <div className="absolute inset-[1px] bg-gradient-to-b from-gray-900 to-black rounded-[2rem]" />
+                <div
+                    className="relative bg-gradient-to-b from-gray-900/95 to-black/95 border border-white/10 overflow-hidden shadow-2xl"
+                    style={{ borderRadius: '1.75rem 0.4rem 1.75rem 0.4rem' }}
+                >
+                    <div className={`absolute inset-0 bg-gradient-to-r ${content.gradient} opacity-10`} />
+                    <div
+                        className="absolute inset-[1px] bg-gradient-to-b from-gray-900 to-black"
+                        style={{ borderRadius: 'calc(1.75rem - 1px) calc(0.4rem - 1px) calc(1.75rem - 1px) calc(0.4rem - 1px)' }}
+                    />
 
-                    {/* Sparkle decorations */}
-                    <div className="absolute top-4 left-8 text-sky-400/60 animate-pulse">
-                        <Sparkles className="w-4 h-4" />
-                    </div>
-                    <div className="absolute top-12 right-6 text-cyan-400/60 animate-pulse" style={{ animationDelay: "0.5s" }}>
-                        <Star className="w-3 h-3" />
-                    </div>
-                    <div className="absolute bottom-20 left-6 text-sky-400/60 animate-pulse" style={{ animationDelay: "1s" }}>
-                        <Star className="w-2 h-2" />
-                    </div>
-                    <div className="absolute bottom-12 right-10 text-cyan-400/60 animate-pulse" style={{ animationDelay: "1.5s" }}>
+                    {/* Sparkles */}
+                    <div className="absolute top-3 left-5 text-sky-400/50 animate-pulse">
                         <Sparkles className="w-3 h-3" />
+                    </div>
+                    <div className="absolute top-8 right-5 text-cyan-400/50 animate-pulse" style={{ animationDelay: "0.7s" }}>
+                        <Star className="w-2.5 h-2.5" />
                     </div>
 
                     {/* Content */}
-                    <div className="relative p-8 text-center">
+                    <div className="relative px-4 pt-4 pb-5 sm:px-6 sm:pt-5 sm:pb-6 text-center">
                         {/* Close button */}
                         <button
                             onClick={handleClose}
-                            className="absolute top-4 right-4 p-2 text-white/40 hover:text-white/80 transition-colors rounded-full hover:bg-white/10"
+                            className="absolute top-3 right-3 p-1.5 text-white/40 hover:text-white/80 transition-colors rounded-full hover:bg-white/10 cursor-pointer"
                         >
-                            <X className="w-5 h-5" />
+                            <X className="w-4 h-4" />
                         </button>
 
-                        {/* Icon with glow */}
-                        <div className="relative inline-flex items-center justify-center mb-6">
+                        {/* Icon */}
+                        <div className="relative inline-flex items-center justify-center mb-3">
+                            <div className={`absolute w-14 h-14 bg-gradient-to-r ${content.gradient} blur-xl opacity-50 animate-pulse`} />
                             <div
-                                className={`absolute w-24 h-24 bg-gradient-to-r ${content.gradient} rounded-full blur-2xl opacity-50 animate-pulse`}
-                            />
-                            <div
-                                className={`relative w-20 h-20 bg-gradient-to-br ${content.gradient} rounded-full flex items-center justify-center shadow-lg`}
-                                style={{ boxShadow: `0 0 40px ${content.glowColor}` }}
+                                className={`relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br ${content.gradient} flex items-center justify-center shadow-lg`}
+                                style={{
+                                    clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+                                    boxShadow: `0 0 24px ${content.glowColor}`,
+                                }}
                             >
-                                <IconComponent className="w-10 h-10 text-white" />
+                                <IconComponent className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                             </div>
                         </div>
 
                         {/* Title */}
-                        <h2 className={`text-3xl font-black bg-gradient-to-r ${content.gradient} bg-clip-text text-transparent mb-2`}>
+                        <h2 className={`text-lg sm:text-xl font-black bg-gradient-to-r ${content.gradient} bg-clip-text text-transparent mb-0.5`}>
                             {content.title}
                         </h2>
-                        <p className="text-white/60 text-sm font-medium tracking-wide uppercase mb-8">
+                        <p className="text-white/50 text-[10px] sm:text-xs font-medium tracking-widest uppercase mb-4">
                             {content.subtitle}
                         </p>
 
                         {/* Features */}
-                        <div className="space-y-4 mb-8">
+                        <div className="space-y-2 mb-4">
                             {content.features.map((feature, index) => {
                                 const FeatureIcon = feature.icon
                                 return (
                                     <div
                                         key={index}
-                                        className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group"
-                                        style={{
-                                            animationDelay: `${index * 100}ms`,
-                                        }}
+                                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-white/5 border border-white/5 hover:bg-white/8 transition-colors group"
                                     >
-                                        <div className={`p-2 rounded-lg bg-white/10 ${feature.color} group-hover:scale-110 transition-transform`}>
-                                            <FeatureIcon className="w-5 h-5" />
+                                        <div className={`p-1.5 rounded-lg bg-white/10 ${feature.color} group-hover:scale-110 transition-transform shrink-0`}>
+                                            <FeatureIcon className="w-3.5 h-3.5" />
                                         </div>
-                                        <span className="text-white/90 font-medium text-left">{feature.text}</span>
+                                        <span className="text-white/85 font-medium text-left text-xs sm:text-sm leading-snug">{feature.text}</span>
                                     </div>
                                 )
                             })}
@@ -205,21 +200,20 @@ export function WelcomeModal({ pageType, onClose }: WelcomeModalProps) {
                         {/* CTA Button */}
                         <button
                             onClick={handleClose}
-                            className={`w-full py-4 px-8 bg-gradient-to-r ${content.gradient} text-white font-bold text-lg rounded-2xl 
+                            className={`w-full py-2.5 sm:py-3 px-6 bg-gradient-to-r ${content.gradient} text-white font-bold text-sm sm:text-base rounded-xl
                 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]
-                relative overflow-hidden group`}
-                            style={{ boxShadow: `0 10px 40px ${content.glowColor}` }}
+                relative overflow-hidden group cursor-pointer`}
+                            style={{ boxShadow: `0 8px 28px ${content.glowColor}` }}
                         >
-                            {/* Shimmer effect */}
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                             <span className="relative flex items-center justify-center gap-2">
-                                <Sparkles className="w-5 h-5" />
+                                <Sparkles className="w-4 h-4" />
                                 {content.cta}
                             </span>
                         </button>
 
                         {/* Footer */}
-                        <p className="mt-6 text-white/40 text-sm">
+                        <p className="mt-3 text-white/35 text-[10px] sm:text-xs">
                             {content.footerText}
                         </p>
                     </div>

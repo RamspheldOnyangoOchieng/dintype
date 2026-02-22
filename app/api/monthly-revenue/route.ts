@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase-admin"
 
-import { cookies } from "next/headers"
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
     try {
-        await cookies()
         const supabase = await createAdminClient()
         if (!supabase) {
             return NextResponse.json({ error: "Failed to create Supabase admin client" }, { status: 500 })

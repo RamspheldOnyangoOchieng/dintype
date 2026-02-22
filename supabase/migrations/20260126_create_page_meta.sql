@@ -47,9 +47,9 @@ CREATE INDEX IF NOT EXISTS idx_page_meta_path ON page_meta(page_path);
 -- Seed defaults
 INSERT INTO page_meta (page_path, meta_title, meta_description, robots)
 VALUES 
-  ('/', 'PocketLove - Your AI Companion', 'Experience the next generation of AI companionship. chat, connect, and create memories with your perfect virtual partner.', 'index,follow'),
-  ('/characters', 'Browse AI Characters - PocketLove', 'Explore a diverse range of AI personalities. Find your perfect match today.', 'index,follow'),
-  ('/pricing', 'Premium Plans - PocketLove', 'Unlock the full experience with our premium plans.', 'index,follow'),
-  ('/login', 'Login - PocketLove', 'Access your account.', 'noindex,follow'),
-  ('/register', 'Sign Up - PocketLove', 'Create your account and meet your AI companion.', 'noindex,follow')
+  ('/', 'Dintype - Your AI Companion', 'Experience the next generation of AI companionship. chat, connect, and create memories with your perfect virtual partner.', 'index,follow'),
+  ('/characters', 'Browse AI Characters - Dintype', 'Explore a diverse range of AI personalities. Find your perfect match today.', 'index,follow'),
+  ('/pricing', 'Premium Plans - Dintype', 'Unlock the full experience with our premium plans.', 'index,follow'),
+  ('/login', 'Login - Dintype', 'Access your account.', 'noindex,follow'),
+  ('/register', 'Sign Up - Dintype', 'Create your account and meet your AI companion.', 'noindex,follow')
 ON CONFLICT (page_path) DO NOTHING;

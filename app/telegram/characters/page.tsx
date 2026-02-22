@@ -224,7 +224,7 @@ export default function TelegramCharactersPage() {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-[#0b0b0b]">
                 <Loader2 className="w-10 h-10 text-[#ff0080] animate-spin" />
-                <p className="text-white/40 text-sm mt-4 tracking-widest font-black">POCKETLOVE</p>
+                <p className="text-white/40 text-sm mt-4 tracking-widest font-black">DINTYPE</p>
             </div>
         )
     }
@@ -252,7 +252,7 @@ export default function TelegramCharactersPage() {
                         Close
                     </button>
                     <div className="text-center">
-                        <h2 className="text-white font-black text-lg tracking-tighter uppercase leading-none">PocketLove</h2>
+                        <h2 className="text-white font-black text-lg tracking-tighter uppercase leading-none">Dintype</h2>
                         <span className="text-white/30 text-[9px] font-black uppercase tracking-[0.2em]">mini app</span>
                     </div>
                     <button

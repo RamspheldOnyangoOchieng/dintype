@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useAuth } from "@/components/auth-context"
 
 export default function DirectAdminSettingsPage() {
@@ -18,48 +17,47 @@ export default function DirectAdminSettingsPage() {
     stripe_secret_key: "",
     stripe_webhook_secret: "",
   })
-  const supabase = createClientComponentClient()
   const { user } = useAuth()
 
   useEffect(() => {
     const loadSettings = async () => {
       try {
         setIsLoading(true)
-
-        // Load settings without admin check
-        const { data: adminSettings, error } = await supabase.from("admin_settings").select("*").single()
-
-        if (error) {
-          console.error("Error loading admin settings:", error)
-          toast.error("Failed to load settings: " + error.message)
-        } else if (adminSettings) {
-          setSettings(adminSettings)
+        const res = await fetch("/api/admin/settings")
+        if (res.ok) {
+          const data = await res.json()
+          if (data.settings) {
+            const stripeKey     = data.settings.find((s: any) => s.key === "stripe_secret_key")
+            const stripeWebhook = data.settings.find((s: any) => s.key === "stripe_webhook_secret")
+            if (stripeKey?.value)     setSettings(prev => ({ ...prev, stripe_secret_key: stripeKey.value }))
+            if (stripeWebhook?.value) setSettings(prev => ({ ...prev, stripe_webhook_secret: stripeWebhook.value }))
+          }
         }
       } catch (error) {
-        console.error("Error loading admin settings:", error)
+        console.error("Error loading settings:", error)
         toast.error("Failed to load settings")
       } finally {
         setIsLoading(false)
       }
     }
-
     loadSettings()
-  }, [supabase])
+  }, [])
 
   const handleSaveSettings = async () => {
     try {
       setIsSaving(true)
-
-      const { error } = await supabase.from("admin_settings").upsert({
-        id: 1, // Assuming there's only one settings record
-        ...settings,
-        updated_at: new Date().toISOString(),
-      })
-
-      if (error) {
-        throw error
-      }
-
+      await Promise.all([
+        fetch("/api/admin/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: "stripe_secret_key", value: settings.stripe_secret_key }),
+        }),
+        fetch("/api/admin/settings", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: "stripe_webhook_secret", value: settings.stripe_webhook_secret }),
+        }),
+      ])
       toast.success("Settings saved successfully")
     } catch (error) {
       console.error("Error saving settings:", error)

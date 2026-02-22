@@ -3,7 +3,7 @@ import Script from "next/script"
 import type { Metadata, Viewport } from "next"
 
 export const metadata: Metadata = {
-    title: "PocketLove AI - Telegram Mini App",
+    title: "Dintype AI - Telegram Mini App",
     description: "Chat with AI companions on Telegram",
 }
 

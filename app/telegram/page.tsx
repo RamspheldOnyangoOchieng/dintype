@@ -237,7 +237,7 @@ export default function TelegramRootPage() {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-[#0b0b0b]">
                 <Loader2 className="w-10 h-10 text-[#ff0080] animate-spin" />
-                <p className="text-white/40 text-sm mt-4 font-black tracking-widest uppercase">PocketLove</p>
+                <p className="text-white/40 text-sm mt-4 font-black tracking-widest uppercase">Dintype</p>
             </div>
         )
     }
@@ -258,7 +258,7 @@ export default function TelegramRootPage() {
                     Close
                 </button>
                 <div className="text-center">
-                    <h2 className="text-white font-black text-lg tracking-tighter uppercase leading-none">PocketLove</h2>
+                    <h2 className="text-white font-black text-lg tracking-tighter uppercase leading-none">Dintype</h2>
                     <p className="text-white/30 text-[9px] font-black uppercase tracking-[0.2em]">mini app</p>
                 </div>
                 <div className="w-10" />
@@ -486,7 +486,7 @@ export default function TelegramRootPage() {
                                         <Sparkles className="w-3 h-3" /> Premium Citizen
                                     </span>
                                 ) : (
-                                    <p className="text-white/30 text-xs font-bold uppercase tracking-widest">PocketLove Citizen</p>
+                                    <p className="text-white/30 text-xs font-bold uppercase tracking-widest">Dintype Citizen</p>
                                 )}
                             </div>
                         </div>

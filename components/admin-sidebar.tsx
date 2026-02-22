@@ -2,32 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BarChart, CreditCard, Home, Settings, Users, Image, MessageSquare, DollarSign, FileText, Package, Gem, Activity, Search, FileEdit, Upload, Shield, PanelLeft, Smartphone, UserCircle } from "lucide-react"
+import { BarChart, CreditCard, Home, Settings, Users, Image, MessageSquare, DollarSign, FileText, Package, Gem, Activity, Search, FileEdit, Upload, Shield, PanelLeft, Smartphone, UserCircle, Palette } from "lucide-react"
 import { cn } from "@/lib/utils"
-
-// Make sure the Settings link is pointing to the correct path
-const navigation = [
-  { name: "Dashboard", href: "/admin/dashboard", icon: Home },
-  { name: "Cost Monitor", href: "/admin/dashboard/monitor", icon: Activity },
-  { name: "Restrictions", href: "/admin/dashboard/restrictions", icon: DollarSign },
-  { name: "SEO Meta Tags", href: "/admin/dashboard/seo", icon: Search },
-  { name: "Content Editor", href: "/admin/dashboard/content", icon: FileEdit },
-  { name: "Media Library", href: "/admin/dashboard/media", icon: Upload },
-  { name: "Blog Posts", href: "/admin/dashboard/blog", icon: FileText },
-  { name: "Characters", href: "/admin/dashboard/characters", icon: MessageSquare },
-  { name: "Users", href: "/admin/dashboard/users", icon: Users },
-  { name: "Telegram Profiles", href: "/admin/dashboard/telegram-profiles", icon: UserCircle },
-  { name: "Mini App Management", href: "/admin/dashboard/mini-app", icon: Smartphone },
-  { name: "Image Suggestions", href: "/admin/dashboard/image-suggestions", icon: Image },
-  { name: "Banners", href: "/admin/dashboard/banners", icon: BarChart },
-  { name: "Token Packages", href: "/admin/dashboard/token-packages", icon: Package },
-  { name: "Premium Content", href: "/admin/dashboard/premium-content", icon: Gem },
-  { name: "Premium Management", href: "/admin/premium", icon: CreditCard },
-  { name: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
-  { name: "Legal", href: "/admin/dashboard/documents", icon: FileText },
-]
-
+import { useTranslations } from "@/lib/use-translations"
 
 export default function AdminSidebar({
   onNavigate,
@@ -39,6 +16,30 @@ export default function AdminSidebar({
   onToggle?: () => void
 }) {
   const pathname = usePathname()
+  const { t } = useTranslations()
+
+  const navigation = [
+    { name: t("admin.nav.dashboard"), href: "/admin/dashboard", icon: Home },
+    { name: t("admin.nav.brandingTheme"), href: "/admin/settings", icon: Palette },
+    { name: t("admin.nav.costMonitor"), href: "/admin/dashboard/monitor", icon: Activity },
+    { name: t("admin.nav.restrictions"), href: "/admin/dashboard/restrictions", icon: DollarSign },
+    { name: t("admin.nav.seoMetaTags"), href: "/admin/dashboard/seo", icon: Search },
+    { name: t("admin.nav.contentEditor"), href: "/admin/dashboard/content", icon: FileEdit },
+    { name: t("admin.nav.mediaLibrary"), href: "/admin/dashboard/media", icon: Upload },
+    { name: t("admin.nav.blogPosts"), href: "/admin/dashboard/blog", icon: FileText },
+    { name: t("admin.nav.characters"), href: "/admin/dashboard/characters", icon: MessageSquare },
+    { name: t("admin.nav.users"), href: "/admin/dashboard/users", icon: Users },
+    { name: t("admin.nav.telegramProfiles"), href: "/admin/dashboard/telegram-profiles", icon: UserCircle },
+    { name: t("admin.nav.miniAppMgmt"), href: "/admin/dashboard/mini-app", icon: Smartphone },
+    { name: t("admin.nav.imageSuggestions"), href: "/admin/dashboard/image-suggestions", icon: Image },
+    { name: t("admin.nav.banners"), href: "/admin/dashboard/banners", icon: BarChart },
+    { name: t("admin.nav.tokenPackages"), href: "/admin/dashboard/token-packages", icon: Package },
+    { name: t("admin.nav.premiumContent"), href: "/admin/dashboard/premium-content", icon: Gem },
+    { name: t("admin.nav.premiumManagement"), href: "/admin/premium", icon: CreditCard },
+    { name: t("admin.nav.subscriptions"), href: "/admin/subscriptions", icon: CreditCard },
+    { name: t("admin.nav.settings"), href: "/admin/settings", icon: Settings },
+    { name: t("admin.nav.legal"), href: "/admin/dashboard/documents", icon: FileText },
+  ]
 
   return (
     <div className={cn(
@@ -77,7 +78,7 @@ export default function AdminSidebar({
       </div>
       <div className="flex-1 space-y-1 px-3 py-4 overflow-y-auto relative">
         <div className="mb-2 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-widest h-4 overflow-hidden">
-          {!isCollapsed && "Overview"}
+          {!isCollapsed && t("admin.nav.overview")}
         </div>
 
         {navigation.map((item) => {
@@ -119,7 +120,7 @@ export default function AdminSidebar({
           onClick={onNavigate}
         >
           <Home className="h-4 w-4 shrink-0" />
-          {!isCollapsed && <span>Main Site</span>}
+          {!isCollapsed && <span>{t("admin.nav.mainSite")}</span>}
         </Link>
       </div>
     </div>

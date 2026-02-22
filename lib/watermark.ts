@@ -8,7 +8,7 @@ import sharp from 'sharp'
  */
 export async function addWatermark(
   imageBuffer: Buffer,
-  watermarkText: string = 'POCKETLOVE AI'
+  watermarkText: string = 'DINTYPE AI'
 ): Promise<Buffer> {
   try {
     // Get image metadata
@@ -66,7 +66,7 @@ export async function addWatermark(
  */
 export async function addWatermarkToUrl(
   imageUrl: string,
-  watermarkText: string = 'POCKETLOVE AI'
+  watermarkText: string = 'DINTYPE AI'
 ): Promise<Buffer> {
   try {
     // Fetch the image

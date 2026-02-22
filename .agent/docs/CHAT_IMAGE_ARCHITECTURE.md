@@ -1,8 +1,8 @@
-# Pocketlove.ai - Chat & Image Generation Architecture
+# Dintype.se - Chat & Image Generation Architecture
 
 ## Overview
 
-This document explains **how**, **when**, **what**, and **where** to apply changes in the Pocketlove.ai chat and image generation system.
+This document explains **how**, **when**, **what**, and **where** to apply changes in the Dintype.se chat and image generation system.
 
 ---
 

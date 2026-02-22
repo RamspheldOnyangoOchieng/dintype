@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase-server'
 import crypto from 'crypto'
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN
-const BOT_USERNAME = 'pocketloveaibot'
+const BOT_USERNAME = 'dintypebot'
 
 export interface TelegramLinkResult {
     success: boolean
@@ -16,7 +16,7 @@ export interface TelegramLinkResult {
 }
 
 /**
- * Generate a one-time link code for connecting Telegram to Pocketlove
+ * Generate a one-time link code for connecting Telegram to Dintype
  */
 export async function generateTelegramLinkCode(
     userId: string,

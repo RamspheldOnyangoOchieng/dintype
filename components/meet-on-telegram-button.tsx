@@ -43,7 +43,7 @@ export function MeetOnTelegramButton({
       } else {
         // For guest users, use a simple character deep link (fallback)
         // We can generate this directly on the client
-        const guestLink = `https://t.me/pocketloveaibot?start=char_${characterId}`
+        const guestLink = `https://t.me/dintypebot?start=char_${characterId}`
         window.open(guestLink, "_blank")
         toast.info("Opening Telegram as guest...")
       }

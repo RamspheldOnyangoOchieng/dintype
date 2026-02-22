@@ -52,7 +52,7 @@ export async function sendEmail({ to, template, data }: EmailOptions): Promise<b
     const templateToUse = dbTemplate || renderTemplate(template, {
       ...data,
       year: new Date().getFullYear().toString(),
-      siteName: data.siteName || emailConfig.fromName || process.env.NEXT_PUBLIC_SITE_NAME || "Pocketlove",
+      siteName: data.siteName || emailConfig.fromName || process.env.NEXT_PUBLIC_SITE_NAME || "Dintype",
     })
 
     // Replace variables in the template
@@ -60,7 +60,7 @@ export async function sendEmail({ to, template, data }: EmailOptions): Promise<b
       const allData: Record<string, any> = {
         ...data,
         year: new Date().getFullYear().toString(),
-        siteName: data.siteName || emailConfig.fromName || process.env.NEXT_PUBLIC_SITE_NAME || "Pocketlove",
+        siteName: data.siteName || emailConfig.fromName || process.env.NEXT_PUBLIC_SITE_NAME || "Dintype",
       }
 
       return text.replace(/{{(\w+)}}/g, (match, key) => {

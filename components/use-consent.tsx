@@ -43,6 +43,8 @@ export function useConsent() {
       }
       localStorage.setItem(CONSENT_STORAGE_KEY, JSON.stringify(payload))
       setConsent(payload)
+      // Notify same-tab listeners (e.g. onboarding tour) that consent was just given
+      window.dispatchEvent(new CustomEvent("consentGranted"))
     } catch {}
   }
 

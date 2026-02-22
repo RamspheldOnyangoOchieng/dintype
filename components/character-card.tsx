@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { MessageCircle, X } from "lucide-react"
+import { useTranslations } from "@/lib/use-translations"
 
 interface CharacterCardProps {
   character: Character
@@ -24,6 +25,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const isHoveringRef = useRef(false)
+  const { t } = useTranslations()
 
   const handleMouseEnter = () => {
     setIsHovering(true)
@@ -116,7 +118,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
-          New
+          {t("characterCard.new")}
         </div>
       )}
 

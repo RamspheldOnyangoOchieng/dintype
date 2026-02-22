@@ -110,7 +110,7 @@ const blogPosts = [
       <h2>AI Companions: The New Generation of Digital Interaction</h2>
       <p>AI technology has revolutionized how we create and interact with virtual characters.</p>
       
-      <h3>1. Pocketlove.ai - Premium Quality</h3>
+      <h3>1. Dintype.se - Premium Quality</h3>
       <p>Our own platform offers advanced AI technology with a focus on safety and user experience.</p>
       
       <h3>2-10. International Alternatives</h3>
@@ -226,7 +226,7 @@ const blogPosts = [
       <p>Remember to always follow platform guidelines and use technology responsibly.</p>
       
       <h3>Start Creating Today</h3>
-      <p>At Pocketlove.ai, you can easily create and customize your AI character in just a few minutes.</p>
+      <p>At Dintype.se, you can easily create and customize your AI character in just a few minutes.</p>
     `,
     image: "https://images.unsplash.com/photo-1534008757030-27299c4371b6?w=800&h=600&fit=crop",
     category: "Guide",
@@ -241,12 +241,12 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   
   if (!post) {
     return {
-      title: "Article not found - Pocketlove",
+      title: "Article not found - Dintype",
     };
   }
 
   return {
-    title: `${post.title} - Pocketlove Blog`,
+    title: `${post.title} - Dintype Blog`,
     description: post.excerpt,
   };
 }

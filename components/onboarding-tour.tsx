@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, X, ChevronLeft, Heart, MessageCircle, Wand2, PlusSquare, Crown, Home, Image } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { CONSENT_STORAGE_KEY, CONSENT_VERSION, POLICY_VERSION } from "@/lib/consent-config"
 
 interface TourStep {
     id: string
@@ -90,15 +91,54 @@ export function OnboardingTour() {
     }, [currentStep])
 
     useEffect(() => {
-        const hasSeenTour = localStorage.getItem("pocketlove_tour_completed")
-        if (!hasSeenTour) {
-            // Wait for page to fully render
-            const timer = setTimeout(() => {
+        const hasSeenTour = localStorage.getItem("dintype_tour_completed")
+        if (hasSeenTour) return
+
+        const isConsentValid = () => {
+            try {
+                const raw = localStorage.getItem(CONSENT_STORAGE_KEY)
+                if (!raw) return false
+                const parsed = JSON.parse(raw)
+                return parsed?.version === CONSENT_VERSION && parsed?.policyVersion === POLICY_VERSION
+            } catch {
+                return false
+            }
+        }
+
+        let timer: ReturnType<typeof setTimeout>
+
+        const startTour = () => {
+            timer = setTimeout(() => {
                 setIsVisible(true)
                 setCurrentStep(0)
-            }, 2500)
-            return () => clearTimeout(timer)
+            }, 1200)
         }
+
+        if (isConsentValid()) {
+            // Consent already given — start tour after short delay
+            startTour()
+        } else {
+            // Wait for consent to be stored — listen on same tab (CustomEvent) and cross-tab (storage)
+            const onConsent = () => {
+                if (isConsentValid()) {
+                    window.removeEventListener("consentGranted", onConsent)
+                    window.removeEventListener("storage", onStorage)
+                    startTour()
+                }
+            }
+            const onStorage = (e: StorageEvent) => {
+                if (e.key === CONSENT_STORAGE_KEY) onConsent()
+            }
+            window.addEventListener("consentGranted", onConsent)
+            window.addEventListener("storage", onStorage)
+            return () => {
+                window.removeEventListener("consentGranted", onConsent)
+                window.removeEventListener("storage", onStorage)
+                clearTimeout(timer)
+            }
+        }
+
+        return () => clearTimeout(timer)
     }, [])
 
     useEffect(() => {
@@ -131,7 +171,7 @@ export function OnboardingTour() {
     const handleComplete = () => {
         setIsVisible(false)
         setCurrentStep(-1)
-        localStorage.setItem("pocketlove_tour_completed", "true")
+        localStorage.setItem("dintype_tour_completed", "true")
     }
 
     if (!isVisible || currentStep === -1 || !targetRect) return null
@@ -198,7 +238,7 @@ export function OnboardingTour() {
     return (
         <div className="fixed inset-0 z-[9999] pointer-events-none">
             {/* Overlay with spotlight cut-out */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-auto" onClick={handleComplete}>
+            <svg className="absolute inset-0 w-full h-full pointer-events-auto cursor-pointer" onClick={handleComplete}>
                 <defs>
                     <mask id="spotlight-mask">
                         <rect x="0" y="0" width="100%" height="100%" fill="white" />
@@ -249,11 +289,15 @@ export function OnboardingTour() {
                 <motion.div
                     ref={tooltipRef}
                     key={currentStep}
-                    className="absolute w-[280px] bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl pointer-events-auto overflow-hidden"
+                    className="absolute w-[280px] bg-[#111827] border border-sky-400/20 shadow-2xl pointer-events-auto overflow-hidden"
+                    style={{
+                        borderRadius: '0.25rem 1.5rem 1.5rem 1.5rem',
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.8), 0 0 0 1px rgba(56,189,248,0.15), 0 0 30px rgba(56,189,248,0.1)',
+                    }}
                     initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                    animate={{ 
-                        opacity: 1, 
-                        scale: 1, 
+                    animate={{
+                        opacity: 1,
+                        scale: 1,
                         y: 0,
                         top: tooltipPos.top,
                         left: tooltipPos.left

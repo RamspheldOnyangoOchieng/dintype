@@ -18,8 +18,8 @@ async function syncEmails() {
       UPDATE public.profiles p
       SET email = u.email,
           username = COALESCE(p.username, split_part(u.email, '@', 1)),
-          is_admin = (CASE WHEN u.email IN ('carlosdcastrosa@gmail.com', 'admin@pocketlove.ai', 'admin.support@pocketlove.ai') THEN true ELSE p.is_admin END),
-          is_premium = (CASE WHEN u.email IN ('carlosdcastrosa@gmail.com', 'admin@pocketlove.ai', 'admin.support@pocketlove.ai') THEN true ELSE p.is_premium END)
+          is_admin = (CASE WHEN u.email IN ('carlosdcastrosa@gmail.com', 'admin@dintype.se', 'admin.support@dintype.se') THEN true ELSE p.is_admin END),
+          is_premium = (CASE WHEN u.email IN ('carlosdcastrosa@gmail.com', 'admin@dintype.se', 'admin.support@dintype.se') THEN true ELSE p.is_premium END)
       FROM auth.users u
       WHERE p.id = u.id
       RETURNING p.id, p.email, p.username;
@@ -41,7 +41,7 @@ async function syncEmails() {
     await client.query(`
       INSERT INTO public.admins (user_id)
       SELECT id FROM auth.users 
-      WHERE email IN ('carlosdcastrosa@gmail.com', 'admin@pocketlove.ai', 'admin.support@pocketlove.ai')
+      WHERE email IN ('carlosdcastrosa@gmail.com', 'admin@dintype.se', 'admin.support@dintype.se')
       ON CONFLICT DO NOTHING
     `);
     console.log('✅ Updated public.admins table.');

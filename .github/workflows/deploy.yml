@@ -65,19 +65,19 @@ jobs:
             --exclude='node_modules' \
             --exclude='.env' \
             --exclude='.env*' \
-            ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/var/www/pocketlove/
+            ./ ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/var/www/dintype/
 
       - name: Install dependencies and restart on server
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
-            cd /var/www/pocketlove
+            cd /var/www/dintype
             
             # Install production dependencies
             pnpm install --frozen-lockfile
             
             # Restart application with PM2
-            pm2 delete pocketlove 2>/dev/null || true
-            pm2 start npm --name "pocketlove" -- start
+            pm2 delete dintype 2>/dev/null || true
+            pm2 start npm --name "dintype" -- start
             pm2 save
             
             echo "✅ Deployment completed successfully!"

@@ -61,7 +61,7 @@ export default function EmailTemplatesPage() {
           </div>
 
           <p style="color: #666; font-size: 12px; margin-top: 30px;">
-            If you have any questions, contact us at support@pocketlove.ai
+            If you have any questions, contact us at support@dintype.se
           </p>
         </div>
       `,
@@ -105,7 +105,7 @@ export default function EmailTemplatesPage() {
           </div>
 
           <p style="color: #666; font-size: 12px; margin-top: 30px;">
-            If you have any questions about your Premium account, contact us at support@pocketlove.ai
+            If you have any questions about your Premium account, contact us at support@dintype.se
           </p>
         </div>
       `,
@@ -155,11 +155,11 @@ export default function EmailTemplatesPage() {
           </div>
 
           <p style="color: #666; font-size: 12px; margin-top: 30px;">
-            If you have any questions about your order, contact support@pocketlove.ai with your order ID.
+            If you have any questions about your order, contact support@dintype.se with your order ID.
           </p>
         </div>
       `,
-      text_body: `Payment Received!\n\nHi {{username}},\n\nThank you for your purchase!\n\nOrder Details:\n━━━━━━━━━━━━━━━━\nOrder ID: {{order_id}}\nDate: {{order_date}}\nItem: {{item_name}}\nAmount: {{amount}}\n━━━━━━━━━━━━━━━━\n\n{{purchase_details}}\n\nSee your invoices: {{app_url}}/invoices\n\nFor questions, contact support@pocketlove.ai`,
+      text_body: `Payment Received!\n\nHi {{username}},\n\nThank you for your purchase!\n\nOrder Details:\n━━━━━━━━━━━━━━━━\nOrder ID: {{order_id}}\nDate: {{order_date}}\nItem: {{item_name}}\nAmount: {{amount}}\n━━━━━━━━━━━━━━━━\n\n{{purchase_details}}\n\nSee your invoices: {{app_url}}/invoices\n\nFor questions, contact support@dintype.se`,
       description: "Sent after a successful payment",
       variables: ["username", "order_id", "order_date", "item_name", "amount", "purchase_details", "app_url"]
     },
@@ -215,7 +215,7 @@ export default function EmailTemplatesPage() {
           </p>
 
           <p style="color: #666; font-size: 12px; margin-top: 30px;">
-            To cancel your subscription, visit the settings page or contact support@pocketlove.ai
+            To cancel your subscription, visit the settings page or contact support@dintype.se
           </p>
         </div>
       `,
@@ -285,11 +285,11 @@ export default function EmailTemplatesPage() {
           </p>
 
           <p style="color: #666; font-size: 12px; margin-top: 30px;">
-            Need help? Contact us at support@pocketlove.ai and we'll help you!
+            Need help? Contact us at support@dintype.se and we'll help you!
           </p>
         </div>
       `,
-      text_body: `⚠️ Payment Failed\n\nHi {{username}},\n\nUnfortunately, we couldn't process your Premium subscription payment.\n\nPayment Details:\n━━━━━━━━━━━━━━━━\nPlan: Premium Monthly Subscription\nAmount: {{amount}}\nAttempt Date: {{attempt_date}}\nPayment Method: {{payment_method}}\nReason: {{failure_reason}}\n━━━━━━━━━━━━━━━━\n\nWhat happens now?\n• We will try again in {{retry_days}} days\n• Your Premium access continues until {{grace_period_end}}\n• After that, your subscription will be paused\n\nFix the issue:\n- Check that your card has funds\n- Confirm that the card has not expired\n- Update your payment method\n\nUpdate payment: {{app_url}}/settings/billing\n\nNeed help? Contact support@pocketlove.ai`,
+      text_body: `⚠️ Payment Failed\n\nHi {{username}},\n\nUnfortunately, we couldn't process your Premium subscription payment.\n\nPayment Details:\n━━━━━━━━━━━━━━━━\nPlan: Premium Monthly Subscription\nAmount: {{amount}}\nAttempt Date: {{attempt_date}}\nPayment Method: {{payment_method}}\nReason: {{failure_reason}}\n━━━━━━━━━━━━━━━━\n\nWhat happens now?\n• We will try again in {{retry_days}} days\n• Your Premium access continues until {{grace_period_end}}\n• After that, your subscription will be paused\n\nFix the issue:\n- Check that your card has funds\n- Confirm that the card has not expired\n- Update your payment method\n\nUpdate payment: {{app_url}}/settings/billing\n\nNeed help? Contact support@dintype.se`,
       description: "Sent when a subscription payment fails",
       variables: ["username", "amount", "attempt_date", "payment_method", "failure_reason", "retry_days", "grace_period_end", "app_url"]
     },

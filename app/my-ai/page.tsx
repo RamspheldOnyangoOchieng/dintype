@@ -9,6 +9,7 @@ import { useAuth } from '@/components/auth-context';
 import { PremiumUpgradeModal } from '@/components/premium-upgrade-modal';
 import { DeleteAIPartnerModal } from '@/components/delete-ai-partner-modal';
 import { ActionStatusModal } from '@/components/action-status-modal';
+import { useTranslations } from "@/lib/use-translations";
 
 interface Character {
   id: string;
@@ -41,6 +42,7 @@ export default function MyAIPage() {
     title: '',
     description: ''
   });
+  const { t } = useTranslations();
 
   useEffect(() => {
     checkAuthAndFetchCharacters();
@@ -106,15 +108,15 @@ export default function MyAIPage() {
         setStatusModal({
           isOpen: true,
           type: 'success',
-          title: 'DELETED',
-          description: 'Your connection has been successfully removed.'
+          title: t('myAi.deleted'),
+          description: t('myAi.deletedDesc')
         });
       } else {
         setStatusModal({
           isOpen: true,
           type: 'error',
-          title: 'FAILED',
-          description: 'We couldn\'t delete your AI companion right now. Please try again.'
+          title: t('myAi.failed'),
+          description: t('myAi.failedDesc')
         });
       }
     } catch (error) {
@@ -122,8 +124,8 @@ export default function MyAIPage() {
       setStatusModal({
         isOpen: true,
         type: 'error',
-        title: 'ERROR',
-        description: 'An unexpected connection error occurred.'
+        title: t('myAi.errorTitle'),
+        description: t('myAi.errorDesc')
       });
     } finally {
       setDeletingId(null);
@@ -158,7 +160,7 @@ export default function MyAIPage() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600 dark:text-slate-400 font-medium">Loading your AI partners...</p>
+          <p className="text-slate-600 dark:text-slate-400 font-medium">{t("myAi.loadingPartners")}</p>
         </div>
       </div>
     );
@@ -179,15 +181,15 @@ export default function MyAIPage() {
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest mb-2">
                 <Sparkles className="h-3 w-3" />
-                YOUR PRIVATE GALLERY
+                {t("myAi.privateGallery")}
               </div>
               <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-4 italic">
-                My <span className="text-primary">AI</span> Partners
+                {t("myAi.title")}
               </h1>
               <p className="text-lg text-slate-600 dark:text-slate-400 font-medium max-w-2xl">
                 {characters.length === 0
-                  ? 'You don\'t have any AI companions yet. Unleash your imagination and create your perfect match!'
-                  : `You have shaped ${characters.length} unique AI companion${characters.length !== 1 ? 's' : ''} so far.`
+                  ? t("myAi.noCompanions")
+                  : `${characters.length} AI`
                 }
               </p>
             </div>
@@ -197,7 +199,7 @@ export default function MyAIPage() {
               className="flex items-center justify-center gap-3 px-8 py-4 bg-primary hover:bg-primary/90 text-white rounded-2xl font-black text-lg shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-1 transition-all duration-300"
             >
               <Plus className="h-6 w-6" />
-              CREATE NEW
+              {t("myAi.createNew")}
             </button>
           </div>
         </div>
@@ -209,17 +211,17 @@ export default function MyAIPage() {
               <Heart className="h-12 w-12 text-primary animate-pulse" />
             </div>
             <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4 italic uppercase">
-              NO AI COMPANIONS YET
+              {t("myAi.noCompanionsTitle")}
             </h2>
             <p className="text-slate-600 dark:text-slate-400 mb-10 max-w-md mx-auto text-lg leading-relaxed font-medium">
-              The world is waiting for you. Create your first unique AI character with personality, memories, and style.
+              {t("myAi.noCompanionsDesc")}
             </p>
             <button
               onClick={handleCreateNew}
               className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-primary to-blue-600 text-white rounded-2xl font-black text-xl shadow-xl shadow-primary/25 hover:shadow-primary/45 hover:scale-105 transition-all duration-300"
             >
               <Sparkles className="h-6 w-6" />
-              START CREATING NOW
+              {t("myAi.startCreating")}
             </button>
           </div>
         ) : (
@@ -251,10 +253,10 @@ export default function MyAIPage() {
                         <Sparkles className="h-8 w-8 text-black" />
                       </div>
                       <h3 className="text-white font-black text-center text-lg leading-tight italic uppercase tracking-tighter mb-2">
-                        Premium Content Locked
+                        {t("myAi.premiumLocked")}
                       </h3>
                       <p className="text-white/80 text-center text-xs font-medium leading-normal italic">
-                        Renew your membership to continue chatting with {character.name}.
+                        {t("myAi.renewMembership")} {character.name}.
                       </p>
                     </div>
                   )}
@@ -282,12 +284,12 @@ export default function MyAIPage() {
                         {character.is_locked ? (
                           <>
                             <Sparkles className="h-4 w-4" />
-                            UNLOCK NOW
+                            {t("myAi.unlockNow")}
                           </>
                         ) : (
                           <>
                             <MessageCircle className="h-4 w-4" />
-                            START CHAT
+                            {t("myAi.startChat")}
                           </>
                         )}
                       </button>
@@ -297,7 +299,7 @@ export default function MyAIPage() {
                           className="flex-1 h-12 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white rounded-xl font-bold text-xs transition-all"
                         >
                           <Edit className="h-3.5 w-3.5 opacity-60" />
-                          EDIT
+                          {t("myAi.edit")}
                         </button>
                         <button
                           onClick={() => handleDelete(character)}
@@ -309,7 +311,7 @@ export default function MyAIPage() {
                           ) : (
                             <>
                               <Trash2 className="h-3.5 w-3.5 opacity-60" />
-                              DELETE
+                              {t("myAi.delete")}
                             </>
                           )}
                         </button>
@@ -327,7 +329,7 @@ export default function MyAIPage() {
 
                     <div className="flex items-center gap-2 mt-1">
                       {character.age && (
-                        <span className="text-sm font-bold text-primary tracking-tighter">{character.age} YEARS OLD</span>
+                        <span className="text-sm font-bold text-primary tracking-tighter">{character.age} {t("myAi.yearsOld")}</span>
                       )}
                       {character.relationship && (
                         <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-md">

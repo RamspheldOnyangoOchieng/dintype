@@ -5,12 +5,12 @@ import { useSite } from "@/components/site-context"
 import { type TranslationKey, translations } from "./translations"
 
 export function useTranslations() {
-  // Always default to English, ignoring any potentially cached 'sv' setting
-  const language = "en"
+  const { settings } = useSite()
+  const language = (settings.language || "en") as "en" | "sv"
 
   const t = useMemo(() => (key: TranslationKey): string => {
-    return translations.en[key] || key
-  }, [])
+    return translations[language]?.[key] || translations.en[key] || key
+  }, [language])
 
   return { t, language }
 }

@@ -1,6 +1,6 @@
 # Admin Panel - Telegram Integration Features
 
-This document describes the new Telegram-related admin features added to the PocketLove admin panel.
+This document describes the new Telegram-related admin features added to the Dintype admin panel.
 
 ## New Admin Pages
 
