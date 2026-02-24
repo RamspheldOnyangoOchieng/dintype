@@ -66,7 +66,7 @@ export default function AdminSettingsPage() {
             const stripeKey = data.settings.find((s: any) => s.key === "stripe_secret_key")
             const stripeWebhook = data.settings.find((s: any) => s.key === "stripe_webhook_secret")
             const currencyEntry = data.settings.find((s: any) => s.key === "currency_config")
-            if (stripeKey?.value)    setSettings(prev => ({ ...prev, stripe_secret_key: stripeKey.value }))
+            if (stripeKey?.value) setSettings(prev => ({ ...prev, stripe_secret_key: stripeKey.value }))
             if (stripeWebhook?.value) setSettings(prev => ({ ...prev, stripe_webhook_secret: stripeWebhook.value }))
             if (currencyEntry?.value) setCurrencyConfig(currencyEntry.value)
             const langEntry = data.settings.find((s: any) => s.key === "site_language")
@@ -215,10 +215,10 @@ export default function AdminSettingsPage() {
       <Tabs defaultValue="general">
         <TabsList className="flex flex-wrap h-auto gap-1 bg-muted p-1 rounded-xl">
           <TabsTrigger value="general" className="gap-1.5 cursor-pointer">
-            <Settings className="w-4 h-4" /> General
+            <Settings className="w-4 h-4" /> {t("admin.general")}
           </TabsTrigger>
           <TabsTrigger value="branding" className="gap-1.5 cursor-pointer">
-            <Palette className="w-4 h-4" /> Branding &amp; Theme
+            <Palette className="w-4 h-4" /> {t("admin.branding.title")}
           </TabsTrigger>
         </TabsList>
 
@@ -230,10 +230,10 @@ export default function AdminSettingsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Plug className="h-5 w-5 text-primary" />
-                  <span>🔌 External Integrations</span>
+                  <span>🔌 {t("admin.externalIntegrations")}</span>
                 </CardTitle>
                 <CardDescription>
-                  Configure Stripe webhooks, OAuth providers, and email services
+                  {t("admin.stripeDescription")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -243,10 +243,10 @@ export default function AdminSettingsPage() {
                   size="lg"
                 >
                   <Settings className="mr-2 h-5 w-5" />
-                  Manage Integrations
+                  {t("admin.manageIntegrations")}
                 </Button>
                 <p className="text-sm text-muted-foreground mt-3">
-                  ✨ Set up Stripe, OAuth, and email services from a simple admin interface.
+                  ✨ {t("admin.integrations.description")}
                 </p>
               </CardContent>
             </Card>
@@ -257,10 +257,10 @@ export default function AdminSettingsPage() {
                   <svg className="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  <span>📧 Email Templates</span>
+                  <span>📧 {t("admin.emailTemplatesTitle")}</span>
                 </CardTitle>
                 <CardDescription>
-                  Customize welcome, payment, and notification emails
+                  {t("admin.editEmailTemplates")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -272,10 +272,10 @@ export default function AdminSettingsPage() {
                   <svg className="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
-                  Edit Email Templates
+                  {t("admin.editEmailTemplates")}
                 </Button>
                 <p className="text-sm text-muted-foreground mt-3">
-                  ✨ Edit HTML &amp; text templates with live preview - no code editing required!
+                  ✨ {t("admin.emailTemplates.description")}
                 </p>
               </CardContent>
             </Card>
@@ -326,14 +326,14 @@ export default function AdminSettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <CreditCard className="h-5 w-5 text-green-600" />
-                <span>Currency Settings</span>
+                <span>{t("admin.currencySettings")}</span>
               </CardTitle>
-              <CardDescription>Configure the primary currency for the platform</CardDescription>
+              <CardDescription>{t("admin.pricing.description" as any) || "Configure the primary currency for the platform"}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="currencyCode">Currency Code</Label>
+                  <Label htmlFor="currencyCode">{t("admin.currencyCode")}</Label>
                   <Input
                     id="currencyCode"
                     placeholder="USD"
@@ -343,7 +343,7 @@ export default function AdminSettingsPage() {
                   <p className="text-xs text-muted-foreground">ISO 4217 Code (e.g. USD, EUR, SEK)</p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="currencySymbol">Currency Symbol</Label>
+                  <Label htmlFor="currencySymbol">{t("admin.currencySymbol")}</Label>
                   <Input
                     id="currencySymbol"
                     placeholder="$"
@@ -353,7 +353,7 @@ export default function AdminSettingsPage() {
                   <p className="text-xs text-muted-foreground">Symbol displayed next to price (e.g. $, €, kr)</p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="currencyRate">Exchange Rate (vs USD)</Label>
+                  <Label htmlFor="currencyRate">{t("admin.exchangeRate")}</Label>
                   <Input
                     id="currencyRate"
                     type="number"
@@ -371,7 +371,7 @@ export default function AdminSettingsPage() {
                   variant="outline"
                   onClick={() => setCurrencyConfig({ code: 'USD', symbol: '$', rate: 1.0 })}
                 >
-                  Reset to USD ($)
+                  {t("admin.resetToUsd")}
                 </Button>
                 <Button
                   onClick={handleSaveCurrency}
@@ -381,12 +381,12 @@ export default function AdminSettingsPage() {
                   {isSavingCurrency ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      Saving...
+                      {t("general.save" as any)}...
                     </>
                   ) : (
                     <>
                       <Save className="h-4 w-4 mr-2" />
-                      Save Currency Settings
+                      {t("admin.saveCurrency")}
                     </>
                   )}
                 </Button>
@@ -399,23 +399,23 @@ export default function AdminSettingsPage() {
             <Separator />
             <Card>
               <CardHeader>
-                <CardTitle>System Information</CardTitle>
-                <CardDescription>Current system status and configuration</CardDescription>
+                <CardTitle>{t("admin.systemInfo")}</CardTitle>
+                <CardDescription>{t("admin.systemStatus" as any) || "Current system status and configuration"}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-500">Environment</Label>
+                    <Label className="text-sm font-medium text-slate-500">{t("admin.environment")}</Label>
                     <p className="text-sm font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
                       {process.env.NODE_ENV || "development"}
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-500">Version</Label>
+                    <Label className="text-sm font-medium text-slate-500">{t("admin.version")}</Label>
                     <p className="text-sm font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">v1.0.0</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-slate-500">Last Updated</Label>
+                    <Label className="text-sm font-medium text-slate-500">{t("admin.lastUpdated")}</Label>
                     <p className="text-sm font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
                       {new Date().toLocaleDateString()}
                     </p>

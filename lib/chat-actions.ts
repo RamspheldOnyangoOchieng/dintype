@@ -26,6 +26,7 @@ export async function sendChatMessage(
   messages: Message[],
   systemPrompt: string,
   userId?: string,
+  language: "en" | "sv" = "en",
 ): Promise<{ id: string; content: string; timestamp: string; isImage?: boolean; imageUrl?: string }> {
   try {
     // 1. Check message limit BEFORE processing (for non-admins)
@@ -121,7 +122,7 @@ IMPORTANT INSTRUCTIONS:
 - CONVERSATION FLOW: Speak like a real person. Use "..." for pauses.
 - BREVITY: Keep responses short (1-3 sentences).
 - EMOTIONS & EMOJIS: Use emojis frequently and naturally (😂, 😊, 🔥, 💖, 😘) to convey mood instead of describing it.
-- LANGUAGE: Always respond in English. Be natural, conversational, and raw.`
+- LANGUAGE: Always respond in ${language === "sv" ? "Swedish" : "English"}. Be natural, conversational, and raw.`
 
     // Format messages for the API
     const apiMessages = [

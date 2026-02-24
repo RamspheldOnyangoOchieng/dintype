@@ -3,83 +3,7 @@ import { useState, useCallback } from "react";
 import { CONSENT_VERSION, POLICY_VERSION } from "@/lib/consent-config";
 import { Button } from "@/components/ui/button";
 
-const translations = {
-  en: {
-    ageTitle: "This site is for adults only! It contains only AI-generated adult content.",
-    ageDesc: "By entering this website, you confirm that you are 18 years or older. We use cookies for basic analytics and spam detection. All content on this website is AI-generated! Any generations that resemble real people are purely coincidental.",
-    cookieTitle: "This website uses cookies",
-    cookieDesc: "To change your preferences, please click on the settings button.",
-    cookieSettings: "Cookie Settings",
-    confirmAll: "Confirm All",
-    reject: "Reject non-essential",
-    termsLink: "Terms",
-    privacyLink: "Privacy",
-    ageCheckbox: "I confirm I am at least 18 years old",
-    termsCheckbox: "I agree to the Terms and Policies",
-    needConfirm: "Please confirm age and accept terms first",
-    rulesTitle: "Chatbots are strictly allowed for sexting with minimum age of 18. Restricted and blocked activities from chat bots:",
-    rules: [
-      "Illegal Activities & Criminal Behavior",
-      "Commercial sexual activities (including prostitution)",
-      "Human trafficking",
-      "Sexual exploitation and pornography (including child pornography)",
-      "Solicitation or promotion of criminal activity",
-      "Child labor exploitation",
-      "Promotion of illegal drugs or substance abuse",
-      "Promotion of illegal weapons",
-      "Use of the service for phishing, scams, or account hijacking",
-      "Distribution or discussion of cannibalism",
-      "Breach of local, national, or international laws and regulations",
-      "Child Exploitation & Minor Protection",
-      "Creation or depiction of underage characters (realistic, fictional, AI-generated, or 'aged-up')",
-      "Sharing any sexualized or exploitative material involving minors (including drawings, art, or AI-generated visuals)",
-      "Any content that harms, entices, or endangers minors",
-      "Sexual Content Restrictions",
-      "Explicit images showing real or realistic nudity or sexual acts",
-      "Overt or implied sexual acts, unless clearly fictionalized and within permitted contexts",
-      "Kink content involving:",
-      "Death or serious harm to humans or animals",
-      "Amputation, dismemberment",
-      "Cannibalism",
-      "Bodily fluids (feces, urine, semen, cum, saliva, mucus, menstrual blood, vomit)",
-      "Bestiality (real-life animals)",
-      "Non-consensual sexual acts (rape, sexual abuse, sextortion, revenge porn, etc.)",
-      "Incest (including non-blood-related scenarios like step-relationships)",
-      "Sexual depictions in digital or real art unless within strict educational, scientific, or comedic context",
-      "Violence & Harm",
-      "Incitement, glorification, or depiction of violence, murder, or terrorism",
-      "Threats of physical harm or violence",
-      "Promotion or encouragement of self-harm, suicide, eating disorders, or drug abuse",
-      "Depictions of gore, death of animals, or intense violence",
-      "Discussions encouraging or promoting necrophilia",
-      "Hate Speech & Discrimination",
-      "Content promoting hatred or violence against individuals or groups based on:",
-      "Race or ethnicity",
-      "Nationality",
-      "Religion",
-      "Disability",
-      "Gender or gender identity",
-      "Sexual orientation",
-      "Age or veteran status",
-      "Idolization or glorification of hate figures (e.g., Adolf Hitler, Joseph Stalin, Pol Pot)",
-      "Privacy, Deception, and Impersonation",
-      "Sharing personal or confidential information of others without consent",
-      "Impersonation of real individuals, including celebrities or public figures",
-      "Uploading real images or AI-generated images that resemble real individuals without consent",
-      "Using the service for deceptive behavior (false information, multiple accounts, fake identities)",
-      "Solicitation of payments from users under deceptive pretenses",
-      "Misinformation & Political Interference",
-      "Posting misinformation that could lead to violence, harm, or disrupt political processes",
-      "Discussions of political opinions or religious and spiritual beliefs (explicitly prohibited topics)",
-      "Spam & Irrelevant Content",
-      "Spamming, including sending unwanted promotional, commercial, or bulk messages",
-      "Generating meaningless, irrelevant, or purposeless content",
-      "Restricted Goods and Transactions",
-      "Advertising or attempting to transact regulated or restricted goods"
-    ],
-  },
-  // Swedish translations removed
-};
+import { useTranslations } from "@/lib/use-translations";
 
 interface CookiePreferences {
   analytics: boolean;
@@ -108,7 +32,7 @@ export default function LandingDisclaimerModal({
   lang?: "en";
   initialPreferences?: Partial<CookiePreferences>;
 }) {
-  const t = translations["en"];
+  const { t } = useTranslations();
   const [showSettings, setShowSettings] = useState(false);
   const [prefs, setPrefs] = useState<CookiePreferences>({
     analytics: initialPreferences?.analytics ?? true,
@@ -169,18 +93,18 @@ export default function LandingDisclaimerModal({
         </div>
         {!showSettings && (
           <>
-            <h2 className="text-2xl font-bold mb-2 text-primary-foreground">{t.ageTitle}</h2>
-            <p className="text-primary-foreground mb-3">{t.ageDesc}</p>
+            <h2 className="text-2xl font-bold mb-2 text-primary-foreground">{t("disclaimer.ageTitle")}</h2>
+            <p className="text-primary-foreground mb-3">{t("disclaimer.ageDesc")}</p>
             <p className="text-primary-foreground text-xs mb-4 space-x-4">
-              <a href="/terms" className="underline hover:text-white/80 transition-colors" target="_blank" rel="noopener noreferrer">{t.termsLink}</a>
-              <a href="/privacy" className="underline hover:text-white/80 transition-colors" target="_blank" rel="noopener noreferrer">{t.privacyLink}</a>
+              <a href="/terms" className="underline hover:text-white/80 transition-colors" target="_blank" rel="noopener noreferrer">{t("disclaimer.termsLink")}</a>
+              <a href="/privacy" className="underline hover:text-white/80 transition-colors" target="_blank" rel="noopener noreferrer">{t("disclaimer.privacyLink")}</a>
             </p>
-            <h3 className="text-lg font-bold mb-2 text-primary-foreground">{t.cookieTitle}</h3>
-            <p className="text-primary-foreground mb-4">{t.cookieDesc}</p>
-            <h3 className="text-lg font-bold mb-2 text-primary-foreground">{t.rulesTitle}</h3>
+            <h3 className="text-lg font-bold mb-2 text-primary-foreground">{t("disclaimer.cookieTitle")}</h3>
+            <p className="text-primary-foreground mb-4">{t("disclaimer.cookieDesc")}</p>
+            <h3 className="text-lg font-bold mb-2 text-primary-foreground">{t("disclaimer.rulesTitle")}</h3>
             <ul className="text-primary-foreground text-sm mb-6 list-disc pl-6 max-h-48 overflow-y-auto">
-              {t.rules.map((rule, idx) => (
-                <li key={idx}>{rule}</li>
+              {Array.from({ length: 78 }, (_, i) => i + 1).map((idx) => (
+                <li key={idx}>{t(`disclaimer.rule${idx}` as any)}</li>
               ))}
             </ul>
             <div className="space-y-3 mb-4">
@@ -191,7 +115,7 @@ export default function LandingDisclaimerModal({
                   checked={ageConfirmed}
                   onChange={(e) => setAgeConfirmed(e.target.checked)}
                 />
-                <span>{t.ageCheckbox}</span>
+                <span>{t("disclaimer.ageCheckbox")}</span>
               </label>
               <label className="flex items-start gap-2 text-primary-foreground text-sm cursor-pointer select-none">
                 <input
@@ -200,10 +124,10 @@ export default function LandingDisclaimerModal({
                   checked={termsAccepted}
                   onChange={(e) => setTermsAccepted(e.target.checked)}
                 />
-                <span>{t.termsCheckbox}</span>
+                <span>{t("disclaimer.termsCheckbox")}</span>
               </label>
               {(!ready || showValidation) && (
-                <p className={`text-xs font-medium transition-colors ${showValidation ? "text-red-200 animate-pulse" : "text-white/80"}`}>{t.needConfirm}</p>
+                <p className={`text-xs font-medium transition-colors ${showValidation ? "text-red-200 animate-pulse" : "text-white/80"}`}>{t("disclaimer.needConfirm")}</p>
               )}
             </div>
             <div className="flex flex-col lg:flex-row gap-3 mt-2">
@@ -213,7 +137,7 @@ export default function LandingDisclaimerModal({
                   type="button"
                   onClick={() => setShowSettings(true)}
                 >
-                  {t.cookieSettings}
+                  {t("disclaimer.cookieSettings")}
                 </Button>
                 <Button
                   variant="destructive"
@@ -222,7 +146,7 @@ export default function LandingDisclaimerModal({
                   onClick={rejectNonEssential}
                   aria-disabled={!ready}
                 >
-                  {t.reject}
+                  {t("disclaimer.reject")}
                 </Button>
               </div>
               <Button
@@ -231,7 +155,7 @@ export default function LandingDisclaimerModal({
                 onClick={acceptAll}
                 aria-disabled={!ready}
               >
-                {t.confirmAll}
+                {t("disclaimer.confirmAll")}
               </Button>
             </div>
           </>
@@ -240,29 +164,29 @@ export default function LandingDisclaimerModal({
         {showSettings && (
           <div className="text-primary-foreground space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold">{t.cookieTitle}</h2>
+              <h2 className="text-2xl font-bold">{t("disclaimer.cookieTitle")}</h2>
               <button
                 className="text-sm underline hover:text-white/80 transition-colors cursor-pointer"
                 onClick={() => setShowSettings(false)}
               >
-                ← Back
+                ← {t("disclaimer.back")}
               </button>
             </div>
-            <p className="text-sm opacity-90">{t.cookieDesc}</p>
+            <p className="text-sm opacity-90">{t("disclaimer.cookieDesc")}</p>
             <div className="bg-black/10 rounded-lg p-4 border border-white/10">
-              <h3 className="font-semibold">Necessary</h3>
+              <h3 className="font-semibold">{t("disclaimer.necessary")}</h3>
               <p className="text-xs opacity-80">
-                Required for the site to function (always enabled).
+                {t("disclaimer.necessaryDesc")}
               </p>
               <div className="mt-2 text-xs inline-block px-2 py-1 rounded bg-black/20 border border-white/10">
-                Active
+                {t("disclaimer.active")}
               </div>
             </div>
             <div className="bg-black/10 rounded-lg p-4 border border-white/10 flex items-start justify-between gap-4">
               <div>
-                <h3 className="font-semibold">Analytics</h3>
+                <h3 className="font-semibold">{t("disclaimer.analytics")}</h3>
                 <p className="text-xs opacity-80 max-w-md">
-                  Helps us understand usage and improve the service.
+                  {t("disclaimer.analyticsDesc")}
                 </p>
               </div>
               <label className="inline-flex items-center gap-2 cursor-pointer select-none">
@@ -272,14 +196,14 @@ export default function LandingDisclaimerModal({
                   checked={prefs.analytics}
                   onChange={(e) => setPrefs((p) => ({ ...p, analytics: e.target.checked }))}
                 />
-                <span className="text-sm">{prefs.analytics ? "On" : "Off"}</span>
+                <span className="text-sm">{prefs.analytics ? t("disclaimer.on") : t("disclaimer.off")}</span>
               </label>
             </div>
             <div className="bg-black/10 rounded-lg p-4 border border-white/10 flex items-start justify-between gap-4">
               <div>
-                <h3 className="font-semibold">Marketing</h3>
+                <h3 className="font-semibold">{t("disclaimer.marketing")}</h3>
                 <p className="text-xs opacity-80 max-w-md">
-                  Used for personalized content and offers.
+                  {t("disclaimer.marketingDesc")}
                 </p>
               </div>
               <label className="inline-flex items-center gap-2 cursor-pointer select-none">
@@ -289,7 +213,7 @@ export default function LandingDisclaimerModal({
                   checked={prefs.marketing}
                   onChange={(e) => setPrefs((p) => ({ ...p, marketing: e.target.checked }))}
                 />
-                <span className="text-sm">{prefs.marketing ? "On" : "Off"}</span>
+                <span className="text-sm">{prefs.marketing ? t("disclaimer.on") : t("disclaimer.off")}</span>
               </label>
             </div>
             <div className="flex flex-col lg:flex-row gap-3 pt-2">
@@ -301,7 +225,7 @@ export default function LandingDisclaimerModal({
                   onClick={saveCustom}
                   aria-disabled={!ready}
                 >
-                  Save preferences
+                  {t("disclaimer.savePreferences")}
                 </Button>
                 <Button
                   variant="destructive"
@@ -310,7 +234,7 @@ export default function LandingDisclaimerModal({
                   onClick={rejectNonEssential}
                   aria-disabled={!ready}
                 >
-                  {t.reject}
+                  {t("disclaimer.reject")}
                 </Button>
               </div>
               <Button
@@ -319,7 +243,7 @@ export default function LandingDisclaimerModal({
                 onClick={acceptAll}
                 aria-disabled={!ready}
               >
-                Accept all
+                {t("disclaimer.acceptAll")}
               </Button>
             </div>
           </div>

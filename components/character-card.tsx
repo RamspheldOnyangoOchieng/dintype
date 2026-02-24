@@ -3,16 +3,6 @@
 import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import type { Character } from "@/types/character"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { MessageCircle, X } from "lucide-react"
 import { useTranslations } from "@/lib/use-translations"
 
 interface CharacterCardProps {
@@ -22,21 +12,18 @@ interface CharacterCardProps {
 export function CharacterCard({ character }: CharacterCardProps) {
   const [imageError, setImageError] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const isHoveringRef = useRef(false)
-  const { t } = useTranslations()
+  const { t, t_db } = useTranslations()
 
   const handleMouseEnter = () => {
     setIsHovering(true)
     isHoveringRef.current = true
 
     if (videoRef.current && videoRef.current.src && videoRef.current.src !== "about:blank") {
-      // Add a small delay to prevent race conditions with rapid mouse movements
       setTimeout(() => {
         if (isHoveringRef.current) {
           videoRef.current?.play().catch((err) => {
-            // Only log errors that aren't related to interruption
             if (!err.message.includes("interrupted")) {
               console.error("Video play failed:", err)
             }
@@ -55,14 +42,8 @@ export function CharacterCard({ character }: CharacterCardProps) {
     }
   }
 
-  // Extract age from character data
   const age = character.age || ""
-
-  // Determine if character is new
   const isNew = character.isNew || false
-
-  // Use a regular img tag for Cloudinary images to bypass Next.js Image optimization issues
-  const isCloudinaryImage = character.image && character.image.includes("cloudinary.com")
 
   useEffect(() => {
     return () => {
@@ -103,8 +84,8 @@ export function CharacterCard({ character }: CharacterCardProps) {
         />
       ) : null}
 
-  {/* Gradient Overlay using tokens */}
-  <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent z-10 pointer-events-none"></div>
+      {/* Gradient Overlay using tokens */}
+      <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent z-10 pointer-events-none"></div>
 
       {/* NEW Badge */}
       {isNew && (
@@ -128,7 +109,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
           <h3 className="font-semibold text-lg">{character.name}</h3>
           {age && <span className="text-sm text-muted-foreground">{age}</span>}
         </div>
-        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{character.description}</p>
+        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{t_db(character.description)}</p>
       </div>
     </Link>
   )

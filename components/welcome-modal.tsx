@@ -2,66 +2,56 @@
 
 import { useState, useEffect } from "react"
 import { X, Sparkles, Heart, Zap, Camera, MessageCircle, Crown, Star, Wand2 } from "lucide-react"
+import { useTranslations } from "@/lib/use-translations"
 
 interface WelcomeModalProps {
     pageType: "home" | "chat" | "generate"
     onClose?: () => void
 }
 
-const pageContent = {
+const pageStatic = {
     home: {
-        title: "Welcome to Dintype",
-        subtitle: "Your AI Companion Awaits",
         icon: Heart,
         gradient: "from-sky-400 via-cyan-500 to-sky-500",
         glowColor: "rgba(56, 189, 248, 0.4)",
         features: [
-            { icon: Heart, text: "Connect with stunning AI companions", color: "text-sky-400" },
-            { icon: MessageCircle, text: "Unlimited immersive conversations", color: "text-cyan-400" },
-            { icon: Camera, text: "Generate beautiful AI photos", color: "text-sky-400" },
-            { icon: Crown, text: "Premium storylines & adventures", color: "text-cyan-400" },
+            { icon: Heart, color: "text-sky-400" },
+            { icon: MessageCircle, color: "text-cyan-400" },
+            { icon: Camera, color: "text-sky-400" },
+            { icon: Crown, color: "text-cyan-400" },
         ],
-        cta: "Start Your Journey",
-        footerText: "✨ Join thousands of happy users today!"
     },
     chat: {
-        title: "Private Chat Experience",
-        subtitle: "Deep Connections Await",
         icon: MessageCircle,
         gradient: "from-sky-400 via-cyan-500 to-sky-500",
         glowColor: "rgba(56, 189, 248, 0.4)",
         features: [
-            { icon: Heart, text: "Build meaningful relationships", color: "text-sky-400" },
-            { icon: Sparkles, text: "AI remembers your conversations", color: "text-cyan-400" },
-            { icon: Camera, text: "Request exclusive photos anytime", color: "text-sky-400" },
-            { icon: Star, text: "Unlock romantic storylines", color: "text-cyan-400" },
+            { icon: Heart, color: "text-sky-400" },
+            { icon: Sparkles, color: "text-cyan-400" },
+            { icon: Camera, color: "text-sky-400" },
+            { icon: Star, color: "text-cyan-400" },
         ],
-        cta: "Start Chatting",
-        footerText: "💕 Your companion is waiting for you..."
     },
     generate: {
-        title: "AI Image Studio",
-        subtitle: "Create Magic in Seconds",
         icon: Wand2,
         gradient: "from-sky-400 via-cyan-500 to-sky-500",
         glowColor: "rgba(56, 189, 248, 0.4)",
         features: [
-            { icon: Wand2, text: "State-of-the-art AI generation", color: "text-sky-400" },
-            { icon: Sparkles, text: "Ultra-realistic photo quality", color: "text-cyan-400" },
-            { icon: Zap, text: "Lightning-fast generation", color: "text-sky-400" },
-            { icon: Crown, text: "Premium styles & customization", color: "text-cyan-400" },
+            { icon: Wand2, color: "text-sky-400" },
+            { icon: Sparkles, color: "text-cyan-400" },
+            { icon: Zap, color: "text-sky-400" },
+            { icon: Crown, color: "text-cyan-400" },
         ],
-        cta: "Create Now",
-        footerText: "🎨 Bring your imagination to life!"
     }
 }
 
 export function WelcomeModal({ pageType, onClose }: WelcomeModalProps) {
+    const { t } = useTranslations()
     const [isVisible, setIsVisible] = useState(false)
     const [isClosing, setIsClosing] = useState(false)
 
-    const content = pageContent[pageType]
-    const IconComponent = content.icon
+    const staticContent = pageStatic[pageType]
+    const IconComponent = staticContent.icon
 
     useEffect(() => {
         // Check if user has already seen this modal
@@ -124,7 +114,7 @@ export function WelcomeModal({ pageType, onClose }: WelcomeModalProps) {
             >
                 {/* Outer glow */}
                 <div
-                    className={`absolute -inset-3 bg-gradient-to-r ${content.gradient} blur-xl opacity-30 animate-pulse`}
+                    className={`absolute -inset-3 bg-gradient-to-r ${staticContent.gradient} blur-xl opacity-30 animate-pulse`}
                     style={{ borderRadius: '2rem 0.5rem 2rem 0.5rem' }}
                 />
 
@@ -133,7 +123,7 @@ export function WelcomeModal({ pageType, onClose }: WelcomeModalProps) {
                     className="relative bg-gradient-to-b from-gray-900/95 to-black/95 border border-white/10 overflow-hidden shadow-2xl"
                     style={{ borderRadius: '1.75rem 0.4rem 1.75rem 0.4rem' }}
                 >
-                    <div className={`absolute inset-0 bg-gradient-to-r ${content.gradient} opacity-10`} />
+                    <div className={`absolute inset-0 bg-gradient-to-r ${staticContent.gradient} opacity-10`} />
                     <div
                         className="absolute inset-[1px] bg-gradient-to-b from-gray-900 to-black"
                         style={{ borderRadius: 'calc(1.75rem - 1px) calc(0.4rem - 1px) calc(1.75rem - 1px) calc(0.4rem - 1px)' }}
@@ -159,12 +149,12 @@ export function WelcomeModal({ pageType, onClose }: WelcomeModalProps) {
 
                         {/* Icon */}
                         <div className="relative inline-flex items-center justify-center mb-3">
-                            <div className={`absolute w-14 h-14 bg-gradient-to-r ${content.gradient} blur-xl opacity-50 animate-pulse`} />
+                            <div className={`absolute w-14 h-14 bg-gradient-to-r ${staticContent.gradient} blur-xl opacity-50 animate-pulse`} />
                             <div
-                                className={`relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br ${content.gradient} flex items-center justify-center shadow-lg`}
+                                className={`relative w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br ${staticContent.gradient} flex items-center justify-center shadow-lg`}
                                 style={{
                                     clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-                                    boxShadow: `0 0 24px ${content.glowColor}`,
+                                    boxShadow: `0 0 24px ${staticContent.glowColor}`,
                                 }}
                             >
                                 <IconComponent className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
@@ -172,16 +162,16 @@ export function WelcomeModal({ pageType, onClose }: WelcomeModalProps) {
                         </div>
 
                         {/* Title */}
-                        <h2 className={`text-lg sm:text-xl font-black bg-gradient-to-r ${content.gradient} bg-clip-text text-transparent mb-0.5`}>
-                            {content.title}
+                        <h2 className={`text-lg sm:text-xl font-black bg-gradient-to-r ${staticContent.gradient} bg-clip-text text-transparent mb-0.5`}>
+                            {t(`welcome.${pageType}.title` as any)}
                         </h2>
                         <p className="text-white/50 text-[10px] sm:text-xs font-medium tracking-widest uppercase mb-4">
-                            {content.subtitle}
+                            {t(`welcome.${pageType}.subtitle` as any)}
                         </p>
 
                         {/* Features */}
                         <div className="space-y-2 mb-4">
-                            {content.features.map((feature, index) => {
+                            {staticContent.features.map((feature, index) => {
                                 const FeatureIcon = feature.icon
                                 return (
                                     <div
@@ -191,7 +181,7 @@ export function WelcomeModal({ pageType, onClose }: WelcomeModalProps) {
                                         <div className={`p-1.5 rounded-lg bg-white/10 ${feature.color} group-hover:scale-110 transition-transform shrink-0`}>
                                             <FeatureIcon className="w-3.5 h-3.5" />
                                         </div>
-                                        <span className="text-white/85 font-medium text-left text-xs sm:text-sm leading-snug">{feature.text}</span>
+                                        <span className="text-white/85 font-medium text-left text-xs sm:text-sm leading-snug">{t(`welcome.${pageType}.feature${index + 1}` as any)}</span>
                                     </div>
                                 )
                             })}
@@ -200,21 +190,21 @@ export function WelcomeModal({ pageType, onClose }: WelcomeModalProps) {
                         {/* CTA Button */}
                         <button
                             onClick={handleClose}
-                            className={`w-full py-2.5 sm:py-3 px-6 bg-gradient-to-r ${content.gradient} text-white font-bold text-sm sm:text-base rounded-xl
+                            className={`w-full py-2.5 sm:py-3 px-6 bg-gradient-to-r ${staticContent.gradient} text-white font-bold text-sm sm:text-base rounded-xl
                 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]
                 relative overflow-hidden group cursor-pointer`}
-                            style={{ boxShadow: `0 8px 28px ${content.glowColor}` }}
+                            style={{ boxShadow: `0 8px 28px ${staticContent.glowColor}` }}
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                             <span className="relative flex items-center justify-center gap-2">
                                 <Sparkles className="w-4 h-4" />
-                                {content.cta}
+                                {t(`welcome.${pageType}.cta` as any)}
                             </span>
                         </button>
 
                         {/* Footer */}
                         <p className="mt-3 text-white/35 text-[10px] sm:text-xs">
-                            {content.footerText}
+                            {t(`welcome.${pageType}.footer` as any)}
                         </p>
                     </div>
                 </div>

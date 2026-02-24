@@ -14,6 +14,7 @@ import {
   Palette, Type, Globe, Image as ImageIcon, Save, RotateCcw,
   Sparkles, Heart, Eye, Layers, CheckCircle,
 } from "lucide-react"
+import { useTranslations } from "@/lib/use-translations"
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 const toHslStr = (c: HSLColor) => `hsl(${c.h},${c.s}%,${c.l}%)`
@@ -148,6 +149,7 @@ function gradientCSS(g: BrandGradient): string {
 
 // ─── Branding Panel ───────────────────────────────────────────────────────────
 export function BrandingPanel() {
+  const { t } = useTranslations()
   const { settings, updateBrandConfig } = useSite()
 
   // ── CRASH FIX: deep-merge so nested gradient/colors are never undefined ──
@@ -181,7 +183,7 @@ export function BrandingPanel() {
 
   const applyLive = () => {
     updateBrandConfig(brand)
-    toast.success("Preview applied live!")
+    toast.success(t("admin.branding.previewApplied"))
   }
 
   const handleSave = async () => {
@@ -224,11 +226,11 @@ export function BrandingPanel() {
       }
 
       setSaved(true)
-      toast.success("Brand settings saved!")
+      toast.success(t("admin.branding.saveSuccess"))
       setTimeout(() => setSaved(false), 2500)
     } catch (err: any) {
       console.error("[branding-panel] save failed:", err)
-      toast.error(`Failed to save: ${err?.message || "unknown error"}`)
+      toast.error(t("admin.branding.saveError", { error: err?.message || "unknown error" }))
     } finally {
       setIsSaving(false)
     }
@@ -247,7 +249,7 @@ export function BrandingPanel() {
         ...(settings.brandConfig?.gradient ?? {}),
       },
     })
-    toast.info("Reset to saved values")
+    toast.info(t("admin.branding.resetInfo"))
   }
 
   const { colors: c, gradient: g } = brand
@@ -260,22 +262,22 @@ export function BrandingPanel() {
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <Palette className="w-5 h-5 text-primary" />
-            Brand &amp; Theme
+            {t("admin.branding.title")}
           </h2>
           <p className="text-muted-foreground text-sm mt-0.5">
-            Control colors, logo, typography and all visual identity settings
+            {t("admin.branding.subtitle")}
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={handleReset} className="cursor-pointer gap-1.5">
-            <RotateCcw className="w-3.5 h-3.5" /> Reset
+            <RotateCcw className="w-3.5 h-3.5" /> {t("admin.branding.reset")}
           </Button>
           <Button variant="outline" size="sm" onClick={applyLive} className="cursor-pointer gap-1.5">
-            <Eye className="w-3.5 h-3.5" /> Preview Live
+            <Eye className="w-3.5 h-3.5" /> {t("admin.branding.preview")}
           </Button>
           <Button size="sm" onClick={handleSave} disabled={isSaving} className="cursor-pointer gap-1.5">
             {saved ? <CheckCircle className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
-            {isSaving ? "Saving…" : saved ? "Saved!" : "Save All"}
+            {isSaving ? t("admin.branding.saving") : saved ? t("admin.branding.saved") : t("admin.branding.save")}
           </Button>
         </div>
       </div>
@@ -285,19 +287,19 @@ export function BrandingPanel() {
         <Tabs defaultValue="identity">
           <TabsList className="flex flex-wrap h-auto gap-1 bg-muted p-1 rounded-xl mb-4">
             <TabsTrigger value="identity" className="gap-1.5 cursor-pointer text-xs sm:text-sm">
-              <Globe className="w-3.5 h-3.5" /> Identity
+              <Globe className="w-3.5 h-3.5" /> {t("admin.branding.identity")}
             </TabsTrigger>
             <TabsTrigger value="logo" className="gap-1.5 cursor-pointer text-xs sm:text-sm">
-              <ImageIcon className="w-3.5 h-3.5" /> Logo
+              <ImageIcon className="w-3.5 h-3.5" /> {t("admin.branding.logo")}
             </TabsTrigger>
             <TabsTrigger value="colors" className="gap-1.5 cursor-pointer text-xs sm:text-sm">
-              <Palette className="w-3.5 h-3.5" /> Colors
+              <Palette className="w-3.5 h-3.5" /> {t("admin.branding.colors")}
             </TabsTrigger>
             <TabsTrigger value="gradient" className="gap-1.5 cursor-pointer text-xs sm:text-sm">
-              <Layers className="w-3.5 h-3.5" /> Gradient
+              <Layers className="w-3.5 h-3.5" /> {t("admin.branding.gradient")}
             </TabsTrigger>
             <TabsTrigger value="typography" className="gap-1.5 cursor-pointer text-xs sm:text-sm">
-              <Type className="w-3.5 h-3.5" /> Typography
+              <Type className="w-3.5 h-3.5" /> {t("admin.branding.typography")}
             </TabsTrigger>
           </TabsList>
 
@@ -306,28 +308,28 @@ export function BrandingPanel() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-primary" /> Site Identity
+                  <Globe className="w-4 h-4 text-primary" /> {t("admin.branding.siteIdentity")}
                 </CardTitle>
-                <CardDescription>Brand name, domain, tagline and other identity fields</CardDescription>
+                <CardDescription>{t("admin.branding.siteIdentityDesc")}</CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="siteName">Site Name</Label>
+                  <Label htmlFor="siteName">{t("admin.branding.siteName")}</Label>
                   <Input id="siteName" value={brand.siteName}
                     onChange={e => update("siteName", e.target.value)} placeholder="Dintype" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="logoText">Logo Text</Label>
+                  <Label htmlFor="logoText">{t("admin.branding.logoText")}</Label>
                   <Input id="logoText" value={brand.logoText}
                     onChange={e => update("logoText", e.target.value)} placeholder="Dintype" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="tagline">Tagline / Subtitle</Label>
+                  <Label htmlFor="tagline">{t("admin.branding.tagline")}</Label>
                   <Input id="tagline" value={brand.tagline}
                     onChange={e => update("tagline", e.target.value)} placeholder="Your AI Companion Awaits" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="domain">Domain Extension</Label>
+                  <Label htmlFor="domain">{t("admin.branding.domainExtension")}</Label>
                   <div className="flex gap-2 flex-wrap">
                     <Input id="domain" value={brand.domainExtension}
                       onChange={e => update("domainExtension", e.target.value)} placeholder=".se" className="w-28" />
@@ -342,15 +344,15 @@ export function BrandingPanel() {
                   </div>
                 </div>
                 <div className="space-y-1.5 sm:col-span-2">
-                  <Label htmlFor="fontFamily">Font Family</Label>
+                  <Label htmlFor="fontFamily">{t("admin.branding.fontFamily")}</Label>
                   <Input id="fontFamily" value={brand.fontFamily}
                     onChange={e => update("fontFamily", e.target.value)}
                     placeholder="Inter, system-ui, sans-serif" />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
-                  <Label>Border Radius — <span className="font-mono text-primary">{brand.borderRadius}rem</span></Label>
+                  <Label>{t("admin.branding.borderRadius")} — <span className="font-mono text-primary">{brand.borderRadius}rem</span></Label>
                   <SliderRow
-                    label="Roundness"
+                    label={t("admin.branding.roundness")}
                     value={Math.round(brand.borderRadius * 10)}
                     min={0} max={20}
                     trackStyle={{ background: "linear-gradient(to right, hsl(var(--muted)), hsl(var(--primary)))" }}
@@ -375,37 +377,37 @@ export function BrandingPanel() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4 text-primary" /> Logo &amp; Favicon
+                  <ImageIcon className="w-4 h-4 text-primary" /> {t("admin.branding.logoFavicon")}
                 </CardTitle>
-                <CardDescription>Upload or paste URLs for your logo and favicon images</CardDescription>
+                <CardDescription>{t("admin.branding.logoFaviconDesc")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div className="space-y-3">
-                    <Label>Logo Image URL</Label>
+                    <Label>{t("admin.branding.logoUrl")}</Label>
                     <Input value={brand.logoUrl}
                       onChange={e => update("logoUrl", e.target.value)}
                       placeholder="https://…/logo.png" />
                     <div className="h-20 border border-dashed border-border rounded-xl flex items-center justify-center bg-muted/30">
                       {brand.logoUrl
                         ? <img src={brand.logoUrl} alt="logo preview" className="max-h-16 max-w-full object-contain" />
-                        : <span className="text-muted-foreground text-xs">Logo preview</span>}
+                        : <span className="text-muted-foreground text-xs">{t("admin.branding.logoPreview")}</span>}
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <Label>Favicon URL</Label>
+                    <Label>{t("admin.branding.faviconUrl")}</Label>
                     <Input value={brand.faviconUrl}
                       onChange={e => update("faviconUrl", e.target.value)}
                       placeholder="https://…/favicon.ico" />
                     <div className="h-20 border border-dashed border-border rounded-xl flex items-center justify-center bg-muted/30">
                       {brand.faviconUrl
                         ? <img src={brand.faviconUrl} alt="favicon preview" className="w-8 h-8 object-contain" />
-                        : <span className="text-muted-foreground text-xs">Favicon preview</span>}
+                        : <span className="text-muted-foreground text-xs">{t("admin.branding.faviconPreview")}</span>}
                     </div>
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Logo Text Display Preview</Label>
+                  <Label>{t("admin.branding.logoTextPreview")}</Label>
                   <div className="p-4 rounded-xl bg-muted/30 border border-border flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
                       <Sparkles className="w-5 h-5" />
@@ -426,10 +428,10 @@ export function BrandingPanel() {
               <Card>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base flex items-center gap-2">
-                    <Palette className="w-4 h-4 text-primary" /> Color Palette
+                    <Palette className="w-4 h-4 text-primary" /> {t("admin.branding.colorPalette")}
                   </CardTitle>
                   <CardDescription>
-                    Hue scrolls through the full color wheel, Saturation sets intensity, Lightness sets brightness
+                    {t("admin.branding.colorPaletteDesc")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -469,15 +471,15 @@ export function BrandingPanel() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-primary" /> Brand Gradient
+                  <Layers className="w-4 h-4 text-primary" /> {t("admin.branding.brandGradient")}
                 </CardTitle>
-                <CardDescription>Controls the gradient used for buttons, banners, and highlights</CardDescription>
+                <CardDescription>{t("admin.branding.brandGradientDesc")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="h-16 rounded-2xl shadow-lg" style={{ background: gradBg }} />
 
                 <div className="space-y-2">
-                  <Label>Direction</Label>
+                  <Label>{t("admin.branding.direction")}</Label>
                   <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
                     {(["to-r", "to-br", "to-b", "to-bl", "to-l", "to-tl", "to-t", "to-tr"] as const).map(dir => {
                       const icons: Record<string, string> = {
@@ -498,21 +500,21 @@ export function BrandingPanel() {
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ background: toHslStr(g.from) }} />
-                      <Label className="text-xs">From</Label>
+                      <Label className="text-xs">{t("admin.branding.from")}</Label>
                     </div>
                     <ColorEditor label="" color={g.from} onChange={v => updateGradient("from", v)} />
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ background: toHslStr(g.via) }} />
-                      <Label className="text-xs">Via (middle)</Label>
+                      <Label className="text-xs">{t("admin.branding.via")}</Label>
                     </div>
                     <ColorEditor label="" color={g.via} onChange={v => updateGradient("via", v)} />
                   </div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ background: toHslStr(g.to) }} />
-                      <Label className="text-xs">To</Label>
+                      <Label className="text-xs">{t("admin.branding.to")}</Label>
                     </div>
                     <ColorEditor label="" color={g.to} onChange={v => updateGradient("to", v)} />
                   </div>
@@ -526,22 +528,22 @@ export function BrandingPanel() {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Type className="w-4 h-4 text-primary" /> Typography
+                  <Type className="w-4 h-4 text-primary" /> {t("admin.branding.typography")}
                 </CardTitle>
-                <CardDescription>Font family and sizing settings</CardDescription>
+                <CardDescription>{t("admin.branding.typographyDesc")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label>Font Family</Label>
+                  <Label>{t("admin.branding.fontFamily")}</Label>
                   <Input value={brand.fontFamily}
                     onChange={e => update("fontFamily", e.target.value)}
                     placeholder="Inter, system-ui, sans-serif" />
                   <p className="text-xs text-muted-foreground">
-                    Enter a valid CSS font stack. Make sure the font is loaded via Google Fonts or similar.
+                    {t("admin.branding.fontStackNote")}
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label>Font Presets</Label>
+                  <Label>{t("admin.branding.fontPresets")}</Label>
                   <div className="flex flex-wrap gap-2">
                     {[
                       "Inter, system-ui, sans-serif",
@@ -576,7 +578,7 @@ export function BrandingPanel() {
           <Card className="sticky top-4">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
-                <Eye className="w-4 h-4 text-primary" /> Live Preview
+                <Eye className="w-4 h-4 text-primary" /> {t("admin.branding.livePreview")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -627,7 +629,7 @@ export function BrandingPanel() {
                         borderColor: toHslStr(c.border),
                         backgroundColor: "transparent",
                       }}>
-                      Learn More
+                      {t("general.explore")}
                     </button>
                   </div>
                 </div>
@@ -651,7 +653,7 @@ export function BrandingPanel() {
 
               {/* Color swatches */}
               <div className="space-y-1.5">
-                <p className="text-xs text-muted-foreground font-medium">Active Palette</p>
+                <p className="text-xs text-muted-foreground font-medium">{t("admin.branding.activePalette")}</p>
                 <div className="grid grid-cols-7 gap-1">
                   {[
                     { key: "primary", color: c.primary },
@@ -676,7 +678,7 @@ export function BrandingPanel() {
               </div>
 
               <Button className="w-full cursor-pointer text-xs" size="sm" onClick={applyLive} style={{ background: gradBg }}>
-                <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Apply Live to Site
+                <Sparkles className="w-3.5 h-3.5 mr-1.5" /> {t("admin.branding.applyLive")}
               </Button>
             </CardContent>
           </Card>

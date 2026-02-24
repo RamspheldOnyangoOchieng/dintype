@@ -99,7 +99,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const router = useRouter();
   const { user, isLoading } = useAuth()
   const { openLoginModal } = useAuthModal()
-  const { t } = useTranslations()
+  const { t, language } = useTranslations()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const lastMessageIdRef = useRef<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -291,8 +291,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
   const handleCopyMessage = useCallback((content: string) => {
     navigator.clipboard.writeText(content)
-    toast.success("Message copied to clipboard")
-  }, [])
+    toast.success(t("status.copied"))
+  }, [t])
 
   const handleDeleteMessage = useCallback((messageId: string) => {
     setMessages(prev => {
@@ -819,11 +819,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     if (!isMounted || isLoadingHistory || messages.length === 0) return
 
     const lastMessage = messages[messages.length - 1]
-    
+
     // Check if the last message is actually "new" (different from what we saw last)
     if (lastMessage && lastMessage.id !== lastMessageIdRef.current) {
       lastMessageIdRef.current = lastMessage.id
-      
+
       // Don't smooth scroll if it's just the initial welcome or it's early in the cycle
       if (!lastMessage.isWelcome) {
         scrollToBottom("smooth")
@@ -932,7 +932,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           const defaultMessage: Message = {
             id: Date.now().toString(),
             role: "assistant",
-            content: `Hey there, my love... 💕 I'm ${character.name}. I've been waiting for someone like you.\n\nSo tell me... what brings you here tonight? You can message me right here, or find me on Telegram @dintypebot for something more... private. 🌹`,
+            content: t("chat.welcomeMessage").replace("{name}", character.name),
             timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             isWelcome: true
           }
@@ -949,7 +949,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         {
           id: `error-welcome-${characterId}`,
           role: "assistant",
-          content: `Hey there, my love... 💕 I'm ${character?.name || 'your companion'}. I've been waiting for someone like you. Tell me... what brings you here tonight? 🌹`,
+          content: t("chat.welcomeMessageFallback").replace("{name}", character?.name || 'your companion'),
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           isWelcome: true
         },
@@ -1041,7 +1041,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         const imageMessage: Message = {
           id: `carried-${Date.now()}`,
           role: "user",
-          content: "I love this photo of you! 😍",
+          content: t("chat.photoLove"),
           isImage: true,
           imageUrl: imageUrlParam,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -1057,7 +1057,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           characterId,
           "I love this photo of you! 😍",
           character.system_prompt || character.systemPrompt || "",
-          user.id
+          user.id,
+          false,
+          false,
+          language as "en" | "sv"
         ).then(aiResponse => {
           if (aiResponse.success && aiResponse.message) {
             const assistantMessage: Message = {
@@ -1375,7 +1378,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   })
                 });
 
-                let aiCaption = `Here's a little something for you... 😘`;
+                let aiCaption = t("chat.photoCaption");
                 if (captionResponse.ok) {
                   const captionData = await captionResponse.json();
                   if (captionData.caption) {
@@ -1408,7 +1411,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             const errorMessage: Message = {
               id: Math.random().toString(36).substring(2, 15),
               role: "assistant",
-              content: "Sorry, I couldn't generate that image. Let's try something else.",
+              content: t("chat.genError"),
               timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
             }
 
@@ -1444,7 +1447,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       const errorMessage: Message = {
         id: Math.random().toString(36).substring(2, 15),
         role: "assistant",
-        content: "Sorry, I couldn't generate that image. There was a technical issue with the image processing.",
+        content: t("chat.genTechError"),
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       }
       setMessages((prev) => [...prev, errorMessage])
@@ -1502,7 +1505,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       }
     } catch (error) {
       console.error("Error saving image:", error)
-      toast.error("Failed to save image")
+      toast.error(t("generate.downloadFailed"))
     } finally {
       setIsSaving(false)
     }
@@ -1589,7 +1592,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       if (!isComplete) {
                         getChapter(character.id, nextNum).then(ch => {
                           setCurrentChapter(ch)
-                          toast.success(`Chapter Completed! Next: ${ch?.title}`)
+                          toast.success(`${t("chat.chapterComplete").split(':')[0]}: ${ch?.title}`)
                           localStorage.removeItem(`last_daily_msg_${character.id}`);
                         })
                       } else {
@@ -1644,7 +1647,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
       // 2. Normal Chat Response
       if (!user?.id) {
-        toast.error("Please login to continue chatting.")
+        toast.error(t("chat.loginRequired"))
         openLoginModal()
         setIsSendingMessage(false)
         return
@@ -1655,16 +1658,19 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         combinedContent,
         character.system_prompt || character.systemPrompt || "",
         user.id,
+        false,
+        false,
+        language as "en" | "sv"
       )
 
       if (!aiResponse.success) {
         if (aiResponse.limitReached || aiResponse.upgradeRequired) {
           setPremiumModalFeature(aiResponse.limitReached ? "Message Limit" : "Token Balance")
-          setPremiumModalDescription(aiResponse.error || "Upgrade to premium to continue.")
+          setPremiumModalDescription(aiResponse.error || t("chat.upgradeRequired"))
           setPremiumModalMode(aiResponse.limitReached ? "message-limit" : "upgrade")
           setIsPremiumModalOpen(true)
         } else {
-          toast.error(aiResponse.error || "Failed to get AI response")
+          toast.error(aiResponse.error || t("chat.aiResponseError"))
         }
         setIsSendingMessage(false)
         return
@@ -1739,12 +1745,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   if (!isComplete) {
                     getChapter(character.id, nextNum).then(ch => {
                       setCurrentChapter(ch)
-                      toast.success(`Chapter Completed! Next: ${ch?.title}`)
+                      toast.success(t("chat.chapterComplete").replace("{title}", ch?.title || ""))
                       localStorage.removeItem(`last_daily_msg_${character.id}`);
                     })
                   } else {
                     setCurrentChapter(null)
-                    toast.success("Storyline Completed! You've unlocked Free Roam.")
+                    toast.success(t("chat.storyComplete"))
                     updateCharacter(character.id, { isStorylineActive: false });
                   }
                 }
@@ -1755,7 +1761,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       }
     } catch (error) {
       console.error("Error processing messages:", error)
-      if (isMounted) toast.error("An error occurred.")
+      if (isMounted) toast.error(t("chat.genericError"))
     } finally {
       if (isMounted) setIsSendingMessage(false)
     }
@@ -1874,7 +1880,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         setMessages([welcomeMessage])
         saveMessageToLocalStorage(characterId!, welcomeMessage)
-        toast.success("Chat history cleared.")
+        toast.success(t("status.cleared"))
       }
     } catch (error) {
       console.error("Error clearing chat:", error)
@@ -2736,6 +2742,16 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             <h4 className="text-xl font-bold">{character?.name}</h4>
             <p className="text-muted-foreground text-sm leading-relaxed">{character?.description}</p>
 
+            {/* Character Info Details */}
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              {character?.age && <ProfileDetail icon="🎂" label={t("db.age")} value={character.age.toString()} />}
+              {character?.relationship && <ProfileDetail icon="❤️" label={t("db.relationship")} value={t_db(character.relationship)} />}
+              {character?.body && <ProfileDetail icon="💃" label={t("db.bodytype")} value={t_db(character.body)} />}
+              {character?.ethnicity && <ProfileDetail icon="🌍" label={t("db.ethnicity")} value={t_db(character.ethnicity)} />}
+              {character?.occupation && <ProfileDetail icon="💼" label={t("db.occupation")} value={t_db(character.occupation)} />}
+              {character?.language && <ProfileDetail icon="🗣️" label={t("db.language")} value={t_db(character.language)} />}
+            </div>
+
             {/* Character Gallery */}
             {characterId && (
               <CharacterGallery
@@ -2881,7 +2897,16 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               <div className="px-5 -mt-20 relative z-10">
                 <h4 className="text-3xl font-black text-white mb-2 drop-shadow-md">{character?.name}</h4>
                 <div className="w-full h-px bg-white/20 mb-4" />
-                <p className="text-gray-200 text-sm leading-relaxed mb-6 drop-shadow-sm font-medium">{character?.description}</p>
+                <p className="text-gray-200 text-sm leading-relaxed mb-4 drop-shadow-sm font-medium">{character?.description}</p>
+
+                {/* Mobile Details */}
+                <div className="grid grid-cols-2 gap-2 mb-6">
+                  {character?.age && <ProfileDetail icon="🎂" label={t("db.age")} value={character.age.toString()} />}
+                  {character?.relationship && <ProfileDetail icon="❤️" label={t("db.relationship")} value={t_db(character.relationship)} />}
+                  {character?.body && <ProfileDetail icon="💃" label={t("db.bodytype")} value={t_db(character.body)} />}
+                  {character?.ethnicity && <ProfileDetail icon="🌍" label={t("db.ethnicity")} value={t_db(character.ethnicity)} />}
+                  {character?.occupation && <ProfileDetail icon="💼" label={t("db.occupation")} value={t_db(character.occupation)} />}
+                </div>
 
                 {/* Character Gallery */}
                 {characterId && (
@@ -2991,7 +3016,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             }}
             onShare={(url) => {
               navigator.clipboard.writeText(url)
-              toast.success("Link copied to clipboard!")
+              toast.success(t("status.copied"))
             }}
             onSave={(index) => handleSaveImage(selectedImage[index], selectedImagePrompt)}
             savingIndex={isSaving ? 0 : null} // Simple visual feedback

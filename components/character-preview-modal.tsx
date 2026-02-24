@@ -10,6 +10,7 @@ import { useAuth } from "@/components/auth-context"
 import { useAuthModal } from "@/components/auth-modal-context"
 import { createClient } from "@/utils/supabase/client"
 import Image from "next/image"
+import { useTranslations } from "@/lib/use-translations"
 
 interface CharacterPreviewModalProps {
     isOpen: boolean
@@ -28,12 +29,13 @@ export function CharacterPreviewModal({ isOpen, onClose, redirectPath }: Charact
     const router = useRouter()
     const { user } = useAuth()
     const { openLoginModal } = useAuthModal()
+    const { t, t_db } = useTranslations()
     const [isRedirecting, setIsRedirecting] = useState(false)
     const [character, setCharacter] = useState<Character>({
         name: "Luna",
-        description: "A friendly and attentive AI companion",
+        description: t("db.lunadesc"),
         image_url: "",
-        personality: "Friendly, Funny, Caring"
+        personality: t("db.lunapersonality")
     })
     const [loadingCharacter, setLoadingCharacter] = useState(true)
 
@@ -131,10 +133,10 @@ export function CharacterPreviewModal({ isOpen, onClose, redirectPath }: Charact
                 <DialogHeader className="space-y-3">
                     <DialogTitle className="text-3xl font-bold text-foreground flex items-center gap-3">
                         <Heart className="h-8 w-8 text-primary" />
-                        Discover AI Friends
+                        {t("db.discoverai")}
                     </DialogTitle>
                     <DialogDescription className="text-base text-muted-foreground">
-                        Create your own AI friend or discover existing ones
+                        {t("db.discoveraidesc")}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -160,7 +162,7 @@ export function CharacterPreviewModal({ isOpen, onClose, redirectPath }: Charact
                         <CardContent className="p-4">
                             <h3 className="font-bold text-lg mb-2">{character.name}</h3>
                             <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                                {character.description}
+                                {t_db(character.description)}
                             </p>
                             <div className="flex flex-wrap gap-1 mb-3">
                                 {character.personality?.split(',').slice(0, 3).map((tag) => (
@@ -171,7 +173,7 @@ export function CharacterPreviewModal({ isOpen, onClose, redirectPath }: Charact
                             </div>
                             <Button variant="outline" className="w-full mt-auto" disabled>
                                 <Sparkles className="w-4 h-4 mr-2" />
-                                Example
+                                {t("db.example")}
                             </Button>
                         </CardContent>
                     </Card>
@@ -185,20 +187,20 @@ export function CharacterPreviewModal({ isOpen, onClose, redirectPath }: Charact
                             <div className="w-24 h-24 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center mb-4 transition-colors">
                                 <Plus className="w-12 h-12 text-primary" />
                             </div>
-                            <h3 className="font-bold text-xl mb-2 text-foreground">Create your AI Friend</h3>
+                            <h3 className="font-bold text-xl mb-2 text-foreground">{t("db.createnewai")}</h3>
                             <p className="text-sm text-muted-foreground mb-6">
-                                Design your perfect AI companion with unique traits and personality
+                                {t("db.createnewaidesc")}
                             </p>
                             <Button
                                 className="w-full"
                                 disabled={isRedirecting}
                             >
                                 {isRedirecting ? (
-                                    "Loading..."
+                                    t("db.loading")
                                 ) : user ? (
-                                    "Get Started"
+                                    t("db.getstarted")
                                 ) : (
-                                    "Login to create"
+                                    t("db.logintocreate")
                                 )}
                             </Button>
                         </CardContent>

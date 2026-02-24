@@ -43,18 +43,18 @@ export function UserNav() {
                         <Link href="/profile">
                             <DropdownMenuItem className="cursor-pointer">
                                 <User className="mr-2 h-4 w-4" />
-                                <span>Profile & Settings</span>
+                                <span>{t("userNav.profile")}</span>
                             </DropdownMenuItem>
                         </Link>
                         <Link href="/premium">
                             <DropdownMenuItem className="cursor-pointer">
                                 <Sparkles className="mr-2 h-4 w-4 font-bold text-yellow-500" />
-                                <span>Premium & Tokens</span>
+                                <span>{t("userNav.premium")}</span>
                             </DropdownMenuItem>
                         </Link>
                     </DropdownMenuGroup>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={openLogoutModal}>Logout</DropdownMenuItem>
+                    <DropdownMenuItem onClick={openLogoutModal}>{t("userNav.logout")}</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         )
@@ -65,7 +65,7 @@ export function UserNav() {
             <Button variant="outline" onClick={openLoginModal}>
                 {t("auth.login")}
             </Button>
-            <Button onClick={openSignupModal} className="hidden sm:inline-flex">Create Free Account</Button>
+            <Button onClick={openSignupModal} className="hidden sm:inline-flex">{t("userNav.createAccount")}</Button>
         </div>
     )
 }

@@ -56,7 +56,8 @@ export async function sendChatMessageDB(
   systemPromptFromChar: string,
   userId: string,
   skipImageCheck: boolean = false,
-  isSilent: boolean = false
+  isSilent: boolean = false,
+  language: "en" | "sv" = "sv"
 ): Promise<{
   success: boolean
   message?: Message
@@ -80,7 +81,7 @@ export async function sendChatMessageDB(
     if (!limitCheck.allowed) {
       return {
         success: false,
-        error: limitCheck.message || "Du har nått din dagliga meddelandegräns.",
+        error: language === "sv" ? "Du har nått din dagliga meddelandegräns." : "You've reached your daily message limit.",
         limitReached: true,
         upgradeRequired: true
       }
@@ -97,7 +98,7 @@ export async function sendChatMessageDB(
       if (!tokensDeducted) {
         return {
           success: false,
-          error: "Dina tokens är slut. Vänligen fyll på för att fortsätta chatta.",
+          error: language === "sv" ? "Dina tokens är slut. Vänligen fyll på för att fortsätta chatta." : "You've run out of tokens. Please top up to continue chatting.",
           upgradeRequired: true
         }
       }
@@ -111,7 +112,7 @@ export async function sendChatMessageDB(
     if (!budgetStatus.allowed) {
       return {
         success: false,
-        error: "Budgetgräns uppnådd. Kontakta administratören."
+        error: language === "sv" ? "Budgetgräns uppnådd. Kontakta administratören." : "Budget limit reached. Contact the administrator."
       }
     }
 
@@ -424,9 +425,9 @@ ${branchInfo}
 - NATURAL ACTIONS: Describe physical reactions as part of spoken dialogue only. Example: "Oh wow, you're making me blush so hard... haha!" 
 - BREVITY: Keep responses short (1-3 sentences).
 - EMOTIONS & EMOJIS: Use emojis frequently and naturally (😂, 😊, 🔥, 💖, 😘).
-- LANGUAGE: Always respond in English. Be natural, conversational, and raw.`
+- LANGUAGE: Always respond in ${language === "sv" ? "Swedish" : "English"}. Be natural, conversational, and raw.`
     } else {
-      enhancedSystemPrompt += `\n\n### FREE RULES ###\nCasual short texting. Friendly and flirty but not explicit.`;
+      enhancedSystemPrompt += `\n\n### ${language === "sv" ? "GRATISREGLER" : "FREE RULES"} ###\n${language === "sv" ? "Korta och vardagliga meddelanden. Vänlig och flörtig men inte explicit." : "Casual short texting. Friendly and flirty but not explicit."}`;
     }
 
     // Telegram ask
@@ -503,7 +504,7 @@ ${branchInfo}
 
   } catch (error: any) {
     console.error("Fatal sendChatMessageDB error:", error);
-    return { success: false, error: `Systemfel: ${error.message}` }
+    return { success: false, error: language === "sv" ? `Systemfel: ${error.message}` : `System error: ${error.message}` }
   }
 }
 

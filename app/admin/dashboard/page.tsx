@@ -402,7 +402,7 @@ export default function AdminDashboardPage() {
                 >
                   {stat.change}
                 </Badge>
-                <span className="text-xs text-slate-500 dark:text-slate-400">overview only</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{t("admin.dashboard.overviewOnly")}</span>
               </div>
             </CardContent>
           </Card>
@@ -412,10 +412,10 @@ export default function AdminDashboardPage() {
       {/* Main Content Tabs */}
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 h-auto p-1 bg-zinc-100 dark:bg-zinc-800">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="settings">Site Settings</TabsTrigger>
-          <TabsTrigger value="pricing">Pricing</TabsTrigger>
-          <TabsTrigger value="budget">Budget</TabsTrigger>
+          <TabsTrigger value="overview">{t("admin.dashboard.overview")}</TabsTrigger>
+          <TabsTrigger value="settings">{t("admin.dashboard.siteSettings")}</TabsTrigger>
+          <TabsTrigger value="pricing">{t("admin.dashboard.pricing")}</TabsTrigger>
+          <TabsTrigger value="budget">{t("admin.dashboard.budget")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -425,9 +425,9 @@ export default function AdminDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Activity className="h-5 w-5" />
-                  <span>System Status</span>
+                  <span>{t("admin.dashboard.systemStatus")}</span>
                 </CardTitle>
-                <CardDescription>Current system health and status</CardDescription>
+                <CardDescription>{t("admin.systemStatus" as any) || "Current system health and status"}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -476,9 +476,9 @@ export default function AdminDashboardPage() {
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <TrendingUp className="h-5 w-5" />
-                  <span>Quick Actions</span>
+                  <span>{t("admin.dashboard.quickActions")}</span>
                 </CardTitle>
-                <CardDescription>Common administrative tasks</CardDescription>
+                <CardDescription>{t("admin.dashboard.quickActions" as any) || "Common administrative tasks"}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -490,8 +490,8 @@ export default function AdminDashboardPage() {
                     <div className="flex items-center space-x-3">
                       <UserPlus className="h-5 w-5 text-blue-500" />
                       <div className="text-left">
-                        <div className="font-medium">Manage Users</div>
-                        <div className="text-xs text-slate-500">Edit and verify accounts</div>
+                        <div className="font-medium">{t("admin.dashboard.manageUsers")}</div>
+                        <div className="text-xs text-slate-500">{t("admin.dashboard.manageUsers" as any)}</div>
                       </div>
                     </div>
                   </Button>
@@ -503,8 +503,8 @@ export default function AdminDashboardPage() {
                     <div className="flex items-center space-x-3">
                       <MessageSquare className="h-5 w-5 text-green-500" />
                       <div className="text-left">
-                        <div className="font-medium">AI Life Partners</div>
-                        <div className="text-xs text-slate-500">Manage AI characters</div>
+                        <div className="font-medium">{t("admin.dashboard.manageCharacters")}</div>
+                        <div className="text-xs text-slate-500">{t("admin.dashboard.manageCharacters" as any)}</div>
                       </div>
                     </div>
                   </Button>
@@ -516,8 +516,8 @@ export default function AdminDashboardPage() {
                     <div className="flex items-center space-x-3">
                       <CreditCard className="h-5 w-5 text-primary" />
                       <div className="text-left">
-                        <div className="font-medium">Subscriptions</div>
-                        <div className="text-xs text-slate-500">View premium users</div>
+                        <div className="font-medium">{t("admin.dashboard.subscriptions")}</div>
+                        <div className="text-xs text-slate-500">{t("admin.dashboard.subscriptions" as any)}</div>
                       </div>
                     </div>
                   </Button>
@@ -529,8 +529,8 @@ export default function AdminDashboardPage() {
                     <div className="flex items-center space-x-3">
                       <Database className="h-5 w-5 text-blue-500" />
                       <div className="text-left">
-                        <div className="font-medium">Database</div>
-                        <div className="text-xs text-slate-500">System diagnostic tools</div>
+                        <div className="font-medium">{t("admin.dashboard.database")}</div>
+                        <div className="text-xs text-slate-500">{t("admin.dashboard.database" as any)}</div>
                       </div>
                     </div>
                   </Button>
@@ -544,9 +544,9 @@ export default function AdminDashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2 text-zinc-800 dark:text-white">
                 <Activity className="h-5 w-5 text-primary" />
-                <span>Recent Platform Activity</span>
+                <span>{t("admin.dashboard.recentActivity")}</span>
               </CardTitle>
-              <CardDescription>Latest interactions and transactions</CardDescription>
+              <CardDescription>{t("admin.dashboard.recentActivity" as any)}</CardDescription>
             </CardHeader>
             <CardContent>
               {recentActivity.length > 0 ? (
@@ -586,13 +586,13 @@ export default function AdminDashboardPage() {
         <TabsContent value="settings" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Global Identity Settings</CardTitle>
-              <CardDescription>Configure site name and visual identity</CardDescription>
+              <CardTitle>{t("admin.dashboard.siteSettings")}</CardTitle>
+              <CardDescription>{t("admin.dashboard.siteIdentityDesc" as any) || "Configure site name and visual identity"}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="siteName" className="font-bold">Portal Name</Label>
+                  <Label htmlFor="siteName" className="font-bold">{t("admin.dashboard.portalName")}</Label>
                   <Input
                     id="siteName"
                     value={siteName}
@@ -605,7 +605,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="siteUrl" className="font-bold">Official Site URL</Label>
+                  <Label htmlFor="siteUrl" className="font-bold">{t("admin.dashboard.siteUrl")}</Label>
                   <Input
                     id="siteUrl"
                     value={siteUrl}
@@ -618,7 +618,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="logoText" className="font-bold">Branding Text</Label>
+                  <Label htmlFor="logoText" className="font-bold">{t("admin.dashboard.brandingText")}</Label>
                   <Input
                     id="logoText"
                     value={logoText}
@@ -636,7 +636,7 @@ export default function AdminDashboardPage() {
                   className="bg-primary hover:bg-primary/90 text-white font-black"
                 >
                   <Save className="mr-2 h-4 w-4" />
-                  {isSaving ? "SAVING..." : "COMMIT CHANGES"}
+                  {isSaving ? t("admin.branding.saving") : t("admin.dashboard.commitChanges")}
                 </Button>
                 {saveMessage && <p className="text-green-500 text-sm font-bold animate-bounce">{saveMessage}</p>}
               </div>
@@ -646,7 +646,7 @@ export default function AdminDashboardPage() {
           {/* Preview Card */}
           <Card className="bg-zinc-50 dark:bg-zinc-900/50 border-dashed">
             <CardHeader>
-              <CardTitle className="text-sm font-black uppercase tracking-widest text-zinc-400">Header Preview</CardTitle>
+              <CardTitle className="text-sm font-black uppercase tracking-widest text-zinc-400">{t("admin.dashboard.headerPreview")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="p-8 border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-900 shadow-xl flex items-center justify-center">
@@ -662,13 +662,13 @@ export default function AdminDashboardPage() {
         <TabsContent value="pricing" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Revenue & Plan Strategy</CardTitle>
-              <CardDescription>Customize subscription tiers and currency display</CardDescription>
+              <CardTitle>{t("admin.dashboard.revenueStrategy")}</CardTitle>
+              <CardDescription>{t("admin.dashboard.revenueStrategy" as any) || "Customize subscription tiers and currency display"}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="currency" className="font-bold">Active Currency</Label>
+                  <Label htmlFor="currency" className="font-bold">{t("admin.currencySettings" as any) || "Active Currency"}</Label>
                   <Input
                     id="currency"
                     value={currency}
@@ -700,15 +700,15 @@ export default function AdminDashboardPage() {
 
               <Tabs defaultValue="monthly" className="w-full">
                 <TabsList className="grid grid-cols-3 mb-6 bg-zinc-100 dark:bg-zinc-800">
-                  <TabsTrigger value="monthly" className="font-bold uppercase text-[10px]">Monthly Billing</TabsTrigger>
-                  <TabsTrigger value="quarterly" className="font-bold uppercase text-[10px]">Quarterly Billing</TabsTrigger>
-                  <TabsTrigger value="yearly" className="font-bold uppercase text-[10px]">Annual Billing</TabsTrigger>
+                  <TabsTrigger value="monthly" className="font-bold uppercase text-[10px]">{t("admin.dashboard.billingMonthly")}</TabsTrigger>
+                  <TabsTrigger value="quarterly" className="font-bold uppercase text-[10px]">{t("admin.dashboard.billingQuarterly")}</TabsTrigger>
+                  <TabsTrigger value="yearly" className="font-bold uppercase text-[10px]">{t("admin.dashboard.billingYearly")}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="monthly" className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase">Base Price</Label>
+                      <Label className="text-xs font-bold uppercase">{t("admin.dashboard.basePrice")}</Label>
                       <Input
                         id="monthlyPrice"
                         value={monthlyPrice}
@@ -718,7 +718,7 @@ export default function AdminDashboardPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase">Strike-through Price</Label>
+                      <Label className="text-xs font-bold uppercase">{t("admin.dashboard.originalPrice")}</Label>
                       <Input
                         id="monthlyOriginalPrice"
                         value={monthlyOriginalPrice}
@@ -728,7 +728,7 @@ export default function AdminDashboardPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase">Discount Text (%)</Label>
+                      <Label className="text-xs font-bold uppercase">{t("admin.dashboard.discount")}</Label>
                       <Input
                         id="monthlyDiscount"
                         value={monthlyDiscount}
@@ -778,7 +778,7 @@ export default function AdminDashboardPage() {
                 <TabsContent value="yearly" className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold uppercase">Base Price</Label>
+                      <Label className="text-xs font-bold uppercase">{t("admin.dashboard.basePrice")}</Label>
                       <Input
                         id="yearlyPrice"
                         value={yearlyPrice}
@@ -817,7 +817,7 @@ export default function AdminDashboardPage() {
                   className="bg-primary hover:bg-primary/90 text-white font-black"
                 >
                   <Save className="mr-2 h-4 w-4" />
-                  {isSaving ? "SAVING..." : "APPLY PRICING MODEL"}
+                  {isSaving ? t("admin.branding.saving") : t("admin.dashboard.commitChanges")}
                 </Button>
               </div>
             </CardContent>
@@ -827,15 +827,15 @@ export default function AdminDashboardPage() {
         <TabsContent value="budget" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>API Infrastructure Burndown & Limits</CardTitle>
+              <CardTitle>{t("admin.dashboard.budget")}</CardTitle>
               <CardDescription>
-                Set hard monthly caps to control operational expenses.
+                {t("admin.dashboard.budget" as any) || "Set hard monthly caps to control operational expenses."}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="apiCostLimit" className="font-bold">Monthly Spend Cap (USD)</Label>
+                  <Label htmlFor="apiCostLimit" className="font-bold">{t("admin.stat.apiCosts")}</Label>
                   <Input
                     id="apiCostLimit"
                     type="number"

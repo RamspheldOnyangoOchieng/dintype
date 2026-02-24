@@ -262,11 +262,10 @@ export function FAQSection() {
                   key={lang}
                   type="button"
                   onClick={() => setActiveLangTab(lang)}
-                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                    activeLangTab === lang
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${activeLangTab === lang
                       ? "border-primary text-primary"
                       : "border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-                  }`}
+                    }`}
                 >
                   {lang === "en" ? "🇬🇧 English" : "🇸🇪 Svenska"}
                   {lang === "en" && <span className="ml-1 text-xs text-red-500">*</span>}
@@ -304,7 +303,7 @@ export function FAQSection() {
               ) : (
                 <>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 italic">
-                    Optional — if left blank, Swedish users will see the English version.
+                    {t("faq.optionalNote" as any)}
                   </p>
                   <div>
                     <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
@@ -315,7 +314,7 @@ export function FAQSection() {
                       value={svQuestion}
                       onChange={(e) => setSvQuestion(e.target.value)}
                       className="w-full p-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white"
-                      placeholder="Fråga på svenska..."
+                      placeholder={t("faq.questionPlaceholderSv" as any)}
                     />
                   </div>
                   <div>
@@ -326,7 +325,7 @@ export function FAQSection() {
                       value={svAnswer}
                       onChange={(e) => setSvAnswer(e.target.value)}
                       className="w-full p-2 border border-zinc-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-900 text-zinc-800 dark:text-white min-h-[100px]"
-                      placeholder="Svar på svenska..."
+                      placeholder={t("faq.answerPlaceholderSv" as any)}
                     />
                   </div>
                 </>

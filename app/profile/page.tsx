@@ -53,15 +53,15 @@ import {
 } from "@/components/ui/dialog"
 
 const rules = [
-  "Illegal Activities & Criminal Behavior",
-  "Commercial sexual activities (including prostitution)",
-  "Human trafficking",
-  "Sexual exploitation and pornography",
-  "Creation or depiction of underage characters",
-  "Violence & Harm incitement",
-  "Hate Speech & Discrimination",
-  "Privacy violations & Impersonation",
-  "Misinformation & Political Interference",
+  "profile.rule1",
+  "profile.rule2",
+  "profile.rule3",
+  "profile.rule4",
+  "profile.rule5",
+  "profile.rule6",
+  "profile.rule7",
+  "profile.rule8",
+  "profile.rule9",
 ]
 
 export default function ProfilePage() {
@@ -165,8 +165,8 @@ export default function ProfilePage() {
       setIsSaving(true)
       const supabase = createClient()
 
-      const { error } = await (supabase
-        .from("profiles")
+      const { error } = await ((supabase
+        .from("profiles") as any)
         .update({
           username: profileData.username,
           email: profileData.email,
@@ -195,7 +195,7 @@ export default function ProfilePage() {
     } catch (error: any) {
       console.error("Error saving profile:", error)
       setIsSaving(false)
-      setErrorMessage(error.message || "An unexpected error occurred while saving the profile.")
+      setErrorMessage(error.message || t("profile.updateErrorDesc"))
       setShowErrorModal(true)
     }
   }
@@ -285,7 +285,7 @@ export default function ProfilePage() {
     return (
       <div key="profile-loader" className="min-h-[80vh] flex flex-col items-center justify-center bg-background gap-4">
         <Loader2 className="w-12 h-12 animate-spin text-primary" />
-        <p className="text-muted-foreground font-medium animate-pulse">Loading your profile...</p>
+        <p className="text-muted-foreground font-medium animate-pulse">{t("profile.loading")}</p>
       </div>
     )
   }
@@ -314,7 +314,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex-1 text-center md:text-left space-y-1">
-              <h1 className="text-3xl md:text-4xl font-black tracking-tight">{profileData.username || "Welcome"}</h1>
+              <h1 className="text-3xl md:text-4xl font-black tracking-tight">{profileData.username || t("profile.welcome")}</h1>
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
                 <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
                   <Mail className="w-3.5 h-3.5" />
@@ -325,7 +325,7 @@ export default function ProfilePage() {
                 )}
                 <div className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
                   <Clock className="w-3.5 h-3.5" />
-                  Joined {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  {t("profile.joined").replace("{date}", new Date(user.createdAt).toLocaleDateString(profileData.language === 'sv' ? 'sv-SE' : 'en-US', { month: 'long', year: 'numeric' }))}
                 </div>
               </div>
             </div>
@@ -337,7 +337,7 @@ export default function ProfilePage() {
                     <Coins className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase leading-none mb-0.5">Tokens</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase leading-none mb-0.5">{t("profile.tokens")}</p>
                     <p className="text-xl font-black leading-none">{tokenBalance}</p>
                   </div>
                 </div>
@@ -379,14 +379,14 @@ export default function ProfilePage() {
                 <Card className="border-border/40 bg-card/30 backdrop-blur-sm overflow-hidden shadow-xl">
                   <CardHeader className="border-b border-border/40 bg-muted/20">
                     <CardTitle className="flex items-center gap-2 font-bold text-zinc-800 dark:text-white">
-                      <Settings className="w-5 h-5 text-primary" /> Profile Settings
+                      <Settings className="w-5 h-5 text-primary" /> {t("profile.accountInfo")}
                     </CardTitle>
-                    <CardDescription>Manage your personal details and how you appear on the platform.</CardDescription>
+                    <CardDescription>{t("profile.accountInfoDesc")}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6 pt-6 text-zinc-800 dark:text-zinc-200">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="username" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Username</Label>
+                        <Label htmlFor="username" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("profile.username")}</Label>
                         <div className="relative">
                           <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -417,7 +417,7 @@ export default function ProfilePage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Email Address</Label>
+                        <Label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("profile.email")}</Label>
                         <div className="relative">
                           <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                           <Input
@@ -428,7 +428,7 @@ export default function ProfilePage() {
                             onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
                           />
                         </div>
-                        <p className="text-[10px] text-muted-foreground italic">NOTE: Changing email requires verification.</p>
+                        <p className="text-[10px] text-muted-foreground italic">{t("profile.verificationNote")}</p>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="phone" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("profile.phone")}</Label>
@@ -462,7 +462,7 @@ export default function ProfilePage() {
                                 className="uppercase text-[10px] font-black w-24 h-9 rounded-lg"
                                 onClick={() => setProfileData({ ...profileData, language: lang })}
                               >
-                                {lang === "sv" ? "Swedish" : "English"}
+                                {lang === "sv" ? t("admin.swedish") : t("admin.english")}
                               </Button>
                             ))}
                           </div>
@@ -473,8 +473,8 @@ export default function ProfilePage() {
                         <div className="flex items-center gap-3 bg-muted/40 p-3 rounded-xl border border-border/40 transition-colors hover:bg-muted/60 min-h-[50px]">
                           <Bell className={cn("w-5 h-5 transition-colors", profileData.notifications ? "text-primary" : "text-muted-foreground")} />
                           <div className="flex-1">
-                            <p className="text-xs font-bold">Automatic Notifications</p>
-                            <p className="text-[10px] text-muted-foreground">Show status updates and news</p>
+                            <p className="text-xs font-bold">{t("profile.autoNotifications")}</p>
+                            <p className="text-[10px] text-muted-foreground">{t("profile.autoNotificationsDesc")}</p>
                           </div>
                           <input
                             type="checkbox"
@@ -502,16 +502,16 @@ export default function ProfilePage() {
                 <Card className="border-primary/20 bg-primary/5 shadow-sm">
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2 text-primary italic font-black">
-                      <Lock className="w-5 h-5" /> RULES & RESTRICTIONS
+                      <Lock className="w-5 h-5" /> {t("profile.rulesTitle")}
                     </CardTitle>
-                    <CardDescription className="text-primary/70">These rules apply to all users on the platform to ensure a safe environment.</CardDescription>
+                    <CardDescription className="text-primary/70">{t("profile.rulesDesc")}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
                       {rules.map((rule, i) => (
                         <div key={i} className="flex items-start gap-2 text-[11px] font-bold text-primary/80">
                           <div className="mt-1.5 w-1 h-1 rounded-full bg-primary shrink-0" />
-                          {rule}
+                          {t(rule as any)}
                         </div>
                       ))}
                     </div>
@@ -523,7 +523,7 @@ export default function ProfilePage() {
               <div className="space-y-6">
                 <Card className="border-border/40 bg-card/30 backdrop-blur-sm shadow-md">
                   <CardHeader>
-                    <CardTitle className="text-sm font-bold uppercase tracking-wider">Plan & Status</CardTitle>
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider">{t("profile.membership")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border/10">
@@ -539,7 +539,7 @@ export default function ProfilePage() {
                     <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border/10 text-sm font-bold">
                       <div className="flex items-center gap-2">
                         <CreditCard className="w-4 h-4 text-primary" />
-                        <span>Monthly Credits</span>
+                        <span>{t("profile.credits")}</span>
                       </div>
                       <span>${creditBalance}</span>
                     </div>
@@ -549,7 +549,7 @@ export default function ProfilePage() {
                         className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 font-black tracking-wide text-white h-11"
                         onClick={() => router.push("/premium")}
                       >
-                        {isPremium ? "MANAGE SUBSCRIPTION" : "UPGRADE NOW"}
+                        {isPremium ? t("profile.manageSubscription") : t("profile.upgradeNow")}
                       </Button>
                     </div>
                   </CardContent>
@@ -557,12 +557,12 @@ export default function ProfilePage() {
 
                 <Card className="border-border/40 bg-card/30 backdrop-blur-sm shadow-md">
                   <CardHeader>
-                    <CardTitle className="text-sm font-bold uppercase tracking-wider text-zinc-800 dark:text-white">Statistics Overview</CardTitle>
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider text-zinc-800 dark:text-white">{t("profile.statsOverview")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase">
-                        <span>Generations</span>
+                        <span>{t("profile.generations")}</span>
                         <span>30%</span>
                       </div>
                       <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
@@ -570,7 +570,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     <p className="text-[10px] text-muted-foreground italic leading-relaxed">
-                      You have used about 30% of your included free tries this month. Upgrade for unlimited possibilities.
+                      {t("profile.statsDesc").replace("{percent}", "30")}
                     </p>
                   </CardContent>
                 </Card>
@@ -592,38 +592,38 @@ export default function ProfilePage() {
             <Card className="border-border/40 bg-card/30 backdrop-blur-sm shadow-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 font-bold text-zinc-800 dark:text-white">
-                  <Lock className="w-5 h-5 text-primary" /> Password Management
+                  <Lock className="w-5 h-5 text-primary" /> {t("profile.passwordManagement")}
                 </CardTitle>
-                <CardDescription>Update your password to keep your account secure.</CardDescription>
+                <CardDescription>{t("profile.passwordSecurityDesc")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                    <Label htmlFor="current-password">Current Password</Label>
-                    <Input
-                      id="current-password"
-                      type="password"
-                      placeholder="Enter current password"
-                      value={passwordData.currentPassword}
-                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                    />
+                  <Label htmlFor="current-password">{t("profile.currentPassword")}</Label>
+                  <Input
+                    id="current-password"
+                    type="password"
+                    placeholder={t("profile.currentPasswordPlaceholder")}
+                    value={passwordData.currentPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                  />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="new-password">New Password</Label>
+                    <Label htmlFor="new-password">{t("profile.newPassword")}</Label>
                     <Input
                       id="new-password"
                       type="password"
-                      placeholder="Enter new password"
+                      placeholder={t("profile.newPasswordPlaceholder")}
                       value={passwordData.newPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirm Password</Label>
+                    <Label htmlFor="confirm-password">{t("profile.confirmPassword")}</Label>
                     <Input
                       id="confirm-password"
                       type="password"
-                      placeholder="Confirm new password"
+                      placeholder={t("profile.confirmPasswordPlaceholder")}
                       value={passwordData.confirmPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
                     />
@@ -637,7 +637,7 @@ export default function ProfilePage() {
                   className="ml-auto bg-primary hover:bg-primary/90 font-bold text-white px-8"
                 >
                   {isPasswordSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                  UPDATE PASSWORD
+                  {t("profile.updatePassword")}
                 </Button>
               </CardFooter>
             </Card>
@@ -648,21 +648,21 @@ export default function ProfilePage() {
                   <AlertTriangle className="w-5 h-5" /> {t("profile.dangerZone")}
                 </CardTitle>
                 <CardDescription className="text-red-500/70 font-medium">
-                  Actions here cannot be undone. Be careful when handling data deletion.
+                  {t("profile.dangerZoneNote")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex flex-col sm:flex-row items-center justify-between p-6 rounded-2xl bg-background border border-red-500/20 shadow-sm gap-4">
                   <div className="text-center sm:text-left">
-                    <p className="text-sm font-black uppercase mb-1">Permanently Delete Account</p>
-                    <p className="text-xs text-muted-foreground max-w-sm">This will remove all your characters, messages, tokens, and personal data permanently from our servers.</p>
+                    <p className="text-sm font-black uppercase mb-1">{t("profile.permanentlyDelete")}</p>
+                    <p className="text-xs text-muted-foreground max-w-sm">{t("profile.deleteDataDesc")}</p>
                   </div>
                   <Button
                     variant="destructive"
                     className="font-black h-11 px-8 rounded-xl shadow-lg shadow-red-500/10"
                     onClick={() => setShowDeleteModal(true)}
                   >
-                    <Trash2 className="w-4 h-4 mr-2" /> DELETE ACCOUNT
+                    <Trash2 className="w-4 h-4 mr-2" /> {t("profile.deleteAccount")}
                   </Button>
                 </div>
               </CardContent>
@@ -678,7 +678,7 @@ export default function ProfilePage() {
           className="text-muted-foreground hover:text-red-500 font-bold flex items-center gap-2 py-6 px-8 rounded-full transition-all"
           onClick={logout}
         >
-          <LogOut className="w-4 h-4" /> Log out from all devices
+          <LogOut className="w-4 h-4" /> {t("profile.logoutAllDevices")}
         </Button>
       </div>
 
@@ -689,14 +689,14 @@ export default function ProfilePage() {
             <div className="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-4">
               <CheckCircle2 className="w-10 h-10" />
             </div>
-            <DialogTitle className="text-2xl font-black text-center text-zinc-800 dark:text-white">Profile Saved!</DialogTitle>
+            <DialogTitle className="text-2xl font-black text-center text-zinc-800 dark:text-white">{t("profile.saved")}</DialogTitle>
             <DialogDescription className="text-center text-muted-foreground mt-2">
-              Your changes have been saved successfully. Your profile is now updated.
+              {t("profile.savedDesc")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="sm:justify-center pb-6">
             <Button className="font-bold px-12 rounded-full" onClick={() => setShowSuccessModal(false)}>
-              CLOSE
+              {t("profile.close")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -709,14 +709,14 @@ export default function ProfilePage() {
             <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4">
               <XCircle className="w-10 h-10" />
             </div>
-            <DialogTitle className="text-2xl font-black text-center text-zinc-800 dark:text-white">An error occurred</DialogTitle>
+            <DialogTitle className="text-2xl font-black text-center text-zinc-800 dark:text-white">{t("profile.errorTitle")}</DialogTitle>
             <DialogDescription className="text-center text-muted-foreground mt-2">
               {errorMessage}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="sm:justify-center pb-6">
             <Button variant="outline" className="font-bold px-12 rounded-full" onClick={() => setShowErrorModal(false)}>
-              CLOSE
+              {t("profile.close")}
             </Button>
           </DialogFooter>
         </DialogContent>

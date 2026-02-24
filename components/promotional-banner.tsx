@@ -7,10 +7,13 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useBanners } from "@/components/banner-context"
 
+import { useTranslations } from "@/lib/use-translations"
+
 export default function PromotionalBanner() {
   const { banners, isLoading } = useBanners()
   const [currentIndex, setCurrentIndex] = useState(0)
   const router = useRouter()
+  const { t_db } = useTranslations()
 
   // Only show active banners
   const activeBanners = banners.filter((banner) => banner.isActive)
@@ -89,10 +92,10 @@ export default function PromotionalBanner() {
           {(currentBanner.title || currentBanner.subtitle) && (
             <div className="absolute inset-0 flex flex-col justify-center px-12 rounded-[22px]">
               {currentBanner.title && (
-                <h2 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg mb-2">{currentBanner.title}</h2>
+                <h2 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg mb-2">{t_db(currentBanner.title)}</h2>
               )}
               {currentBanner.subtitle && (
-                <p className="text-lg md:text-xl text-white drop-shadow-lg">{currentBanner.subtitle}</p>
+                <p className="text-lg md:text-xl text-white drop-shadow-lg">{t_db(currentBanner.subtitle)}</p>
               )}
             </div>
           )}
@@ -106,7 +109,7 @@ export default function PromotionalBanner() {
                 className="bg-primary hover:bg-primary/90 text-white font-bold py-2 px-6 rounded-full"
                 onClick={(e) => e.stopPropagation()} // Prevent triggering the banner click
               >
-                {currentBanner.buttonText}
+                {t_db(currentBanner.buttonText)}
               </Button>
             </Link>
           </div>

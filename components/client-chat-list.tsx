@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import { useCharacters } from "@/components/character-context"
 import { getChatHistoryFromLocalStorage, getRecentConversations } from "@/lib/local-storage-chat"
+import { useTranslations } from "@/lib/use-translations"
 
 export function ClientChatList() {
+  const { t } = useTranslations()
   const { characters } = useCharacters()
   const [chatsWithHistory, setChatsWithHistory] = useState<string[]>([])
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({})
@@ -61,7 +63,7 @@ export function ClientChatList() {
     <>
       {chatsWithHistory.length > 0 ? (
         <div className="grid gap-4">
-          <h2 className="text-xl font-semibold">Recent Conversations</h2>
+          <h2 className="text-xl font-semibold">{t("chat.recentConversations")}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {chatsWithHistory.map((id) => {
               const char = characters.find((c) => c.id === id)
@@ -96,7 +98,7 @@ export function ClientChatList() {
                             const lastMessage = chatHistory[chatHistory.length - 1]
                             return lastMessage.content
                           }
-                          return "Inga meddelanden än"
+                          return t("chat.noMessagesYet")
                         })()}
                       </p>
                     </div>
@@ -108,13 +110,13 @@ export function ClientChatList() {
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center space-y-4 rounded-lg border border-dashed p-10 text-center">
-          <h2 className="text-xl font-semibold">No conversations yet</h2>
+          <h2 className="text-xl font-semibold">{t("chat.noConversationsYet")}</h2>
           <p className="text-muted-foreground">
-            Start chatting with a character to see your conversation history here.
+            {t("chat.startChattingMessage")}
           </p>
           <div className="flex gap-4 mt-2">
             <Link href="/">
-              <Button variant="default">Browse Characters</Button>
+              <Button variant="default">{t("chat.browseCharacters")}</Button>
             </Link>
           </div>
         </div>

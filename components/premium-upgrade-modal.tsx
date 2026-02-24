@@ -7,6 +7,7 @@ import { X, Crown, MessageCircle, CheckCircle2 } from "lucide-react"
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
+import { useTranslations } from "@/lib/use-translations"
 
 interface PremiumUpgradeModalProps {
   isOpen: boolean
@@ -28,6 +29,7 @@ export function PremiumUpgradeModal({
   mode = 'upgrade'
 }: PremiumUpgradeModalProps) {
   const router = useRouter()
+  const { t } = useTranslations()
 
   const handleUpgrade = () => {
     onClose()
@@ -37,41 +39,41 @@ export function PremiumUpgradeModal({
   // Set defaults based on mode if not provided
   let displayImage = imageSrc
   let displayDescription = description
-  let displayButtonText = buttonText || "Upgrade to Premium"
-  let displayBadge = "Premium"
+  let displayButtonText = buttonText || t("premium.modal.displayButton.upgrade")
+  let displayBadge = t("premium.modal.displayBadge.premium")
 
   if (mode === 'expired') {
     displayImage = displayImage || "https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963043/premium-modals/premium_expired.jpg"
-    displayDescription = displayDescription || "Premium Plan expired. Renew your Premium Plan."
-    displayBadge = "Expired"
+    displayDescription = displayDescription || t("premium.modal.displayDescription.expired")
+    displayBadge = t("premium.modal.displayBadge.expired")
   } else if (mode === 'tokens-depleted') {
     displayImage = displayImage || "https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963046/premium-modals/tokens_depleted.jpg"
-    displayDescription = displayDescription || "You used your 100 free premium tokens. Buy more tokens to use premium features"
-    displayButtonText = displayButtonText || "Buy Tokens"
-    displayBadge = "Tokens"
+    displayDescription = displayDescription || t("premium.modal.displayDescription.tokensDepleted")
+    displayButtonText = buttonText || t("premium.modal.displayButton.buyTokens")
+    displayBadge = t("premium.modal.displayBadge.tokens")
   } else if (mode === 'message-limit') {
     displayImage = displayImage || "https://res.cloudinary.com/ddg02aqiw/image/upload/v1767043020/daily_limit_reached.jpg"
-    displayDescription = displayDescription || "Daily message limit reached. Upgrade for unlimited chat!"
-    displayBadge = "Limit Reached"
+    displayDescription = displayDescription || t("premium.modal.displayDescription.messageLimit")
+    displayBadge = t("premium.modal.displayBadge.limitReached")
   } else {
     displayImage = displayImage || "https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963040/premium-modals/premium_upgrade.jpg"
-    displayDescription = displayDescription || "Upgrade to Premium to unlock unlimited features."
+    displayDescription = displayDescription || t("premium.modal.displayDescription.default")
   }
 
   const benefits = mode === 'tokens-depleted' || mode === 'message-limit'
     ? [
-      "Continue creating AI characters",
-      "Generate high-quality images",
-      "Use exclusive voice messages",
-      "Chat remains FREE",
-      "Easy to top up"
+      t("premium.modal.benefit.createAI"),
+      t("premium.modal.benefit.highQualityImages"),
+      t("premium.modal.benefit.exclusiveVoice"),
+      t("premium.modal.benefit.chatFree"),
+      t("premium.modal.benefit.easyTopUp")
     ]
     : [
-      "Create AI videos",
-      "Create your own AI characters",
-      "Unlimited messaging",
-      "Remove image blur",
-      "Get 100 FREE tokens / month"
+      t("premium.modal.benefit.createVideos"),
+      t("premium.modal.benefit.createOwnAI"),
+      t("premium.modal.benefit.unlimitedMessaging"),
+      t("premium.modal.benefit.removeBlur"),
+      t("premium.modal.benefit.freeTokens")
     ]
 
   return (
@@ -117,7 +119,7 @@ export function PremiumUpgradeModal({
               <div className="flex items-center gap-2 mb-4">
                 <Crown className={`h-5 w-5 ${mode === 'expired' ? 'text-red-500' : 'text-[#ff4b7d]'}`} />
                 <span className="text-sm font-bold uppercase tracking-widest text-zinc-500">
-                  {mode === 'expired' ? 'Subscription Expired' : mode === 'tokens-depleted' ? 'Token Wallet' : 'Premium Membership'}
+                  {mode === 'expired' ? t("premium.modal.title.expired") : mode === 'tokens-depleted' ? t("premium.modal.title.tokens") : t("premium.modal.title.membership")}
                 </span>
               </div>
 

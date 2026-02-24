@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "@/lib/use-translations";
 
 interface ConfirmEmailModalProps {
   email: string;
@@ -27,6 +28,7 @@ export default function ConfirmEmailModal({
   const [timer, setTimer] = useState(15);
   const [resending, setResending] = useState(false);
   const router = useRouter();
+  const { t } = useTranslations();
 
   useEffect(() => {
     if (!open) return;
@@ -42,10 +44,10 @@ export default function ConfirmEmailModal({
       setResending(true);
       try {
         await onResend();
-        toast.success("Confirmation link sent!");
+        toast.success(t("auth.linkSentSuccess"));
         setTimer(15);
       } catch (error) {
-        toast.error("Could not send link");
+        toast.error(t("auth.linkSentError"));
       } finally {
         setResending(false);
       }
@@ -80,10 +82,10 @@ export default function ConfirmEmailModal({
               />
             </div>
           </div>
-          <h2 className="text-2xl font-bold mb-2 text-white">Confirm your email</h2>
+          <h2 className="text-2xl font-bold mb-2 text-white">{t("auth.confirmEmail")}</h2>
           <p className="text-gray-300 text-center mb-2">
-            We have sent a confirmation link to <span className="font-semibold text-blue-400">{email}</span>.<br />
-            If you don't see it, check your spam folder.
+            {t("auth.confirmEmailSent").replace("{email}", email)}<br />
+            {t("auth.checkSpam")}
           </p>
           <div className="text-sm text-gray-400 mb-4">00:{timer.toString().padStart(2, "0")}</div>
           <Button
@@ -91,15 +93,15 @@ export default function ConfirmEmailModal({
             onClick={handleResend}
             disabled={timer > 0 || resending}
           >
-            {resending ? "Sending..." : "Resend link"}
+            {resending ? t("auth.resending") : t("auth.resendLink")}
           </Button>
           <div className="border-t border-[#333] pt-4 mt-4 text-center w-full">
-            <span className="text-gray-400">Already have an account?</span>
+            <span className="text-gray-400">{t("auth.alreadyHaveAccount")}</span>
             <button
               className="text-blue-400 underline ml-1"
               onClick={onSignIn || (() => router.push("/login"))}
             >
-              Login
+              {t("auth.login")}
             </button>
           </div>
         </div>

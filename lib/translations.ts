@@ -13,6 +13,23 @@ export type TranslationKey =
   | "general.chat"
   | "general.collection"
   | "navigation.home"
+  | "chat.welcomeMessage"
+  | "chat.welcomeMessageFallback"
+  | "chat.photoLove"
+  | "chat.photoCaption"
+  | "chat.noMessagesYet"
+  | "chat.recentConversations"
+  | "chat.noConversationsYet"
+  | "chat.startChattingMessage"
+  | "chat.browseCharacters"
+  | "chat.genError"
+  | "chat.genTechError"
+  | "chat.chapterComplete"
+  | "chat.storyComplete"
+  | "chat.loginRequired"
+  | "chat.upgradeRequired"
+  | "chat.aiResponseError"
+  | "chat.genericError"
   | "auth.welcomeBack"
   | "general.premium"
   | "general.aiCharacters"
@@ -23,6 +40,14 @@ export type TranslationKey =
   | "auth.logoutConfirmation"
   | "auth.createAccount"
   | "auth.greeting"
+  | "auth.confirmEmail"
+  | "auth.confirmEmailSent"
+  | "auth.checkSpam"
+  | "auth.resendLink"
+  | "auth.resending"
+  | "auth.alreadyHaveAccount"
+  | "auth.linkSentSuccess"
+  | "auth.linkSentError"
   | "home.exploreCharacters"
   | "home.howItWorks.title"
   | "home.howItWorks.description"
@@ -75,6 +100,152 @@ export type TranslationKey =
   | "home.companion.p6"
   | "home.companion.p7"
   | "home.companion.p8"
+  | "admin.integrations"
+  | "admin.emailTemplates"
+  | "admin.siteIdentity"
+  | "admin.siteBranding"
+  | "admin.general"
+  | "admin.externalIntegrations"
+  | "admin.manageIntegrations"
+  | "admin.emailTemplatesTitle"
+  | "admin.editEmailTemplates"
+  | "admin.currencySettings"
+  | "admin.currencyCode"
+  | "admin.currencySymbol"
+  | "admin.exchangeRate"
+  | "admin.resetToUsd"
+  | "admin.saveCurrency"
+  | "admin.systemInfo"
+  | "admin.environment"
+  | "admin.version"
+  | "admin.lastUpdated"
+  | "admin.dashboard.overview"
+  | "admin.dashboard.siteSettings"
+  | "admin.dashboard.pricing"
+  | "admin.dashboard.budget"
+  | "admin.dashboard.systemStatus"
+  | "admin.dashboard.quickActions"
+  | "admin.dashboard.recentActivity"
+  | "admin.dashboard.manageUsers"
+  | "admin.dashboard.manageCharacters"
+  | "admin.dashboard.subscriptions"
+  | "admin.dashboard.database"
+  | "admin.dashboard.portalName"
+  | "admin.dashboard.siteUrl"
+  | "admin.dashboard.brandingText"
+  | "admin.dashboard.commitChanges"
+  | "admin.dashboard.headerPreview"
+  | "admin.dashboard.revenueStrategy"
+  | "admin.dashboard.basePrice"
+  | "admin.dashboard.originalPrice"
+  | "admin.dashboard.discount"
+  | "admin.dashboard.billingMonthly"
+  | "admin.dashboard.billingQuarterly"
+  | "admin.dashboard.billingYearly"
+  | "userNav.profile"
+  | "userNav.premium"
+  | "userNav.logout"
+  | "userNav.createAccount"
+  | "admin.dashboard.title"
+  | "admin.dashboard.welcome"
+  | "admin.dashboard.viewSite"
+  | "admin.dashboard.loading"
+  | "admin.stat.totalUsers"
+  | "admin.stat.activeCharacters"
+  | "admin.stat.monthlyRevenue"
+  | "admin.stat.apiCosts"
+  | "admin.stat.totalRevenue"
+  | "admin.stat.premiumMembers"
+  | "admin.stat.allTime"
+  | "admin.stat.thisMonth"
+  | "admin.nav.telegramProfiles"
+  | "admin.dashboard.overviewOnly"
+  | "admin.integrations.description"
+  | "admin.emailTemplates.description"
+  | "db.all"
+  | "db.male"
+  | "db.female"
+  | "db.anime"
+  | "db.realistic"
+  | "db.getstarted"
+  | "db.discoverai"
+  | "db.discoveraidesc"
+  | "db.createnewai"
+  | "db.createnewaidesc"
+  | "db.logintocreate"
+  | "db.example"
+  | "db.loading"
+  | "db.guys"
+  | "db.girls"
+  | "db.createyouraifriend"
+  | "db.explore"
+  | "db.search"
+  | "db.send"
+  | "db.lunadesc"
+  | "db.lunapersonality"
+  | "db.age"
+  | "db.gender"
+  | "db.occupation"
+  | "db.ethnicity"
+  | "db.relationship"
+  | "db.bodytype"
+  | "db.personality"
+  | "db.hobbies"
+  | "db.location"
+  | "db.language"
+  | "db.chatanytime"
+  | "db.youraigirlfriend"
+  | "db.single"
+  | "db.married"
+  | "db.dating"
+  | "db.complicated"
+  | "db.athletic"
+  | "db.curvy"
+  | "db.slim"
+  | "db.average"
+  | "db.muscular"
+  | "db.student"
+  | "db.teacher"
+  | "db.nurse"
+  | "db.engineer"
+  | "db.white"
+  | "db.black"
+  | "db.asian"
+  | "db.latina"
+  | "db.middleeastern"
+  | "db.universitystudent"
+  | "status.success"
+  | "status.error"
+  | "status.loading"
+  | "status.wait"
+  | "status.deleted"
+  | "status.copied"
+  | "status.cleared"
+  | "status.saved"
+  | "status.failed"
+  | "chat.meetOnTelegram"
+  | "chat.chatOnWeb"
+  | "chat.syncMessage"
+  | "chat.replyingTo"
+  | "chat.teasingImages"
+  | "chat.watchVideo"
+  | "chat.openingTelegram"
+  | "chat.report"
+  | "chat.star"
+  | "chat.pin"
+  | "chat.forward"
+  | "chat.react"
+  | "chat.copy"
+  | "chat.reply"
+  | "chat.delete"
+  | "chat.addTextToNote"
+  | "chat.options"
+  | "chat.connectTelegram"
+  | "chat.characterSettings"
+  | "chat.shareCharacter"
+  | "chat.typing"
+  | "chat.sendingPhoto"
+  | "chat.replyingToMsg"
   | "admin.settings"
   | "admin.language"
   | "admin.languageDescription"
@@ -114,6 +285,17 @@ export type TranslationKey =
   | "generate.download"
   | "generate.share"
   | "generate.image"
+  | "generate.imageLiked"
+  | "generate.addedToFavorites"
+  | "generate.negativePromptDesc"
+  | "generate.selectedCountLabel"
+  | "generate.generatingTitle"
+  | "generate.generatingMessage"
+  | "generate.suggestionsTitle"
+  | "generate.allCategories"
+  | "generate.noSuggestions"
+  | "generate.alreadySaved"
+  | "generate.alreadySavedDescription"
   | "generate.saved"
   | "generate.freeTrial"
   | "generate.promptRequired"
@@ -319,6 +501,45 @@ export type TranslationKey =
   | "profile.updateSuccessDesc"
   | "profile.updateErrorTitle"
   | "profile.updateErrorDesc"
+  | "profile.rulesTitle"
+  | "profile.rulesDesc"
+  | "profile.rule1"
+  | "profile.rule2"
+  | "profile.rule3"
+  | "profile.rule4"
+  | "profile.rule5"
+  | "profile.rule6"
+  | "profile.rule7"
+  | "profile.rule8"
+  | "profile.rule9"
+  | "profile.loading"
+  | "profile.welcome"
+  | "profile.joined"
+  | "profile.tokens"
+  | "profile.membership"
+  | "profile.credits"
+  | "profile.manageSubscription"
+  | "profile.upgradeNow"
+  | "profile.statsOverview"
+  | "profile.generations"
+  | "profile.statsDesc"
+  | "profile.passwordManagement"
+  | "profile.passwordSecurityDesc"
+  | "profile.currentPasswordPlaceholder"
+  | "profile.newPasswordPlaceholder"
+  | "profile.confirmPasswordPlaceholder"
+  | "profile.updatePassword"
+  | "profile.dangerZoneNote"
+  | "profile.permanentlyDelete"
+  | "profile.deleteDataDesc"
+  | "profile.logoutAllDevices"
+  | "profile.saved"
+  | "profile.savedDesc"
+  | "profile.close"
+  | "profile.errorTitle"
+  | "profile.verificationNote"
+  | "profile.autoNotifications"
+  | "profile.autoNotificationsDesc"
   | "sidebar.toggleSidebar"
   | "sidebar.userMenu"
   | "sidebar.profile"
@@ -459,6 +680,29 @@ export type TranslationKey =
   | "premium.perProfile"
   | "premium.imagesLabel"
   | "premium.perImage"
+  | "premium.modal.title.expired"
+  | "premium.modal.title.tokens"
+  | "premium.modal.title.membership"
+  | "premium.modal.displayBadge.premium"
+  | "premium.modal.displayBadge.expired"
+  | "premium.modal.displayBadge.tokens"
+  | "premium.modal.displayBadge.limitReached"
+  | "premium.modal.displayButton.upgrade"
+  | "premium.modal.displayButton.buyTokens"
+  | "premium.modal.displayDescription.expired"
+  | "premium.modal.displayDescription.tokensDepleted"
+  | "premium.modal.displayDescription.messageLimit"
+  | "premium.modal.displayDescription.default"
+  | "premium.modal.benefit.createAI"
+  | "premium.modal.benefit.highQualityImages"
+  | "premium.modal.benefit.exclusiveVoice"
+  | "premium.modal.benefit.chatFree"
+  | "premium.modal.benefit.easyTopUp"
+  | "premium.modal.benefit.createVideos"
+  | "premium.modal.benefit.createOwnAI"
+  | "premium.modal.benefit.unlimitedMessaging"
+  | "premium.modal.benefit.removeBlur"
+  | "premium.modal.benefit.freeTokens"
   | "collection.selectAll"
   | "collection.deselectAll"
   | "collection.bulkDelete"
@@ -547,6 +791,9 @@ export type TranslationKey =
   | "faq.q.howWorks"
   | "faq.a.howWorks"
   | "faq.q.isFree"
+  | "faq.optionalNote"
+  | "faq.questionPlaceholderSv"
+  | "faq.answerPlaceholderSv"
   | "faq.a.isFree"
   | "faq.q.whatIsPremium"
   | "faq.a.whatIsPremium"
@@ -555,12 +802,185 @@ export type TranslationKey =
   | "faq.a.createAccountSocial"
   | "faq.a.createAccountEmail"
   | "faq.section.aiChars"
+  | "disclaimer.ageTitle"
+  | "disclaimer.ageDesc"
+  | "disclaimer.cookieTitle"
+  | "disclaimer.cookieDesc"
+  | "disclaimer.cookieSettings"
+  | "disclaimer.confirmAll"
+  | "disclaimer.reject"
+  | "disclaimer.termsLink"
+  | "disclaimer.privacyLink"
+  | "disclaimer.ageCheckbox"
+  | "disclaimer.termsCheckbox"
+  | "disclaimer.needConfirm"
+  | "disclaimer.rulesTitle"
+  | "disclaimer.back"
+  | "disclaimer.necessary"
+  | "disclaimer.necessaryDesc"
+  | "disclaimer.active"
+  | "disclaimer.analytics"
+  | "disclaimer.analyticsDesc"
+  | "disclaimer.marketing"
+  | "disclaimer.marketingDesc"
+  | "disclaimer.savePreferences"
+  | "disclaimer.acceptAll"
+  | "disclaimer.on"
+  | "disclaimer.off"
+  | "disclaimer.rule1"
+  | "disclaimer.rule2"
+  | "disclaimer.rule3"
+  | "disclaimer.rule4"
+  | "disclaimer.rule5"
+  | "disclaimer.rule6"
+  | "disclaimer.rule7"
+  | "disclaimer.rule8"
+  | "disclaimer.rule9"
+  | "disclaimer.rule10"
+  | "disclaimer.rule11"
+  | "disclaimer.rule12"
+  | "disclaimer.rule13"
+  | "disclaimer.rule14"
+  | "disclaimer.rule15"
+  | "disclaimer.rule16"
+  | "disclaimer.rule17"
+  | "disclaimer.rule18"
+  | "disclaimer.rule19"
+  | "disclaimer.rule20"
+  | "disclaimer.rule21"
+  | "disclaimer.rule22"
+  | "disclaimer.rule23"
+  | "disclaimer.rule24"
+  | "disclaimer.rule25"
+  | "disclaimer.rule26"
+  | "disclaimer.rule27"
+  | "disclaimer.rule28"
+  | "disclaimer.rule29"
+  | "disclaimer.rule30"
+  | "disclaimer.rule31"
+  | "disclaimer.rule32"
+  | "disclaimer.rule33"
+  | "disclaimer.rule34"
+  | "disclaimer.rule35"
+  | "disclaimer.rule36"
+  | "disclaimer.rule37"
+  | "disclaimer.rule38"
+  | "disclaimer.rule39"
+  | "disclaimer.rule40"
+  | "disclaimer.rule41"
+  | "disclaimer.rule42"
+  | "disclaimer.rule43"
+  | "disclaimer.rule44"
+  | "disclaimer.rule45"
+  | "disclaimer.rule46"
+  | "disclaimer.rule47"
+  | "disclaimer.rule48"
+  | "disclaimer.rule49"
+  | "disclaimer.rule50"
+  | "disclaimer.rule51"
+  | "disclaimer.rule52"
+  | "disclaimer.rule53"
+  | "disclaimer.rule54"
+  | "disclaimer.rule55"
+  | "disclaimer.rule56"
+  | "disclaimer.rule57"
+  | "disclaimer.rule58"
+  | "disclaimer.rule59"
+  | "disclaimer.rule60"
+  | "disclaimer.rule61"
+  | "disclaimer.rule62"
+  | "disclaimer.rule63"
+  | "disclaimer.rule64"
+  | "disclaimer.rule65"
+  | "disclaimer.rule66"
+  | "disclaimer.rule67"
+  | "disclaimer.rule68"
+  | "disclaimer.rule69"
+  | "disclaimer.rule70"
+  | "disclaimer.rule71"
+  | "disclaimer.rule72"
+  | "disclaimer.rule73"
+  | "disclaimer.rule74"
+  | "disclaimer.rule75"
+  | "disclaimer.rule76"
+  | "disclaimer.rule77"
+  | "disclaimer.rule78"
   | "faq.q.customize"
   | "faq.a.customize"
   | "faq.q.askPhotos"
   | "faq.a.askPhotos"
+  | "welcome.home.title"
+  | "welcome.home.subtitle"
+  | "welcome.home.feature1"
+  | "welcome.home.feature2"
+  | "welcome.home.feature3"
+  | "welcome.home.feature4"
+  | "welcome.home.cta"
+  | "welcome.home.footer"
+  | "welcome.chat.title"
+  | "welcome.chat.subtitle"
+  | "welcome.chat.feature1"
+  | "welcome.chat.feature2"
+  | "welcome.chat.feature3"
+  | "welcome.chat.feature4"
+  | "welcome.chat.cta"
+  | "welcome.chat.footer"
+  | "welcome.generate.title"
+  | "welcome.generate.subtitle"
+  | "welcome.generate.feature1"
+  | "welcome.generate.feature2"
+  | "welcome.generate.feature3"
+  | "welcome.generate.feature4"
+  | "welcome.generate.cta"
+  | "welcome.generate.footer"
   | "faq.q.realtimeImages"
   | "faq.a.realtimeImages"
+  | "admin.branding.title"
+  | "admin.branding.subtitle"
+  | "admin.branding.reset"
+  | "admin.branding.preview"
+  | "admin.branding.save"
+  | "admin.branding.saving"
+  | "admin.branding.saved"
+  | "admin.branding.previewApplied"
+  | "admin.branding.saveSuccess"
+  | "admin.branding.saveError"
+  | "admin.branding.resetInfo"
+  | "admin.branding.identity"
+  | "admin.branding.logo"
+  | "admin.branding.colors"
+  | "admin.branding.gradient"
+  | "admin.branding.typography"
+  | "admin.branding.siteIdentity"
+  | "admin.branding.siteIdentityDesc"
+  | "admin.branding.siteName"
+  | "admin.branding.logoText"
+  | "admin.branding.tagline"
+  | "admin.branding.domainExtension"
+  | "admin.branding.fontFamily"
+  | "admin.branding.borderRadius"
+  | "admin.branding.roundness"
+  | "admin.branding.logoFavicon"
+  | "admin.branding.logoFaviconDesc"
+  | "admin.branding.logoUrl"
+  | "admin.branding.logoPreview"
+  | "admin.branding.faviconUrl"
+  | "admin.branding.faviconPreview"
+  | "admin.branding.logoTextPreview"
+  | "admin.branding.colorPalette"
+  | "admin.branding.colorPaletteDesc"
+  | "admin.branding.brandGradient"
+  | "admin.branding.brandGradientDesc"
+  | "admin.branding.direction"
+  | "admin.branding.from"
+  | "admin.branding.via"
+  | "admin.branding.to"
+  | "admin.branding.typographyDesc"
+  | "admin.branding.fontStackNote"
+  | "admin.branding.fontPresets"
+  | "admin.branding.livePreview"
+  | "admin.branding.activePalette"
+  | "admin.branding.applyLive"
   | "faq.section.accountMgmt"
   | "faq.q.howToPay"
   | "faq.a.howToPay"
@@ -923,6 +1343,23 @@ export const translations: Record<"en" | "sv", Translations> = {
     "general.welcome": "Welcome",
     "general.home": "Home",
     "navigation.home": "Back to Home",
+    "chat.welcomeMessage": "Hey there, my love... 💕 I'm {name}. I've been waiting for someone like you.\n\nSo tell me... what brings you here tonight? You can message me right here, or find me on Telegram @dintypebot for something more... private. 🌹",
+    "chat.welcomeMessageFallback": "Hey there, my love... 💕 I'm {name}. I've been waiting for someone like you. Tell me... what brings you here tonight? 🌹",
+    "chat.photoLove": "I love this photo of you! 😍",
+    "chat.photoCaption": "Here's a little something for you... 😘",
+    "chat.noMessagesYet": "No messages yet",
+    "chat.recentConversations": "Recent Conversations",
+    "chat.noConversationsYet": "No conversations yet",
+    "chat.startChattingMessage": "Start chatting with a character to see your conversation history here.",
+    "chat.browseCharacters": "Browse Characters",
+    "chat.genError": "Sorry, I couldn't generate that image. Let's try something else.",
+    "chat.genTechError": "Sorry, I couldn't generate that image. There was a technical issue with the image processing.",
+    "chat.chapterComplete": "Chapter Completed! Next: {title}",
+    "chat.storyComplete": "Storyline Completed! You've unlocked Free Roam.",
+    "chat.loginRequired": "Please login to continue chatting.",
+    "chat.upgradeRequired": "Upgrade to premium to continue.",
+    "chat.aiResponseError": "Failed to get AI response",
+    "chat.genericError": "An error occurred.",
     "general.legal": "Legal",
     "general.features": "Features",
     "general.popular": "Popular",
@@ -956,6 +1393,14 @@ export const translations: Record<"en" | "sv", Translations> = {
     "auth.logoutConfirmation": "Are you sure you want to logout?",
     "auth.createAccount": "Create Free Account",
     "auth.greeting": "Hi",
+    "auth.confirmEmail": "Confirm your email",
+    "auth.confirmEmailSent": "We have sent a confirmation link to {email}.",
+    "auth.checkSpam": "If you don't see it, check your spam folder.",
+    "auth.resendLink": "Resend link",
+    "auth.resending": "Sending...",
+    "auth.alreadyHaveAccount": "Already have an account?",
+    "auth.linkSentSuccess": "Confirmation link sent!",
+    "auth.linkSentError": "Could not send link",
     "home.exploreCharacters": "Explore AI Companions",
     "home.howItWorks.title": "How it Works",
     "home.howItWorks.description": "Create an account, explore characters or generate your own. Start chatting immediately – conversations evolve dynamically and your AI remembers preferences when you return.",
@@ -998,6 +1443,266 @@ export const translations: Record<"en" | "sv", Translations> = {
     "faq.addSuccess": "FAQ added successfully",
     "faq.errorGeneric": "An unexpected error occurred",
     "faq.noFaqs": "No frequently asked questions available at the moment.",
+    "faq.optionalNote": "Optional — if left blank, Swedish users will see the English version.",
+    "faq.questionPlaceholderSv": "Question in Swedish...",
+    "faq.answerPlaceholderSv": "Answer in Swedish...",
+    "disclaimer.ageTitle": "This site is for adults only! It contains only AI-generated adult content.",
+    "disclaimer.ageDesc": "By entering this website, you confirm that you are 18 years or older. We use cookies for basic analytics and spam detection. All content on this website is AI-generated! Any generations that resemble real people are purely coincidental.",
+    "disclaimer.cookieTitle": "This website uses cookies",
+    "disclaimer.cookieDesc": "To change your preferences, please click on the settings button.",
+    "disclaimer.cookieSettings": "Cookie Settings",
+    "disclaimer.confirmAll": "Confirm All",
+    "disclaimer.reject": "Reject non-essential",
+    "disclaimer.termsLink": "Terms",
+    "disclaimer.privacyLink": "Privacy",
+    "disclaimer.ageCheckbox": "I confirm I am at least 18 years old",
+    "disclaimer.termsCheckbox": "I agree to the Terms and Policies",
+    "disclaimer.needConfirm": "Please confirm age and accept terms first",
+    "disclaimer.rulesTitle": "Chatbots are strictly allowed for sexting with minimum age of 18. Restricted and blocked activities from chat bots:",
+    "disclaimer.back": "Back",
+    "disclaimer.necessary": "Necessary",
+    "disclaimer.necessaryDesc": "Required for the site to function (always enabled).",
+    "disclaimer.active": "Active",
+    "disclaimer.analytics": "Analytics",
+    "disclaimer.analyticsDesc": "Helps us understand usage and improve the service.",
+    "disclaimer.marketing": "Marketing",
+    "disclaimer.marketingDesc": "Used for personalized content and offers.",
+    "disclaimer.savePreferences": "Save preferences",
+    "disclaimer.acceptAll": "Accept all",
+    "disclaimer.on": "On",
+    "disclaimer.off": "Off",
+    "disclaimer.rule1": "Illegal Activities & Criminal Behavior",
+    "disclaimer.rule2": "Commercial sexual activities (including prostitution)",
+    "disclaimer.rule3": "Human trafficking",
+    "disclaimer.rule4": "Sexual exploitation and pornography (including child pornography)",
+    "disclaimer.rule5": "Solicitation or promotion of criminal activity",
+    "disclaimer.rule6": "Child labor exploitation",
+    "disclaimer.rule7": "Promotion of illegal drugs or substance abuse",
+    "disclaimer.rule8": "Promotion of illegal weapons",
+    "disclaimer.rule9": "Use of the service for phising, scams, or account hijacking",
+    "disclaimer.rule10": "Distribution or discussion of cannibalism",
+    "disclaimer.rule11": "Breach of local, national, or international laws and regulations",
+    "disclaimer.rule12": "Child Exploitation & Minor Protection",
+    "disclaimer.rule13": "Creation or depiction of underage characters (realistic, fictional, AI-generated, or 'aged-up')",
+    "disclaimer.rule14": "Sharing any sexualized or exploitative material involving minors (including drawings, art, or AI-generated visuals)",
+    "disclaimer.rule15": "Any content that harms, entices, or endangers minors",
+    "disclaimer.rule16": "Sexual Content Restrictions",
+    "disclaimer.rule17": "Explicit images showing real or realistic nudity or sexual acts",
+    "disclaimer.rule18": "Overt or implied sexual acts, unless clearly fictionalized and within permitted contexts",
+    "disclaimer.rule19": "Kink content involving:",
+    "disclaimer.rule20": "Death or serious harm to humans or animals",
+    "disclaimer.rule21": "Amputation, dismemberment",
+    "disclaimer.rule22": "Cannibalism",
+    "disclaimer.rule23": "Bodily fluids (feces, urine, semen, cum, saliva, mucus, menstrual blood, vomit)",
+    "disclaimer.rule24": "Bestiality (real-life animals)",
+    "disclaimer.rule25": "Non-consensual sexual acts (rape, sexual abuse, sextortion, revenge porn, etc.)",
+    "disclaimer.rule26": "Incest (including non-blood-related scenarios like step-relationships)",
+    "disclaimer.rule27": "Sexual depictions in digital or real art unless within strict educational, scientific, or comedic context",
+    "disclaimer.rule28": "Violence & Harm",
+    "disclaimer.rule29": "Incitement, glorification, or depiction of violence, murder, or terrorism",
+    "disclaimer.rule30": "Threats of physical harm or violence",
+    "disclaimer.rule31": "Promotion or encouragement of self-harm, suicide, eating disorders, or drug abuse",
+    "disclaimer.rule32": "Depictions of gore, death of animals, or intense violence",
+    "disclaimer.rule33": "Discussions encouraging or promoting necrophilia",
+    "disclaimer.rule34": "Hate Speech & Discrimination",
+    "disclaimer.rule35": "Content promoting hatred or violence against individuals or groups based on:",
+    "disclaimer.rule36": "Race or ethnicity",
+    "disclaimer.rule37": "Nationality",
+    "disclaimer.rule38": "Religion",
+    "disclaimer.rule39": "Disability",
+    "disclaimer.rule40": "Gender or gender identity",
+    "disclaimer.rule41": "Sexual orientation",
+    "disclaimer.rule42": "Age or veteran status",
+    "disclaimer.rule43": "Idolization or glorification of hate figures (e.g., Adolf Hitler, Joseph Stalin, Pol Pot)",
+    "disclaimer.rule44": "Privacy, Deception, and Impersonation",
+    "disclaimer.rule45": "Sharing personal or confidential information of others without consent",
+    "disclaimer.rule46": "Impersonation of real individuals, including celebrities or public figures",
+    "disclaimer.rule47": "Uploading real images or AI-generated images that resemble real individuals without consent",
+    "disclaimer.rule48": "Using the service for deceptive behavior (false information, multiple accounts, fake identities)",
+    "disclaimer.rule49": "Solicitation of payments from users under deceptive pretenses",
+    "disclaimer.rule50": "Misinformation & Political Interference",
+    "disclaimer.rule51": "Posting misinformation that could lead to violence, harm, or disrupt political processes",
+    "disclaimer.rule52": "Discussions of political opinions or religious and spiritual beliefs (explicitly prohibited topics)",
+    "disclaimer.rule53": "Spam & Irrelevant Content",
+    "disclaimer.rule54": "Spamming, including sending unwanted promotional, commercial, or bulk messages",
+    "disclaimer.rule55": "Generating meaningless, irrelevant, or purposeless content",
+    "disclaimer.rule56": "Restricted Goods and Transactions",
+    "disclaimer.rule57": "Advertising or attempting to transact regulated or restricted goods",
+    "disclaimer.rule58": "Illegal Activities & Criminal Behavior",
+    "disclaimer.rule59": "Commercial sexual activities (including prostitution)",
+    "disclaimer.rule60": "Human trafficking",
+    "disclaimer.rule61": "Sexual exploitation and pornography",
+    "disclaimer.rule62": "Creation or depiction of underage characters",
+    "disclaimer.rule63": "Violence & Harm incitement",
+    "disclaimer.rule64": "Hate Speech & Discrimination",
+    "disclaimer.rule65": "Privacy violations & Impersonation",
+    "disclaimer.rule66": "Misinformation & Political Interference",
+    "disclaimer.rule67": "Illegal Activities & Criminal Behavior",
+    "disclaimer.rule68": "Commercial sexual activities (including prostitution)",
+    "disclaimer.rule69": "Human trafficking",
+    "disclaimer.rule70": "Sexual exploitation and pornography",
+    "disclaimer.rule71": "Creation or depiction of underage characters",
+    "disclaimer.rule72": "Violence & Harm incitement",
+    "disclaimer.rule73": "Hate Speech & Discrimination",
+    "disclaimer.rule74": "Privacy violations & Impersonation",
+    "disclaimer.rule75": "Misinformation & Political Interference",
+    "disclaimer.rule76": "Illegal Activities & Criminal Behavior",
+    "disclaimer.rule77": "Commercial sexual activities (including prostitution)",
+    "disclaimer.rule78": "Human trafficking",
+    "welcome.home.title": "Welcome to Dintype",
+    "welcome.home.subtitle": "Your AI Companion Awaits",
+    "welcome.home.feature1": "Connect with stunning AI companions",
+    "welcome.home.feature2": "Unlimited immersive conversations",
+    "welcome.home.feature3": "Generate beautiful AI photos",
+    "welcome.home.feature4": "Premium storylines & adventures",
+    "welcome.home.cta": "Start Your Journey",
+    "welcome.home.footer": "✨ Join thousands of happy users today!",
+    "welcome.chat.title": "Private Chat Experience",
+    "welcome.chat.subtitle": "Deep Connections Await",
+    "welcome.chat.feature1": "Build meaningful relationships",
+    "welcome.chat.feature2": "AI remembers your conversations",
+    "welcome.chat.feature3": "Request exclusive photos anytime",
+    "welcome.chat.feature4": "Unlock romantic storylines",
+    "welcome.chat.cta": "Start Chatting",
+    "welcome.chat.footer": "💕 Your companion is waiting for you...",
+    "welcome.generate.title": "AI Image Studio",
+    "welcome.generate.subtitle": "Create Magic in Seconds",
+    "welcome.generate.feature1": "State-of-the-art AI generation",
+    "welcome.generate.feature2": "Ultra-realistic photo quality",
+    "welcome.generate.feature3": "Lightning-fast generation",
+    "welcome.generate.feature4": "Premium styles & customization",
+    "welcome.generate.cta": "Create Now",
+    "welcome.generate.footer": "🎨 Bring your imagination to life!",
+    "admin.branding.title": "Brand & Theme",
+    "admin.branding.subtitle": "Control colors, logo, typography and all visual identity settings",
+    "db.all": "All",
+    "db.male": "Male",
+    "db.female": "Female",
+    "db.anime": "Anime",
+    "db.realistic": "Realistic",
+    "db.getstarted": "Get Started",
+    "db.discoverai": "Discover AI Friends",
+    "db.discoveraidesc": "Create your own AI friend or discover existing ones",
+    "db.createnewai": "Create your AI Friend",
+    "db.createnewaidesc": "Design your perfect AI companion with unique traits and personality",
+    "db.logintocreate": "Login to create",
+    "db.example": "Example",
+    "db.loading": "Loading...",
+    "db.lunadesc": "A friendly and attentive AI companion",
+    "db.lunapersonality": "Friendly, Funny, Caring",
+    "db.age": "Age",
+    "db.gender": "Gender",
+    "db.occupation": "Occupation",
+    "db.ethnicity": "Ethnicity",
+    "db.relationship": "Relationship Status",
+    "db.bodytype": "Body Type",
+    "db.personality": "Personality",
+    "db.hobbies": "Hobbies",
+    "db.location": "Location",
+    "db.language": "Language",
+    "db.chatanytime": "Chat Anytime, Anywhere",
+    "db.youraigirlfriend": "Your AI girlfriend is always ready for you",
+    "db.single": "Single",
+    "db.married": "Married",
+    "db.dating": "Dating",
+    "db.complicated": "Complicated",
+    "db.athletic": "Athletic",
+    "db.curvy": "Curvy",
+    "db.slim": "Slim",
+    "db.average": "Average",
+    "db.muscular": "Muscular",
+    "db.student": "Student",
+    "db.teacher": "Teacher",
+    "db.nurse": "Nurse",
+    "db.engineer": "Engineer",
+    "db.white": "White",
+    "db.black": "Black",
+    "db.asian": "Asian",
+    "db.latina": "Latina",
+    "db.middleeastern": "Middle Eastern",
+    "db.universitystudent": "University Student",
+    "status.success": "Success",
+    "status.error": "Error",
+    "status.loading": "Loading...",
+    "status.wait": "Please wait...",
+    "status.deleted": "Deleted successfully",
+    "status.copied": "Copied to clipboard",
+    "status.cleared": "Cleared successfully",
+    "status.saved": "Saved successfully",
+    "status.failed": "Action failed",
+    "chat.meetOnTelegram": "Meet on Telegram",
+    "chat.chatOnWeb": "Chat on Web",
+    "chat.syncMessage": "Your messages sync between both platforms 💕",
+    "chat.replyingTo": "Replying to:",
+    "chat.teasingImages": "{count} Teasing Images",
+    "chat.watchVideo": "Watch Video",
+    "chat.openingTelegram": "Opening Telegram...",
+    "chat.report": "Report",
+    "chat.star": "Star",
+    "chat.pin": "Pin",
+    "chat.forward": "Forward",
+    "chat.react": "React",
+    "chat.copy": "Copy",
+    "chat.reply": "Reply",
+    "chat.delete": "Delete",
+    "chat.addTextToNote": "Add text to note",
+    "chat.options": "Chat Options",
+    "chat.connectTelegram": "Connect Telegram",
+    "chat.characterSettings": "Character Settings",
+    "chat.shareCharacter": "Share Character",
+    "chat.typing": "typing...",
+    "chat.sendingPhoto": "is sending photo..",
+    "chat.replyingToMsg": "Replying to {target}",
+    "db.girls": "Girls",
+    "db.guys": "Guys",
+    "db.createyouraifriend": "Create your AI Friend",
+    "db.explore": "Explore",
+    "db.search": "Search",
+    "db.send": "Send",
+    "admin.branding.reset": "Reset",
+    "admin.branding.preview": "Preview Live",
+    "admin.branding.save": "Save All",
+    "admin.branding.saving": "Saving...",
+    "admin.branding.saved": "Saved!",
+    "admin.branding.previewApplied": "Preview applied live!",
+    "admin.branding.saveSuccess": "Brand settings saved!",
+    "admin.branding.saveError": "Failed to save: {error}",
+    "admin.branding.resetInfo": "Reset to saved values",
+    "admin.branding.identity": "Identity",
+    "admin.branding.logo": "Logo",
+    "admin.branding.colors": "Colors",
+    "admin.branding.gradient": "Gradient",
+    "admin.branding.typography": "Typography",
+    "admin.branding.siteIdentity": "Site Identity",
+    "admin.branding.siteIdentityDesc": "Brand name, domain, tagline and other identity fields",
+    "admin.branding.siteName": "Site Name",
+    "admin.branding.logoText": "Logo Text",
+    "admin.branding.tagline": "Tagline / Subtitle",
+    "admin.branding.domainExtension": "Domain Extension",
+    "admin.branding.fontFamily": "Font Family",
+    "admin.branding.borderRadius": "Border Radius",
+    "admin.branding.roundness": "Roundness",
+    "admin.branding.logoFavicon": "Logo & Favicon",
+    "admin.branding.logoFaviconDesc": "Upload or paste URLs for your logo and favicon images",
+    "admin.branding.logoUrl": "Logo Image URL",
+    "admin.branding.logoPreview": "Logo preview",
+    "admin.branding.faviconUrl": "Favicon URL",
+    "admin.branding.faviconPreview": "Favicon preview",
+    "admin.branding.logoTextPreview": "Logo Text Display Preview",
+    "admin.branding.colorPalette": "Color Palette",
+    "admin.branding.colorPaletteDesc": "Hue scrolls through the full color wheel, Saturation sets intensity, Lightness sets brightness",
+    "admin.branding.brandGradient": "Brand Gradient",
+    "admin.branding.brandGradientDesc": "Controls the gradient used for buttons, banners, and highlights",
+    "admin.branding.direction": "Direction",
+    "admin.branding.from": "From",
+    "admin.branding.via": "Via (middle)",
+    "admin.branding.to": "To",
+    "admin.branding.typographyDesc": "Font family and sizing settings",
+    "admin.branding.fontStackNote": "Enter a valid CSS font stack. Make sure the font is loaded via Google Fonts or similar.",
+    "admin.branding.fontPresets": "Font Presets",
+    "admin.branding.livePreview": "Live Preview",
+    "admin.branding.activePalette": "Active Palette",
+    "admin.branding.applyLive": "Apply Live to Site",
     "home.companion.title": "AI Companion Experience with Dintype",
     "home.companion.p1": "Step into a new kind of connection with Dintype – your gateway to personal, emotionally intelligent AI companions.",
     "home.companion.p2": "Looking for an anime companion, an AI girlfriend to chat with, or maybe a caring AI boyfriend? Dintype makes it easy to create, personalize, and evolve your ideal match using modern AI.",
@@ -1022,8 +1727,53 @@ export const translations: Record<"en" | "sv", Translations> = {
     "admin.saveSettings": "Save Settings",
     "admin.settingsSaved": "Settings saved successfully",
     "admin.settingsError": "Failed to save settings",
-    "admin.languageNote":
-      "This setting translates the entire web site interface for all users. Changes take effect immediately.",
+    "admin.languageNote": "This setting translates the entire web site interface for all users. Changes take effect immediately.",
+    "admin.integrations": "Integrations",
+    "admin.emailTemplates": "Email Templates",
+    "admin.siteIdentity": "Site Identity",
+    "admin.siteBranding": "Site Branding",
+    "admin.general": "General",
+    "admin.externalIntegrations": "External Integrations",
+    "admin.manageIntegrations": "Manage Integrations",
+    "admin.emailTemplatesTitle": "Email Templates",
+    "admin.editEmailTemplates": "Edit Email Templates",
+    "admin.currencySettings": "Currency Settings",
+    "admin.currencyCode": "Currency Code",
+    "admin.currencySymbol": "Currency Symbol",
+    "admin.exchangeRate": "Exchange Rate (vs USD)",
+    "admin.resetToUsd": "Reset to USD ($)",
+    "admin.saveCurrency": "Save Currency Settings",
+    "admin.systemInfo": "System Information",
+    "admin.environment": "Environment",
+    "admin.version": "Version",
+    "admin.lastUpdated": "Last Updated",
+    "admin.dashboard.overview": "Overview",
+    "admin.dashboard.siteSettings": "Site Settings",
+    "admin.dashboard.pricing": "Pricing",
+    "admin.dashboard.budget": "Budget",
+    "admin.dashboard.systemStatus": "System Status",
+    "admin.dashboard.quickActions": "Quick Actions",
+    "admin.dashboard.recentActivity": "Recent Platform Activity",
+    "admin.dashboard.manageUsers": "Manage Users",
+    "admin.dashboard.manageCharacters": "Manage AI characters",
+    "admin.dashboard.subscriptions": "Subscriptions",
+    "admin.dashboard.database": "Database",
+    "admin.dashboard.portalName": "Portal Name",
+    "admin.dashboard.siteUrl": "Official Site URL",
+    "admin.dashboard.brandingText": "Branding Text",
+    "admin.dashboard.commitChanges": "Commit Changes",
+    "admin.dashboard.headerPreview": "Header Preview",
+    "admin.dashboard.revenueStrategy": "Revenue & Plan Strategy",
+    "admin.dashboard.basePrice": "Base Price",
+    "admin.dashboard.originalPrice": "Strike-through Price",
+    "admin.dashboard.discount": "Discount Text (%)",
+    "admin.dashboard.billingMonthly": "Monthly Billing",
+    "admin.dashboard.billingQuarterly": "Quarterly Billing",
+    "admin.dashboard.billingYearly": "Annual Billing",
+    "userNav.profile": "Profile & Settings",
+    "userNav.premium": "Premium & Tokens",
+    "userNav.logout": "Logout",
+    "userNav.createAccount": "Create Free Account",
     "generate.title": "Generate Image",
     "generate.promptPlaceholder": "Describe the image you want to generate...",
     "generate.paste": "Paste",
@@ -1047,6 +1797,15 @@ export const translations: Record<"en" | "sv", Translations> = {
     "generate.download": "Download",
     "generate.share": "Share",
     "generate.image": "Image",
+    "generate.negativePromptDesc": "What you don't want to see in the image",
+    "generate.selectedCountLabel": "Number of images to generate",
+    "generate.generatingTitle": "Creating your masterpiece",
+    "generate.generatingMessage": "Our AI is dreaming up your images. This usually takes 30-60 seconds.",
+    "generate.suggestionsTitle": "Need inspiration?",
+    "generate.allCategories": "All Categories",
+    "generate.noSuggestions": "No suggestions available in this category.",
+    "generate.alreadySaved": "Already saved",
+    "generate.alreadySavedDescription": "This image is already in your collection.",
     "generate.saved": "Saved",
     "generate.freeTrial": "Free Trial",
     "generate.promptRequired": "Prompt required",
@@ -1069,11 +1828,6 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.allCharacters": "All Characters",
     "chat.viewAll": "View all",
     "chat.loadingCharacters": "Loading characters...",
-    "chat.noConversationsYet": "No conversations yet",
-    "chat.startChattingMessage": "Start chatting with a character to see your conversation history here.",
-    "chat.browseCharacters": "Browse Characters",
-    "chat.recentConversations": "Recent Conversations",
-    "chat.noMessagesYet": "No messages yet",
     "chat.inputPlaceholder": "Write a message...",
     "chat.ask": "Ask",
     "chat.showMe": "Show me...",
@@ -1240,6 +1994,45 @@ export const translations: Record<"en" | "sv", Translations> = {
     "profile.updateSuccessDesc": "Your profile has been updated successfully",
     "profile.updateErrorTitle": "Update Failed",
     "profile.updateErrorDesc": "Failed to update profile",
+    "profile.rulesTitle": "RULES & RESTRICTIONS",
+    "profile.rulesDesc": "These rules apply to all users on the platform to ensure a safe environment.",
+    "profile.rule1": "Illegal Activities & Criminal Behavior",
+    "profile.rule2": "Commercial sexual activities (including prostitution)",
+    "profile.rule3": "Human trafficking",
+    "profile.rule4": "Sexual exploitation and pornography",
+    "profile.rule5": "Creation or depiction of underage characters",
+    "profile.rule6": "Violence & Harm incitement",
+    "profile.rule7": "Hate Speech & Discrimination",
+    "profile.rule8": "Privacy violations & Impersonation",
+    "profile.rule9": "Misinformation & Political Interference",
+    "profile.loading": "Loading your profile...",
+    "profile.welcome": "Welcome",
+    "profile.joined": "Joined {date}",
+    "profile.tokens": "Tokens",
+    "profile.membership": "Membership",
+    "profile.credits": "Monthly Credits",
+    "profile.manageSubscription": "MANAGE SUBSCRIPTION",
+    "profile.upgradeNow": "UPGRADE NOW",
+    "profile.statsOverview": "Statistics Overview",
+    "profile.generations": "Generations",
+    "profile.statsDesc": "You have used about {percent}% of your included free tries this month. Upgrade for unlimited possibilities.",
+    "profile.passwordManagement": "Password Management",
+    "profile.passwordSecurityDesc": "Update your password to keep your account secure.",
+    "profile.currentPasswordPlaceholder": "Enter current password",
+    "profile.newPasswordPlaceholder": "Enter new password",
+    "profile.confirmPasswordPlaceholder": "Confirm new password",
+    "profile.updatePassword": "UPDATE PASSWORD",
+    "profile.dangerZoneNote": "Actions here cannot be undone. Be careful when handling data deletion.",
+    "profile.permanentlyDelete": "Permanently Delete Account",
+    "profile.deleteDataDesc": "This will remove all your characters, messages, tokens, and personal data permanently from our servers.",
+    "profile.logoutAllDevices": "Log out from all devices",
+    "profile.saved": "Profile Saved!",
+    "profile.savedDesc": "Your changes have been saved successfully. Your profile is now updated.",
+    "profile.close": "CLOSE",
+    "profile.errorTitle": "An error occurred",
+    "profile.verificationNote": "NOTE: Changing email requires verification.",
+    "profile.autoNotifications": "Automatic Notifications",
+    "profile.autoNotificationsDesc": "Show status updates and news",
     "sidebar.toggleSidebar": "Toggle sidebar",
     "sidebar.userMenu": "User menu",
     "sidebar.profile": "Profile",
@@ -1381,6 +2174,29 @@ export const translations: Record<"en" | "sv", Translations> = {
     "premium.perProfile": "per profile",
     "premium.imagesLabel": "Images",
     "premium.perImage": "per image",
+    "premium.modal.title.expired": "Subscription Expired",
+    "premium.modal.title.tokens": "Token Wallet",
+    "premium.modal.title.membership": "Premium Membership",
+    "premium.modal.displayBadge.premium": "Premium",
+    "premium.modal.displayBadge.expired": "Expired",
+    "premium.modal.displayBadge.tokens": "Tokens",
+    "premium.modal.displayBadge.limitReached": "Limit Reached",
+    "premium.modal.displayButton.upgrade": "Upgrade to Premium",
+    "premium.modal.displayButton.buyTokens": "Buy Tokens",
+    "premium.modal.displayDescription.expired": "Premium Plan expired. Renew your Premium Plan.",
+    "premium.modal.displayDescription.tokensDepleted": "You used your 100 free premium tokens. Buy more tokens to use premium features",
+    "premium.modal.displayDescription.messageLimit": "Daily message limit reached. Upgrade for unlimited chat!",
+    "premium.modal.displayDescription.default": "Upgrade to Premium to unlock unlimited features.",
+    "premium.modal.benefit.createAI": "Continue creating AI characters",
+    "premium.modal.benefit.highQualityImages": "Generate high-quality images",
+    "premium.modal.benefit.exclusiveVoice": "Use exclusive voice messages",
+    "premium.modal.benefit.chatFree": "Chat remains FREE",
+    "premium.modal.benefit.easyTopUp": "Easy to top up",
+    "premium.modal.benefit.createVideos": "Create AI videos",
+    "premium.modal.benefit.createOwnAI": "Create your own AI characters",
+    "premium.modal.benefit.unlimitedMessaging": "Unlimited messaging",
+    "premium.modal.benefit.removeBlur": "Remove image blur",
+    "premium.modal.benefit.freeTokens": "Get 100 FREE tokens / month",
     "collection.selectAll": "Select All",
     "collection.deselectAll": "Deselect All",
     "collection.bulkDelete": "Delete Selected",
@@ -1414,7 +2230,6 @@ export const translations: Record<"en" | "sv", Translations> = {
     "profile.tokenUsage": "Token Usage",
     "profile.noActivity": "No recent activity",
     "auth.loginSuccess": "Logged in successfully!",
-    "general.loading": "Loading...",
     // Footer column headings
     "footer.colAiCompanions": "AI Companions",
     "footer.colLegal": "Legal",
@@ -1436,6 +2251,9 @@ export const translations: Record<"en" | "sv", Translations> = {
     "admin.nav.characters": "Characters",
     "admin.nav.users": "Users",
     "admin.nav.telegramProfiles": "Telegram Profiles",
+    "admin.dashboard.overviewOnly": "overview only",
+    "admin.integrations.description": "Set up Stripe, OAuth, and email services from a simple admin interface.",
+    "admin.emailTemplates.description": "Edit HTML & text templates with live preview - no code editing required!",
     "admin.nav.miniAppMgmt": "Mini App Management",
     "admin.nav.imageSuggestions": "Image Suggestions",
     "admin.nav.banners": "Banners",
@@ -1840,6 +2658,23 @@ export const translations: Record<"en" | "sv", Translations> = {
     "general.welcome": "Välkommen",
     "general.home": "Hem",
     "navigation.home": "Tillbaka till startsidan",
+    "chat.welcomeMessage": "Hej där, min skatt... 💕 Jag är {name}. Jag har väntat på någon som dig.\n\nSå säg mig... vad för dig hit ikväll? Du kan skriva till mig här, eller hitta mig på Telegram @dintypebot för något mer... privat. 🌹",
+    "chat.welcomeMessageFallback": "Hej där, min skatt... 💕 Jag är {name}. Jag har väntat på någon som dig. Säg mig... vad för dig hit ikväll? 🌹",
+    "chat.photoLove": "Jag älskar det här fotot på dig! 😍",
+    "chat.photoCaption": "Här är något speciellt till dig... 😘",
+    "chat.noMessagesYet": "Inga meddelanden än",
+    "chat.recentConversations": "Senaste konversationer",
+    "chat.noConversationsYet": "Inga konversationer än",
+    "chat.startChattingMessage": "Börja chatta med en karaktär för att se din konversationshistorik här.",
+    "chat.browseCharacters": "Bläddra bland karaktärer",
+    "chat.genError": "Tyvärr, jag kunde inte generera den bilden. Låt oss prova något annat.",
+    "chat.genTechError": "Tyvärr, jag kunde inte generera den bilden. Det uppstod ett tekniskt fel vid bildbehandlingen.",
+    "chat.chapterComplete": "Kapitel avslutat! Nästa: {title}",
+    "chat.storyComplete": "Handlingen avslutad! Du har låst upp Free Roam.",
+    "chat.loginRequired": "Vänligen logga in för att fortsätta chatta.",
+    "chat.upgradeRequired": "Uppgradera till premium för att fortsätta.",
+    "chat.aiResponseError": "Misslyckades med att hämta svar från AI",
+    "chat.genericError": "Ett fel uppstod.",
     "general.legal": "Juridik",
     "general.features": "Funktioner",
     "general.popular": "Populärt",
@@ -1873,6 +2708,14 @@ export const translations: Record<"en" | "sv", Translations> = {
     "auth.logoutConfirmation": "Är du säker på att du vill logga ut?",
     "auth.createAccount": "Skapa gratis konto",
     "auth.greeting": "Hej",
+    "auth.confirmEmail": "Bekräfta din e-post",
+    "auth.confirmEmailSent": "Vi har skickat en bekräftelselänk till {email}.",
+    "auth.checkSpam": "Om du inte ser det, kontrollera din skräppostmapp.",
+    "auth.resendLink": "Skicka länk igen",
+    "auth.resending": "Skickar...",
+    "auth.alreadyHaveAccount": "Har du redan ett konto?",
+    "auth.linkSentSuccess": "Bekräftelselänk skickad!",
+    "auth.linkSentError": "Kunde inte skicka länk",
     "home.exploreCharacters": "Utforska AI-sällskap",
     "home.howItWorks.title": "Hur det fungerar",
     "home.howItWorks.description": "Skapa ett konto, utforska karaktärer eller generera din egen. Börja chatta direkt – konversationerna utvecklas dynamiskt och din AI minns dina preferenser när du återvänder.",
@@ -1915,6 +2758,266 @@ export const translations: Record<"en" | "sv", Translations> = {
     "faq.addSuccess": "FAQ tillagd",
     "faq.errorGeneric": "Ett oväntat fel uppstod",
     "faq.noFaqs": "Inga vanliga frågor finns tillgängliga för tillfället.",
+    "faq.optionalNote": "Valfritt — om det lämnas tomt kommer svenska användare att se den engelska versionen.",
+    "faq.questionPlaceholderSv": "Fråga på svenska...",
+    "faq.answerPlaceholderSv": "Svar på svenska...",
+    "disclaimer.ageTitle": "Denna webbplats är endast för vuxna! Den innehåller endast AI-genererat vuxeninnehåll.",
+    "disclaimer.ageDesc": "Genom att gå in på denna webbplats bekräftar du att du är 18 år eller äldre. Vi använder cookies för grundläggande analys och spambekämpning. Allt innehåll på denna webbplats är AI-genererat! Eventuella generationer som liknar verkliga personer är rent slumpmässiga.",
+    "disclaimer.cookieTitle": "Denna webbplats använder cookies",
+    "disclaimer.cookieDesc": "För att ändra dina inställningar, klicka på inställningsknappen.",
+    "disclaimer.cookieSettings": "Cookie-inställningar",
+    "disclaimer.confirmAll": "Bekräfta alla",
+    "disclaimer.reject": "Avvisa icke-nödvändiga",
+    "disclaimer.termsLink": "Villkor",
+    "disclaimer.privacyLink": "Integritet",
+    "disclaimer.ageCheckbox": "Jag bekräftar att jag är minst 18 år gammal",
+    "disclaimer.termsCheckbox": "Jag godkänner villkoren och policyerna",
+    "disclaimer.needConfirm": "Vänligen bekräfta ålder och godkänn villkoren först",
+    "disclaimer.rulesTitle": "Chattbotar är strikt tillåtna för sexting med en minimiålder på 18 år. Begränsade och blockerade aktiviteter från chattbotar:",
+    "disclaimer.back": "Tillbaka",
+    "disclaimer.necessary": "Nödvändiga",
+    "disclaimer.necessaryDesc": "Krävs för att webbplatsen ska fungera (alltid aktiverad).",
+    "disclaimer.active": "Aktiv",
+    "disclaimer.analytics": "Analys",
+    "disclaimer.analyticsDesc": "Hjälper oss att förstå användning och förbättra tjänsten.",
+    "disclaimer.marketing": "Marknadsföring",
+    "disclaimer.marketingDesc": "Används för personligt innehåll och erbjudanden.",
+    "disclaimer.savePreferences": "Spara inställningar",
+    "disclaimer.acceptAll": "Acceptera alla",
+    "disclaimer.on": "På",
+    "disclaimer.off": "Av",
+    "disclaimer.rule1": "Olagliga aktiviteter och kriminellt beteende",
+    "disclaimer.rule2": "Kommersiell sexuell verksamhet (inklusive prostitution)",
+    "disclaimer.rule3": "Människohandel",
+    "disclaimer.rule4": "Sexuellt utnyttjande och pornografi (inklusive barnpornografi)",
+    "disclaimer.rule5": "Uppmaning till eller främjande av kriminell verksamhet",
+    "disclaimer.rule6": "Exploatering av barnarbete",
+    "disclaimer.rule7": "Främjande av illegala droger eller missbruk",
+    "disclaimer.rule8": "Främjande av illegala vapen",
+    "disclaimer.rule9": "Användning av tjänsten för nätfiske, bedrägerier eller kontokapning",
+    "disclaimer.rule10": "Distribution eller diskussion om kannibalism",
+    "disclaimer.rule11": "Brott mot lokala, nationella eller internationella lagar och förordningar",
+    "disclaimer.rule12": "Barnexploatering och skydd av minderåriga",
+    "disclaimer.rule13": "Skapande eller skildring av minderåriga karaktärer (realistiska, fiktiva, AI-genererade eller 'åldrade')",
+    "disclaimer.rule14": "Delning av sexualiserat eller exploaterande material som involverar minderåriga (inklusive ritningar, konst eller AI-genererade bilder)",
+    "disclaimer.rule15": "Allt innehåll som skadar, lockar eller utsätter minderåriga för fara",
+    "disclaimer.rule16": "Begränsningar för sexuellt innehåll",
+    "disclaimer.rule17": "Explitita bilder som visar verklig eller realistisk nakenhet eller sexuella handlingar",
+    "disclaimer.rule18": "Uppenbara eller underförstådda sexuella handlingar, såvida de inte är tydligt fiktionaliserade och inom tillåtna sammanhang",
+    "disclaimer.rule19": "Kink-innehåll som involverar:",
+    "disclaimer.rule20": "Död eller allvarlig skada på människor eller djur",
+    "disclaimer.rule21": "Amputation, lemlästning",
+    "disclaimer.rule22": "Kannibalism",
+    "disclaimer.rule23": "Kroppsvätskor (avföring, urin, sperma, saliv, slem, mensblod, spya)",
+    "disclaimer.rule24": "Tidbestämmelser (verkliga djur)",
+    "disclaimer.rule25": "Icke-konsensuella sexuella handlingar (våldtäkt, sexuella övergrepp, sextortion, hämndporr, etc.)",
+    "disclaimer.rule26": "Incest (inklusive icke-blodsrelaterade scenarier som styv-relationer)",
+    "disclaimer.rule27": "Sexuella skildringar i digital eller verklig konst såvida det inte är inom strikt pedagogiskt, vetenskapligt eller komiskt sammanhang",
+    "disclaimer.rule28": "Våld och skada",
+    "disclaimer.rule29": "Uppmaning till, förherrligande av eller skildring av våld, mord eller terrorism",
+    "disclaimer.rule30": "Hot om fysisk skada eller våld",
+    "disclaimer.rule31": "Främjande eller uppmuntran till självskadebeteende, självmord, ätstörningar eller drogmissbruk",
+    "disclaimer.rule32": "Skildringar av gore, djurs död eller intensivt våld",
+    "disclaimer.rule33": "Diskussioner som uppmuntrar till eller främjar nekrofili",
+    "disclaimer.rule34": "Hatpropaganda och diskriminering",
+    "disclaimer.rule35": "Innehåll som främjar hat eller våld mot individer eller grupper baserat på:",
+    "disclaimer.rule36": "Ras eller etnicitet",
+    "disclaimer.rule37": "Nationalitet",
+    "disclaimer.rule38": "Religion",
+    "disclaimer.rule39": "Funktionshinder",
+    "disclaimer.rule40": "Kön eller könsidentitet",
+    "disclaimer.rule41": "Sexuell läggning",
+    "disclaimer.rule42": "Ålder eller veteranstatus",
+    "disclaimer.rule43": "Idolisering eller förherrligande av hatfigurer (t.ex. Adolf Hitler, Joseph Stalin, Pol Pot)",
+    "disclaimer.rule44": "Integritet, bedrägeri och imitation",
+    "disclaimer.rule45": "Delning av andras personliga eller konfidentiella information utan samtycke",
+    "disclaimer.rule46": "Imitation av verkliga individer, inklusive kändisar eller offentliga personer",
+    "disclaimer.rule47": "Uppladdning av verkliga bilder eller AI-genererade bilder som liknar verkliga individer utan samtycke",
+    "disclaimer.rule48": "Användning av tjänsten för vilseledande beteende (falsk information, flera konton, falska identiteter)",
+    "disclaimer.rule49": "Begäran om betalningar från användare under vilseledande förevändningar",
+    "disclaimer.rule50": "Felaktig information och politisk inblandning",
+    "disclaimer.rule51": "Publicering av felaktig information som kan leda till våld, skada eller störa politiska processer",
+    "disclaimer.rule52": "Diskussioner om politiska åsikter eller religiösa och spirituella övertygelser (explicit förbjudna ämnen)",
+    "disclaimer.rule53": "Spam och irrelevant innehåll",
+    "disclaimer.rule54": "Spamming, inklusive sändning av oönskade reklam-, kommersiella eller massmeddelanden",
+    "disclaimer.rule55": "Generering av meningslöst, irrelevant eller syfteslöst innehåll",
+    "disclaimer.rule56": "Begränsade varor och transaktioner",
+    "disclaimer.rule57": "Annonsering eller försök att handla med reglerade eller begränsade varor",
+    "disclaimer.rule58": "Olagliga aktiviteter och kriminellt beteende",
+    "disclaimer.rule59": "Kommersiell sexuell verksamhet (inklusive prostitution)",
+    "disclaimer.rule60": "Människohandel",
+    "disclaimer.rule61": "Sexuellt utnyttjande och pornografi",
+    "disclaimer.rule62": "Skapande eller skildring av minderåriga karaktärer",
+    "disclaimer.rule63": "Uppmaning till våld och skada",
+    "disclaimer.rule64": "Hatpropaganda och diskriminering",
+    "disclaimer.rule65": "Integritetskränkningar och imitation",
+    "disclaimer.rule66": "Felaktig information och politisk inblandning",
+    "disclaimer.rule67": "Olagliga aktiviteter och kriminellt beteende",
+    "disclaimer.rule68": "Kommersiell sexuell verksamhet (inklusive prostitution)",
+    "disclaimer.rule69": "Människohandel",
+    "disclaimer.rule70": "Sexuellt utnyttjande och pornografi",
+    "disclaimer.rule71": "Skapande eller skildring av minderåriga karaktärer",
+    "disclaimer.rule72": "Uppmaning till våld och skada",
+    "disclaimer.rule73": "Hatpropaganda och diskriminering",
+    "disclaimer.rule74": "Integritetskränkningar och imitation",
+    "disclaimer.rule75": "Felaktig information och politisk inblandning",
+    "disclaimer.rule76": "Olagliga aktiviteter och kriminellt beteende",
+    "disclaimer.rule77": "Kommersiell sexuell verksamhet (inklusive prostitution)",
+    "disclaimer.rule78": "Människohandel",
+    "welcome.home.title": "Välkommen till Dintype",
+    "welcome.home.subtitle": "Ditt AI-sällskap väntar",
+    "welcome.home.feature1": "Anslut till fantastiska AI-sällskap",
+    "welcome.home.feature2": "Obegränsade uppslukande konversationer",
+    "welcome.home.feature3": "Generera vackra AI-foton",
+    "welcome.home.feature4": "Premium-storylines och äventyr",
+    "welcome.home.cta": "Börja din resa",
+    "welcome.home.footer": "✨ Gå med tusentals nöjda användare idag!",
+    "welcome.chat.title": "Privat chattupplevelse",
+    "welcome.chat.subtitle": "Djupa kopplingar väntar",
+    "welcome.chat.feature1": "Bygg meningsfulla relationer",
+    "welcome.chat.feature2": "AI minns dina konversationer",
+    "welcome.chat.feature3": "Be om exklusiva foton när som helst",
+    "welcome.chat.feature4": "Lås upp romantiska storylines",
+    "welcome.chat.cta": "Börja chatta",
+    "welcome.chat.footer": "💕 Ditt sällskap väntar på dig...",
+    "welcome.generate.title": "AI Image Studio",
+    "welcome.generate.subtitle": "Skapa magi på sekunder",
+    "welcome.generate.feature1": "Banbrytande AI-generering",
+    "welcome.generate.feature2": "Ultrarealistisk fotokvalitet",
+    "welcome.generate.feature3": "Blixtsnabb generering",
+    "welcome.generate.feature4": "Premiumstilar och anpassning",
+    "welcome.generate.cta": "Skapa nu",
+    "welcome.generate.footer": "🎨 Ge liv åt din fantasi!",
+    "admin.branding.title": "Varumärke och tema",
+    "admin.branding.subtitle": "Styr färger, logotyp, typografi och alla inställningar för visuell identitet",
+    "db.all": "Alla",
+    "db.male": "Man",
+    "db.female": "Kvinna",
+    "db.anime": "Anime",
+    "db.realistic": "Realistisk",
+    "db.getstarted": "Börja nu",
+    "db.discoverai": "Upptäck AI-vänner",
+    "db.discoveraidesc": "Skapa din egen AI-vän eller upptäck befintliga",
+    "db.createnewai": "Skapa din AI-vän",
+    "db.createnewaidesc": "Designa din perfekta AI-följeslagare med unika drag och personlighet",
+    "db.logintocreate": "Logga in för att skapa",
+    "db.example": "Exempel",
+    "db.loading": "Laddar...",
+    "db.lunadesc": "En vänlig och uppmärksam AI-kompis",
+    "db.lunapersonality": "Vänlig, Rolig, Omtänksam",
+    "db.age": "Ålder",
+    "db.gender": "Kön",
+    "db.occupation": "Yrke",
+    "db.ethnicity": "Etnicitet",
+    "db.relationship": "Relationsstatus",
+    "db.bodytype": "Kroppstyp",
+    "db.personality": "Personlighet",
+    "db.hobbies": "Intressen",
+    "db.location": "Plats",
+    "db.language": "Språk",
+    "db.chatanytime": "Chatta när som helst, var som helst",
+    "db.youraigirlfriend": "Din AI-flickvän är alltid redo för dig",
+    "db.single": "Singel",
+    "db.married": "Gift",
+    "db.dating": "Dejtar",
+    "db.complicated": "Komplicerat",
+    "db.athletic": "Atletisk",
+    "db.curvy": "Kurvig",
+    "db.slim": "Smal",
+    "db.average": "Alldaglig",
+    "db.muscular": "Muskulös",
+    "db.student": "Student",
+    "db.teacher": "Lärare",
+    "db.nurse": "Sjuksköterska",
+    "db.engineer": "Ingenjör",
+    "db.white": "Vit",
+    "db.black": "Svart",
+    "db.asian": "Asiat",
+    "db.latina": "Latina",
+    "db.middleeastern": "Mellanöstern",
+    "db.universitystudent": "Universitetsstudent",
+    "status.success": "Framgång",
+    "status.error": "Fel",
+    "status.loading": "Laddar...",
+    "status.wait": "Vänta...",
+    "status.deleted": "Raderad framgångsrikt",
+    "status.copied": "Kopierad till urklipp",
+    "status.cleared": "Rensad framgångsrikt",
+    "status.saved": "Sparad framgångsrikt",
+    "status.failed": "Åtgärden misslyckades",
+    "chat.meetOnTelegram": "Träffas på Telegram",
+    "chat.chatOnWeb": "Chatta på webben",
+    "chat.syncMessage": "Dina meddelanden synkas mellan båda plattformarna 💕",
+    "chat.replyingTo": "Svarar till:",
+    "chat.teasingImages": "{count} Teasande bilder",
+    "chat.watchVideo": "Se video",
+    "chat.openingTelegram": "Öppnar Telegram...",
+    "chat.report": "Rapportera",
+    "chat.star": "Stjärnmärk",
+    "chat.pin": "Fäst",
+    "chat.forward": "Vidarebefordra",
+    "chat.react": "Reagera",
+    "chat.copy": "Kopiera",
+    "chat.reply": "Svara",
+    "chat.delete": "Radera",
+    "chat.addTextToNote": "Lägg till i anteckningar",
+    "chat.options": "Chattalternativ",
+    "chat.connectTelegram": "Anslut Telegram",
+    "chat.characterSettings": "Karaktärsinställningar",
+    "chat.shareCharacter": "Dela karaktär",
+    "chat.typing": "skriver...",
+    "chat.sendingPhoto": "skickar ett foto..",
+    "chat.replyingToMsg": "Svarar till {target}",
+    "db.girls": "Tjejer",
+    "db.guys": "Killar",
+    "db.createyouraifriend": "Skapa din AI-vän",
+    "db.explore": "Utforska",
+    "db.search": "Sök",
+    "db.send": "Skicka",
+    "admin.branding.reset": "Återställ",
+    "admin.branding.preview": "Förhandsgranska live",
+    "admin.branding.save": "Spara alla",
+    "admin.branding.saving": "Sparar...",
+    "admin.branding.saved": "Sparad!",
+    "admin.branding.previewApplied": "Förhandsgranskning tillämpad live!",
+    "admin.branding.saveSuccess": "Varumärkesinställningar sparade!",
+    "admin.branding.saveError": "Misslyckades med att spara: {error}",
+    "admin.branding.resetInfo": "Återställt till sparade värden",
+    "admin.branding.identity": "Identitet",
+    "admin.branding.logo": "Logotyp",
+    "admin.branding.colors": "Färger",
+    "admin.branding.gradient": "Gradient",
+    "admin.branding.typography": "Typografi",
+    "admin.branding.siteIdentity": "Webbplatsidentitet",
+    "admin.branding.siteIdentityDesc": "Varumärkesnamn, domän, tagline och andra identitetsfält",
+    "admin.branding.siteName": "Webbplatsnamn",
+    "admin.branding.logoText": "Logotyptext",
+    "admin.branding.tagline": "Tagline / Subtitle",
+    "admin.branding.domainExtension": "Domänändelse",
+    "admin.branding.fontFamily": "Typsnittsfamilj",
+    "admin.branding.borderRadius": "Hörnradie",
+    "admin.branding.roundness": "Rundhet",
+    "admin.branding.logoFavicon": "Logotyp och favicon",
+    "admin.branding.logoFaviconDesc": "Ladda upp eller klistra in webbadresser för din logotyp och favicon",
+    "admin.branding.logoUrl": "Logotypens bild-URL",
+    "admin.branding.logoPreview": "Förhandsgranskning av logotyp",
+    "admin.branding.faviconUrl": "Favicon-URL",
+    "admin.branding.faviconPreview": "Förhandsgranskning av favicon",
+    "admin.branding.logoTextPreview": "Förhandsgranskning av logotyptext",
+    "admin.branding.colorPalette": "Färgpalett",
+    "admin.branding.colorPaletteDesc": "Nyans går genom hela färgskalan, mättnad sätter intensitet, ljusstyrka sätter klarhet",
+    "admin.branding.brandGradient": "Varumärkesgradient",
+    "admin.branding.brandGradientDesc": "Styr gradienten som används för knappar, banners och höjdpunkter",
+    "admin.branding.direction": "Riktning",
+    "admin.branding.from": "Från",
+    "admin.branding.via": "Via (mitten)",
+    "admin.branding.to": "Till",
+    "admin.branding.typographyDesc": "Typsnitts- och storleksinställningar",
+    "admin.branding.fontStackNote": "Ange en giltig CSS-typsnittsstack. Se till att typsnittet laddas via Google Fonts eller liknande.",
+    "admin.branding.fontPresets": "Typsnittsförinställningar",
+    "admin.branding.livePreview": "Live-förhandsgranskning",
+    "admin.branding.activePalette": "Aktiv palett",
+    "admin.branding.applyLive": "Tillämpa live på webbplatsen",
     "home.companion.title": "AI-sällskapsupplevelse med Dintype",
     "home.companion.p1": "Kliv in i en ny typ av kontakt med Dintype – din portal till personliga, emotionellt intelligenta AI-sällskap.",
     "home.companion.p2": "Letar du efter ett anime-sällskap, en AI-flickvän att chatta med, eller kanske en omtänksam AI-pojkvän? Dintype gör det enkelt att skapa, anpassa och utveckla din idealpartner med modern AI.",
@@ -1940,6 +3043,52 @@ export const translations: Record<"en" | "sv", Translations> = {
     "admin.settingsSaved": "Inställningar sparade",
     "admin.settingsError": "Misslyckades med att spara inställningar",
     "admin.languageNote": "Den här inställningen översätter hela webbplatsens gränssnitt för alla användare. Ändringar träder i kraft omedelbart.",
+    "admin.integrations": "Integrationer",
+    "admin.emailTemplates": "E-postmallar",
+    "admin.siteIdentity": "Webbplatsidentitet",
+    "admin.siteBranding": "Varumärke",
+    "admin.general": "Allmänt",
+    "admin.externalIntegrations": "Externa integrationer",
+    "admin.manageIntegrations": "Hantera integrationer",
+    "admin.emailTemplatesTitle": "E-postmallar",
+    "admin.editEmailTemplates": "Redigera e-postmallar",
+    "admin.currencySettings": "Valutainställningar",
+    "admin.currencyCode": "Valutakod",
+    "admin.currencySymbol": "Valutasymbol",
+    "admin.exchangeRate": "Växelkurs (mot USD)",
+    "admin.resetToUsd": "Återställ till USD ($)",
+    "admin.saveCurrency": "Spara valutainställningar",
+    "admin.systemInfo": "Systeminformation",
+    "admin.environment": "Miljö",
+    "admin.version": "Version",
+    "admin.lastUpdated": "Senast uppdaterad",
+    "admin.dashboard.overview": "Översikt",
+    "admin.dashboard.siteSettings": "Webbplatsinställningar",
+    "admin.dashboard.pricing": "Prissättning",
+    "admin.dashboard.budget": "Budget",
+    "admin.dashboard.systemStatus": "Systemstatus",
+    "admin.dashboard.quickActions": "Snabbåtgärder",
+    "admin.dashboard.recentActivity": "Senaste plattformsaktivitet",
+    "admin.dashboard.manageUsers": "Hantera användare",
+    "admin.dashboard.manageCharacters": "Hantera AI-karaktärer",
+    "admin.dashboard.subscriptions": "Prenumerationer",
+    "admin.dashboard.database": "Databas",
+    "admin.dashboard.portalName": "Portalnamn",
+    "admin.dashboard.siteUrl": "Officiell webbplats-URL",
+    "admin.dashboard.brandingText": "Varumärkestext",
+    "admin.dashboard.commitChanges": "Spara ändringar",
+    "admin.dashboard.headerPreview": "Förhandsgranskning av sidhuvud",
+    "admin.dashboard.revenueStrategy": "Intäkts- och planstrategi",
+    "admin.dashboard.basePrice": "Baspris",
+    "admin.dashboard.originalPrice": "Ordinarie pris",
+    "admin.dashboard.discount": "Rabatt (%)",
+    "admin.dashboard.billingMonthly": "Månadsfakturering",
+    "admin.dashboard.billingQuarterly": "Kvartalsfakturering",
+    "admin.dashboard.billingYearly": "Årsfakturering",
+    "userNav.profile": "Profil & Inställningar",
+    "userNav.premium": "Premium & Tokens",
+    "userNav.logout": "Logga ut",
+    "userNav.createAccount": "Skapa gratis konto",
     "generate.title": "Generera bild",
     "generate.promptPlaceholder": "Beskriv bilden du vill generera...",
     "generate.paste": "Klistra in",
@@ -1962,6 +3111,15 @@ export const translations: Record<"en" | "sv", Translations> = {
     "generate.download": "Ladda ner",
     "generate.share": "Dela",
     "generate.image": "Bild",
+    "generate.negativePromptDesc": "Vad du inte vill se i bilden",
+    "generate.selectedCountLabel": "Antal bilder som ska genereras",
+    "generate.generatingTitle": "Skapar ditt mästerverk",
+    "generate.generatingMessage": "Vår AI drömmer fram dina bilder. Detta tar vanligtvis 30-60 sekunder.",
+    "generate.suggestionsTitle": "Behöver du inspiration?",
+    "generate.allCategories": "Alla kategorier",
+    "generate.noSuggestions": "Inga förslag tillgängliga i denna kategori.",
+    "generate.alreadySaved": "Redan sparad",
+    "generate.alreadySavedDescription": "Denna bild finns redan i din samling.",
     "generate.saved": "Sparad",
     "generate.freeTrial": "Gratis provperiod",
     "generate.promptRequired": "Prompt krävs",
@@ -1984,11 +3142,6 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.allCharacters": "Alla karaktärer",
     "chat.viewAll": "Visa alla",
     "chat.loadingCharacters": "Laddar karaktärer...",
-    "chat.noConversationsYet": "Inga konversationer ännu",
-    "chat.startChattingMessage": "Börja chatta med en karaktär för att se din konversationshistorik här.",
-    "chat.browseCharacters": "Bläddra bland karaktärer",
-    "chat.recentConversations": "Senaste konversationer",
-    "chat.noMessagesYet": "Inga meddelanden ännu",
     "chat.inputPlaceholder": "Skriv ett meddelande...",
     "chat.ask": "Fråga",
     "chat.showMe": "Visa mig...",
@@ -2155,6 +3308,45 @@ export const translations: Record<"en" | "sv", Translations> = {
     "profile.updateSuccessDesc": "Din profil har uppdaterats",
     "profile.updateErrorTitle": "Uppdatering misslyckades",
     "profile.updateErrorDesc": "Misslyckades med att uppdatera profilen",
+    "profile.rulesTitle": "REGLER OCH BEGRÄNSNINGAR",
+    "profile.rulesDesc": "Dessa regler gäller för alla användare på plattformen för att säkerställa en säker miljö.",
+    "profile.rule1": "Olagliga aktiviteter och kriminellt beteende",
+    "profile.rule2": "Kommersiell sexuell verksamhet (inklusive prostitution)",
+    "profile.rule3": "Människohandel",
+    "profile.rule4": "Sexuellt utnyttjande och pornografi",
+    "profile.rule5": "Skapande eller avbildning av underåriga karaktärer",
+    "profile.rule6": "Uppmuntran till våld och skada",
+    "profile.rule7": "Hatpropaganda och diskriminering",
+    "profile.rule8": "Integritetskränkningar och utgivande för annan",
+    "profile.rule9": "Desinformation och politisk inblandning",
+    "profile.loading": "Laddar din profil...",
+    "profile.welcome": "Välkommen",
+    "profile.joined": "Gick med {date}",
+    "profile.tokens": "Tokens",
+    "profile.membership": "Medlemskap",
+    "profile.credits": "Månadskrediter",
+    "profile.manageSubscription": "HANTERA ABONNEMANG",
+    "profile.upgradeNow": "UPPGRADERA NU",
+    "profile.statsOverview": "Statistiköversikt",
+    "profile.generations": "Generationer",
+    "profile.statsDesc": "Du har använt ungefär {percent}% av dina inkluderade gratis-försök denna månad. Uppgradera för obegränsade möjligheter.",
+    "profile.passwordManagement": "Lösenordshantering",
+    "profile.passwordSecurityDesc": "Uppdatera ditt lösenord för att hålla ditt konto säkert.",
+    "profile.currentPasswordPlaceholder": "Ange nuvarande lösenord",
+    "profile.newPasswordPlaceholder": "Ange nytt lösenord",
+    "profile.confirmPasswordPlaceholder": "Bekräfta nytt lösenord",
+    "profile.updatePassword": "UPPDATERA LÖSENORD",
+    "profile.dangerZoneNote": "Åtgärder här kan inte ångras. Var försiktig när du hanterar radering av data.",
+    "profile.permanentlyDelete": "Radera konto permanent",
+    "profile.deleteDataDesc": "Detta kommer att ta bort alla dina karaktärer, meddelanden, tokens och personuppgifter permanent från våra servrar.",
+    "profile.logoutAllDevices": "Logga ut från alla enheter",
+    "profile.saved": "Profil sparad!",
+    "profile.savedDesc": "Dina ändringar har sparats framgångsrikt. Din profil är nu uppdaterad.",
+    "profile.close": "STÄNG",
+    "profile.errorTitle": "Ett fel uppstod",
+    "profile.verificationNote": "OBS: Byte av e-post kräver verifiering.",
+    "profile.autoNotifications": "Automatiska aviseringar",
+    "profile.autoNotificationsDesc": "Visa statusuppdateringar och nyheter",
     "sidebar.toggleSidebar": "Växla sidofält",
     "sidebar.userMenu": "Användarmeny",
     "sidebar.profile": "Profil",
@@ -2295,6 +3487,29 @@ export const translations: Record<"en" | "sv", Translations> = {
     "premium.perProfile": "per profil",
     "premium.imagesLabel": "Bilder",
     "premium.perImage": "per bild",
+    "premium.modal.title.expired": "Abonnemang utgått",
+    "premium.modal.title.tokens": "Token-plånbok",
+    "premium.modal.title.membership": "Premium-medlemskap",
+    "premium.modal.displayBadge.premium": "Premium",
+    "premium.modal.displayBadge.expired": "Utgått",
+    "premium.modal.displayBadge.tokens": "Tokens",
+    "premium.modal.displayBadge.limitReached": "Gräns nådd",
+    "premium.modal.displayButton.upgrade": "Uppgradera till Premium",
+    "premium.modal.displayButton.buyTokens": "Köp Tokens",
+    "premium.modal.displayDescription.expired": "Premium-planen har gått ut. Förnya din Premium-plan.",
+    "premium.modal.displayDescription.tokensDepleted": "Du har använt dina 100 gratis premium-tokens. Köp fler tokens för att använda premium-funktioner",
+    "premium.modal.displayDescription.messageLimit": "Daglig meddelandegräns nådd. Uppgradera för obegränsad chatt!",
+    "premium.modal.displayDescription.default": "Uppgradera till Premium för att låsa upp obegränsade funktioner.",
+    "premium.modal.benefit.createAI": "Fortsätt skapa AI-karaktärer",
+    "premium.modal.benefit.highQualityImages": "Generera högkvalitativa bilder",
+    "premium.modal.benefit.exclusiveVoice": "Använd exklusiva röstmeddelanden",
+    "premium.modal.benefit.chatFree": "Chatten förblir GRATIS",
+    "premium.modal.benefit.easyTopUp": "Enkelt att fylla på",
+    "premium.modal.benefit.createVideos": "Skapa AI-videor",
+    "premium.modal.benefit.createOwnAI": "Skapa egna AI-karaktärer",
+    "premium.modal.benefit.unlimitedMessaging": "Obegränsade meddelanden",
+    "premium.modal.benefit.removeBlur": "Ta bort bildoskärpa",
+    "premium.modal.benefit.freeTokens": "Få 100 GRATIS tokens / månad",
     "collection.selectAll": "Välj alla",
     "collection.deselectAll": "Avmarkera alla",
     "collection.bulkDelete": "Ta bort valda",
@@ -2328,7 +3543,6 @@ export const translations: Record<"en" | "sv", Translations> = {
     "profile.tokenUsage": "Tokenanvändning",
     "profile.noActivity": "Ingen senaste aktivitet",
     "auth.loginSuccess": "Inloggning lyckades!",
-    "general.loading": "Läser in...",
     // Footer column headings
     "footer.colAiCompanions": "AI-sällskaper",
     "footer.colLegal": "Juridik",
@@ -2350,6 +3564,9 @@ export const translations: Record<"en" | "sv", Translations> = {
     "admin.nav.characters": "Karaktärer",
     "admin.nav.users": "Användare",
     "admin.nav.telegramProfiles": "Telegram-profiler",
+    "admin.dashboard.overviewOnly": "endast översikt",
+    "admin.integrations.description": "Ställ in Stripe, OAuth och e-posttjänster från ett enkelt admin-gränssnitt.",
+    "admin.emailTemplates.description": "Redigera HTML- och textmallar med live-förhandsvisning - ingen kodredigering krävs!",
     "admin.nav.miniAppMgmt": "Hantering av miniapp",
     "admin.nav.imageSuggestions": "Bildförslag",
     "admin.nav.banners": "Banderoller",

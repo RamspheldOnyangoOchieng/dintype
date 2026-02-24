@@ -102,7 +102,7 @@ export default function Home() {
         </div>
 
         <div className="space-y-4">
-          <Suspense fallback={<div>Loading characters...</div>}>
+          <Suspense fallback={<div>{t("general.loading")}</div>}>
             <CharacterGrid characters={filteredCharacters || []} />
           </Suspense>
         </div>

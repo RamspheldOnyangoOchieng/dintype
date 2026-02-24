@@ -18,7 +18,7 @@ export function UserHeader() {
   const { user, logout } = useAuth()
   const { openLogoutModal } = useAuthModal()
   const pathname = usePathname()
-  const { t } = useTranslations()
+  const { t, t_db } = useTranslations()
 
   const { activeType, setActiveType } = useCharacters()
   // Fixed character types to match the reference design
@@ -83,7 +83,7 @@ export function UserHeader() {
               {type === "Girls" && <span className="mr-1.5 text-orange">♀</span>}
               {type === "Anime" && <span className="mr-1.5">⭐</span>}
               {type === "Guys" && <span className="mr-1.5 text-blue-500">♂</span>}
-              {type}
+              {t_db(type)}
             </Button>
           ))}
         </div>

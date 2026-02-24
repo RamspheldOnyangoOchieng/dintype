@@ -154,8 +154,8 @@ function GenerateContent() {
       } catch (error) {
         console.error("Error loading suggestions:", error)
         toast({
-          title: "Error",
-          description: "Failed to load suggestions. Please try again.",
+          title: t("general.error"),
+          description: t("generate.noSuggestions"),
           variant: "destructive",
         })
       } finally {
@@ -259,8 +259,8 @@ function GenerateContent() {
   const handleGenerate = async () => {
     if (!prompt.trim()) {
       toast({
-        title: "Prompt required",
-        description: "Please enter a description for the image you want to generate.",
+        title: t("generate.promptRequired"),
+        description: t("generate.promptRequiredDescription"),
         variant: "destructive",
       })
       return
@@ -276,8 +276,8 @@ function GenerateContent() {
     // Check for NSFW content in prompt for free users
     if (!isPremium && !user.isAdmin && containsNSFW(prompt)) {
       toast({
-        title: "NSFW Content Detected",
-        description: "Free users can only generate SFW images. Please upgrade to Premium to generate NSFW content.",
+        title: t("chat.genError"),
+        description: t("chat.upgradeRequired"),
         variant: "destructive",
       })
       setShowPremiumModal(true)
@@ -595,8 +595,8 @@ function GenerateContent() {
         }
 
         toast({
-          title: "Success!",
-          description: `Your image${(result.images?.length || 0) > 1 ? "s have" : " has"} been generated.`,
+          title: t("general.success"),
+          description: t("generate.allImagesSavedDescription"),
         })
       } else if (result.status === "TASK_STATUS_FAILED") {
         if (statusCheckInterval.current) clearInterval(statusCheckInterval.current)
@@ -649,8 +649,8 @@ function GenerateContent() {
     } catch (error) {
       console.error("Error downloading image:", error)
       toast({
-        title: "Download failed",
-        description: "Failed to download the image. Please try again.",
+        title: t("generate.downloadFailed"),
+        description: t("generate.downloadFailedDescription"),
         variant: "destructive",
       })
     }
@@ -658,7 +658,7 @@ function GenerateContent() {
 
   const handleShare = (imageUrl: string) => {
     navigator.clipboard.writeText(imageUrl)
-    toast({ title: "Image URL copied to clipboard" })
+    toast({ title: t("generate.imageUrlCopied") })
   }
 
   const handleDownloadAll = async () => {
@@ -671,8 +671,8 @@ function GenerateContent() {
     } catch (error) {
       console.error("Error downloading all images:", error)
       toast({
-        title: "Download failed",
-        description: "Failed to download all images. Please try again.",
+        title: t("generate.downloadFailed"),
+        description: t("generate.downloadFailedDescription"),
         variant: "destructive",
       })
     }
@@ -689,8 +689,8 @@ function GenerateContent() {
         if (success) savedCount++
       }
       toast({
-        title: "All images saved",
-        description: `Successfully saved ${savedCount} images to your collection.`,
+        title: t("generate.allImagesSaved"),
+        description: t("generate.allImagesSavedDescription"),
       })
     } catch (error) {
       console.error("Error saving all images:", error)
@@ -739,8 +739,8 @@ function GenerateContent() {
       if (data.message === "Image already saved") {
         if (showToast) {
           toast({
-            title: "Already saved",
-            description: "This image is already in your collection.",
+            title: t("generate.alreadySaved"),
+            description: t("generate.alreadySavedDescription"),
           })
         }
         return true
@@ -748,8 +748,8 @@ function GenerateContent() {
 
       if (showToast) {
         toast({
-          title: "Success",
-          description: "Image saved to your collection with permanent URL",
+          title: t("general.success"),
+          description: t("generate.imageSavedDescription"),
         })
       }
 
@@ -765,8 +765,8 @@ function GenerateContent() {
       console.error("Error saving image:", error)
       if (showToast) {
         toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to save image to collection",
+          title: t("general.error"),
+          description: error instanceof Error ? error.message : t("generate.downloadFailedDescription"),
           variant: "destructive",
         })
       }
