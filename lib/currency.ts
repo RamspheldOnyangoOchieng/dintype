@@ -2,7 +2,7 @@
  * Currency Formatting Utilities
  * 
  * Provides consistent currency formatting across the application
- * following USD/EUR/English conventions.
+ * following Swedish Kr conventions.
  */
 
 /**
@@ -20,27 +20,26 @@ export function formatCurrency(
   const {
     includeDecimals = true,
     compact = false,
-    currency = 'USD',
-    locale = 'en-US'
+    currency = 'SEK',
+    locale = 'sv-SE'
   } = options;
 
-  // For EUR, we might want a different locale
-  const activeLocale = currency === 'EUR' ? 'de-DE' : locale;
-
-  const formatted = new Intl.NumberFormat(activeLocale, {
+  const formatted = new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: currency,
     minimumFractionDigits: includeDecimals ? 2 : 0,
     maximumFractionDigits: includeDecimals ? 2 : 0,
   }).format(amount);
 
-  // Add space after symbol and ensure symbol is at the front for USD/EUR in this app's style
-  return formatted.replace(/([$€£]|kr)/g, '$1 ').trim();
+  return formatted.trim();
 }
 
 /**
  * Convenience formatters
  */
+export const formatSEK = (amount: number, includeDecimals = true) =>
+  formatCurrency(amount, { currency: 'SEK', locale: 'sv-SE', includeDecimals });
+
 export const formatUSD = (amount: number, includeDecimals = true) =>
   formatCurrency(amount, { currency: 'USD', locale: 'en-US', includeDecimals });
 
@@ -48,21 +47,16 @@ export const formatEUR = (amount: number, includeDecimals = true) =>
   formatCurrency(amount, { currency: 'EUR', locale: 'de-DE', includeDecimals });
 
 /**
- * Format in both USD and EUR
+ * Format in both USD and EUR - or now SEK and USD
  */
-export const formatDual = (amountUSD: number, amountEUR: number) => {
-  return `${formatUSD(amountUSD)} / ${formatEUR(amountEUR)}`;
+export const formatDual = (amountSEK: number, amountUSD: number) => {
+  return `${formatSEK(amountSEK)} / ${formatUSD(amountUSD)}`;
 };
-
-/**
- * Alias for backward compatibility - now returns USD
- */
-export const formatSEK = (amount: number) => formatUSD(amount);
 
 /**
  * Format token package price with equivalent images
  */
-export function formatTokenPackagePrice(tokens: number, price: number, currency: string = 'USD'): {
+export function formatTokenPackagePrice(tokens: number, price: number, currency: string = 'SEK'): {
   price: string;
   tokens: string;
   images: string;
@@ -74,8 +68,8 @@ export function formatTokenPackagePrice(tokens: number, price: number, currency:
   return {
     price: formattedPrice,
     tokens: `${tokens} tokens`,
-    images: `~${images} images`,
-    full: `${formattedPrice} (${tokens} tokens, ~${images} images)`
+    images: `~${images} bilder`,
+    full: `${formattedPrice} (${tokens} tokens, ~${images} bilder)`
   };
 }
 
@@ -84,10 +78,10 @@ export function formatTokenPackagePrice(tokens: number, price: number, currency:
  */
 export function formatSubscriptionPrice(
   price: number,
-  currency: string = 'USD',
+  currency: string = 'SEK',
   period: 'month' | 'year' = 'month'
 ): string {
-  const periodText = period === 'month' ? '/month' : '/year';
+  const periodText = period === 'month' ? '/månad' : '/år';
   return `${formatCurrency(price, { currency })}${periodText}`;
 }
 
@@ -103,28 +97,28 @@ export function parsePrice(price: any): number {
 /**
  * Global Defaults
  */
-export const CURRENCY_SYMBOL = '$';
-export const CURRENCY_CODE = 'USD';
-export const CURRENCY_NAME = 'US Dollars';
+export const CURRENCY_SYMBOL = 'kr';
+export const CURRENCY_CODE = 'SEK';
+export const CURRENCY_NAME = 'Svenska kronor';
 
 /**
- * Premium subscription pricing constants
+ * Premium subscription pricing constants (SEK)
  */
 export const PRICING = {
-  PREMIUM_MONTHLY_USD: 11.99,
-  PREMIUM_MONTHLY_FORMATTED: '$ 11.99',
+  PREMIUM_MONTHLY_SEK: 129,
+  PREMIUM_MONTHLY_FORMATTED: '129 kr',
 
   TOKEN_PACKAGES: {
-    SMALL: { tokens: 200, price_usd: 9.99, images: 40 },
-    MEDIUM: { tokens: 550, price_usd: 24.99, images: 110 },
-    LARGE: { tokens: 1550, price_usd: 49.99, images: 310 },
-    MEGA: { tokens: 5800, price_usd: 149.99, images: 1160 },
+    SMALL: { tokens: 200, price_sek: 99, images: 40 },
+    MEDIUM: { tokens: 550, price_sek: 249, images: 110 },
+    LARGE: { tokens: 1550, price_sek: 499, images: 310 },
+    MEGA: { tokens: 5800, price_sek: 1499, images: 1160 },
   },
 } as const;
 
 
 /**
- * Format price for Stripe (convert to cents)
+ * Format price for Stripe (convert to cents/öre)
  */
 export function toStripeAmount(amountInCurrency: number): number {
   return Math.round(amountInCurrency * 100);
@@ -136,3 +130,4 @@ export function toStripeAmount(amountInCurrency: number): number {
 export function fromStripeAmount(amountInCents: number): number {
   return amountInCents / 100;
 }
+

@@ -6,7 +6,7 @@ import { type TranslationKey, translations } from "./translations"
 
 export function useTranslations() {
   const { settings } = useSite()
-  const language = (settings.language || "en") as "en" | "sv"
+  const language = (settings.language || "sv") as "en" | "sv"
 
   const t = useMemo(() => (key: TranslationKey, variables?: Record<string, string>): string => {
     let message = translations[language]?.[key] || translations.en[key] || key

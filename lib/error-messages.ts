@@ -4,111 +4,111 @@
  */
 
 export function formatErrorMessage(error: any): string {
-  if (!error) return "An unexpected error occurred. Please try again."
+  if (!error) return "Ett oväntat fel uppstod. Försök igen."
 
   const errorMessage = typeof error === "string" ? error : error.message || error.error || ""
 
   // Database/UUID errors
   if (errorMessage.includes("invalid input syntax for type uuid")) {
-    return "This item cannot be deleted because it's a default entry. Only custom entries can be removed."
+    return "Det här objektet kan inte tas bort eftersom det är en standardinställning. Endast anpassade poster kan tas bort."
   }
 
   // Authentication errors
   if (errorMessage.includes("Invalid login credentials") || errorMessage.includes("invalid_grant")) {
-    return "The email or password you entered is incorrect. Please try again."
+    return "E-postadressen eller lösenordet du angav är felaktigt. Försök igen."
   }
   if (errorMessage.includes("User already registered") || errorMessage.includes("already exists")) {
-    return "An account with this email already exists. Try logging in instead."
+    return "Ett konto med denna e-postadress finns redan. Försök logga in istället."
   }
   if (errorMessage.includes("Email not confirmed")) {
-    return "Please verify your email address before logging in. Check your inbox for the confirmation link."
+    return "Vänligen bekräfta din e-postadress innan du loggar in. Kontrollera din inkorg för bekräftelselänken."
   }
   if (errorMessage.includes("not authorized") || errorMessage.includes("unauthorized")) {
-    return "You don't have permission to perform this action."
+    return "Du har inte behörighet att utföra denna åtgärd."
   }
 
   // Network errors
   if (errorMessage.includes("Failed to fetch") || errorMessage.includes("NetworkError")) {
-    return "Unable to connect to the server. Please check your internet connection and try again."
+    return "Det gick inte att ansluta till servern. Kontrollera din internetanslutning och försök igen."
   }
   if (errorMessage.includes("timeout") || errorMessage.includes("timed out")) {
-    return "The request took too long. Please try again."
+    return "Begäran tog för lång tid. Försök igen."
   }
 
   // Validation errors
   if (errorMessage.includes("required") || errorMessage.includes("cannot be empty")) {
-    return "Please fill in all required fields."
+    return "Vänligen fyll i alla obligatoriska fält."
   }
   if (errorMessage.includes("invalid email") || errorMessage.includes("email format")) {
-    return "Please enter a valid email address."
+    return "Vänligen ange en giltig e-postadress."
   }
   if (errorMessage.includes("password") && errorMessage.includes("length")) {
-    return "Your password must be at least 6 characters long."
+    return "Ditt lösenord måste vara minst 6 tecken långt."
   }
 
   // Payment errors
   if (errorMessage.includes("insufficient") || errorMessage.includes("not enough tokens")) {
-    return "You don't have enough tokens. Please add more tokens to continue."
+    return "Du har inte tillräckligt med tokens. Vänligen köp fler tokens för att fortsätta."
   }
   if (errorMessage.includes("payment") || errorMessage.includes("stripe")) {
-    return "There was a problem processing your payment. Please try again or use a different payment method."
+    return "Det uppstod ett problem vid behandlingen av din betalning. Försök igen eller använd en annan betalningsmetod."
   }
 
   // File upload errors
   if (errorMessage.includes("file size") || errorMessage.includes("too large")) {
-    return "The file is too large. Please choose a smaller file."
+    return "Filen är för stor. Vänligen välj en mindre fil."
   }
   if (errorMessage.includes("file type") || errorMessage.includes("not supported")) {
-    return "This file type is not supported. Please use a different file format."
+    return "Denna filtyp stöds inte. Använd ett annat filformat."
   }
 
   // Database errors
   if (errorMessage.includes("duplicate key") || errorMessage.includes("unique constraint")) {
-    return "This entry already exists. Please use a different value."
+    return "Denna post finns redan. Använd ett annat värde."
   }
   if (errorMessage.includes("foreign key") || errorMessage.includes("violates")) {
-    return "This item is connected to other data and cannot be deleted. Please remove related items first."
+    return "Detta objekt är kopplat till annan data och kan inte raderas. Ta bort relaterade objekt först."
   }
 
   // Rate limiting
   if (errorMessage.includes("rate limit") || errorMessage.includes("too many requests")) {
-    return "You're making too many requests. Please wait a moment and try again."
+    return "Du gör för många anrop. Vänta en stund och försök igen."
   }
 
   // Generic fallbacks for common patterns
   if (errorMessage.includes("not found") || errorMessage.includes("404")) {
-    return "The requested item could not be found. It may have been deleted."
+    return "Det begärda objektet kunde inte hittas. Det kan ha blivit raderat."
   }
   if (errorMessage.includes("server error") || errorMessage.includes("500")) {
-    return "Something went wrong on our end. Please try again in a few moments."
+    return "Något gick fel på vår sida. Försök igen om en liten stund."
   }
 
   // If we have a short, readable error message, use it
   if (errorMessage.length > 0 && errorMessage.length < 100 && !errorMessage.includes("{") && !errorMessage.includes("[")) {
-    return `${errorMessage}. If this keeps happening, please contact our support team.`
+    return `${errorMessage}. Om detta fortsätter att hända, kontakta supporten.`
   }
 
   // Default fallback with reporting instructions
-  return "We're sorry, something unexpected happened. Please try again. If the problem continues, contact our support team and we'll help you right away."
+  return "Vi är ledsna, något oväntat hände. Försök igen. Om problemet kvarstår, kontakta supporten så hjälper vi dig direkt."
 }
 
 /**
  * Get a user-friendly title for error toasts
  */
 export function getErrorTitle(error: any): string {
-  if (!error) return "Error"
+  if (!error) return "Fel"
 
   const errorMessage = typeof error === "string" ? error : error.message || error.error || ""
 
-  if (errorMessage.includes("uuid") || errorMessage.includes("default")) return "Cannot Delete"
-  if (errorMessage.includes("auth") || errorMessage.includes("login") || errorMessage.includes("credentials")) return "Login Failed"
-  if (errorMessage.includes("network") || errorMessage.includes("fetch")) return "Connection Error"
-  if (errorMessage.includes("payment") || errorMessage.includes("stripe")) return "Payment Error"
-  if (errorMessage.includes("not found") || errorMessage.includes("404")) return "Not Found"
-  if (errorMessage.includes("permission") || errorMessage.includes("authorized")) return "Access Denied"
-  if (errorMessage.includes("validation") || errorMessage.includes("invalid")) return "Invalid Input"
+  if (errorMessage.includes("uuid") || errorMessage.includes("default")) return "Kan inte radera"
+  if (errorMessage.includes("auth") || errorMessage.includes("login") || errorMessage.includes("credentials")) return "Inloggning misslyckades"
+  if (errorMessage.includes("network") || errorMessage.includes("fetch")) return "Anslutningsfel"
+  if (errorMessage.includes("payment") || errorMessage.includes("stripe")) return "Betalningsfel"
+  if (errorMessage.includes("not found") || errorMessage.includes("404")) return "Hittades inte"
+  if (errorMessage.includes("permission") || errorMessage.includes("authorized")) return "Åtkomst nekad"
+  if (errorMessage.includes("validation") || errorMessage.includes("invalid")) return "Ogiltig inmatning"
 
-  return "Error"
+  return "Fel"
 }
 
 /**
@@ -116,20 +116,21 @@ export function getErrorTitle(error: any): string {
  */
 export function formatSuccessMessage(action: string, item?: string): string {
   const itemText = item ? ` ${item}` : ""
-  
+
   switch (action.toLowerCase()) {
     case "create":
     case "add":
-      return `${item || "Item"} has been added successfully!`
+      return `${item || "Objektet"} har lagts till framgångsrikt!`
     case "update":
     case "edit":
-      return `${item || "Item"} has been updated successfully!`
+      return `${item || "Objektet"} har uppdaterats framgångsrikt!`
     case "delete":
     case "remove":
-      return `${item || "Item"} has been removed successfully!`
+      return `${item || "Objektet"} har tagits bort framgångsrikt!`
     case "save":
-      return `Changes have been saved successfully!`
+      return `Ändringarna har sparats!`
     default:
-      return `${action} completed successfully!`
+      return `${action} slutfördes framgångsrikt!`
   }
 }
+

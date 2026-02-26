@@ -95,14 +95,14 @@ const defaultSettings: SiteSettings = {
   siteName: "Dintype",
   logoText: "Dintype",
   siteUrl: "",
-  language: "en",
+  language: "sv",
   brandConfig: defaultBrandConfig,
   pricing: {
-    currency: "$",
-    currencyPosition: "left",
-    monthly:   { price: 12.99, originalPrice: 19.99, discount: 35 },
-    quarterly: { price: 9.99,  originalPrice: 19.99, discount: 50 },
-    yearly:    { price: 5.99,  originalPrice: 19.99, discount: 70 },
+    currency: "kr",
+    currencyPosition: "right",
+    monthly:   { price: 129, originalPrice: 199, discount: 35 },
+    quarterly: { price: 99,  originalPrice: 199, discount: 50 },
+    yearly:    { price: 59,  originalPrice: 199, discount: 70 },
   },
 }
 

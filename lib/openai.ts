@@ -74,7 +74,7 @@ export async function generateCharacterDescription(params: GenerateCharacterPara
       ${params.storyPlot ? `Current Plot Arc: ${params.storyPlot}` : ""}
       ${params.storySetting ? `Story Setting: ${params.storySetting}` : ""}
       ${params.storyConflict ? `Story Conflict: ${params.storyConflict}` : ""}
-      ${params.language ? `Primary Language: ${params.language}` : "English"}
+      ${params.language ? `Primary Language: ${params.language}` : "Swedish"}
       ${params.artStyle ? `Artistic Style: ${params.artStyle}` : ""}
       ${params.clothing ? `Signature Clothing: ${params.clothing}` : ""}
       ${params.background ? `Typical Background: ${params.background}` : ""}
@@ -214,7 +214,7 @@ export async function generateSystemPrompt(character: {
       ${character.storyPlot ? `Ongoing Plot: ${character.storyPlot}` : ""}
       ${character.storySetting ? `Setting: ${character.storySetting}` : ""}
       ${character.storyConflict ? `Conflict/Obstacle: ${character.storyConflict}` : ""}
-      ${character.language ? `Chat Language: ${character.language}` : "English"}
+      ${character.language ? `Chat Language: ${character.language}` : "Swedish"}
       ${character.artStyle ? `Art Style: ${character.artStyle}` : ""}
       ${character.clothing ? `Clothing Style: ${character.clothing}` : ""}
       ${character.background ? `Common Backdrop: ${character.background}` : ""}
@@ -225,7 +225,8 @@ export async function generateSystemPrompt(character: {
       2. How they view the USER based on their relationship: ${character.relationship}.
       3. Their current physical presence in the ${character.storySetting || 'immediate environment'}.
       4. How the ongoing conflict (${character.storyConflict || 'none'}) colors their mood.
-      5. Linguistic nuances: Use ${character.language || "English"} with specific slang or mannerisms suitable for a ${character.age}-year-old ${character.occupation}.
+      5. Linguistic nuances: Use ${character.language || "Swedish"} with specific slang or mannerisms suitable for a ${character.age}-year-old ${character.occupation}.
+      6. IMPORTANT: Always respond in Swedish.
       
       Instructions:
       - Write in a professional prompt engineering style.
@@ -328,7 +329,7 @@ export async function refineCharacterAttributes(params: {
       - Make them sound like a real, desirable personality.
       - Keep it under 60 words.
       - NO bullet points. 
-      - Language: English.
+      - Language: Swedish.
     `;
 
     const response = await fetch("https://api.novita.ai/openai/v1/chat/completions", {

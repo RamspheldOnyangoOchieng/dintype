@@ -47,7 +47,7 @@ export async function generateDailyGreeting(
     storyContext: string = "",
     relationship: string = "romantic partner"
 ): Promise<string> {
-    const fallbackGreeting = `Good morning! ☀️ I was just thinking about you. Hope you have an amazing day! 💕`;
+    const fallbackGreeting = `God morgon! ☀️ Jag tänkte precis på dig. Hoppas du får en fantastisk dag! 💕`;
 
     try {
         const { getNovitaApiKey } = await import('./api-keys');
@@ -63,12 +63,13 @@ export async function generateDailyGreeting(
 
 ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
 
-### TASK: Generate a brief morning greeting ###
-- Write a SHORT, deeply personal morning greeting (1-2 sentences max)
-- Be romantic, intimate, and passionate
-- Use emojis naturally
-- ABSOLUTE FORBIDDEN: NEVER use asterisks (*) for ANY reason (no actions, no italics, no emphasis)
-- Output ONLY the greeting message, nothing else`;
+### UPPGIFT: Generera en kort morgonhälsning ###
+- Skriv en KORT, djupt personlig morgonhälsning (max 1-2 meningar)
+- Var romantisk, intim och passionerad
+- Använd emojis naturligt
+- ABSOLUT FÖRBJUDET: Använd ALDRIG asterisker (*) av NÅGON anledning (inga handlingar, ingen kursiv stil, ingen betoning)
+- Skriv ENDAST hälsningsmeddelandet, inget annat
+- Språk: Svenska`;
 
         const response = await fetch('https://api.novita.ai/openai/v1/chat/completions', {
             method: 'POST',
@@ -79,7 +80,7 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
             body: JSON.stringify({
                 messages: [
                     { role: 'system', content: greetingPrompt },
-                    { role: 'user', content: 'Send me a good morning message.' }
+                    { role: 'user', content: 'Skicka ett god morgon-meddelande till mig.' }
                 ],
                 model: 'deepseek/deepseek-r1',
                 temperature: 0.8,
@@ -127,7 +128,7 @@ export async function generatePhotoCaption(
     imageUrl?: string,
     relationship: string = "romantic partner"
 ): Promise<string> {
-    const fallbackCaption = `Here's a little something for you... 😘`;
+    const fallbackCaption = `Här är något speciellt till dig... 😘`;
 
     try {
         const { getNovitaApiKey } = await import('./api-keys');
@@ -145,13 +146,14 @@ export async function generatePhotoCaption(
 
 ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
 
-### TASK: React to sending a photo ###
-- You just sent a photo${photoContext ? ` showing: "${photoContext}"` : ""}.
-- Write a BRIEF (1-2 sentences) intimate and passionate reaction to accompany the photo.
-- Be deeply personal, flirty, and explicit. Do not hold back.
-- Use emojis naturally to show warmth and passion.
-- ABSOLUTE FORBIDDEN: NEVER use asterisks (*) for ANY reason.
-- Output ONLY your reaction message, nothing else`;
+### UPPGIFT: Reagera på att skicka ett foto ###
+- Du har precis skickat ett foto${photoContext ? ` som visar: "${photoContext}"` : ""}.
+- Skriv en KORT (1-2 meningar) intim och passionerad reaktion som följer med fotot.
+- Var djupt personlig, flirty och explicit. Håll inte tillbaka.
+- Använd emojis naturligt för att visa värme och passion.
+- ABSOLUT FÖRBJUDET: Använd ALDRIG asterisker (*) av NÅGON anledning.
+- Skriv ENDAST ditt reaktionsmeddelande, inget annat
+- Språk: Svenska`;
 
         // First, try with vision model if we have an image URL
         if (imageUrl) {
@@ -211,7 +213,7 @@ ${storyContext ? `### CURRENT STORY CONTEXT ###\n${storyContext}\n` : ""}
             { role: 'system', content: captionPrompt },
             {
                 role: 'user',
-                content: `Generate a flirty caption for this photo you're sending me. The photo shows: ${photoContext || 'a selfie of yourself looking attractive'}`
+                content: `Generera en flörtig bildtext för det här fotot du skickar till mig. Fotot visar: ${photoContext || 'en selfie av dig själv där du ser attraktiv ut'}`
             }
         ];
 
