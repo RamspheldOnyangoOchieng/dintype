@@ -41,7 +41,7 @@ export function UserHeader() {
           {user ? (
             <>
               <UserAvatar />
-              <Link href="/profile">
+              <Link href="/profil">
                 <span className="text-sm text-gray-300 hidden sm:inline">{user.username}</span>
               </Link>
               <Button
@@ -59,7 +59,7 @@ export function UserHeader() {
                   {t("auth.createAccount")}
                 </Button>
               </Link>
-              <Link href="/login">
+              <Link href="/logga-in">
                 <Button variant="outline" className="login-button hover:bg-primary/10 text-xs sm:text-sm">
                   {t("auth.login")}
                 </Button>

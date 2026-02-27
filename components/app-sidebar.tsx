@@ -62,32 +62,32 @@ export default function AppSidebar() {
     {
       icon: <MessageSquare className="h-5 w-5" />,
       label: t("general.chat"),
-      href: "/chat",
-      active: pathname?.startsWith("/chat"),
+      href: "/chatt",
+      active: pathname?.startsWith("/chatt"),
     },
     {
       icon: <Sparkles className="h-5 w-5" />,
       label: t("nav.generateImage"),
-      href: "/generate",
-      active: pathname?.startsWith("/generate"),
+      href: "/generera",
+      active: pathname?.startsWith("/generera"),
     },
     {
       icon: <Users className="h-5 w-5" />,
       label: t("nav.createCharacter"),
-      href: "/create-character",
-      active: pathname?.startsWith("/create-character"),
+      href: "/skapa-karaktar",
+      active: pathname?.startsWith("/skapa-karaktar"),
     },
     {
       icon: <Heart className="h-5 w-5 text-pink-500" />,
       label: t("nav.myAI"),
-      href: "/my-ai",
-      active: pathname?.startsWith("/my-ai"),
+      href: "/min-ai",
+      active: pathname?.startsWith("/min-ai"),
     },
     {
       icon: <FolderHeart className="h-5 w-5" />,
       label: t("nav.myImages"),
-      href: "/collections",
-      active: pathname?.startsWith("/collections"),
+      href: "/samlingar",
+      active: pathname?.startsWith("/samlingar"),
     },
     {
       icon: <DollarSign className="h-5 w-5 text-green-500" />,
@@ -169,14 +169,14 @@ export default function AppSidebar() {
                             id={`sidebar-link-${item.href.replace("/", "") || "home"}`}
                             data-tour={item.href === "/" ? "home" : item.href.replace("/", "").replace("-", "")}
                             onClick={(e) => {
-                              if ((item.href === "/my-ai" || item.href === "/collections") && !user) {
+                              if ((item.href === "/min-ai" || item.href === "/samlingar") && !user) {
                                 e.preventDefault()
                                 setPreviewModalPath(item.href)
                                 setShowPreviewModal(true)
                                 return
                               }
 
-                              const otherProtectedRoutes = ["/generate", "/create-character"]
+                              const otherProtectedRoutes = ["/generera", "/skapa-karaktar"]
                               if (otherProtectedRoutes.includes(item.href) && !user) {
                                 e.preventDefault()
                                 if (typeof window !== 'undefined') {
@@ -266,7 +266,7 @@ export default function AppSidebar() {
                 <div className={cn("flex items-center gap-3", !isOpen && "flex-col items-center")}>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Link href="/profile" className="flex-shrink-0">
+                      <Link href="/profil" className="flex-shrink-0">
                         <UserAvatar />
                       </Link>
                     </TooltipTrigger>
@@ -321,8 +321,8 @@ export default function AppSidebar() {
           {isOpen && (
             <div className="px-4 py-2 border-t border-border text-xs text-muted-foreground">
               <div className="flex justify-between">
-                <Link href="/privacy-policy" className="hover:text-foreground">{t("legal.privacyNotice")}</Link>
-                <Link href="/terms" className="hover:text-foreground">{t("legal.termsOfService")}</Link>
+                <Link href="/integritetspolicy" className="hover:text-foreground">{t("legal.privacyNotice")}</Link>
+                <Link href="/villkor" className="hover:text-foreground">{t("legal.termsOfService")}</Link>
               </div>
             </div>
           )}

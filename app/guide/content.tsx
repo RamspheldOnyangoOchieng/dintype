@@ -119,7 +119,7 @@ export function GuideContent() {
               
               <ol className="space-y-4 list-decimal list-inside">
                 <li className="font-medium">
-                  Navigate to <Link href="/generate" className="text-primary hover:underline">Create Image</Link>
+                  Navigate to <Link href="/generera" className="text-primary hover:underline">Create Image</Link>
                   <p className="text-sm text-muted-foreground ml-6 mt-1">
                     Find "Create Image" in the menu or sidebar.
                   </p>
@@ -183,7 +183,7 @@ export function GuideContent() {
                     <h4 className="font-semibold">Automatic saving in Gallery</h4>
                   </div>
                   <p className="text-sm">
-                    All generated images are automatically saved in your <Link href="/collections" className="text-primary hover:underline">Gallery</Link> (Collection). You don't have to do anything - they are there immediately after generation.
+                    All generated images are automatically saved in your <Link href="/samlingar" className="text-primary hover:underline">Gallery</Link> (Collection). You don't have to do anything - they are there immediately after generation.
                   </p>
                 </div>
 
@@ -293,7 +293,7 @@ export function GuideContent() {
             <div>
               <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">Explore Existing Characters</h3>
               <p className="mb-4">
-                Go to the <Link href="/characters" className="text-primary hover:underline">Characters</Link> page to browse all available AI characters. Click "View Character" or "New Character" to create or chat.
+                Go to the <Link href="/karaktarer" className="text-primary hover:underline">Characters</Link> page to browse all available AI characters. Click "View Character" or "New Character" to create or chat.
               </p>
             </div>
           </div>
@@ -316,7 +316,7 @@ export function GuideContent() {
                   <li className="font-medium">
                     Find a Character
                     <p className="text-sm text-muted-foreground ml-6 mt-1">
-                      Go to <Link href="/characters" className="text-primary hover:underline">Characters</Link> to see all available characters, or go to <Link href="/chat" className="text-primary hover:underline">Chat</Link> to see your recent conversations.
+                      Go to <Link href="/karaktarer" className="text-primary hover:underline">Characters</Link> to see all available characters, or go to <Link href="/chatt" className="text-primary hover:underline">Chat</Link> to see your recent conversations.
                     </p>
                   </li>
                   
@@ -343,7 +343,7 @@ export function GuideContent() {
                 <div className="border border-border rounded-lg p-4">
                   <h4 className="font-semibold mb-2">💾 Automatic Saving</h4>
                   <p className="text-sm text-muted-foreground">
-                    All chat history is saved automatically. You can see your previous conversations on the <Link href="/chat" className="text-primary hover:underline">Chat</Link> page under "Recent Conversations".
+                    All chat history is saved automatically. You can see your previous conversations on the <Link href="/chatt" className="text-primary hover:underline">Chat</Link> page under "Recent Conversations".
                   </p>
                 </div>
 
@@ -416,7 +416,7 @@ export function GuideContent() {
                     Follow Guidelines
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    Keep conversations respectful and follow our <Link href="/guidelines" className="text-primary hover:underline">Community Guidelines</Link>.
+                    Keep conversations respectful and follow our <Link href="/riktlinjer" className="text-primary hover:underline">Community Guidelines</Link>.
                   </p>
                 </div>
               </div>
@@ -523,7 +523,7 @@ export function GuideContent() {
 
           <div className="space-y-6">
             <p>
-              Manage your account and preferences via the <Link href="/settings" className="text-primary hover:underline">Settings</Link> page.
+              Manage your account and preferences via the <Link href="/installningar" className="text-primary hover:underline">Settings</Link> page.
             </p>
 
             <div>
@@ -595,14 +595,14 @@ export function GuideContent() {
             <p>Need help? We're here for you!</p>
 
             <div className="grid md:grid-cols-2 gap-4">
-              <Link href="/faq" className="border border-border rounded-lg p-5 hover:border-primary transition-colors space-y-2">
+              <Link href="/vanliga-fragor" className="border border-border rounded-lg p-5 hover:border-primary transition-colors space-y-2">
                 <h3 className="font-semibold text-lg text-zinc-800 dark:text-white">❓ FAQ</h3>
                 <p className="text-sm text-muted-foreground">
                   Find answers to the most frequently asked questions.
                 </p>
               </Link>
 
-              <Link href="/contact" className="border border-border rounded-lg p-5 hover:border-primary transition-colors space-y-2">
+              <Link href="/kontakt" className="border border-border rounded-lg p-5 hover:border-primary transition-colors space-y-2">
                 <h3 className="font-semibold text-lg text-zinc-800 dark:text-white">📧 Contact Support</h3>
                 <p className="text-sm text-muted-foreground">
                   Send a message to our support team.
@@ -621,14 +621,14 @@ export function GuideContent() {
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link 
-              href="/create-character" 
+              href="/skapa-karaktar" 
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-colors font-semibold"
             >
               <Users className="h-5 w-5" />
               Create Character
             </Link>
             <Link 
-              href="/generate" 
+              href="/generera" 
               className="inline-flex items-center gap-2 border-2 border-primary text-primary px-6 py-3 rounded-md hover:bg-primary/10 transition-colors font-semibold"
             >
               <ImagePlus className="h-5 w-5" />

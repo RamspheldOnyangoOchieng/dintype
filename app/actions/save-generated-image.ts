@@ -69,7 +69,7 @@ export async function saveGeneratedImage(imageUrl: string, prompt: string) {
     }
 
     // Revalidate the collections page
-    revalidatePath("/collections")
+    revalidatePath("/samlingar")
 
     return { success: true, data }
   } catch (error) {

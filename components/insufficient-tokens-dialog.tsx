@@ -37,7 +37,7 @@ export function InsufficientTokensDialog({
 
   const handleGoToProfile = () => {
     onOpenChange(false)
-    router.push("/profile")
+    router.push("/profil")
   }
 
   return (

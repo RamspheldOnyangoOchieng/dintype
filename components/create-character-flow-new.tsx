@@ -292,7 +292,7 @@ export default function CreateCharacterFlow() {
         }
 
         if (!user) {
-            router.push("/login");
+            router.push("/logga-in");
             return;
         }
 

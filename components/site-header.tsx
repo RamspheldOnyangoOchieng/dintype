@@ -35,7 +35,7 @@ export function SiteHeader() {
           <ThemeToggle />
           {user ? (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-foreground/90 hidden lg:inline">Hello, {user.username || ""}!</span>
+              <span className="text-sm text-foreground/90 hidden lg:inline">Hej, {user.username || ""}!</span>
               {user.isPremium && (
                 <Badge variant="default" className="bg-yellow-500 hover:bg-yellow-600 text-[10px] h-5 px-1.5 uppercase font-bold">
                   Pro

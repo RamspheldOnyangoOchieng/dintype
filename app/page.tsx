@@ -95,7 +95,7 @@ export default function Home() {
 
         <div className="mt-6 mb-4 px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
           <h2 className="text-2xl font-bold">
-            <Link href="/characters" className="text-primary hover:underline">
+            <Link href="/karaktarer" className="text-primary hover:underline">
               {t("general.explore")}
             </Link>
           </h2>
@@ -171,7 +171,7 @@ export default function Home() {
 
       {/* Mobile Bottom Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border flex justify-around items-center h-16 z-40 safe-area-inset-bottom">
-        <Link href="/characters" className="flex flex-col items-center p-2 text-muted-foreground hover:text-primary transition-colors">
+        <Link href="/karaktarer" className="flex flex-col items-center p-2 text-muted-foreground hover:text-primary transition-colors">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-6 w-6"
@@ -193,7 +193,7 @@ export default function Home() {
             if (!user) {
               openLoginModal()
             } else {
-              router.push('/generate')
+              router.push('/generera')
             }
           }}
           className="flex flex-col items-center p-2 text-muted-foreground"
@@ -214,7 +214,7 @@ export default function Home() {
             if (!user) {
               openLoginModal()
             } else {
-              router.push('/create-character')
+              router.push('/skapa-karaktar')
             }
           }}
           className="flex flex-col items-center p-2 text-muted-foreground"
@@ -230,7 +230,7 @@ export default function Home() {
           </svg>
           <span className="text-xs mt-1">{t("general.create")}</span>
         </button>
-        <Link href="/chat" className="flex flex-col items-center p-2 text-muted-foreground">
+        <Link href="/chatt" className="flex flex-col items-center p-2 text-muted-foreground">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-6 w-6"

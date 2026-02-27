@@ -48,7 +48,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="sv" suppressHydrationWarning>
       <head>
         <link rel="icon" type="image/svg+xml" href="/favicon.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />

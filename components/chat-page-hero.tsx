@@ -65,7 +65,7 @@ export function ChatPageDirectoryHeader() {
       </div>
 
       <Link
-        href="/characters"
+        href="/karaktarer"
         className="group flex items-center gap-2 text-sm font-bold text-primary hover:text-white transition-all"
       >
         {t("chat.browseCategory")}

@@ -309,7 +309,7 @@ export default function CreateCharacterFlow() {
 
         if (!user) {
             // Redirect to login if not authenticated
-            router.push("/login");
+            router.push("/logga-in");
             return;
         }
 

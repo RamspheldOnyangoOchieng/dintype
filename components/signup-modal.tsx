@@ -158,7 +158,7 @@ export function SignupModal() {
                     </div>
                     <div className="relative p-4 sm:p-6 md:p-8">
                         <DialogTitle className="sr-only">{t("auth.createAccount")}</DialogTitle>
-                        <DialogDescription className="sr-only">Create an account to start using all features.</DialogDescription>
+                        <DialogDescription className="sr-only">Skapa ett konto för att börja använda alla funktioner.</DialogDescription>
 
                         <div className="text-center mb-6 sm:mb-8">
                             <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">{t("auth.createAccount")}</h1>
@@ -296,7 +296,7 @@ export function SignupModal() {
                 onResend={async () => {
                     const { success, error } = await signup(username, email, password)
                     if (error) {
-                      toast.error(error)
+                        toast.error(error)
                     }
                 }}
                 onSignIn={switchToLogin}

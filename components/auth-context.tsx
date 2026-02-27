@@ -284,9 +284,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const charCountResponse = await fetch('/api/user-characters-count')
             const charData = await charCountResponse.json()
 
-            if (charData.isNewUser && postLoginRedirect === '/my-ai') {
+            if (charData.isNewUser && postLoginRedirect === '/min-ai') {
               // New user specifically trying to access My AI - redirect to create character
-              window.location.href = '/create-character'
+              window.location.href = '/skapa-karaktar'
               return true
             } else {
               // Existing user OR new user accessing other pages (like collections) - go to intended destination

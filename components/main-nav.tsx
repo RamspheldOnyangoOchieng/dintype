@@ -16,32 +16,32 @@ const navItems = [
   },
   {
     name: "Generera",
-    href: "/generate",
+    href: "/generera",
     icon: ImageIcon,
   },
   {
     name: "Karaktärer",
-    href: "/characters",
+    href: "/karaktarer",
     icon: Users,
   },
   {
     name: "Prompter",
-    href: "/prompts",
+    href: "/prompter",
     icon: MessageSquare,
   },
   {
     name: "Favoriter",
-    href: "/favorites",
+    href: "/favoriter",
     icon: Star,
   },
   {
     name: "Mina bilder",
-    href: "/collections",
+    href: "/samlingar",
     icon: FolderOpen,
   },
   {
     name: "Affiliate",
-    href: "/affiliate",
+    href: "/partner",
     icon: Users,
   },
 ]
@@ -73,10 +73,10 @@ export function MainNav() {
 
         {user && (
           <Link
-            href="/profile"
+            href="/profil"
             className={cn(
               "flex items-center text-sm font-medium transition-colors hover:text-primary",
-              pathname === "/profile" ? "text-primary" : "text-muted-foreground",
+              pathname === "/profil" ? "text-primary" : "text-muted-foreground",
             )}
           >
             <User className="mr-2 h-4 w-4" />

@@ -1008,7 +1008,7 @@ export async function POST(request: NextRequest) {
             }
 
             // Handle /switch command
-            if (text === '/switch' || text === '/characters') {
+            if (text === '/switch' || text === '/karaktarer') {
                 await sendTelegramMessage(
                     chatId,
                     `💕 <b>Choose Your Companion</b>\n\nWho would you like to chat with today?`,

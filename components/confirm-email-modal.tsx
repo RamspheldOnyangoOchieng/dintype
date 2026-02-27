@@ -99,7 +99,7 @@ export default function ConfirmEmailModal({
             <span className="text-gray-400">{t("auth.alreadyHaveAccount")}</span>
             <button
               className="text-blue-400 underline ml-1"
-              onClick={onSignIn || (() => router.push("/login"))}
+              onClick={onSignIn || (() => router.push("/logga-in"))}
             >
               {t("auth.login")}
             </button>

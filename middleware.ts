@@ -11,18 +11,18 @@ export async function middleware(req: NextRequest) {
   })
 
   const logs: string[] = []
-  const traceId = (globalThis.crypto && 'randomUUID' in globalThis.crypto) 
-    ? (globalThis.crypto as any).randomUUID() 
+  const traceId = (globalThis.crypto && 'randomUUID' in globalThis.crypto)
+    ? (globalThis.crypto as any).randomUUID()
     : Math.random().toString(36).slice(2)
   const debugParam = url.searchParams.get('__mwdebug') === '1'
   const debugEnv = process.env.NEXT_PUBLIC_MW_DEBUG === '1'
   const debug = debugParam || debugEnv
 
-  function log(msg: string) { 
+  function log(msg: string) {
     logs.push(msg)
-    if (debug) console.log('[MW]', msg) 
+    if (debug) console.log('[MW]', msg)
   }
-  
+
   res.headers.set('x-trace-id', traceId)
   if (debug) res.headers.set('x-mw-debug', '1')
 
@@ -31,7 +31,7 @@ export async function middleware(req: NextRequest) {
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    
+
     if (!supabaseUrl || !supabaseKey) {
       log('env-missing skip auth')
       if (debug) res.headers.set('x-mw-logs', encodeURIComponent(logs.join(';')))
@@ -57,7 +57,7 @@ export async function middleware(req: NextRequest) {
 
     // Refresh the session - this is crucial for keeping sessions alive
     const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
+
     if (userError) {
       log('user-error ' + userError.message)
     } else if (user) {
@@ -69,7 +69,7 @@ export async function middleware(req: NextRequest) {
     // Admin route protection: restrict /admin paths to admin users only
     if (url.pathname.startsWith('/admin')) {
       // Skip middleware check for login/signup pages to prevent redirect loops
-      if (url.pathname === '/admin/login' || url.pathname === '/admin/signup') {
+      if (url.pathname === '/admin/logga-in' || url.pathname === '/admin/registrera') {
         log('admin-login-page skip-check')
         if (debug) res.headers.set('x-mw-logs', encodeURIComponent(logs.join(';')))
         return res
@@ -78,7 +78,7 @@ export async function middleware(req: NextRequest) {
       if (!user) {
         log('admin-no-user')
         // Redirect to admin login for admin pages
-        const redirectUrl = new URL('/admin/login', req.url)
+        const redirectUrl = new URL('/admin/logga-in', req.url)
         redirectUrl.searchParams.set('redirect', url.pathname)
         if (debug) res.headers.set('x-mw-logs', encodeURIComponent(logs.join(';')))
         return NextResponse.redirect(redirectUrl)
@@ -91,7 +91,7 @@ export async function middleware(req: NextRequest) {
           .select('id')
           .eq('user_id', user.id)
           .maybeSingle()
-        
+
         if (adminError) {
           log('admin-check-error ' + adminError.message)
         }
@@ -102,16 +102,16 @@ export async function middleware(req: NextRequest) {
           .select('is_admin')
           .eq('id', user.id)
           .maybeSingle()
-        
+
         if (profileError) {
           log('profile-check-error ' + profileError.message)
         }
-        
+
         const metaRole = user.user_metadata?.role
         const isAdminUser = !!adminUser || profile?.is_admin === true || metaRole === 'admin'
-        
+
         log(`admin-status: adminUser=${!!adminUser} profile.is_admin=${profile?.is_admin} metaRole=${metaRole}`)
-        
+
         if (!isAdminUser) {
           log('not-admin redirecting')
           // Redirect non-admins to home page with message
@@ -120,13 +120,13 @@ export async function middleware(req: NextRequest) {
           if (debug) res.headers.set('x-mw-logs', encodeURIComponent(logs.join(';')))
           return NextResponse.redirect(redirectUrl)
         }
-        
+
         log('admin-verified ✅')
       } catch (e: any) {
         log('admin-check-failed ' + (e?.message || e))
         if (debug) {
           return new NextResponse(
-            JSON.stringify({ code: 'ADMIN_CHECK_FAILED', traceId, error: e?.message, logs }), 
+            JSON.stringify({ code: 'ADMIN_CHECK_FAILED', traceId, error: e?.message, logs }),
             { status: 500, headers: { 'content-type': 'application/json' } }
           )
         }

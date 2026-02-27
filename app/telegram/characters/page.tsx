@@ -258,7 +258,7 @@ export default function TelegramCharactersPage() {
                     <button
                         onClick={() => {
                             if (window.Telegram?.WebApp?.HapticFeedback) window.Telegram.WebApp.HapticFeedback.impactOccurred('light')
-                            router.push('/settings')
+                            router.push('/installningar')
                         }}
                         className="w-8 h-8 rounded-full flex items-center justify-center border border-white/10 active:bg-white/5 transition-all"
                     >

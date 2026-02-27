@@ -31,7 +31,7 @@ export default function AuthErrorPage() {
                             <Link href="/">Return Home</Link>
                         </Button>
                         <Button asChild variant="outline" className="w-full">
-                            <Link href="/reset-password">Request New Reset Link</Link>
+                            <Link href="/aterstall-losenord">Request New Reset Link</Link>
                         </Button>
                     </div>
                 </CardContent>

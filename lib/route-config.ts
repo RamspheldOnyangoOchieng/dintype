@@ -5,24 +5,45 @@
 
 export const PUBLIC_ROUTES = [
     '/',
-    '/chat',
-    '/characters',
-    '/models',
-    '/about',
-    '/privacy',
-    '/terms',
-    '/reset-password',
+    '/chatt',
+    '/karaktarer',
+    '/modeller',
+    '/om-oss',
+    '/integritetspolicy',
+    '/villkor',
+    '/aterstall-losenord',
+    '/generera',
+    '/min-ai',
+    '/samlingar',
+    '/skapa-karaktar',
+    '/favoriter',
+    '/kontakt',
+    '/kakor',
+    '/vanliga-fragor',
+    '/hur-det-fungerar',
+    '/blogg',
+    '/guide',
+    '/fardplan',
+    '/premium',
+    '/partner',
+    '/rapportera',
+    '/riktlinjer',
+    '/monetisering',
+    '/prompter',
+    '/fakturor',
+    '/avsluta-prenumeration',
 ]
 
 export const AUTH_ROUTES = [
-    '/login',
-    '/signup',
+    '/logga-in',
+    '/registrera',
 ]
 
 export const PROTECTED_ROUTES = [
     '/admin',
-    '/profile',
-    '/settings',
+    '/profil',
+    '/installningar',
+    '/favoriter',
 ]
 
 export function isPublicRoute(pathname: string): boolean {

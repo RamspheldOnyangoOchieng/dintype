@@ -75,7 +75,7 @@ export function CharacterList({ characters }: CharacterListProps) {
         <h3 className="text-2xl font-bold mb-2">{t("characterList.noCharacters")}</h3>
         <p className="text-white/40 mb-8 max-w-xs mx-auto text-sm">{t("characterList.createFirst")}</p>
         <Button asChild className="bg-primary hover:bg-primary/90 h-12 px-8 rounded-xl font-bold text-white shadow-lg shadow-primary/20">
-          <Link href="/create-character">
+          <Link href="/skapa-karaktar">
             <Plus className="mr-2 h-5 w-5" />
             {t("characterList.createCharacter")}
           </Link>

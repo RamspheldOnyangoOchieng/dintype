@@ -431,7 +431,7 @@ export default function TelegramRootPage() {
                     We're optimizing the image generator for your phone. High-speed, high-quality generation is arriving in the next update.
                 </p>
                 <button
-                    onClick={() => router.push('/generate')}
+                    onClick={() => router.push('/generera')}
                     className="w-full py-4 bg-white text-black rounded-2xl font-black text-sm tracking-widest uppercase active:scale-95 transition-all"
                 >
                     Try Web Version
@@ -456,7 +456,7 @@ export default function TelegramRootPage() {
                     Design the personality, looks, and voice of your perfect AI companion. Character studio is coming soon.
                 </p>
                 <button
-                    onClick={() => router.push('/create-character')}
+                    onClick={() => router.push('/skapa-karaktar')}
                     className="w-full py-4 bg-gradient-to-r from-cyan-400 to-blue-500 text-white rounded-2xl font-black text-sm tracking-widest uppercase active:scale-95 transition-all"
                 >
                     Create on Web
@@ -521,7 +521,7 @@ export default function TelegramRootPage() {
                     </button>
 
                     <button
-                        onClick={() => router.push('/settings')}
+                        onClick={() => router.push('/installningar')}
                         className="w-full px-6 py-5 flex items-center justify-between hover:bg-white/5 active:bg-white/10 transition-colors border-b border-white/5"
                     >
                         <div className="flex items-center gap-4">

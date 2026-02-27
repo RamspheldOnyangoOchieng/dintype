@@ -149,7 +149,7 @@ export function LoginModal() {
                 </div>
                 <div className="relative p-4 sm:p-6 md:p-8">
                     <DialogTitle className="sr-only">{t("auth.login")}</DialogTitle>
-                    <DialogDescription className="sr-only">Please login to your account to continue.</DialogDescription>
+                    <DialogDescription className="sr-only">Logga in på ditt konto för att fortsätta.</DialogDescription>
 
                     <div className="text-center mb-6 sm:mb-8">
                         <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">{t("auth.login")}</h1>
@@ -212,7 +212,7 @@ export function LoginModal() {
                             </div>
                             <div className="text-right">
                                 <Link
-                                    href={{ pathname: "/reset-password", query: email ? { email } : {} }}
+                                    href={{ pathname: "/aterstall-losenord", query: email ? { email } : {} }}
                                     className="text-sm text-primary hover:underline"
                                     onClick={closeLoginModal}
                                 >

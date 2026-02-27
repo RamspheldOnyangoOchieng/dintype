@@ -89,19 +89,19 @@ async function getDefaultMetadata(siteName?: string): Promise<Metadata> {
   const name = siteName || await getSiteName()
   return {
     title: name,
-    description: 'Create and chat with personal AI companions',
-    keywords: ['ai partner', 'ai chat', 'virtual companion'],
+    description: 'Skapa och chatta med personliga AI-sällskap',
+    keywords: ['ai partner', 'ai chatt', 'virtuellt sällskap', 'ai flickvän', 'ai pojkvän'],
     robots: 'index,follow',
     openGraph: {
       title: name,
-      description: 'Create and chat with personal AI companions',
+      description: 'Skapa och chatta med personliga AI-sällskap',
       type: 'website',
-      locale: 'en_US',
+      locale: 'sv_SE',
     },
     twitter: {
       card: 'summary_large_image',
       title: name,
-      description: 'Create and chat with personal AI companions',
+      description: 'Skapa och chatta med personliga AI-sällskap',
     },
   }
 }

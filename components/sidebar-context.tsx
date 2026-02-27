@@ -59,7 +59,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     }
     
     // Also close sidebar when navigating to generate page
-    if (pathname === "/generate") {
+    if (pathname === "/generera") {
       setIsOpen(false)
     }
   }, [pathname])

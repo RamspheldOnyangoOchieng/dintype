@@ -51,7 +51,7 @@ export async function createCollection(name: string, description = "") {
       return { success: false, error: error.message }
     }
 
-    revalidatePath("/collections")
+    revalidatePath("/samlingar")
     return { success: true, data }
   } catch (error) {
     console.error("Error in createCollection:", error)
@@ -177,7 +177,7 @@ export async function updateExistingCollection(id: string, formData: FormData) {
       description,
     })
 
-    revalidatePath("/collections")
+    revalidatePath("/samlingar")
     return { success: true, collection }
   } catch (error) {
     console.error("Error updating collection:", error)
@@ -191,7 +191,7 @@ export async function updateExistingCollection(id: string, formData: FormData) {
 export async function deleteExistingCollection(id: string) {
   try {
     await deleteCollection(id)
-    revalidatePath("/collections")
+    revalidatePath("/samlingar")
     return { success: true }
   } catch (error) {
     console.error("Error deleting collection:", error)

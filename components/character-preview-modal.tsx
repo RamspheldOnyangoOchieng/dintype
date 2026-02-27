@@ -15,7 +15,7 @@ import { useTranslations } from "@/lib/use-translations"
 interface CharacterPreviewModalProps {
     isOpen: boolean
     onClose: () => void
-    redirectPath: string // "/my-ai" or "/collections"
+    redirectPath: string // "/min-ai" or "/samlingar"
 }
 
 interface Character {
@@ -113,7 +113,7 @@ export function CharacterPreviewModal({ isOpen, onClose, redirectPath }: Charact
 
             if (data.count === 0) {
                 // New user with no characters - redirect to create
-                router.push('/create-character')
+                router.push('/skapa-karaktar')
             } else {
                 // Existing user - redirect to their collection/characters
                 router.push(redirectPath)

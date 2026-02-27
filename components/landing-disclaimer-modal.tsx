@@ -96,8 +96,8 @@ export default function LandingDisclaimerModal({
             <h2 className="text-2xl font-bold mb-2 text-primary-foreground">{t("disclaimer.ageTitle")}</h2>
             <p className="text-primary-foreground mb-3">{t("disclaimer.ageDesc")}</p>
             <p className="text-primary-foreground text-xs mb-4 space-x-4">
-              <a href="/terms" className="underline hover:text-white/80 transition-colors" target="_blank" rel="noopener noreferrer">{t("disclaimer.termsLink")}</a>
-              <a href="/privacy" className="underline hover:text-white/80 transition-colors" target="_blank" rel="noopener noreferrer">{t("disclaimer.privacyLink")}</a>
+              <a href="/villkor" className="underline hover:text-white/80 transition-colors" target="_blank" rel="noopener noreferrer">{t("disclaimer.termsLink")}</a>
+              <a href="/integritet" className="underline hover:text-white/80 transition-colors" target="_blank" rel="noopener noreferrer">{t("disclaimer.privacyLink")}</a>
             </p>
             <h3 className="text-lg font-bold mb-2 text-primary-foreground">{t("disclaimer.cookieTitle")}</h3>
             <p className="text-primary-foreground mb-4">{t("disclaimer.cookieDesc")}</p>

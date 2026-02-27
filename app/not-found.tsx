@@ -556,7 +556,7 @@ export default function NotFound() {
 
                 <div className="grid grid-cols-2 gap-3 mt-4">
                   <Link
-                    href="/collections"
+                    href="/samlingar"
                     className="flex items-center gap-2 p-3 rounded-lg border border-border hover:bg-primary/5 transition-colors"
                   >
                     <ImageIcon className="h-5 w-5 text-primary" />
@@ -566,7 +566,7 @@ export default function NotFound() {
                     </div>
                   </Link>
                   <Link
-                    href="/characters"
+                    href="/karaktarer"
                     className="flex items-center gap-2 p-3 rounded-lg border border-border hover:bg-primary/5 transition-colors"
                   >
                     <Users className="h-5 w-5 text-primary" />
@@ -597,7 +597,7 @@ export default function NotFound() {
                     {t("notFound.chooseCharacter")}
                   </p>
                   <Button asChild className="w-full">
-                    <Link href="/chat" className="flex items-center justify-center gap-2">
+                    <Link href="/chatt" className="flex items-center justify-center gap-2">
                       <MessageSquare className="h-4 w-4" />
                       {t("notFound.startChatting")}
                       <ChevronRight className="h-4 w-4 ml-1" />
@@ -614,7 +614,7 @@ export default function NotFound() {
                       { name: "Marie Curie", topic: "Radioactivity" },
                     ].map((chat, index) => (
                       <Link
-                        href="/chat"
+                        href="/chatt"
                         key={index}
                         className="flex items-center gap-3 p-2 rounded-md hover:bg-primary/5 transition-colors"
                       >
@@ -652,7 +652,7 @@ export default function NotFound() {
             </Button>
 
             <Button asChild size="lg" variant="outline" className="group relative overflow-hidden">
-              <Link href="/collections">
+              <Link href="/samlingar">
                 <span className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></span>
                 <Search className="mr-2 h-5 w-5 group-hover:rotate-12 transition-transform" />
                 <span className="relative z-10">{t("notFound.browseCollections")}</span>
@@ -660,7 +660,7 @@ export default function NotFound() {
             </Button>
 
             <Button asChild size="lg" variant="secondary" className="group relative overflow-hidden">
-              <Link href="/chat">
+              <Link href="/chatt">
                 <span className="absolute inset-0 bg-gradient-to-r from-secondary/10 to-primary/10 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300"></span>
                 <MessageSquare className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
                 <span className="relative z-10">{t("notFound.startChat")}</span>

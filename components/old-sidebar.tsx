@@ -60,28 +60,28 @@ export default function Sidebar() {
                 Hem
               </Button>
             </Link>
-            <Link href="/chat">
+            <Link href="/chatt">
               <Button
                 variant="ghost"
-                className={`w-full justify-start ${pathname?.startsWith("/chat") ? "bg-[#252525]" : ""}`}
+                className={`w-full justify-start ${pathname?.startsWith("/chatt") ? "bg-[#252525]" : ""}`}
               >
                 <MessageSquare className="mr-2 h-5 w-5" />
                 Chatt
               </Button>
             </Link>
-            <Link href="/generate">
+            <Link href="/generera">
               <Button
                 variant="ghost"
-                className={`w-full justify-start ${pathname?.startsWith("/generate") ? "bg-[#252525]" : ""}`}
+                className={`w-full justify-start ${pathname?.startsWith("/generera") ? "bg-[#252525]" : ""}`}
               >
                 <ImageIcon className="mr-2 h-5 w-5" />
                 Generera
               </Button>
             </Link>
-            <Link href="/create-character">
+            <Link href="/skapa-karaktar">
               <Button
                 variant="ghost"
-                className={`w-full justify-start ${pathname?.startsWith("/create-character") ? "bg-[#252525]" : ""}`}
+                className={`w-full justify-start ${pathname?.startsWith("/skapa-karaktar") ? "bg-[#252525]" : ""}`}
               >
                 <span className="mr-2 text-lg">🧬</span>
                 Skapa karaktär
@@ -126,7 +126,7 @@ export default function Sidebar() {
             </div>
           ) : (
             <div className="space-y-2">
-              <Link href="/login" className="block">
+              <Link href="/logga-in" className="block">
                 <Button variant="outline" className="w-full">
                   Logga in
                 </Button>

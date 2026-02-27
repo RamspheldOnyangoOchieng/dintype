@@ -47,7 +47,7 @@ export function MobileNav() {
   }, [lastScrollY])
 
   // Don't show the mobile nav on chat pages or admin pages
-  if (pathname?.startsWith("/chat") || pathname?.startsWith("/admin")) {
+  if (pathname?.startsWith("/chatt") || pathname?.startsWith("/admin")) {
     return null
   }
 
@@ -66,7 +66,7 @@ export function MobileNav() {
 
   const handleNavClick = (e: React.MouseEvent, href: string) => {
     // Check if this is a protected route that should show preview modal
-    if (href === "/my-ai" || href === "/collections") {
+    if (href === "/min-ai" || href === "/samlingar") {
       if (!user) {
         e.preventDefault()
         setPreviewModalPath(href)
@@ -76,7 +76,7 @@ export function MobileNav() {
     }
 
     // Check for other protected routes
-    if ((href === "/generate" || href === "/create-character") && !user) {
+    if ((href === "/generera" || href === "/skapa-karaktar") && !user) {
       e.preventDefault()
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('postLoginRedirect', href)
@@ -88,11 +88,11 @@ export function MobileNav() {
 
   const navItems = [
     { name: "Home", href: "/", icon: Home },
-    { name: "Chat", href: "/chat", icon: MessageSquare },
-    { name: "Generate", href: "/generate", icon: Sparkles },
-    { name: "Create AI", href: "/create-character", icon: Users },
-    { name: "My AI", href: "/my-ai", icon: Heart, requiresAuth: true },
-    { name: "My Images", href: "/collections", icon: FolderHeart, requiresAuth: true },
+    { name: "Chat", href: "/chatt", icon: MessageSquare },
+    { name: "Generate", href: "/generera", icon: Sparkles },
+    { name: "Create AI", href: "/skapa-karaktar", icon: Users },
+    { name: "My AI", href: "/min-ai", icon: Heart, requiresAuth: true },
+    { name: "My Images", href: "/samlingar", icon: FolderHeart, requiresAuth: true },
     { name: "Premium", href: "/premium", icon: DollarSign },
   ]
 

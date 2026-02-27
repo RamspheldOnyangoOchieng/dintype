@@ -45,7 +45,7 @@ export default function SuccessPage() {
             console.error("Failed to refresh user after success", e);
           }
 
-          setTimeout(() => router.push("/profile"), 3000);
+          setTimeout(() => router.push("/profil"), 3000);
         } else {
           setStatus("error");
           setMessage("Payment not completed.");
@@ -88,7 +88,7 @@ export default function SuccessPage() {
           )}
         </CardContent>
         <CardFooter className="flex justify-center">
-          <Button onClick={() => router.push("/profile")}>Go to Profile</Button>
+          <Button onClick={() => router.push("/profil")}>Go to Profile</Button>
         </CardFooter>
       </Card>
     </div>

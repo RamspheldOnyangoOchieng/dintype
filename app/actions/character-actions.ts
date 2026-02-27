@@ -167,7 +167,7 @@ export async function createCharacter(formData: FormData) {
       return { error: error.message }
     }
 
-    revalidatePath("/characters")
+    revalidatePath("/karaktarer")
     return { success: true, data }
   } catch (error) {
     console.error("Error creating character:", error)
@@ -270,7 +270,7 @@ export async function updateCharacter(id: string, formData: FormData) {
       return { error: error.message }
     }
 
-    revalidatePath("/characters")
+    revalidatePath("/karaktarer")
     revalidatePath(`/characters/${id}`)
     return { success: true, data }
   } catch (error) {
@@ -313,7 +313,7 @@ export async function deleteCharacter(id: string) {
       return { error: error.message }
     }
 
-    revalidatePath("/characters")
+    revalidatePath("/karaktarer")
     return { success: true }
   } catch (error) {
     console.error("Error deleting character:", error)
@@ -351,7 +351,7 @@ export async function savePrompt(prompt: string, characterId?: string) {
       return { error: error.message }
     }
 
-    revalidatePath("/prompts")
+    revalidatePath("/prompter")
     if (characterId) {
       revalidatePath(`/characters/${characterId}`)
     }
@@ -401,8 +401,8 @@ export async function toggleFavorite(promptId: string) {
       return { error: error.message }
     }
 
-    revalidatePath("/prompts")
-    revalidatePath("/favorites")
+    revalidatePath("/prompter")
+    revalidatePath("/favoriter")
     return { success: true, data }
   } catch (error) {
     console.error("Error toggling favorite:", error)
@@ -431,8 +431,8 @@ export async function deletePrompt(id: string) {
       return { error: error.message }
     }
 
-    revalidatePath("/prompts")
-    revalidatePath("/favorites")
+    revalidatePath("/prompter")
+    revalidatePath("/favoriter")
     return { success: true }
   } catch (error) {
     console.error("Error deleting prompt:", error)
@@ -468,7 +468,7 @@ export async function createTag(name: string) {
       return { error: error.message }
     }
 
-    revalidatePath("/characters")
+    revalidatePath("/karaktarer")
     return { success: true, data }
   } catch (error) {
     console.error("Error creating tag:", error)
@@ -497,7 +497,7 @@ export async function deleteTag(id: string) {
       return { error: error.message }
     }
 
-    revalidatePath("/characters")
+    revalidatePath("/karaktarer")
     return { success: true }
   } catch (error) {
     console.error("Error deleting tag:", error)

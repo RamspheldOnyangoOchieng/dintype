@@ -50,7 +50,7 @@ export function CharacterForm({ character, isEditing = false }: CharacterFormPro
         })
 
         if (!isEditing) {
-          router.push("/characters")
+          router.push("/karaktarer")
         }
       }
     } catch (error) {

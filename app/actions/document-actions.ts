@@ -57,7 +57,7 @@ export async function updatePrivacyPolicy(content: string) {
         return { error: "Failed to update privacy policy." };
     }
 
-    revalidatePath("/privacy-policy");
+    revalidatePath("/integritetspolicy");
     revalidatePath("/admin/dashboard/documents");
 
     return { success: "Privacy policy updated successfully." };
@@ -75,7 +75,7 @@ export async function updateTermsOfService(content: string) {
         return { error: "Failed to update terms of service." };
     }
 
-    revalidatePath("/terms");
+    revalidatePath("/villkor");
     revalidatePath("/admin/dashboard/documents");
 
     return { success: "Terms of service updated successfully." };

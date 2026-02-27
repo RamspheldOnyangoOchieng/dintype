@@ -50,8 +50,8 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
     )
   }
 
-  const noHeaderPaths = ["/chat", "/generate", "/premium", "/affiliate", "/admin"]
-  const noFooterPaths = ["/chat", "/admin"]
+  const noHeaderPaths = ["/chatt", "/generera", "/premium", "/partner", "/admin"]
+  const noFooterPaths = ["/chatt", "/admin"]
   const showHeader = !noHeaderPaths.some((path) => pathname.startsWith(path))
   const showFooter = !noFooterPaths.some((path) => pathname.startsWith(path))
 
@@ -89,8 +89,8 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
         isOpen={showExpiredModal}
         onClose={() => setShowExpiredModal(false)}
         mode="expired"
-        feature="Premium Expired"
-        description="Premium Plan expired. Renew your Premium Plan."
+        feature="Premium utgått"
+        description="Ditt Premium-medlemskap har gått ut. Förnya ditt medlemskap för att fortsätta njuta av alla förmåner."
       />
       <BrandThemeInjector />
       <OnboardingTour />
