@@ -450,7 +450,7 @@ export default function ProfilePage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Language</Label>
+                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("profile.language")}</Label>
                         <div className="flex items-center gap-3">
                           <Globe className="w-5 h-5 text-muted-foreground" />
                           <div className="flex gap-2">
@@ -529,10 +529,10 @@ export default function ProfilePage() {
                     <div className="flex items-center justify-between p-3 rounded-xl bg-muted/50 border border-border/10">
                       <div className="flex items-center gap-2">
                         <Sparkles className={cn("w-4 h-4", isPremium ? "text-yellow-500" : "text-muted-foreground")} />
-                        <span className="text-sm font-bold">Membership</span>
+                        <span className="text-sm font-bold">{t("profile.membership")}</span>
                       </div>
                       <Badge variant={isPremium ? "default" : "secondary"} className={cn(isPremium && "bg-yellow-500 text-black border-none")}>
-                        {isPremium ? "PREMIUM" : "FREE"}
+                        {isPremium ? "PREMIUM" : "GRATIS"}
                       </Badge>
                     </div>
 
