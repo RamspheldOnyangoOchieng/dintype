@@ -1,9 +1,10 @@
 "use client"
 
 import { useTranslations } from "@/lib/use-translations"
+import Link from "next/link"
 
 export function TermsContent() {
-  const { t } = useTranslations()
+  const { t, language } = useTranslations()
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -17,19 +18,19 @@ export function TermsContent() {
         <section>
           <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">{t("terms.acceptance")}</h2>
           <p>
-            By accessing or using Dintype, you agree to be bound by these Terms of Use and our Privacy Policy. If you do not agree to these terms, you may not use our services.
+            {t("terms.acceptanceDesc")}
           </p>
         </section>
 
         <section>
           <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">{t("terms.eligibility")}</h2>
           <div className="space-y-4">
-            <p>To use Dintype, you must meet the following requirements:</p>
+            <p>{t("terms.eligibilityDesc")}</p>
             <ul className="list-disc pl-6 space-y-2">
-              <li>You must be at least 18 years old.</li>
-              <li>You must provide accurate and complete information when creating an account.</li>
-              <li>You are responsible for keeping your login credentials confidential.</li>
-              <li>All activities occurring under your account are your responsibility.</li>
+              <li>{t("terms.eligibilityItem1")}</li>
+              <li>{t("terms.eligibilityItem2")}</li>
+              <li>{t("terms.eligibilityItem3")}</li>
+              <li>{t("terms.eligibilityItem4")}</li>
             </ul>
           </div>
         </section>
@@ -37,15 +38,15 @@ export function TermsContent() {
         <section>
           <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">{t("terms.useOfService")}</h2>
           <div className="space-y-4 text-zinc-600 dark:text-zinc-400">
-            <p>Dintype is a platform for interacting with AI-generated characters. You agree to use the service in a responsible and respectful manner.</p>
+            <p>{t("terms.useOfServiceDesc")}</p>
             
-            <h3 className="text-lg font-semibold text-zinc-800 dark:text-white mt-4">Prohibited Activities:</h3>
+            <h3 className="text-lg font-semibold text-zinc-800 dark:text-white mt-4">{t("terms.prohibitedTitle")}</h3>
             <ul className="list-disc pl-6 space-y-2">
-              <li>Using the service for illegal purposes or in violation of local laws.</li>
-              <li>Attempting to bypass security measures or exploit vulnerabilities.</li>
-              <li>Uploading or generating content that is illegal, harmful, or violates others' rights.</li>
-              <li>Using automated systems (bots, scrapers) to access the service without permission.</li>
-              <li>Impersonating others or misrepresenting your identity.</li>
+              <li>{t("terms.prohibited1")}</li>
+              <li>{t("terms.prohibited2")}</li>
+              <li>{t("terms.prohibited3")}</li>
+              <li>{t("terms.prohibited4")}</li>
+              <li>{t("terms.prohibited5")}</li>
             </ul>
           </div>
         </section>
@@ -54,12 +55,12 @@ export function TermsContent() {
           <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">{t("terms.contentAndAI")}</h2>
           <div className="space-y-4 text-zinc-600 dark:text-zinc-400">
             <p>
-              All interactions on Dintype are with Artificial Intelligence (AI). The characters are fictional and do not represent real people.
+              {t("terms.contentAndAIDesc")}
             </p>
             <ul className="list-disc pl-6 space-y-2">
-              <li><strong>AI Nature:</strong> AI-generated content can be unpredictable. We do not guarantee the accuracy, suitability, or quality of AI responses.</li>
-              <li><strong>User Content:</strong> You retain ownership of content you upload, but you grant Dintype a license to use it to provide and improve the service.</li>
-              <li><strong>Moderation:</strong> We reserve the right to monitor and remove content that violates our guidelines or is deemed inappropriate.</li>
+              <li><strong>{t("terms.aiNatureTitle")}</strong> {t("terms.aiNatureDesc")}</li>
+              <li><strong>{t("terms.userContentTitle")}</strong> {t("terms.userContentDesc")}</li>
+              <li><strong>{t("terms.moderationTitle")}</strong> {t("terms.moderationDesc")}</li>
             </ul>
           </div>
         </section>
@@ -67,12 +68,12 @@ export function TermsContent() {
         <section>
           <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">{t("terms.premiumAndPayments")}</h2>
           <div className="space-y-4 text-zinc-600 dark:text-zinc-400">
-            <p>Dintype offers premium features through paid subscriptions.</p>
+            <p>{t("terms.premiumAndPaymentsDesc")}</p>
             <ul className="list-disc pl-6 space-y-2">
-              <li><strong>Fees:</strong> Subscription fees are clearly stated at the time of purchase.</li>
-              <li><strong>Billing:</strong> By subscribing, you authorize us to charge the applicable fees via our payment provider.</li>
-              <li><strong>Refunds:</strong> Since the service provides immediate access to digital content, refunds are generally not offered unless required by law.</li>
-              <li><strong>Cancellation:</strong> You can cancel your subscription at any time through your account settings.</li>
+              <li><strong>{t("terms.feesTitle")}</strong> {t("terms.feesDesc")}</li>
+              <li><strong>{t("terms.billingTitle")}</strong> {t("terms.billingDesc")}</li>
+              <li><strong>{t("terms.refundsTitle")}</strong> {t("terms.refundsDesc")}</li>
+              <li><strong>{t("terms.cancellationTitle")}</strong> {t("terms.cancellationDesc")}</li>
             </ul>
           </div>
         </section>
@@ -80,45 +81,45 @@ export function TermsContent() {
         <section>
           <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">{t("terms.intellectualProperty")}</h2>
           <p>
-            All materials on Dintype, including brand name, logo, design, software, and AI models, are owned by us or our licensors and are protected by intellectual property laws.
+            {t("terms.intellectualPropertyDesc")}
           </p>
         </section>
 
         <section>
           <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">{t("terms.privacyAndData")}</h2>
           <p>
-            Your privacy is important to us. How we collect, use, and protect your data is described in our 
-            <a href="/integritetspolicy" className="text-primary hover:underline mx-1">Privacy Policy</a>.
+            {t("terms.privacyAndDataDesc")}
+            <Link href="/integritetspolicy" className="text-primary hover:underline mx-1">{t("footer.legal.privacyPolicy")}</Link>.
           </p>
         </section>
 
         <section>
           <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">{t("terms.limitation")}</h2>
           <p>
-            Dintype is provided "as is" and "as available". To the maximum extent permitted by law, we are not liable for direct, indirect, or incidental damages resulting from your use of the service.
+            {t("terms.limitationDesc")}
           </p>
         </section>
 
         <section>
           <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">{t("terms.changesToTerms")}</h2>
           <p>
-            We reserve the right to modify these terms at any time. Significant changes will be communicated via the website or email. Continued use of the service after such changes constitutes acceptance of the new terms.
+            {t("terms.changesToTermsDesc")}
           </p>
         </section>
 
         <section>
           <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">{t("terms.contactUs")}</h2>
           <p>
-            If you have questions about these terms, please contact us at:
+            {t("terms.contactUsDesc")}
           </p>
           <div className="mt-4 p-4 bg-muted rounded-lg">
-            <p className="font-semibold">Dintype Support</p>
-            <p>Email: <a href="mailto:support@dintype.se" className="text-primary hover:underline">support@dintype.se</a></p>
+            <p className="font-semibold">{t("terms.supportTitle")}</p>
+            <p>{t("general.email")}: <a href="mailto:support@dintype.se" className="text-primary hover:underline">support@dintype.se</a></p>
           </div>
         </section>
 
         <div className="text-sm text-zinc-500 pt-8 border-t border-zinc-200 dark:border-zinc-800">
-          Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          {t("general.lastUpdated")}: {new Date().toLocaleDateString(language === "sv" ? "sv-SE" : "en-US", { year: "numeric", month: "long", day: "numeric" })}
         </div>
       </div>
     </div>

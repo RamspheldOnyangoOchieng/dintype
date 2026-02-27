@@ -1,11 +1,17 @@
 export type TranslationKey =
   | "general.siteName"
   | "general.welcome"
+  | "general.effectiveDate"
+  | "general.lastUpdated"
+  | "general.email"
   | "general.save"
   | "general.cancel"
-  | "general.loading"
-  | "general.error"
-  | "general.success"
+  | "general.back"
+  | "general.next"
+  | "general.delete"
+  | "general.edit"
+  | "general.close"
+  | "general.confirm"
   | "general.home"
   | "general.explore"
   | "general.generate"
@@ -76,7 +82,6 @@ export type TranslationKey =
   | "home.complaints.email"
   | "home.complaints.note1"
   | "home.complaints.note2"
-  | "home.complaints.note2"
   | "faq.title"
   | "faq.addFaq"
   | "faq.cancel"
@@ -146,19 +151,6 @@ export type TranslationKey =
   | "userNav.premium"
   | "userNav.logout"
   | "userNav.createAccount"
-  | "admin.dashboard.title"
-  | "admin.dashboard.welcome"
-  | "admin.dashboard.viewSite"
-  | "admin.dashboard.loading"
-  | "admin.stat.totalUsers"
-  | "admin.stat.activeCharacters"
-  | "admin.stat.monthlyRevenue"
-  | "admin.stat.apiCosts"
-  | "admin.stat.totalRevenue"
-  | "admin.stat.premiumMembers"
-  | "admin.stat.allTime"
-  | "admin.stat.thisMonth"
-  | "admin.nav.telegramProfiles"
   | "admin.dashboard.overviewOnly"
   | "admin.integrations.description"
   | "admin.emailTemplates.description"
@@ -246,6 +238,34 @@ export type TranslationKey =
   | "chat.typing"
   | "chat.sendingPhoto"
   | "chat.replyingToMsg"
+  | "chat.welcomeGreeting"
+  | "chat.welcomeAction"
+  | "chat.openingTelegramConnect"
+  | "chat.openingTelegramGuest"
+  | "chat.couldNotGenerateLink"
+  | "chat.chapterLabel"
+  | "chat.chatOptions"
+  | "chat.clearChatHistory"
+  | "chat.showProfileDetails"
+  | "chat.hideProfileDetails"
+  | "chat.loadingHistory"
+  | "chat.loadEarlier"
+  | "chat.gallery"
+  | "chat.imageGenerationLocked"
+  | "chat.messageLimitTitle"
+  | "chat.messageLimitDesc"
+  | "chat.tokenBalance"
+  | "chat.tokensSlut"
+  | "chat.noTokensLeft"
+  | "chat.premiumExpired"
+  | "chat.premiumExpiredDesc"
+  | "chat.noContent"
+  | "chat.completeStorylineForImages"
+  | "chat.premiumForImages"
+  | "chat.loginToSave"
+  | "chat.imageSaved"
+  | "chat.videoLoadingError"
+  | "chat.noVideoAvailable"
   | "admin.settings"
   | "admin.language"
   | "admin.languageDescription"
@@ -285,8 +305,6 @@ export type TranslationKey =
   | "generate.download"
   | "generate.share"
   | "generate.image"
-  | "generate.imageLiked"
-  | "generate.addedToFavorites"
   | "generate.negativePromptDesc"
   | "generate.selectedCountLabel"
   | "generate.generatingTitle"
@@ -318,11 +336,6 @@ export type TranslationKey =
   | "chat.allCharacters"
   | "chat.viewAll"
   | "chat.loadingCharacters"
-  | "chat.noConversationsYet"
-  | "chat.startChattingMessage"
-  | "chat.browseCharacters"
-  | "chat.recentConversations"
-  | "chat.noMessagesYet"
   | "chat.inputPlaceholder"
   | "chat.ask"
   | "chat.showMe"
@@ -330,9 +343,22 @@ export type TranslationKey =
   | "chat.canISee"
   | "chat.howToUse"
   | "chat.viewVideoIntro"
-  | "chat.noVideoAvailable"
   | "chat.profileNotFound"
   | "chat.backToConversations"
+  | "tour.home.title"
+  | "tour.home.description"
+  | "tour.chat.title"
+  | "tour.chat.description"
+  | "tour.generate.title"
+  | "tour.generate.description"
+  | "tour.create.title"
+  | "tour.create.description"
+  | "tour.premium.title"
+  | "tour.premium.description"
+  | "tour.stepXofY"
+  | "tour.back"
+  | "tour.next"
+  | "tour.done"
   | "collection.yourImageCollection"
   | "collection.noImagesYet"
   | "collection.noImagesDescription"
@@ -1248,44 +1274,200 @@ export type TranslationKey =
   | "terms.title"
   | "terms.intro"
   | "terms.acceptance"
+  | "terms.acceptanceDesc"
   | "terms.eligibility"
+  | "terms.eligibilityDesc"
+  | "terms.eligibilityItem1"
+  | "terms.eligibilityItem2"
+  | "terms.eligibilityItem3"
+  | "terms.eligibilityItem4"
   | "terms.useOfService"
+  | "terms.useOfServiceDesc"
+  | "terms.prohibitedTitle"
+  | "terms.prohibited1"
+  | "terms.prohibited2"
+  | "terms.prohibited3"
+  | "terms.prohibited4"
+  | "terms.prohibited5"
   | "terms.contentAndAI"
+  | "terms.contentAndAIDesc"
+  | "terms.aiNatureTitle"
+  | "terms.aiNatureDesc"
+  | "terms.userContentTitle"
+  | "terms.userContentDesc"
+  | "terms.moderationTitle"
+  | "terms.moderationDesc"
   | "terms.premiumAndPayments"
+  | "terms.premiumAndPaymentsDesc"
+  | "terms.feesTitle"
+  | "terms.feesDesc"
+  | "terms.billingTitle"
+  | "terms.billingDesc"
+  | "terms.refundsTitle"
+  | "terms.refundsDesc"
+  | "terms.cancellationTitle"
+  | "terms.cancellationDesc"
   | "terms.intellectualProperty"
+  | "terms.intellectualPropertyDesc"
   | "terms.privacyAndData"
+  | "terms.privacyAndDataDesc"
   | "terms.limitation"
+  | "terms.limitationDesc"
   | "terms.changesToTerms"
+  | "terms.changesToTermsDesc"
   | "terms.contactUs"
+  | "terms.contactUsDesc"
+  | "terms.supportTitle"
   // Privacy page
   | "privacy.title"
   | "privacy.intro"
+  | "privacy.contactUsSection"
   | "privacy.whoWeAre"
+  | "privacy.whoWeAreDesc"
   | "privacy.whatIsPersonalData"
+  | "privacy.whatIsPersonalDataDesc"
+  | "privacy.identifiableData"
+  | "privacy.pseudonymizedData"
+  | "privacy.anonymousData"
   | "privacy.whatWeCollect"
+  | "privacy.whatWeCollectDesc"
+  | "privacy.visitorsTitle"
+  | "privacy.visitorItem1"
+  | "privacy.visitorItem2"
+  | "privacy.visitorItem3"
+  | "privacy.visitorItem4"
+  | "privacy.registeredTitle"
+  | "privacy.registeredItem1"
+  | "privacy.registeredItem2"
+  | "privacy.registeredItem3"
+  | "privacy.registeredItem4"
+  | "privacy.registeredItem5"
+  | "privacy.registeredItem6"
+  | "privacy.registeredItem7"
+  | "privacy.specialTitle"
+  | "privacy.specialDesc"
   | "privacy.howWeCollect"
+  | "privacy.howWeCollectDesc"
+  | "privacy.howItem1"
+  | "privacy.howItem2"
+  | "privacy.howItem3"
   | "privacy.whyWeProcess"
+  | "privacy.tablePurpose"
+  | "privacy.tableLegalBasis"
+  | "privacy.purpose1"
+  | "privacy.purpose2"
+  | "privacy.purpose3"
+  | "privacy.purpose4"
+  | "privacy.purpose5"
+  | "privacy.purpose6"
+  | "privacy.purpose7"
+  | "privacy.legalBasis1"
+  | "privacy.legalBasis2"
+  | "privacy.legalBasis3"
+  | "privacy.legalBasis4"
+  | "privacy.legalBasis5"
+  | "privacy.legalBasis6"
+  | "privacy.legalBasis7"
   | "privacy.dataSharing"
+  | "privacy.dataSharingDesc"
+  | "privacy.sharingItem1"
+  | "privacy.sharingItem2"
+  | "privacy.sharingItem3"
+  | "privacy.sharingItem4"
+  | "privacy.sharingNote"
   | "privacy.internationalTransfers"
+  | "privacy.internationalTransfersDesc"
   | "privacy.dataSecurity"
+  | "privacy.dataSecurityDesc"
   | "privacy.childrenPrivacy"
+  | "privacy.childrenPrivacyDesc"
   | "privacy.dataRetention"
+  | "privacy.dataRetentionDesc"
   | "privacy.yourRights"
+  | "privacy.yourRightsDesc"
+  | "privacy.rights1"
+  | "privacy.rights2"
+  | "privacy.rights3"
+  | "privacy.rights4"
+  | "privacy.rights5"
+  | "privacy.rights6"
+  | "privacy.rights7"
+  | "privacy.rightsNote"
   | "privacy.contactUs"
+  | "privacy.contactUsDesc"
   // Guidelines page
   | "guidelines.title"
   | "guidelines.intro"
   | "guidelines.ageRequirements"
+  | "guidelines.ageItem1"
+  | "guidelines.ageItem2"
   | "guidelines.illegalActivities"
+  | "guidelines.illegalDesc"
+  | "guidelines.illegalItem1"
+  | "guidelines.illegalItem2"
+  | "guidelines.illegalItem3"
+  | "guidelines.illegalItem4"
+  | "guidelines.illegalItem5"
+  | "guidelines.illegalItem6"
+  | "guidelines.illegalItem7"
+  | "guidelines.illegalItem8"
+  | "guidelines.illegalItem9"
+  | "guidelines.illegalItem10"
   | "guidelines.childProtection"
+  | "guidelines.zeroTolerance"
+  | "guidelines.zeroToleranceDesc"
+  | "guidelines.prohibitedTitle"
+  | "guidelines.childItem1"
+  | "guidelines.childItem2"
+  | "guidelines.childItem3"
   | "guidelines.sexualContent"
+  | "guidelines.sexualDesc"
+  | "guidelines.sexualItem1"
+  | "guidelines.sexualItem2"
+  | "guidelines.fetishTitle"
+  | "guidelines.fetishItem1"
+  | "guidelines.fetishItem2"
+  | "guidelines.fetishItem3"
+  | "guidelines.fetishItem4"
+  | "guidelines.fetishItem5"
+  | "guidelines.fetishItem6"
+  | "guidelines.fetishItem7"
   | "guidelines.violence"
+  | "guidelines.violenceDesc"
+  | "guidelines.violenceItem1"
+  | "guidelines.violenceItem2"
+  | "guidelines.violenceItem3"
+  | "guidelines.violenceItem4"
+  | "guidelines.violenceItem5"
   | "guidelines.hateSpeech"
+  | "guidelines.hateSpeechDesc"
+  | "guidelines.hateItem1"
+  | "guidelines.hateItem2"
+  | "guidelines.hateItem3"
+  | "guidelines.hateItem4"
+  | "guidelines.hateItem5"
+  | "guidelines.hateItem6"
+  | "guidelines.hateItem7"
+  | "guidelines.hateNote"
   | "guidelines.privacyFraud"
+  | "guidelines.privacyDesc"
+  | "guidelines.privacyItem1"
+  | "guidelines.privacyItem2"
+  | "guidelines.privacyItem3"
+  | "guidelines.privacyItem4"
+  | "guidelines.privacyItem5"
   | "guidelines.misinformation"
+  | "guidelines.misinformationDesc"
+  | "guidelines.misinfoItem1"
+  | "guidelines.misinfoItem2"
   | "guidelines.spam"
+  | "guidelines.spamDesc"
+  | "guidelines.spamItem1"
+  | "guidelines.spamItem2"
   | "guidelines.restrictedGoods"
+  | "guidelines.restrictedGoodsDesc"
   | "guidelines.reportViolations"
+  | "guidelines.reportDesc"
   | "guidelines.reportContent"
   | "guidelines.contactSupport"
   | "guidelines.agreement"
@@ -1354,8 +1536,6 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.browseCharacters": "Browse Characters",
     "chat.genError": "Sorry, I couldn't generate that image. Let's try something else.",
     "chat.genTechError": "Sorry, I couldn't generate that image. There was a technical issue with the image processing.",
-    "chat.chapterComplete": "Chapter Completed! Next: {title}",
-    "chat.storyComplete": "Storyline Completed! You've unlocked Free Roam.",
     "chat.loginRequired": "Please login to continue chatting.",
     "chat.upgradeRequired": "Upgrade to premium to continue.",
     "chat.aiResponseError": "Failed to get AI response",
@@ -1374,11 +1554,22 @@ export const translations: Record<"en" | "sv", Translations> = {
     "generate.generateImage": "Generate Image",
     "auth.welcomeBack": "Welcome Back",
     "login.loginToContinue": "Login to continue",
+    "general.effectiveDate": "Effective Date",
+    "general.lastUpdated": "Last Updated",
+    "general.email": "Email",
     "general.save": "Save",
     "general.cancel": "Cancel",
+    "general.back": "Back",
+    "general.next": "Next",
+    "general.delete": "Delete",
+    "general.edit": "Edit",
+    "general.close": "Close",
+    "general.confirm": "Confirm",
     "general.loading": "Loading...",
     "general.error": "An error occurred",
     "general.success": "Success",
+    "general.warning": "Warning",
+    "general.info": "Info",
     "general.explore": "Explore",
     "general.generate": "Generate",
     "general.create": "Create",
@@ -1647,12 +1838,42 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.delete": "Delete",
     "chat.addTextToNote": "Add text to note",
     "chat.options": "Chat Options",
-    "chat.connectTelegram": "Connect Telegram",
     "chat.characterSettings": "Character Settings",
-    "chat.shareCharacter": "Share Character",
     "chat.typing": "typing...",
     "chat.sendingPhoto": "is sending photo..",
     "chat.replyingToMsg": "Replying to {target}",
+    "chat.welcomeGreeting": "Hey there, my love... 💕 I'm **{name}**. I've been waiting for someone like you.",
+    "chat.welcomeAction": "*leans in closer* So tell me... where would you like to get to know me?",
+    "chat.openingTelegramConnect": "Opening Telegram... Connect with {name}",
+    "chat.openingTelegramGuest": "Opening Telegram as guest...",
+    "chat.couldNotGenerateLink": "Could not generate Telegram link",
+    "chat.chapterLabel": "Chapter {current} of {total}",
+    "chat.chatOptions": "Chat Options",
+    "chat.connectTelegram": "Connect Telegram",
+    "chat.clearChatHistory": "Clear Chat History",
+    "chat.showProfileDetails": "Show Profile Details",
+    "chat.hideProfileDetails": "Hide Profile Details",
+    "chat.shareCharacter": "Share Character",
+    "chat.loadingHistory": "Loading older messages...",
+    "chat.loadEarlier": "Load earlier messages",
+    "chat.gallery": "Gallery",
+    "chat.imageGenerationLocked": "Image generation locked until story complete",
+    "chat.messageLimitTitle": "Message Limit",
+    "chat.messageLimitDesc": "Daily message limit reached. Upgrade to premium to continue chatting unlimited.",
+    "chat.tokenBalance": "Token Balance",
+    "chat.tokensSlut": "Tokens Depleted",
+    "chat.noTokensLeft": "You have no tokens left. Buy more to generate more images or use premium features.",
+    "chat.premiumExpired": "Premium Expired",
+    "chat.premiumExpiredDesc": "Your Premium membership has expired. Renew to continue chatting and creating without limits.",
+    "chat.storyComplete": "Storyline Completed! You've unlocked Free Roam.",
+    "chat.chapterComplete": "Chapter Complete: {title}",
+    "chat.noContent": "No content",
+    "chat.completeStorylineForImages": "Complete the storyline to unlock Free Roam image generation!",
+    "chat.premiumForImages": "You need Premium to generate images in chat. Upgrade now to unlock unlimited image generation.",
+    "chat.loginToSave": "You must be logged in to save images",
+    "chat.imageSaved": "Image saved to your collection and profile!",
+    "chat.videoLoadingError": "Error loading video. See console for details.",
+    "chat.noVideoAvailable": "No video available",
     "db.girls": "Girls",
     "db.guys": "Guys",
     "db.createyouraifriend": "Create your AI Friend",
@@ -1835,7 +2056,6 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.canISee": "Can I see...",
     "chat.howToUse": "How to Use",
     "chat.viewVideoIntro": "View video introduction",
-    "chat.noVideoAvailable": "No video available",
     "chat.profileNotFound": "Character not found",
     "chat.backToConversations": "Back to Conversations",
     "chat.generateQuick": "Get new selfie",
@@ -1864,6 +2084,20 @@ export const translations: Record<"en" | "sv", Translations> = {
     "collection.myCollection": "My Collection",
     "collection.collectionDescription": "A collection of my favorite images",
     "collection.noCollectionsYet": "You don't have any collections yet.",
+    "tour.home.title": "Home",
+    "tour.home.description": "Browse all AI companions and discover new connections.",
+    "tour.chat.title": "Your Chats",
+    "tour.chat.description": "Continue conversations with your AI companions.",
+    "tour.generate.title": "Generate Images",
+    "tour.generate.description": "Create stunning AI-generated photos of your companions.",
+    "tour.create.title": "Create Character",
+    "tour.create.description": "Design your perfect AI companion from scratch.",
+    "tour.premium.title": "Premium",
+    "tour.premium.description": "Unlock unlimited features, HD images, and exclusive content.",
+    "tour.stepXofY": "Step {current} of {total}",
+    "tour.back": "Back",
+    "tour.next": "Next",
+    "tour.done": "Done",
     "login.logIn": "Log In",
     "login.signUp": "Sign Up",
     "login.submitting": "Logging in...",
@@ -2566,49 +2800,205 @@ export const translations: Record<"en" | "sv", Translations> = {
     "cookies.contactDesc": "If you have questions about our cookie policy, please contact us.",
     // Terms page
     "terms.title": "Rules and Terms of Use",
-    "terms.intro": "Welcome to Dintype. By using our services, you agree to these terms. Please read them carefully to understand your rights and responsibilities.",
+    "terms.intro": "Welcome to Dintype. By using our services, you agree to these terms. Please read them carefully to understand your rights and obligations.",
     "terms.acceptance": "1. Acceptance of Terms",
+    "terms.acceptanceDesc": "By accessing or using Dintype, you agree to be bound by these Terms of Use and our Privacy Policy. If you do not agree to these terms, you may not use our services.",
     "terms.eligibility": "2. Eligibility and Account",
+    "terms.eligibilityDesc": "To use Dintype, you must meet the following requirements:",
+    "terms.eligibilityItem1": "You must be at least 18 years old.",
+    "terms.eligibilityItem2": "You must provide accurate and complete information when creating an account.",
+    "terms.eligibilityItem3": "You are responsible for keeping your login credentials confidential.",
+    "terms.eligibilityItem4": "All activities occurring under your account are your responsibility.",
     "terms.useOfService": "3. Use of the Service",
+    "terms.useOfServiceDesc": "Dintype is a platform for interacting with AI-generated characters. You agree to use the service in a responsible and respectful manner.",
+    "terms.prohibitedTitle": "Prohibited Activities:",
+    "terms.prohibited1": "Using the service for illegal purposes or in violation of local laws.",
+    "terms.prohibited2": "Attempting to bypass security measures or exploit vulnerabilities.",
+    "terms.prohibited3": "Uploading or generating content that is illegal, harmful, or violates others' rights.",
+    "terms.prohibited4": "Using automated systems (bots, scrapers) to access the service without permission.",
+    "terms.prohibited5": "Impersonating others or misrepresenting your identity.",
     "terms.contentAndAI": "4. Content and AI Interactions",
+    "terms.contentAndAIDesc": "All interactions on Dintype are with Artificial Intelligence (AI). The characters are fictional and do not represent real people.",
+    "terms.aiNatureTitle": "AI Nature:",
+    "terms.aiNatureDesc": "AI-generated content can be unpredictable. We do not guarantee the accuracy, suitability, or quality of AI responses.",
+    "terms.userContentTitle": "User Content:",
+    "terms.userContentDesc": "You retain ownership of content you upload, but you grant Dintype a license to use it to provide and improve the service.",
+    "terms.moderationTitle": "Moderation:",
+    "terms.moderationDesc": "We reserve the right to monitor and remove content that violates our guidelines or is deemed inappropriate.",
     "terms.premiumAndPayments": "5. Premium Subscriptions and Payments",
+    "terms.premiumAndPaymentsDesc": "Dintype offers premium features through paid subscriptions.",
+    "terms.feesTitle": "Fees:",
+    "terms.feesDesc": "Subscription fees are clearly stated at the time of purchase.",
+    "terms.billingTitle": "Billing:",
+    "terms.billingDesc": "By subscribing, you authorize us to charge the applicable fees via our payment provider.",
+    "terms.refundsTitle": "Refunds:",
+    "terms.refundsDesc": "Since the service provides immediate access to digital content, refunds are generally not offered unless required by law.",
+    "terms.cancellationTitle": "Cancellation:",
+    "terms.cancellationDesc": "You can cancel your subscription at any time through your account settings.",
     "terms.intellectualProperty": "6. Intellectual Property",
+    "terms.intellectualPropertyDesc": "All materials on Dintype, including brand name, logo, design, software, and AI models, are owned by us or our licensors and are protected by intellectual property laws.",
     "terms.privacyAndData": "7. Privacy and Data Protection",
+    "terms.privacyAndDataDesc": "Your privacy is important to us. How we collect, use, and protect your data is described in our Privacy Policy.",
     "terms.limitation": "8. Limitation of Liability",
+    "terms.limitationDesc": "Dintype is provided \"as is\" and \"as available\". To the maximum extent permitted by law, we are not liable for direct, indirect, or incidental damages resulting from your use of the service.",
     "terms.changesToTerms": "9. Changes to Terms",
+    "terms.changesToTermsDesc": "We reserve the right to modify these terms at any time. Significant changes will be communicated via the website or email. Continued use of the service after such changes constitutes acceptance of the new terms.",
     "terms.contactUs": "10. Contact Us",
+    "terms.contactUsDesc": "If you have questions about these terms, please contact us at:",
+    "terms.supportTitle": "Dintype Support",
     // Privacy page
     "privacy.title": "Privacy Policy",
     "privacy.intro": "Welcome to Dintype. We respect your privacy and are committed to protecting your personal data.",
+    "privacy.contactUsSection": "Please read this policy carefully. If you have questions, you are welcome to contact us via the details in the \"Contact Us\" section.",
     "privacy.whoWeAre": "1. Who We Are (Data Controller)",
+    "privacy.whoWeAreDesc": "This website, https://dintype.se, is the data controller for the processing of your personal data.",
     "privacy.whatIsPersonalData": "2. What is Personal Data?",
+    "privacy.whatIsPersonalDataDesc": "\"Personal data\" refers to any information relating to an identified or identifiable individual. This includes names, email addresses, IP addresses, and more.",
+    "privacy.identifiableData": "Identifiable data: Includes names, email addresses, or IP addresses.",
+    "privacy.pseudonymizedData": "Pseudonymized data: Still considered personal data if they can be re-identified.",
+    "privacy.anonymousData": "Anonymous data: Not considered personal data under GDPR.",
     "privacy.whatWeCollect": "3. What Personal Data We Collect",
+    "privacy.whatWeCollectDesc": "We may collect the following types of data depending on your interaction with our website:",
+    "privacy.visitorsTitle": "a. Visitors (without login)",
+    "privacy.visitorItem1": "Device type, browser, and operating system",
+    "privacy.visitorItem2": "IP address and time zone",
+    "privacy.visitorItem3": "Website usage data (e.g., pages visited)",
+    "privacy.visitorItem4": "Cookies and tracking technologies",
+    "privacy.registeredTitle": "b. Registered Users",
+    "privacy.registeredItem1": "Email address and username",
+    "privacy.registeredItem2": "Login credentials for Google or Patreon (email, profile picture)",
+    "privacy.registeredItem3": "Profile details (avatar, settings)",
+    "privacy.registeredItem4": "Generated content and chat history",
+    "privacy.registeredItem5": "Communication history with our support team",
+    "privacy.registeredItem6": "Usage data (e.g., most used features)",
+    "privacy.registeredItem7": "Payment-related information (handled by third-party providers – we do not store card data)",
+    "privacy.specialTitle": "c. Special Categories of Data (Sensitive)",
+    "privacy.specialDesc": "If you voluntarily provide information about your sex life or sexual orientation when using our services, we will only process it with your explicit consent in accordance with Article 9(2)(a) of the GDPR. We do not share this data with third parties, and you control whether it is disclosed.",
     "privacy.howWeCollect": "4. How We Collect Your Data",
+    "privacy.howWeCollectDesc": "We collect your personal data through:",
+    "privacy.howItem1": "Direct interactions (e.g., registration, contacting support)",
+    "privacy.howItem2": "Automated technologies (e.g., cookies, server logs)",
+    "privacy.howItem3": "Third-party login integrations (e.g., Google, Patreon)",
     "privacy.whyWeProcess": "5. Why We Process Your Data (Legal Basis)",
+    "privacy.tablePurpose": "Purpose",
+    "privacy.tableLegalBasis": "Legal Basis",
+    "privacy.purpose1": "Account registration and access",
+    "privacy.purpose2": "Provide and improve our services",
+    "privacy.purpose3": "Respond to inquiries",
+    "privacy.purpose4": "Send updates and service communications",
+    "privacy.purpose5": "Analyze usage to improve services",
+    "privacy.purpose6": "Process special categories of data",
+    "privacy.purpose7": "Compliance with laws",
+    "privacy.legalBasis1": "Contractual Necessity",
+    "privacy.legalBasis2": "Legitimate Interest",
+    "privacy.legalBasis3": "Legitimate Interest or Consent",
+    "privacy.legalBasis4": "Legitimate Interest",
+    "privacy.legalBasis5": "Legitimate Interest",
+    "privacy.legalBasis6": "Explicit Consent",
+    "privacy.legalBasis7": "Legal Obligation",
     "privacy.dataSharing": "6. Data Transfer and Sharing",
+    "privacy.dataSharingDesc": "We may share your data with trusted third-party service providers for:",
+    "privacy.sharingItem1": "Hosting and infrastructure",
+    "privacy.sharingItem2": "Analytics and support tools",
+    "privacy.sharingItem3": "Legal, accounting, or consulting services",
+    "privacy.sharingItem4": "Payment processors (for transactions)",
+    "privacy.sharingNote": "These third parties act on our instructions and are bound by data processing agreements to ensure your data remains secure.",
     "privacy.internationalTransfers": "7. International Data Transfers",
+    "privacy.internationalTransfersDesc": "Your data is primarily processed within the European Economic Area (EEA). If we transfer your data outside the EEA, we will ensure that appropriate safeguards are in place, such as the EU Standard Contractual Clauses.",
     "privacy.dataSecurity": "8. Data Security",
+    "privacy.dataSecurityDesc": "We implement industry-standard technical and organizational measures to protect data from unauthorized access, alteration, or loss. However, no system is 100% secure. In the event of a data breach, we will notify you and regulatory authorities in accordance with the law.",
     "privacy.childrenPrivacy": "9. Children's Privacy",
+    "privacy.childrenPrivacyDesc": "Our services are not intended for persons under 18 years of age. We do not knowingly collect data from children. If we become aware of such data, we will delete it immediately.",
     "privacy.dataRetention": "10. Data Retention",
+    "privacy.dataRetentionDesc": "We retain your personal data only as long as necessary to provide our services, fulfill legal obligations, resolve disputes, and enforce agreements. When the data is no longer needed, we securely delete or anonymize it.",
     "privacy.yourRights": "11. Your Rights",
+    "privacy.yourRightsDesc": "If you are within the EEA, UK, or Switzerland, you have the right to:",
+    "privacy.rights1": "Access: Request a copy of your personal data",
+    "privacy.rights2": "Rectification: Request correction of inaccurate data",
+    "privacy.rights3": "Erasure: Request deletion (\"right to be forgotten\")",
+    "privacy.rights4": "Restrict processing: Ask us to limit how we use your data",
+    "privacy.rights5": "Object to: Object to processing based on legitimate interest",
+    "privacy.rights6": "Data portability: Receive your data in a machine-readable format",
+    "privacy.rights7": "Withdraw consent: At any time without affecting previous processing",
+    "privacy.rightsNote": "To exercise any of your rights, contact us at support@dintype.se",
     "privacy.contactUs": "12. Contact Us",
+    "privacy.contactUsDesc": "For questions about this policy or your personal data, please contact:",
     // Guidelines page
     "guidelines.title": "Community Guidelines",
     "guidelines.intro": "Our goal is to provide a safe, respectful place where users can enjoy exciting, creative, and fun conversations with virtual chatbots.",
     "guidelines.ageRequirements": "Age Requirements",
-    "guidelines.illegalActivities": "Illegal Activities and Criminal Behavior",
-    "guidelines.childProtection": "Child Exploitation and Protection of Minors",
+    "guidelines.ageItem1": "All users must be at least 18 years old.",
+    "guidelines.ageItem2": "All chatbots created on the platform must be portrayed as adults over 18. If this is not obvious, please specify the age in the chatbot's Personality.",
+    "guidelines.illegalActivities": "Illegal Activities & Criminal Behavior",
+    "guidelines.illegalDesc": "The following are strictly prohibited:",
+    "guidelines.illegalItem1": "Commercial sexual activities (including prostitution)",
+    "guidelines.illegalItem2": "Human trafficking",
+    "guidelines.illegalItem3": "Sexual exploitation and pornography (including child pornography)",
+    "guidelines.illegalItem4": "Soliciting or promoting criminal activity",
+    "guidelines.illegalItem5": "Exploitation of child labor",
+    "guidelines.illegalItem6": "Promotion of illegal drugs or abuse",
+    "guidelines.illegalItem7": "Promotion of illegal weapons",
+    "guidelines.illegalItem8": "Use of the service for phishing, scams, or account hijacking",
+    "guidelines.illegalItem9": "Distribution of or discussion about cannibalism",
+    "guidelines.illegalItem10": "Violation of local, national, or international laws and regulations",
+    "guidelines.childProtection": "Child Exploitation & Minor Protection",
+    "guidelines.zeroTolerance": "Zero Tolerance:",
+    "guidelines.zeroToleranceDesc": "We have zero tolerance for any content that involves or exploits minors.",
+    "guidelines.prohibitedTitle": "Strictly prohibited:",
+    "guidelines.childItem1": "Creation or depiction of minor characters (realistic, fictional, AI-generated, or \"aged-up\")",
+    "guidelines.childItem2": "Sharing of sexualized or exploitative material involving minors (including drawings, art, or AI-generated images)",
+    "guidelines.childItem3": "Any content that harms, lures, or endangers minors",
     "guidelines.sexualContent": "Sexual Content Restrictions",
-    "guidelines.violence": "Violence and Harm",
-    "guidelines.hateSpeech": "Hate Speech and Discrimination",
-    "guidelines.privacyFraud": "Privacy, Fraud, and Impersonation",
-    "guidelines.misinformation": "Misinformation and Political Interference",
-    "guidelines.spam": "Spam and Irrelevant Content",
-    "guidelines.restrictedGoods": "Restricted Goods and Transactions",
+    "guidelines.sexualDesc": "The following types of sexual content are prohibited:",
+    "guidelines.sexualItem1": "Explicit images showing real or realistic nudity or sexual acts",
+    "guidelines.sexualItem2": "Overt or implied sexual acts, unless they are clearly fictionalized and within permitted contexts",
+    "guidelines.fetishTitle": "Prohibited fetish content involving:",
+    "guidelines.fetishItem1": "Death or serious injury to humans or animals",
+    "guidelines.fetishItem2": "Amputation, dismemberment",
+    "guidelines.fetishItem3": "Cannibalism",
+    "guidelines.fetishItem4": "Body fluids (feces, urine, semen, saliva, mucus, menstrual blood, vomit)",
+    "guidelines.fetishItem5": "Bestiality (real animals)",
+    "guidelines.fetishItem6": "Non-consensual sexual acts (rape, sexual assault, sextortion, revenge porn, etc.)",
+    "guidelines.fetishItem7": "Incest (including non-blood-related scenarios, like step-relationships)",
+    "guidelines.violence": "Violence & Harm",
+    "guidelines.violenceDesc": "Prohibited:",
+    "guidelines.violenceItem1": "Incitement to, glorification of, or depiction of violence, murder, or terrorism",
+    "guidelines.violenceItem2": "Threats of physical harm or violence",
+    "guidelines.violenceItem3": "Promotion or encouragement of self-harm, suicide, eating disorders, or substance abuse",
+    "guidelines.violenceItem4": "Depictions of gore and entrails, animal death, or intense violence",
+    "guidelines.violenceItem5": "Discussions encouraging or promoting necrophilia",
+    "guidelines.hateSpeech": "Hate Speech & Discrimination",
+    "guidelines.hateSpeechDesc": "Content that promotes hate or violence against individuals or groups based on the following is prohibited:",
+    "guidelines.hateItem1": "Race or ethnicity",
+    "guidelines.hateItem2": "Nationality",
+    "guidelines.hateItem3": "Religion",
+    "guidelines.hateItem4": "Disability",
+    "guidelines.hateItem5": "Gender or gender identity",
+    "guidelines.hateItem6": "Sexual orientation",
+    "guidelines.hateItem7": "Age or veteran status",
+    "guidelines.hateNote": "Idolization or glorification of hate figures (e.g., Adolf Hitler, Josef Stalin, Pol Pot) is strictly prohibited.",
+    "guidelines.privacyFraud": "Privacy, Fraud & Impersonation",
+    "guidelines.privacyDesc": "Prohibited:",
+    "guidelines.privacyItem1": "Sharing others' personal or confidential information without consent",
+    "guidelines.privacyItem2": "Impersonation of real individuals, including celebrities or public figures",
+    "guidelines.privacyItem3": "Uploading real images or AI-generated images that resemble real individuals without consent",
+    "guidelines.privacyItem4": "Use of the service for fraudulent behavior (false information, multiple accounts, fake identities)",
+    "guidelines.privacyItem5": "Soliciting payments from users under fraudulent pretexts",
+    "guidelines.misinformation": "Misinformation & Political Interference",
+    "guidelines.misinformationDesc": "Prohibited:",
+    "guidelines.misinfoItem1": "Posting false information that could lead to violence, harm, or disrupt political processes",
+    "guidelines.misinfoItem2": "Discussions of political views or religious and spiritual beliefs (explicitly prohibited topics)",
+    "guidelines.spam": "Spam & Irrelevant Content",
+    "guidelines.spamDesc": "Prohibited:",
+    "guidelines.spamItem1": "Spam, including sending unsolicited promotional, commercial, or mass messages",
+    "guidelines.spamItem2": "Generation of meaningless, irrelevant, or purposeless content",
+    "guidelines.restrictedGoods": "Restricted Goods & Transactions",
+    "guidelines.restrictedGoodsDesc": "Advertising or attempting to trade in regulated or restricted goods is prohibited.",
     "guidelines.reportViolations": "Report Violations",
+    "guidelines.reportDesc": "If you encounter content that violates these guidelines, please report it immediately. Together we can maintain a safe and respectful environment for all users.",
     "guidelines.reportContent": "Report Content",
     "guidelines.contactSupport": "Contact Support",
-    "guidelines.agreement": "By using Dintype, you agree to abide by these Community Guidelines.",
+    "guidelines.agreement": "By using Dintype, you agree to comply with these community guidelines.",
     // Report page
     "report.title": "Reporting and Content Complaints Policy",
     "report.intro": "At Dintype, we strive to foster a safe, respectful, and lawful environment for all our users.",
@@ -2669,8 +3059,6 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.browseCharacters": "Bläddra bland karaktärer",
     "chat.genError": "Tyvärr, jag kunde inte generera den bilden. Låt oss prova något annat.",
     "chat.genTechError": "Tyvärr, jag kunde inte generera den bilden. Det uppstod ett tekniskt fel vid bildbehandlingen.",
-    "chat.chapterComplete": "Kapitel avslutat! Nästa: {title}",
-    "chat.storyComplete": "Handlingen avslutad! Du har låst upp Free Roam.",
     "chat.loginRequired": "Vänligen logga in för att fortsätta chatta.",
     "chat.upgradeRequired": "Uppgradera till premium för att fortsätta.",
     "chat.aiResponseError": "Misslyckades med att hämta svar från AI",
@@ -2689,11 +3077,22 @@ export const translations: Record<"en" | "sv", Translations> = {
     "generate.generateImage": "Generera bild",
     "auth.welcomeBack": "Välkommen tillbaka",
     "login.loginToContinue": "Logga in för att fortsätta",
+    "general.effectiveDate": "Ikraftträdandedatum",
+    "general.lastUpdated": "Senast uppdaterad",
+    "general.email": "E-post",
     "general.save": "Spara",
     "general.cancel": "Avbryt",
-    "general.loading": "Läser in...",
-    "general.error": "Ett fel uppstod",
-    "general.success": "Klar",
+    "general.back": "Bakåt",
+    "general.next": "Nästa",
+    "general.delete": "Ta bort",
+    "general.edit": "Redigera",
+    "general.close": "Stäng",
+    "general.confirm": "Bekräfta",
+    "general.loading": "Laddar",
+    "general.error": "Fel",
+    "general.success": "Klart",
+    "general.warning": "Varning",
+    "general.info": "Info",
     "general.explore": "Utforska",
     "general.generate": "Generera",
     "general.create": "Skapa",
@@ -2880,7 +3279,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "welcome.chat.feature4": "Lås upp romantiska storylines",
     "welcome.chat.cta": "Börja chatta",
     "welcome.chat.footer": "💕 Ditt sällskap väntar på dig...",
-    "welcome.generate.title": "AI Image Studio",
+    "welcome.generate.title": "AI-bildstudio",
     "welcome.generate.subtitle": "Skapa magi på sekunder",
     "welcome.generate.feature1": "Banbrytande AI-generering",
     "welcome.generate.feature2": "Ultrarealistisk fotokvalitet",
@@ -2952,6 +3351,36 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.teasingImages": "{count} Teasande bilder",
     "chat.watchVideo": "Se video",
     "chat.openingTelegram": "Öppnar Telegram...",
+    "chat.openingTelegramConnect": "Öppnar Telegram... Anslut med {name}",
+    "chat.openingTelegramGuest": "Öppnar Telegram som gäst...",
+    "chat.couldNotGenerateLink": "Kunde inte generera Telegram-länk",
+    "chat.chapterLabel": "Kapitel {current} av {total}",
+    "chat.chatOptions": "Chattalternativ",
+    "chat.connectTelegram": "Anslut Telegram",
+    "chat.clearChatHistory": "Rensa chatt-historik",
+    "chat.showProfileDetails": "Visa profiluppgifter",
+    "chat.hideProfileDetails": "Dölj profiluppgifter",
+    "chat.shareCharacter": "Dela karaktär",
+    "chat.loadingHistory": "Laddar tidigare meddelanden...",
+    "chat.loadEarlier": "Ladda tidigare meddelanden",
+    "chat.gallery": "Galleri",
+    "chat.imageGenerationLocked": "Bildgenerering låst tills berättelsen är klar",
+    "chat.messageLimitTitle": "Meddelandegräns",
+    "chat.messageLimitDesc": "Daglig meddelandegräns uppnådd. Uppgradera till premium för att fortsätta chatta obegränsat.",
+    "chat.tokenBalance": "Token-saldo",
+    "chat.tokensSlut": "Tokens Slut",
+    "chat.noTokensLeft": "Du har inga tokens kvar. Köp fler för att generera fler bilder eller använda premiumfunktioner.",
+    "chat.premiumExpired": "Premium har gått ut",
+    "chat.premiumExpiredDesc": "Ditt Premium-medlemskap har gått ut. Förnya för att fortsätta chatta och skapa utan gränser.",
+    "chat.storyComplete": "Berättelsen slutförd! Du har låst upp Free Roam.",
+    "chat.chapterComplete": "Kapitel slutfört: {title}",
+    "chat.noContent": "Inget innehåll",
+    "chat.completeStorylineForImages": "Slutför berättelsen för att låsa upp Free Roam bildgenerering!",
+    "chat.premiumForImages": "Du behöver Premium för att generera bilder i chatten. Uppgradera nu för att låsa upp obegränsad bildgenerering.",
+    "chat.loginToSave": "Du måste vara inloggad för att spara bilder",
+    "chat.imageSaved": "Bilden sparades till din samling och profil!",
+    "chat.videoLoadingError": "Fel vid laddning av video. Se konsolen för detaljer.",
+    "chat.noVideoAvailable": "Ingen video tillgänglig",
     "chat.report": "Rapportera",
     "chat.star": "Stjärnmärk",
     "chat.pin": "Fäst",
@@ -2962,12 +3391,12 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.delete": "Radera",
     "chat.addTextToNote": "Lägg till i anteckningar",
     "chat.options": "Chattalternativ",
-    "chat.connectTelegram": "Anslut Telegram",
     "chat.characterSettings": "Karaktärsinställningar",
-    "chat.shareCharacter": "Dela karaktär",
     "chat.typing": "skriver...",
     "chat.sendingPhoto": "skickar ett foto..",
     "chat.replyingToMsg": "Svarar till {target}",
+    "chat.welcomeGreeting": "Hej där, min skatt... 💕 Jag är **{name}**. Jag har väntat på någon som dig.",
+    "chat.welcomeAction": "*lutar sig närmare* Så säg mig... var vill du lära känna mig?",
     "db.girls": "Tjejer",
     "db.guys": "Killar",
     "db.createyouraifriend": "Skapa din AI-vän",
@@ -3149,7 +3578,6 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.canISee": "Kan jag se...",
     "chat.howToUse": "Hur man använder",
     "chat.viewVideoIntro": "Se videointroduktion",
-    "chat.noVideoAvailable": "Ingen video tillgänglig",
     "chat.profileNotFound": "Karaktären hittades inte",
     "chat.backToConversations": "Tillbaka till konversationer",
     "chat.generateQuick": "Ny selfie",
@@ -3178,6 +3606,20 @@ export const translations: Record<"en" | "sv", Translations> = {
     "collection.myCollection": "Min samling",
     "collection.collectionDescription": "En samling av mina favoritbilder",
     "collection.noCollectionsYet": "Du har inga samlingar ännu.",
+    "tour.home.title": "Hem",
+    "tour.home.description": "Bläddra bland alla AI-sällskap och upptäck nya kontakter.",
+    "tour.chat.title": "Dina chattar",
+    "tour.chat.description": "Fortsätt konversationer med dina AI-sällskap.",
+    "tour.generate.title": "Generera bilder",
+    "tour.generate.description": "Skapa fantastiska AI-genererade bilder av dina sällskap.",
+    "tour.create.title": "Skapa karaktär",
+    "tour.create.description": "Designa ditt perfekta AI-sällskap från grunden.",
+    "tour.premium.title": "Premium",
+    "tour.premium.description": "Lås upp obegränsade funktioner, HD-bilder och exklusivt innehåll.",
+    "tour.stepXofY": "Steg {current} av {total}",
+    "tour.back": "Bakåt",
+    "tour.next": "Nästa",
+    "tour.done": "Klar",
     "login.logIn": "Logga in",
     "login.signUp": "Registrera dig",
     "login.submitting": "Loggar in...",
@@ -3881,44 +4323,200 @@ export const translations: Record<"en" | "sv", Translations> = {
     "terms.title": "Regler och användarvillkor",
     "terms.intro": "Välkommen till Dintype. Genom att använda våra tjänster godkänner du dessa villkor. Läs dem noggrant för att förstå dina rättigheter och skyldigheter.",
     "terms.acceptance": "1. Godkännande av villkor",
+    "terms.acceptanceDesc": "Genom att gå in på eller använda Dintype godkänner du att vara bunden av dessa användarvillkor och vår integritetspolicy. Om du inte godkänner dessa villkor får du inte använda våra tjänster.",
     "terms.eligibility": "2. Behörighet och konto",
+    "terms.eligibilityDesc": "För att använda Dintype måste du uppfylla följande krav:",
+    "terms.eligibilityItem1": "Du måste vara minst 18 år gammal.",
+    "terms.eligibilityItem2": "Du måste tillhandahålla korrekt och fullständig information när du skapar ett konto.",
+    "terms.eligibilityItem3": "Du ansvarar för att hålla dina inloggningsuppgifter konfidentiella.",
+    "terms.eligibilityItem4": "All aktivitet som sker under ditt konto är ditt ansvar.",
     "terms.useOfService": "3. Användning av tjänsten",
+    "terms.useOfServiceDesc": "Dintype är en plattform för att interagera med AI-genererade karaktärer. Du samtycker till att använda tjänsten på ett ansvarsfullt och respektfullt sätt.",
+    "terms.prohibitedTitle": "Förbjudna aktiviteter:",
+    "terms.prohibited1": "Använda tjänsten för olagliga ändamål eller i strid med lokala lagar.",
+    "terms.prohibited2": "Försök att kringgå säkerhetsåtgärder eller utnyttja sårbarheter.",
+    "terms.prohibited3": "Ladda upp eller generera innehåll som är olagligt, skadligt eller bryter mot andras rättigheter.",
+    "terms.prohibited4": "Använda automatiserade system (botar, skrapor) för att få tillgång till tjänsten utan tillstånd.",
+    "terms.prohibited5": "Utge dig för att vara någon annan eller förvränga din identitet.",
     "terms.contentAndAI": "4. Innehåll och AI-interaktioner",
+    "terms.contentAndAIDesc": "Alla interaktioner på Dintype sker med artificiell intelligens (AI). Karaktärerna är fiktiva och representerar inte verkliga människor.",
+    "terms.aiNatureTitle": "AI-natur:",
+    "terms.aiNatureDesc": "AI-genererat innehåll kan vara oförutsägbart. Vi garanterar inte noggrannheten, lämpligheten eller kvaliteten på AI-svar.",
+    "terms.userContentTitle": "Användarinnehåll:",
+    "terms.userContentDesc": "Du behåller äganderätten till innehåll du laddar upp, men du ger Dintype en licens att använda det för att tillhandahålla och förbättra tjänsten.",
+    "terms.moderationTitle": "Moderering:",
+    "terms.moderationDesc": "Vi förbehåller oss rätten att övervaka och ta bort innehåll som bryter mot våra riktlinjer eller anses olämpligt.",
     "terms.premiumAndPayments": "5. Premiumabonnemang och betalningar",
+    "terms.premiumAndPaymentsDesc": "Dintype erbjuder premiumfunktioner genom betalda abonnemang.",
+    "terms.feesTitle": "Avgifter:",
+    "terms.feesDesc": "Abonnemangsavgifter anges tydligt vid köptillfället.",
+    "terms.billingTitle": "Fakturering:",
+    "terms.billingDesc": "Genom att prenumerera ger du oss rätten att debitera tillämpliga avgifter via vår betalningsleverantör.",
+    "terms.refundsTitle": "Återbetalningar:",
+    "terms.refundsDesc": "Eftersom tjänsten ger omedelbar tillgång till digitalt innehåll erbjuds i allmänhet inga återbetalningar om det inte krävs enligt lag.",
+    "terms.cancellationTitle": "Uppsägning:",
+    "terms.cancellationDesc": "Du kan avsluta din prenumeration när som helst via dina kontoinställningar.",
     "terms.intellectualProperty": "6. Immateriella rättigheter",
+    "terms.intellectualPropertyDesc": "Allt material på Dintype, inklusive varumärke, logotyp, design, programvara och AI-modeller, ägs av oss eller våra licensgivare och skyddas av immaterialrättsliga lagar.",
     "terms.privacyAndData": "7. Integritet och dataskydd",
+    "terms.privacyAndDataDesc": "Din integritet är viktig för oss. Hur vi samlar in, använder och skyddar dina data beskrivs i vår Integritetspolicy.",
     "terms.limitation": "8. Ansvarsbegränsning",
+    "terms.limitationDesc": "Dintype tillhandahålls i \"befintligt skick\" och \"i mån av tillgång\". I den utsträckning det är tillåtet enligt lag är vi inte ansvariga för direkta, indirekta eller oförutsedda skador till följd av din användning av tjänsten.",
     "terms.changesToTerms": "9. Ändringar av villkor",
+    "terms.changesToTermsDesc": "Vi förbehåller oss rätten att ändra dessa villkor när som helst. Väsentliga ändringar kommer att kommuniceras via webbplatsen eller e-post. Fortsatt användning av tjänsten efter sådana ändringar innebär godkännande av de nya villkoren.",
     "terms.contactUs": "10. Kontakta oss",
+    "terms.contactUsDesc": "Om du har frågor om dessa villkor, vänligen kontakta oss på:",
+    "terms.supportTitle": "Dintype Support",
     // Privacy page
     "privacy.title": "Integritetspolicy",
     "privacy.intro": "Välkommen till Dintype. Vi respekterar din integritet och är engagerade i att skydda dina personuppgifter.",
+    "privacy.contactUsSection": "Läs denna policy noggrant. Om du har frågor är du välkommen att kontakta oss via detaljerna i avsnittet \"Kontakta oss\".",
     "privacy.whoWeAre": "1. Vilka vi är (Personuppgiftsansvarig)",
+    "privacy.whoWeAreDesc": "Vi på Dintype brinner för att skapa meningsfulla relationer med hjälp av AI.",
     "privacy.whatIsPersonalData": "2. Vad är personuppgifter?",
+    "privacy.whatIsPersonalDataDesc": "\"Personuppgifter\" avser all information som rör en identifierad eller identifierbar individ. Detta inkluderar namn, e-postadresser, IP-adresser och mer.",
+    "privacy.identifiableData": "Identifierbara data: Inkluderar namn, e-postadresser eller IP-adresser.",
+    "privacy.pseudonymizedData": "Pseudonymiserade data: Betraktas fortfarande som personuppgifter om de kan återidentifieras.",
+    "privacy.anonymousData": "Anonyma data: Betraktas inte som personuppgifter enligt GDPR.",
     "privacy.whatWeCollect": "3. Vilka personuppgifter vi samlar in",
+    "privacy.whatWeCollectDesc": "Vi kan samla in följande typer av data beroende på din interaktion med vår webbplats:",
+    "privacy.visitorsTitle": "a. Besökare (utan inloggning)",
+    "privacy.visitorItem1": "Enhetstyp, webbläsare och operativsystem",
+    "privacy.visitorItem2": "IP-adress och tidszon",
+    "privacy.visitorItem3": "Webbplatsanvändningsdata (t.ex. besökta sidor)",
+    "privacy.visitorItem4": "Cookies och spårningstekniker",
+    "privacy.registeredTitle": "b. Registrerade användare",
+    "privacy.registeredItem1": "E-postadress och användarnamn",
+    "privacy.registeredItem2": "Inloggningsuppgifter för Google eller Patreon (e-post, profilbild)",
+    "privacy.registeredItem3": "Profiluppgifter (avatar, inställningar)",
+    "privacy.registeredItem4": "Genererat innehåll och chatthistorik",
+    "privacy.registeredItem5": "Kommunikationshistorik med vårt supportteam",
+    "privacy.registeredItem6": "Användningsdata (t.ex. mest använda funktioner)",
+    "privacy.registeredItem7": "Betalningsrelaterad information (hanteras av tredje part – vi lagrar inte kortuppgifter)",
+    "privacy.specialTitle": "c. Särskilda kategorier av data (Känsliga)",
+    "privacy.specialDesc": "Om du frivilligt tillhandahåller information om ditt sexliv eller sexuella läggning när du använder våra tjänster, kommer vi endast att behandla det med ditt uttryckliga samtycke i enlighet med artikel 9.2 a i GDPR. Vi delar inte denna information med tredje part, och du kontrollerar om den lämnas ut.",
     "privacy.howWeCollect": "4. Hur vi samlar in dina uppgifter",
+    "privacy.howWeCollectDesc": "Vi samlar in dina personuppgifter genom:",
+    "privacy.howItem1": "Direkta interaktioner (t.ex. registrering, kontakta support)",
+    "privacy.howItem2": "Automatiserade tekniker (t.ex. cookies, serverloggar)",
+    "privacy.howItem3": "Tredjepartsinloggningsintegrationer (t.ex. Google, Patreon)",
     "privacy.whyWeProcess": "5. Varför vi behandlar dina uppgifter (Rättslig grund)",
+    "privacy.tablePurpose": "Syfte",
+    "privacy.tableLegalBasis": "Rättslig grund",
+    "privacy.purpose1": "Kontoregistrering och åtkomst",
+    "privacy.purpose2": "Tillhandahålla och förbättra våra tjänster",
+    "privacy.purpose3": "Svara på förfrågningar",
+    "privacy.purpose4": "Skicka uppdateringar och tjänstekommunikation",
+    "privacy.purpose5": "Analysera användning för att förbättra tjänster",
+    "privacy.purpose6": "Behandla särskilda kategorier av data",
+    "privacy.purpose7": "Efterlevnad av lagar",
+    "privacy.legalBasis1": "Avtalsenlig nödvändighet",
+    "privacy.legalBasis2": "Berättigat intresse",
+    "privacy.legalBasis3": "Berättigat intresse eller samtycke",
+    "privacy.legalBasis4": "Berättigat intresse",
+    "privacy.legalBasis5": "Berättigat intresse",
+    "privacy.legalBasis6": "Uttryckligt samtycke",
+    "privacy.legalBasis7": "Rättslig förpliktelse",
     "privacy.dataSharing": "6. Dataöverföring och delning",
+    "privacy.dataSharingDesc": "Vi kan dela dina data med pålitliga tredjepartsleverantörer för:",
+    "privacy.sharingItem1": "Hosting och infrastruktur",
+    "privacy.sharingItem2": "Analys- och supportverktyg",
+    "privacy.sharingItem3": "Juridiska, redovisnings- eller konsulttjänster",
+    "privacy.sharingItem4": "Betalningsprocessorer (för transaktioner)",
+    "privacy.sharingNote": "Dessa tredje parter agerar på våra instruktioner och är bundna av databehandlingsavtal för att säkerställa att dina data förblir säkra.",
     "privacy.internationalTransfers": "7. Internationella dataöverföringar",
+    "privacy.internationalTransfersDesc": "Dina data behandlas främst inom Europeiska ekonomiska samarbetsområdet (EES). Om vi överför dina data utanför EES, kommer vi att säkerställa att lämpliga skyddsåtgärder finns på plats, såsom EU:s standardavtalsklausuler.",
     "privacy.dataSecurity": "8. Datasäkerhet",
+    "privacy.dataSecurityDesc": "Vi implementerar tekniska och organisatoriska åtgärder av branschstandard för att skydda data från obehörig åtkomst, ändring eller förlust. Inget system är dock 100 % säkert. Vid ett dataintrång kommer vi att meddela dig och tillsynsmyndigheter i enlighet med lagen.",
     "privacy.childrenPrivacy": "9. Barns integritet",
+    "privacy.childrenPrivacyDesc": "Våra tjänster är inte avsedda för personer under 18 år. Vi samlar inte medvetet in data från barn. Om vi blir medvetna om sådana data kommer vi att radera dem omedelbart.",
     "privacy.dataRetention": "10. Datalagring",
+    "privacy.dataRetentionDesc": "Vi sparar dina personuppgifter endast så länge det är nödvändigt för att tillhandahålla våra tjänster, uppfylla rättsliga förpliktelser, lösa tvister och genomdriva avtal. När data inte längre behövs raderar eller anonymiserar vi dem på ett säkert sätt.",
     "privacy.yourRights": "11. Dina rättigheter",
+    "privacy.yourRightsDesc": "Om du befinner dig inom EES, Storbritannien eller Schweiz har du rätt till:",
+    "privacy.rights1": "Tillgång: Begär en kopia av dina personuppgifter",
+    "privacy.rights2": "Rättelse: Begär rättelse av felaktiga uppgifter",
+    "privacy.rights3": "Radering: Begär radering (\"rätten att bli bortglömd\")",
+    "privacy.rights4": "Begränsa behandling: Be oss begränsa hur vi använder dina data",
+    "privacy.rights5": "Invända mot: Invända mot behandling baserat på berättigat intresse",
+    "privacy.rights6": "Dataportabilitet: Få dina data i ett maskinläsbart format",
+    "privacy.rights7": "Återkalla samtycke: När som helst utan att det påverkar tidigare behandling",
+    "privacy.rightsNote": "För att utöva någon av dina rättigheter, kontakta oss på support@dintype.se",
     "privacy.contactUs": "12. Kontakta oss",
+    "privacy.contactUsDesc": "För frågor om denna policy eller dina personuppgifter, vänligen kontakta:",
     // Guidelines page
     "guidelines.title": "Gemenskapsregler",
     "guidelines.intro": "Vårt mål är att erbjuda en säker, respektfull plats där användare kan njuta av spännande, kreativa och roliga konversationer med virtuella chatbotar.",
     "guidelines.ageRequirements": "Ålderskrav",
+    "guidelines.ageItem1": "Alla användare måste vara minst 18 år gamla.",
+    "guidelines.ageItem2": "Alla chatbotar som skapas på plattformen måste porträtteras som vuxna över 18 år. Om detta inte är uppenbart, vänligen ange åldern i chatbotens personlighet.",
     "guidelines.illegalActivities": "Olagliga aktiviteter och kriminellt beteende",
+    "guidelines.illegalDesc": "Följande är strängt förbjudet:",
+    "guidelines.illegalItem1": "Kommersiell sexuell verksamhet (inklusive prostitution)",
+    "guidelines.illegalItem2": "Människohandel",
+    "guidelines.illegalItem3": "Sexuellt utnyttjande och pornografi (inklusive barnpornografi)",
+    "guidelines.illegalItem4": "Uppmaning till eller främjande av kriminell aktivitet",
+    "guidelines.illegalItem5": "Utnyttjande av barnarbete",
+    "guidelines.illegalItem6": "Främjande av olagliga droger eller missbruk",
+    "guidelines.illegalItem7": "Främjande av olagliga vapen",
+    "guidelines.illegalItem8": "Användning av tjänsten för nätfiske, bedrägeri eller kontokapning",
+    "guidelines.illegalItem9": "Distribution av eller diskussion om kannibalism",
+    "guidelines.illegalItem10": "Brott mot lokala, nationella eller internationella lagar och regler",
     "guidelines.childProtection": "Barnexploatering och skydd av minderåriga",
+    "guidelines.zeroTolerance": "Nolltolerans:",
+    "guidelines.zeroToleranceDesc": "Vi har nolltolerans mot allt innehåll som involverar eller utnyttjar minderåriga.",
+    "guidelines.prohibitedTitle": "Strängt förbjudet:",
+    "guidelines.childItem1": "Skapande eller porträttering av minderåriga karaktärer (realistiska, fiktiva, AI-genererade eller \"uppåldrade\")",
+    "guidelines.childItem2": "Delning av sexualiserat eller exploaterande material som involverar minderåriga (inklusive teckningar, konst eller AI-genererade bilder)",
+    "guidelines.childItem3": "Allt innehåll som skadar, lockar eller utsätter minderåriga för fara",
     "guidelines.sexualContent": "Begränsningar för sexuellt innehåll",
+    "guidelines.sexualDesc": "Följande typer av sexuellt innehåll är förbjudna:",
+    "guidelines.sexualItem1": "Explicita bilder som visar verklig eller realistisk nakenhet eller sexuella handlingar",
+    "guidelines.sexualItem2": "Uppenbara eller underförstådda sexuella handlingar, såvida de inte är tydligt fiktiva och inom tillåtna sammanhang",
+    "guidelines.fetishTitle": "Förbjudet fetischinnehåll som involverar:",
+    "guidelines.fetishItem1": "Död eller allvarlig skada på människor eller djur",
+    "guidelines.fetishItem2": "Amputation, lemlästning",
+    "guidelines.fetishItem3": "Kannibalism",
+    "guidelines.fetishItem4": "Kroppsvätskor (avföring, urin, sperma, saliv, slem, mensblod, spyor)",
+    "guidelines.fetishItem5": "Tidvall (verkliga djur)",
+    "guidelines.fetishItem6": "Icke-konsensuella sexuella handlingar (våldtäkt, sexuella övergrepp, sexutpressning, hämndporr, etc.)",
+    "guidelines.fetishItem7": "Incest (inklusive icke-blodrelaterade scenarier, som styvrelationer)",
     "guidelines.violence": "Våld och skada",
+    "guidelines.violenceDesc": "Förbjudet:",
+    "guidelines.violenceItem1": "Uppmaning till, förhärligande av eller porträttering av våld, mord eller terrorism",
+    "guidelines.violenceItem2": "Hot om fysisk skada eller våld",
+    "guidelines.violenceItem3": "Främjande eller uppmuntran till självskada, självmord, ätstörningar eller substansmissbruk",
+    "guidelines.violenceItem4": "Porträtteringar av gore och inälvor, djurdöd eller intensivt våld",
+    "guidelines.violenceItem5": "Diskussioner som uppmuntrar till eller främjar nekrofili",
     "guidelines.hateSpeech": "Hatpropaganda och diskriminering",
+    "guidelines.hateSpeechDesc": "Innehåll som främjar hat eller våld mot individer eller grupper baserat på följande är förbjudet:",
+    "guidelines.hateItem1": "Ras eller etnicitet",
+    "guidelines.hateItem2": "Nationalitet",
+    "guidelines.hateItem3": "Religion",
+    "guidelines.hateItem4": "Funktionsnedsättning",
+    "guidelines.hateItem5": "Kön eller könsidentitet",
+    "guidelines.hateItem6": "Sexuell läggning",
+    "guidelines.hateItem7": "Ålder eller veteranstatus",
+    "guidelines.hateNote": "Förhärligande eller idoliserande av hatfigurer (t.ex. Adolf Hitler, Josef Stalin, Pol Pot) är strängt förbjudet.",
     "guidelines.privacyFraud": "Integritet, bedrägeri och utgivning för annan",
+    "guidelines.privacyDesc": "Förbjudet:",
+    "guidelines.privacyItem1": "Att dela andras personliga eller konfidentiella information utan samtycke",
+    "guidelines.privacyItem2": "Imitering av verkliga individer, inklusive kändisar eller offentliga personer",
+    "guidelines.privacyItem3": "Uppladdning av verkliga bilder eller AI-genererade bilder som liknar verkliga individer utan samtycke",
+    "guidelines.privacyItem4": "Användning av tjänsten för bedrägligt beteende (falsk information, flera konton, falska identiteter)",
+    "guidelines.privacyItem5": "Begära betalningar från användare under bedrägliga förevändningar",
     "guidelines.misinformation": "Desinformation och politisk inblandning",
+    "guidelines.misinformationDesc": "Förbjudet:",
+    "guidelines.misinfoItem1": "Att publicera falsk information som kan leda till våld, skada eller störa politiska processer",
+    "guidelines.misinfoItem2": "Diskussioner om politiska åsikter eller religiösa och spirituella övertygelser (explicit förbjudna ämnen)",
     "guidelines.spam": "Spam och irrelevant innehåll",
+    "guidelines.spamDesc": "Förbjudet:",
+    "guidelines.spamItem1": "Spam, inklusive utskick av oönskade reklam-, kommersiella eller massmeddelanden",
+    "guidelines.spamItem2": "Generering av meningslöst, irrelevant eller syfteslöst innehåll",
     "guidelines.restrictedGoods": "Reglerade varor och transaktioner",
+    "guidelines.restrictedGoodsDesc": "Annonsering eller försök att handla med reglerade eller begränsade varor är förbjudet.",
     "guidelines.reportViolations": "Rapportera överträdelser",
+    "guidelines.reportDesc": "Om du stöter på innehåll som bryter mot dessa riktlinjer, vänligen rapportera det omedelbart. Tillsammans kan vi upprätthålla en säker och respektfull miljö för alla användare.",
     "guidelines.reportContent": "Rapportera innehåll",
     "guidelines.contactSupport": "Kontakta support",
     "guidelines.agreement": "Genom att använda Dintype godkänner du att följa dessa gemenskapsregler.",

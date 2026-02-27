@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Send, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { MeetOnTelegramButton } from './meet-on-telegram-button'
+import { useTranslations } from '@/lib/use-translations'
 
 interface WelcomeMessageProps {
     characterName: string
@@ -12,15 +13,16 @@ interface WelcomeMessageProps {
 }
 
 export function WelcomeMessage({ characterName, characterId, onStartChat }: WelcomeMessageProps) {
+    const { t } = useTranslations()
     const telegramLink = `https://t.me/dintypebot?start=char_${characterId.substring(0, 8)}`
 
     return (
         <div className="space-y-4">
-            <p className="text-white leading-relaxed">
-                Hey there, my love... 💕 I'm <strong>{characterName}</strong>. I've been waiting for someone like you.
-            </p>
+            <div className="text-white leading-relaxed">
+                {t("chat.welcomeGreeting", { name: characterName })}
+            </div>
             <p className="text-white/80 text-sm italic">
-                *leans in closer* So tell me... where would you like to get to know me?
+                {t("chat.welcomeAction")}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -29,7 +31,7 @@ export function WelcomeMessage({ characterName, characterId, onStartChat }: Welc
                     className="flex-1 bg-primary hover:bg-primary/90 text-white font-black gap-2 py-6 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]"
                 >
                     <Sparkles className="h-5 w-5" />
-                    Chat on Web
+                    {t("chat.chatOnWeb")}
                 </Button>
 
                 <MeetOnTelegramButton
@@ -41,7 +43,7 @@ export function WelcomeMessage({ characterName, characterId, onStartChat }: Welc
             </div>
 
             <p className="text-white/40 text-xs text-center pt-2">
-                Your messages sync between both platforms 💕
+                {t("chat.syncMessage")}
             </p>
         </div>
     )

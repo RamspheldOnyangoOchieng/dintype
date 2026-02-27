@@ -146,8 +146,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const [lastMessages, setLastMessages] = useState<Record<string, Message | null>>({})
   const [isProfileOpen, setIsProfileOpen] = useState(true)
   const [isMobileProfileOpen, setIsMobileProfileOpen] = useState(false)
-  const [premiumModalFeature, setPremiumModalFeature] = useState("Message Limit")
-  const [premiumModalDescription, setPremiumModalDescription] = useState("Daily message limit reached. Upgrade to premium to continue.")
+  const [premiumModalFeature, setPremiumModalFeature] = useState(t("chat.messageLimitTitle"))
+  const [premiumModalDescription, setPremiumModalDescription] = useState(t("chat.messageLimitDesc"))
   const [premiumModalMode, setPremiumModalMode] = useState<'upgrade' | 'message-limit'>('upgrade')
   const [isInitialLoad, setIsInitialLoad] = useState(true)
 
@@ -298,12 +298,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     setMessages(prev => {
       const updated = prev.filter(msg => msg.id !== messageId)
       if (characterId) {
-        saveMessageToLocalStorage(characterId, updated as any) // Need to handle local storage properly
+      saveMessageToLocalStorage(characterId, updated as any) // Need to handle local storage properly
       }
       return updated
     })
-    toast.success("Message deleted")
-  }, [characterId])
+    toast.success(t("status.deleted"))
+  }, [characterId, t])
 
   // Auto-focus input when AI finish responding or generating image
   useEffect(() => {
@@ -708,8 +708,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         try {
           const limitCheck = await checkMessageLimit(user.id)
           if (!limitCheck.allowed) {
-            setPremiumModalFeature("Message Limit")
-            setPremiumModalDescription("Daily message limit reached. Upgrade to premium to continue chatting unlimited.")
+            setPremiumModalFeature(t("chat.messageLimitTitle"))
+            setPremiumModalDescription(t("chat.messageLimitDesc"))
             setPremiumModalMode('message-limit')
             setIsPremiumModalOpen(true)
           }
@@ -759,7 +759,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
     // Check Story Mode lock
     if (storyProgress && !storyProgress.is_completed) {
-      toast.error("Complete the storyline to unlock Free Roam image generation!", {
+      toast.error(t("chat.completeStorylineForImages"), {
         icon: <Lock className="h-4 w-4" />
       })
       return
@@ -1212,11 +1212,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           return
         }
 
-        if (response.status === 403) {
-          setPremiumModalFeature("Premium-bilder")
-          setPremiumModalDescription("You need Premium to generate images in chat. Upgrade now to unlock unlimited image generation.")
+        if (!user.isPremium && !user.isAdmin) {
+          setPremiumModalFeature(t("premium.premiumMember"))
+          setPremiumModalDescription(t("chat.premiumForImages"))
+          setPremiumModalMode('upgrade')
           setIsPremiumModalOpen(true)
-          setIsGeneratingImage(false)
+          setIsSendingMessage(false)
           return
         }
 
@@ -1597,7 +1598,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                         })
                       } else {
                         setCurrentChapter(null)
-                        toast.success("Storyline Completed! You've unlocked Free Roam.")
+                        toast.success(t("chat.storyComplete"))
                         updateCharacter(character.id, { isStorylineActive: false });
                       }
                     }
@@ -1665,7 +1666,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
       if (!aiResponse.success) {
         if (aiResponse.limitReached || aiResponse.upgradeRequired) {
-          setPremiumModalFeature(aiResponse.limitReached ? "Message Limit" : "Token Balance")
+          setPremiumModalFeature(aiResponse.limitReached ? t("chat.messageLimitTitle") : t("chat.tokenBalance"))
           setPremiumModalDescription(aiResponse.error || t("chat.upgradeRequired"))
           setPremiumModalMode(aiResponse.limitReached ? "message-limit" : "upgrade")
           setIsPremiumModalOpen(true)
@@ -1789,10 +1790,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         try {
           const messageCheck = await checkMessageLimit(user.id)
           if (!messageCheck.allowed) {
-            setPremiumModalFeature("Message Limit")
-            setPremiumModalDescription(
-              "Daily message limit reached. Upgrade to premium to continue chatting unlimited.",
-            )
+            setPremiumModalFeature(t("chat.messageLimitTitle"))
+            setPremiumModalDescription(t("chat.messageLimitDesc"))
             setPremiumModalMode("message-limit")
             setIsPremiumModalOpen(true)
             setDebugInfo((prev) => ({ ...prev, lastAction: "messageLimitReached" }))
@@ -2056,7 +2055,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded flex items-center gap-1">
                     <Sparkles className="h-2.5 w-2.5" />
-                    {storyProgress.is_completed ? "Story Completed" : `Chapter ${storyProgress.current_chapter_number} of ${totalChapters || '?'}`}
+                    {storyProgress.is_completed ? t("chat.storyComplete") : t("chat.chapterLabel", { current: storyProgress.current_chapter_number.toString(), total: totalChapters.toString() })}
                   </span>
                   {!storyProgress.is_completed && (
                     <span className="text-foreground/70 font-medium truncate max-w-[120px] md:max-w-[150px]">{currentChapter.title}</span>
@@ -2064,7 +2063,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 </div>
                 {!storyProgress.is_completed && (
                   <span className="text-muted-foreground font-mono">
-                    {chapterSubProgress}/6 Teasing Images
+                    {chapterSubProgress}/6 {t("chat.teasingImages", { count: "" }).trim()}
                   </span>
                 )}
               </div>
@@ -2134,9 +2133,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 </h4>
                 <span className="text-[10px] md:text-xs text-muted-foreground truncate">
                   {isSendingMessage ? (
-                    <span className="text-primary animate-pulse font-medium">typing...</span>
+                    <span className="text-primary animate-pulse font-medium">{t("chat.typing")}</span>
                   ) : isGeneratingImage ? (
-                    <span className="text-primary animate-pulse font-medium">{character?.name || 'Designing'} is sending photo..</span>
+                    <span className="text-primary animate-pulse font-medium">{character?.name || (language === 'sv' ? 'Designar' : 'Designing')} {t("chat.sendingPhoto")}</span>
                   ) : (
                     messages.length > 0 ? messages[messages.length - 1].timestamp : t("chat.noMessagesYet")
                   )}
@@ -2174,7 +2173,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     setIsProfileOpen(!isProfileOpen)
                   }
                 }}
-                title="Profile Details"
+                title={t("chat.showProfileDetails")}
               >
                 <User className="h-5 w-5" />
               </Button>
@@ -2187,7 +2186,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-[#1A1A1A] border-[#252525] text-white min-w-[200px] z-50">
-                  <DropdownMenuLabel className="text-xs text-white/40 uppercase tracking-widest font-black py-3 px-4">Chat Options</DropdownMenuLabel>
+                  <DropdownMenuLabel className="text-xs text-white/40 uppercase tracking-widest font-black py-3 px-4">{t("chat.chatOptions")}</DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-[#252525]" />
 
                   {/* Mobile-only Items */}
@@ -2197,7 +2196,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer"
                     >
                       <Send className="h-4 w-4 text-primary" />
-                      <span>Connect Telegram</span>
+                      <span>{t("chat.connectTelegram")}</span>
                     </DropdownMenuItem>
 
                     <DropdownMenuItem
@@ -2205,7 +2204,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       className="flex items-center gap-3 py-3 px-4 text-red-400 focus:text-red-300 focus:bg-red-400/10 cursor-pointer"
                     >
                       <Trash2 className="h-4 w-4" />
-                      <span>Clear Chat History</span>
+                      <span>{t("chat.clearChatHistory")}</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="bg-[#252525]" />
                   </div>
@@ -2216,19 +2215,19 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     className="lg:hidden flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer"
                   >
                     <UserCircle className="h-4 w-4" />
-                    <span>{isProfileOpen ? "Hide Profile Details" : "Show Profile Details"}</span>
+                    <span>{isProfileOpen ? t("chat.hideProfileDetails") : t("chat.showProfileDetails")}</span>
                   </DropdownMenuItem>
 
                   <DropdownMenuItem asChild>
                     <Link href={`/characters/${character?.id}`} className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer w-full">
                       <Info className="h-4 w-4" />
-                      <span>Character Settings</span>
+                      <span>{t("chat.characterSettings")}</span>
                     </Link>
                   </DropdownMenuItem>
 
                   <DropdownMenuItem className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer">
                     <Share2 className="h-4 w-4" />
-                    <span>Share Character</span>
+                    <span>{t("chat.shareCharacter")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -2273,7 +2272,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               {isLoadingOlder ? (
                 <div className="flex items-center gap-2 text-muted-foreground text-sm">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Loading older messages...</span>
+                  <span>{t("chat.loadingHistory")}</span>
                 </div>
               ) : (
                 <button
@@ -2281,7 +2280,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   className="text-primary text-sm hover:underline flex items-center gap-1"
                 >
                   <ChevronDown className="h-4 w-4 rotate-180" />
-                  Load earlier messages
+                  {t("chat.loadEarlier")}
                 </button>
               )}
             </div>
@@ -2340,7 +2339,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }}>
                     <div className="min-w-0 flex-1">
-                      <p className="font-bold text-primary mb-1 text-[10px] uppercase tracking-wider">Replying to:</p>
+                      <p className="font-bold text-primary mb-1 text-[10px] uppercase tracking-wider">{t("chat.replyingToMsg", { target: "" }).replace(":", "")}</p>
                       <div className="flex items-center gap-1.5 overflow-hidden">
                         {message.replyToImage && (
                           <div className="flex items-center gap-1 text-[10px] opacity-70 flex-shrink-0">
@@ -2570,7 +2569,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     </div>
                   )}
                   <p className="text-sm text-foreground/80 truncate italic">
-                    {replyingTo.content ? `"${replyingTo.content}"` : (replyingTo.isImage ? "" : "No content")}
+                    {replyingTo.content ? `"${replyingTo.content}"` : (replyingTo.isImage ? "" : t("chat.noContent"))}
                   </p>
                 </div>
               </div>
@@ -2641,7 +2640,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       autoPlay
                       onError={(e) => {
                         console.error("Video error:", e)
-                        toast.error("Error loading video. See console for details.")
+                        toast.error(t("chat.videoLoadingError"))
                       }}
                     />
                     <div className="absolute top-0 left-0 w-full bg-black/50 p-2 text-white text-xs">
@@ -2650,7 +2649,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   </>
                 ) : (
                   <div className="flex items-center justify-center h-full bg-black/20">
-                    <p className="text-white bg-black/50 p-2 rounded">No video available</p>
+                    <p className="text-white bg-black/50 p-2 rounded">{t("chat.noVideoAvailable")}</p>
                   </div>
                 )}
                 <button
@@ -2821,7 +2820,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                           autoPlay
                           onError={(e) => {
                             console.error("Video error:", e)
-                            toast.error("Error loading video. See console for details.")
+                            toast.error(t("chat.videoLoadingError"))
                           }}
                         />
                         <div className="absolute top-0 left-0 w-full bg-black/50 p-2 text-white text-xs">
@@ -2830,7 +2829,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       </>
                     ) : (
                       <div className="flex items-center justify-center h-full bg-black/20">
-                        <p className="text-white bg-black/50 p-2 rounded">No video available</p>
+                        <p className="text-white bg-black/50 p-2 rounded">{t("chat.noVideoAvailable")}</p>
                       </div>
                     )}
                     <button
@@ -2911,7 +2910,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 {/* Character Gallery */}
                 {characterId && (
                   <div className="bg-background/80 backdrop-blur-xl rounded-2xl p-4 border border-white/5 mb-6">
-                    <h5 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Gallery</h5>
+                    <h5 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">{t("chat.gallery")}</h5>
                     <CharacterGallery
                       characterId={characterId}
                       onImageClick={(url) => {
@@ -2949,7 +2948,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       </Button>
                       {isLocked && (
                         <div className="text-center mt-3 text-xs text-amber-500/90 flex items-center justify-center gap-1.5 font-medium bg-black/40 py-2 rounded-lg backdrop-blur-sm border border-amber-500/20">
-                          <Lock className="h-3.5 w-3.5" /> Image generation locked until story complete
+                          <Lock className="h-3.5 w-3.5" /> {t("chat.imageGenerationLocked")}
                         </div>
                       )}
                     </div>
@@ -2983,8 +2982,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         isOpen={showTokensDepletedModal}
         onClose={() => setShowTokensDepletedModal(false)}
         mode="tokens-depleted"
-        feature="Tokens Slut"
-        description="You have no tokens left. Buy more to generate more images or use premium features."
+        feature={t("chat.tokensSlut")}
+        description={t("chat.noTokensLeft")}
         imageSrc="https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963046/premium-modals/tokens_depleted.jpg"
       />
 
@@ -2992,8 +2991,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         isOpen={showExpiredModal}
         onClose={() => setShowExpiredModal(false)}
         mode="expired"
-        feature="Premium Expired"
-        description="Your Premium membership has expired. Renew to continue chatting and creating without limits."
+        feature={t("chat.premiumExpired")}
+        description={t("chat.premiumExpiredDesc")}
       />
 
       {

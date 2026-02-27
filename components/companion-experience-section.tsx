@@ -1,5 +1,7 @@
+import { useTranslations } from "@/lib/use-translations"
+
 export function CompanionExperienceSection() {
-  const { t } = require("@/lib/use-translations").useTranslations()
+  const { t } = useTranslations()
   return (
     <div className="w-full bg-gradient-to-r from-gray-100 via-white to-gray-100 dark:from-zinc-900 dark:via-zinc-950 dark:to-zinc-900 py-8 sm:py-12 md:py-16 px-4 border-t border-b border-gray-200 dark:border-zinc-800 rounded-[2px]">
       <div className="container mx-auto max-w-4xl">

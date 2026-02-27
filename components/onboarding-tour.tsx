@@ -1,9 +1,10 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ArrowRight, X, ChevronLeft, Heart, MessageCircle, Wand2, PlusSquare, Crown, Home, Image } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "@/lib/use-translations"
 import { CONSENT_STORAGE_KEY, CONSENT_VERSION, POLICY_VERSION } from "@/lib/consent-config"
 
 interface TourStep {
@@ -15,55 +16,58 @@ interface TourStep {
     position: "right" | "bottom" | "left" | "top"
 }
 
-const TOUR_STEPS: TourStep[] = [
-    {
-        id: "home",
-        targetSelector: "[data-tour='home']",
-        title: "Home",
-        description: "Browse all AI companions and discover new connections.",
-        icon: Home,
-        position: "right"
-    },
-    {
-        id: "chat",
-        targetSelector: "[data-tour='chat']",
-        title: "Your Chats",
-        description: "Continue conversations with your AI companions.",
-        icon: MessageCircle,
-        position: "right"
-    },
-    {
-        id: "generate",
-        targetSelector: "[data-tour='generate']",
-        title: "Generate Images",
-        description: "Create stunning AI-generated photos of your companions.",
-        icon: Image,
-        position: "right"
-    },
-    {
-        id: "create",
-        targetSelector: "[data-tour='createcharacter']",
-        title: "Create Character",
-        description: "Design your perfect AI companion from scratch.",
-        icon: PlusSquare,
-        position: "right"
-    },
-    {
-        id: "premium",
-        targetSelector: "[data-tour='premium']",
-        title: "Premium",
-        description: "Unlock unlimited features, HD images, and exclusive content.",
-        icon: Crown,
-        position: "right"
-    }
-]
+
 
 export function OnboardingTour() {
+    const { t } = useTranslations()
     const [currentStep, setCurrentStep] = useState(-1)
     const [isVisible, setIsVisible] = useState(false)
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
     const [windowSize, setWindowSize] = useState({ width: 0, height: 0 })
     const tooltipRef = useRef<HTMLDivElement>(null)
+
+    const TOUR_STEPS: TourStep[] = useMemo(() => [
+        {
+            id: "home",
+            targetSelector: "[data-tour='home']",
+            title: t("tour.home.title"),
+            description: t("tour.home.description"),
+            icon: Home,
+            position: "right"
+        },
+        {
+            id: "chat",
+            targetSelector: "[data-tour='chat']",
+            title: t("tour.chat.title"),
+            description: t("tour.chat.description"),
+            icon: MessageCircle,
+            position: "right"
+        },
+        {
+            id: "generate",
+            targetSelector: "[data-tour='generate']",
+            title: t("tour.generate.title"),
+            description: t("tour.generate.description"),
+            icon: Image,
+            position: "right"
+        },
+        {
+            id: "create",
+            targetSelector: "[data-tour='createcharacter']",
+            title: t("tour.create.title"),
+            description: t("tour.create.description"),
+            icon: PlusSquare,
+            position: "right"
+        },
+        {
+            id: "premium",
+            targetSelector: "[data-tour='premium']",
+            title: t("tour.premium.title"),
+            description: t("tour.premium.description"),
+            icon: Crown,
+            position: "right"
+        }
+    ], [t])
 
     // Update window size
     useEffect(() => {
@@ -83,12 +87,12 @@ export function OnboardingTour() {
             if (element) {
                 const rect = element.getBoundingClientRect()
                 setTargetRect(rect)
-                
+
                 // Scroll element into view if needed
                 element.scrollIntoView({ behavior: "smooth", block: "center" })
             }
         }
-    }, [currentStep])
+    }, [currentStep, TOUR_STEPS])
 
     useEffect(() => {
         const hasSeenTour = localStorage.getItem("dintype_tour_completed")
@@ -143,11 +147,11 @@ export function OnboardingTour() {
 
     useEffect(() => {
         updateTargetPosition()
-        
+
         // Update position on scroll/resize
         window.addEventListener("resize", updateTargetPosition)
         window.addEventListener("scroll", updateTargetPosition, true)
-        
+
         return () => {
             window.removeEventListener("resize", updateTargetPosition)
             window.removeEventListener("scroll", updateTargetPosition, true)
@@ -220,7 +224,7 @@ export function OnboardingTour() {
     // Arrow position based on tooltip placement
     const getArrowStyles = () => {
         const arrowBase = "absolute w-3 h-3 bg-[#1a1a1a] border-white/10 transform rotate-45"
-        
+
         switch (step.position) {
             case "right":
                 return `${arrowBase} -left-1.5 top-1/2 -translate-y-1/2 border-l border-b`
@@ -242,22 +246,22 @@ export function OnboardingTour() {
                 <defs>
                     <mask id="spotlight-mask">
                         <rect x="0" y="0" width="100%" height="100%" fill="white" />
-                        <rect 
-                            x={targetRect.left - 6} 
-                            y={targetRect.top - 6} 
-                            width={targetRect.width + 12} 
-                            height={targetRect.height + 12} 
+                        <rect
+                            x={targetRect.left - 6}
+                            y={targetRect.top - 6}
+                            width={targetRect.width + 12}
+                            height={targetRect.height + 12}
                             rx="12"
                             fill="black"
                         />
                     </mask>
                 </defs>
-                <rect 
-                    x="0" 
-                    y="0" 
-                    width="100%" 
-                    height="100%" 
-                    fill="rgba(0,0,0,0.75)" 
+                <rect
+                    x="0"
+                    y="0"
+                    width="100%"
+                    height="100%"
+                    fill="rgba(0,0,0,0.75)"
                     mask="url(#spotlight-mask)"
                 />
             </svg>
@@ -266,8 +270,8 @@ export function OnboardingTour() {
             <motion.div
                 className="absolute border-2 border-sky-400 rounded-xl pointer-events-none"
                 initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ 
-                    opacity: 1, 
+                animate={{
+                    opacity: 1,
                     scale: 1,
                     top: targetRect.top - 6,
                     left: targetRect.left - 6,
@@ -310,7 +314,7 @@ export function OnboardingTour() {
 
                     {/* Progress bar */}
                     <div className="h-1 bg-white/5">
-                        <motion.div 
+                        <motion.div
                             className="h-full bg-gradient-to-r from-sky-400 to-cyan-500"
                             animate={{ width: `${((currentStep + 1) / TOUR_STEPS.length) * 100}%` }}
                             transition={{ duration: 0.3 }}
@@ -326,7 +330,7 @@ export function OnboardingTour() {
                                 </div>
                                 <div>
                                     <h3 className="text-sm font-bold text-white">{step.title}</h3>
-                                    <p className="text-[10px] text-white/40">Step {currentStep + 1} of {TOUR_STEPS.length}</p>
+                                    <p className="text-[10px] text-white/40">{t("tour.stepXofY", { current: (currentStep + 1).toString(), total: TOUR_STEPS.length.toString() })}</p>
                                 </div>
                             </div>
                             <button
@@ -352,8 +356,8 @@ export function OnboardingTour() {
                                         key={i}
                                         className={cn(
                                             "h-1.5 rounded-full transition-all duration-300",
-                                            i === currentStep 
-                                                ? "w-4 bg-gradient-to-r from-sky-400 to-cyan-500" 
+                                            i === currentStep
+                                                ? "w-4 bg-gradient-to-r from-sky-400 to-cyan-500"
                                                 : "w-1.5 bg-white/20"
                                         )}
                                     />
@@ -369,7 +373,7 @@ export function OnboardingTour() {
                                         className="flex items-center gap-0.5 px-2.5 py-1.5 text-[11px] font-medium text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-all cursor-pointer"
                                     >
                                         <ChevronLeft className="w-3 h-3" />
-                                        Back
+                                        {t("tour.back")}
                                     </button>
                                 )}
                                 <button
@@ -377,7 +381,7 @@ export function OnboardingTour() {
                                     onClick={handleNext}
                                     className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-white bg-gradient-to-r from-sky-400 to-cyan-500 rounded-lg shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
                                 >
-                                    {currentStep === TOUR_STEPS.length - 1 ? "Done" : "Next"}
+                                    {currentStep === TOUR_STEPS.length - 1 ? t("tour.done") : t("tour.next")}
                                     <ArrowRight className="w-3 h-3" />
                                 </button>
                             </div>

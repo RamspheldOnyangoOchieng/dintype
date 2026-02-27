@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { useAuth } from "@/components/auth-context"
 import { generateTelegramLinkCode } from "@/lib/telegram-actions"
+import { useTranslations } from "@/lib/use-translations"
 
 interface MeetOnTelegramButtonProps {
   characterId: string
@@ -25,6 +26,7 @@ export function MeetOnTelegramButton({
   className
 }: MeetOnTelegramButtonProps) {
   const { user } = useAuth()
+  const { t } = useTranslations()
   const [isLoading, setIsLoading] = useState(false)
 
   const handleMeetOnTelegram = async () => {
@@ -36,20 +38,20 @@ export function MeetOnTelegramButton({
 
         if (result.success && result.linkUrl) {
           window.open(result.linkUrl, "_blank")
-          toast.success("Opening Telegram... Connect with " + characterName)
+          toast.success(t("chat.openingTelegramConnect", { name: characterName }))
         } else {
-          toast.error(result.error || "Could not generate Telegram link")
+          toast.error(t("chat.couldNotGenerateLink"))
         }
       } else {
         // For guest users, use a simple character deep link (fallback)
         // We can generate this directly on the client
         const guestLink = `https://t.me/dintypebot?start=char_${characterId}`
         window.open(guestLink, "_blank")
-        toast.info("Opening Telegram as guest...")
+        toast.info(t("chat.openingTelegramGuest"))
       }
     } catch (error) {
       console.error("Telegram link error:", error)
-      toast.error("Something went wrong. Try again.")
+      toast.error(t("status.failed"))
     } finally {
       setIsLoading(false)
     }
@@ -67,7 +69,7 @@ export function MeetOnTelegramButton({
       ) : (
         <Send className="mr-2 h-5 w-5" />
       )}
-      Meet on Telegram
+      {t("chat.meetOnTelegram")}
     </Button>
   )
 }
