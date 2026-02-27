@@ -595,14 +595,14 @@ export function GuideContent() {
             <p>Need help? We're here for you!</p>
 
             <div className="grid md:grid-cols-2 gap-4">
-              <Link href="/vanliga-fragor" className="border border-border rounded-lg p-5 hover:border-primary transition-colors space-y-2">
+              <Link href="/faq" className="border border-border rounded-lg p-5 hover:border-primary transition-colors space-y-2">
                 <h3 className="font-semibold text-lg text-zinc-800 dark:text-white">❓ FAQ</h3>
                 <p className="text-sm text-muted-foreground">
                   Find answers to the most frequently asked questions.
                 </p>
               </Link>
 
-              <Link href="/kontakt" className="border border-border rounded-lg p-5 hover:border-primary transition-colors space-y-2">
+              <Link href="/kontakta" className="border border-border rounded-lg p-5 hover:border-primary transition-colors space-y-2">
                 <h3 className="font-semibold text-lg text-zinc-800 dark:text-white">📧 Contact Support</h3>
                 <p className="text-sm text-muted-foreground">
                   Send a message to our support team.

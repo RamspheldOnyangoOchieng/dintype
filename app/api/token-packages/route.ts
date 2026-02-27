@@ -21,7 +21,7 @@ export async function GET() {
         const formattedPackages = (data as any[] || []).map(pkg => ({
             ...pkg,
             // Fallback for UI if specific fields aren't present
-            priceDisplay: pkg.price_display || `$ ${pkg.price}`,
+            priceDisplay: pkg.price_display || `${pkg.price} kr`,
         }))
 
 

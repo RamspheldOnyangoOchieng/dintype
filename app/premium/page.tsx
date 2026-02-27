@@ -46,6 +46,14 @@ interface TokenPackage {
   priceDisplay: string
 }
 
+interface SubscriptionPlan {
+  id: string
+  name: string
+  original_price: number
+  discounted_price: number | null
+  currency: string
+}
+
 export default function PremiumPage() {
   const [tokenPackages, setTokenPackages] = useState<TokenPackage[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -56,13 +64,14 @@ export default function PremiumPage() {
   const [selectedTokenPackageId, setSelectedTokenPackageId] = useState<string | null>(null)
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
   const [lastGrantedAmount, setLastGrantedAmount] = useState(0)
+  const [monthlyPlan, setMonthlyPlan] = useState<SubscriptionPlan | null>(null)
 
   const router = useRouter()
   const { user, refreshUser } = useAuth()
   const { t } = useTranslations()
   const statusCheckRef = useRef<boolean>(false)
 
-  // Fetch token packages
+  // Fetch token packages and subscription plan
   useEffect(() => {
     const fetchPackages = async () => {
       try {
@@ -75,7 +84,21 @@ export default function PremiumPage() {
         console.error("Error fetching packages:", error)
       }
     }
+    const fetchSubscriptionPlan = async () => {
+      try {
+        const response = await fetch("/api/subscription-plans")
+        const data = await response.json()
+        // The API returns an array of plans; find monthly plan
+        if (Array.isArray(data)) {
+          const monthly = data.find((p: any) => p.id === "monthly")
+          if (monthly) setMonthlyPlan(monthly)
+        }
+      } catch (error) {
+        console.error("Error fetching subscription plan:", error)
+      }
+    }
     fetchPackages()
+    fetchSubscriptionPlan()
   }, [])
 
   useEffect(() => {
@@ -111,7 +134,7 @@ export default function PremiumPage() {
 
   const handlePremiumPurchase = async () => {
     if (!user) {
-      toast.error("Please log in to purchase Premium")
+      toast.error(t("premium.pleaseLogin"))
       router.push("/login?redirect=/premium")
       return
     }
@@ -143,7 +166,7 @@ export default function PremiumPage() {
       window.location.href = data.url
     } catch (error) {
       console.error("Payment error:", error)
-      toast.error("Could not complete purchase. Please try again.")
+      toast.error(t("general.errorTryAgain"))
     } finally {
       setIsLoading(false)
     }
@@ -151,12 +174,12 @@ export default function PremiumPage() {
 
   const handleTokenPurchase = async () => {
     if (!selectedTokenPackageId) {
-      toast.error("Please select a token package")
+      toast.error(t("premium.selectPackage"))
       return
     }
 
     if (!user) {
-      toast.error("Please log in to buy tokens")
+      toast.error(t("premium.pleaseLogin"))
       router.push("/login?redirect=/premium")
       return
     }
@@ -199,13 +222,13 @@ export default function PremiumPage() {
     }
 
     if (!isPremium && !user.isAdmin) {
-      toast.error("Only Premium users can buy tokens")
+      toast.error(t("premium.premiumRequiredForTokens"))
       return
     }
 
     // New rule: Premium users can only buy tokens when they have used up their free ones
     if (isPremium && !user.isAdmin && tokenBalance > 0) {
-      toast.error("You still have tokens left. You can buy more when your balance is 0.")
+      toast.error(t("premium.tokensRemaining"))
       return
     }
 
@@ -324,7 +347,7 @@ export default function PremiumPage() {
           <Card className="group relative overflow-hidden border-border/40 bg-card/30 backdrop-blur-lg flex flex-col transition-all hover:bg-card/40">
             <CardHeader className="p-6 pb-2">
               <CardTitle className="text-xl font-bold italic">{t("premium.freePlan")}</CardTitle>
-              $ 0 <span className="text-xs font-medium text-muted-foreground italic">{t("premium.perMonth")}</span>
+              0 kr <span className="text-xs font-medium text-muted-foreground italic">{t("premium.perMonth")}</span>
             </CardHeader>
             <CardContent className="p-6 pt-4 space-y-4 flex-grow">
               <div className="space-y-3">
@@ -360,7 +383,21 @@ export default function PremiumPage() {
               <CardTitle className="text-xl font-bold flex items-center gap-2 italic">
                 {t("premium.premiumPlan")} <Sparkles className="w-4 h-4 text-primary animate-pulse" />
               </CardTitle>
-              $ 11.99 <span className="text-xs font-medium text-muted-foreground italic">{t("premium.perMonth")}</span>
+              {monthlyPlan ? (
+                <>
+                  {monthlyPlan.discounted_price !== null ? (
+                    <>
+                      <span className="line-through text-muted-foreground text-sm mr-1">{monthlyPlan.original_price} kr</span>
+                      <span className="text-primary font-black">{monthlyPlan.discounted_price} kr</span>
+                    </>
+                  ) : (
+                    <span>{monthlyPlan.original_price} kr</span>
+                  )}
+                  <span className="text-xs font-medium text-muted-foreground italic ml-1">{t("premium.perMonth")}</span>
+                </>
+              ) : (
+                <>129 kr <span className="text-xs font-medium text-muted-foreground italic">{t("premium.perMonth")}</span></>
+              )}
             </CardHeader>
 
             <CardContent className="p-6 pt-4 space-y-4 flex-grow">

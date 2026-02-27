@@ -10,6 +10,146 @@ export type TranslationKey =
   | "general.next"
   | "general.delete"
   | "general.edit"
+  | "general.success"
+  | "guide.createAccount"
+  | "guide.accountS1"
+  | "guide.accountS1Desc"
+  | "guide.accountS2"
+  | "guide.accountS2Desc"
+  | "guide.accountS2Option1"
+  | "guide.accountS2Option2"
+  | "guide.accountS2Option3"
+  | "guide.accountS3"
+  | "guide.accountS3Desc"
+  | "guide.accountS4"
+  | "guide.accountS4Desc"
+  | "guide.accountTip"
+  | "guide.genIntro"
+  | "guide.howToGen"
+  | "guide.genS1"
+  | "guide.genS1Desc"
+  | "guide.genS2"
+  | "guide.genS2Desc"
+  | "guide.genS2Example"
+  | "guide.genS2Prompt"
+  | "guide.genS3"
+  | "guide.genS3Desc"
+  | "guide.genS4"
+  | "guide.genS4Desc"
+  | "guide.genS4Item1"
+  | "guide.genS4Item2"
+  | "guide.genS4Item3"
+  | "guide.genS4Item4"
+  | "guide.genS5"
+  | "guide.genS5Desc"
+  | "guide.genS6"
+  | "guide.genS6Desc"
+  | "guide.manageGen"
+  | "guide.autoSave"
+  | "guide.autoSaveDesc"
+  | "guide.imgMgmt"
+  | "guide.imgMgmtDesc"
+  | "guide.imgMgmtItem1"
+  | "guide.imgMgmtItem2"
+  | "guide.imgMgmtItem3"
+  | "guide.imgMgmtItem4"
+  | "guide.imgMgmtItem5"
+  | "guide.imgMgmtItem6"
+  | "guide.createCharTitle"
+  | "guide.charWizard"
+  | "guide.charWizardDesc"
+  | "guide.charS1"
+  | "guide.charS1Desc"
+  | "guide.charS1Age"
+  | "guide.charS1Body"
+  | "guide.charS1Ethnicity"
+  | "guide.charS1Lang"
+  | "guide.charS1Rel"
+  | "guide.charS1Occ"
+  | "guide.charS1Hobby"
+  | "guide.charS1Pers"
+  | "guide.charS1Note"
+  | "guide.charS2"
+  | "guide.charS2Desc"
+  | "guide.charS3"
+  | "guide.charS3Desc"
+  | "guide.charS4"
+  | "guide.charS4Desc"
+  | "guide.charS5"
+  | "guide.charS5Desc"
+  | "guide.charS6"
+  | "guide.charS6Desc"
+  | "guide.charS6Note"
+  | "guide.charWizardTip"
+  | "guide.exploreChar"
+  | "guide.exploreCharDesc"
+  | "guide.startConv"
+  | "guide.convS1"
+  | "guide.convS1Desc"
+  | "guide.convS2"
+  | "guide.convS2Desc"
+  | "guide.convS3"
+  | "guide.convS3Desc"
+  | "guide.chatFeaturesTitle"
+  | "guide.chatAutoSave"
+  | "guide.chatAutoSaveDesc"
+  | "guide.chatClear"
+  | "guide.chatClearDesc"
+  | "guide.chatSidebar"
+  | "guide.chatSidebarDesc"
+  | "guide.chatImgReq"
+  | "guide.chatImgReqDesc"
+  | "guide.chatVoice"
+  | "guide.chatVoiceDesc"
+  | "guide.chatTipsTitle"
+  | "guide.chatCtx"
+  | "guide.chatCtxDesc"
+  | "guide.chatAdapt"
+  | "guide.chatAdaptDesc"
+  | "guide.chatClearNeed"
+  | "guide.chatClearNeedDesc"
+  | "guide.chatRules"
+  | "guide.chatRulesDesc"
+  | "guide.tokensTitle"
+  | "guide.tokensDesc"
+  | "guide.tokenCost1"
+  | "guide.tokenCost4"
+  | "guide.tokenCost6"
+  | "guide.tokenCost8"
+  | "guide.buyTokenTitle"
+  | "guide.buyTokenDesc"
+  | "guide.howToBuy"
+  | "guide.buyS1"
+  | "guide.buyS2"
+  | "guide.buyS3"
+  | "guide.buyS4"
+  | "guide.buyS5"
+  | "guide.buyS6"
+  | "guide.premiumTitle"
+  | "guide.premiumDesc"
+  | "guide.premiumNote"
+  | "guide.premiumCTA"
+  | "guide.profTitle"
+  | "guide.profDesc"
+  | "guide.profAvail"
+  | "guide.profNick"
+  | "guide.profGender"
+  | "guide.profEmail"
+  | "guide.profPass"
+  | "guide.profPlan"
+  | "guide.delAcc"
+  | "guide.delAccDesc"
+  | "guide.delAccWarn"
+  | "guide.supportDesc"
+  | "guide.supportFaq"
+  | "guide.supportFaqDesc"
+  | "guide.supportContact"
+  | "guide.supportContactDesc"
+  | "guide.readyTitle"
+  | "guide.readyDesc"
+  | "guide.createCharBtn"
+  | "guide.genImgBtn"
+  | "general.error"
   | "general.close"
   | "general.confirm"
   | "general.home"
@@ -763,6 +903,9 @@ export type TranslationKey =
   | "profile.noActivity"
   | "auth.loginSuccess"
   | "general.loading"
+  | "general.errorTryAgain"
+  | "premium.pleaseLogin"
+  | "premium.tokensRemaining"
   // Footer column headings
   | "footer.colAiCompanions"
   | "footer.colLegal"
@@ -1216,6 +1359,30 @@ export type TranslationKey =
   | "howItWorks.ctaTitle"
   | "howItWorks.ctaDesc"
   | "howItWorks.ctaButton"
+  | "howItWorks.step1List1"
+  | "howItWorks.step1List2"
+  | "howItWorks.step1List3"
+  | "howItWorks.step1Button"
+  | "howItWorks.step2List1"
+  | "howItWorks.step2List2"
+  | "howItWorks.step2List3"
+  | "howItWorks.step2Button"
+  | "howItWorks.step3List1"
+  | "howItWorks.step3List2"
+  | "howItWorks.step3List3"
+  | "howItWorks.step3Button"
+  | "howItWorks.featuresTitle"
+  | "howItWorks.feature1Title"
+  | "howItWorks.feature1Desc"
+  | "howItWorks.feature2Title"
+  | "howItWorks.feature2Desc"
+  | "howItWorks.feature3Title"
+  | "howItWorks.feature3Desc"
+  | "howItWorks.fullGuideButton"
+  | "howItWorks.questions"
+  | "howItWorks.or"
+  | "howItWorks.visitFaq"
+  | "howItWorks.contactSupport"
   // Contact page
   | "contact.title"
   | "contact.subtitle"
@@ -1316,6 +1483,107 @@ export type TranslationKey =
   | "terms.changesToTerms"
   | "terms.changesToTermsDesc"
   | "terms.contactUs"
+  | "terms.contactUsLink"
+  | "cookies.effectiveDate"
+  | "cookies.lastUpdated"
+  | "cookies.browserControl"
+  | "contact.howCanWeHelp"
+  | "contact.howCanWeHelpDesc"
+  | "contact.accountHelpItem1"
+  | "contact.accountHelpItem2"
+  | "contact.accountHelpItem3"
+  | "contact.accountHelpItem4"
+  | "contact.techHelpItem1"
+  | "contact.techHelpItem2"
+  | "contact.techHelpItem3"
+  | "contact.techHelpItem4"
+  | "contact.billingHelpItem1"
+  | "contact.billingHelpItem2"
+  | "contact.billingHelpItem3"
+  | "contact.billingHelpItem4"
+  | "contact.billingHelpItem5"
+  | "contact.safetyHelpItem1"
+  | "contact.safetyHelpItem2"
+  | "contact.safetyHelpItem3"
+  | "contact.safetyHelpItem4"
+  | "contact.generalHelpItem1"
+  | "contact.generalHelpItem2"
+  | "contact.generalHelpItem3"
+  | "contact.howToContact"
+  | "contact.howToContactDesc"
+  | "contact.liveChat"
+  | "contact.liveChatDesc"
+  | "contact.responseTime"
+  | "contact.expectedQuick"
+  | "contact.expectedQuickDesc"
+  | "contact.expectedEfficient"
+  | "contact.expectedEfficientDesc"
+  | "contact.expectedProfessional"
+  | "contact.expectedProfessionalDesc"
+  | "contact.expectedConfidential"
+  | "contact.expectedConfidentialDesc"
+  | "contact.expectedImpartial"
+  | "contact.expectedImpartialDesc"
+  | "contact.valueFeedback"
+  | "contact.valueFeedbackDesc"
+  | "roadmap.productDev"
+  | "roadmap.description"
+  | "roadmap.doneLaunched"
+  | "roadmap.featuresAvailable"
+  | "roadmap.workingOnNow"
+  | "roadmap.comingSoon"
+  | "roadmap.feature1Title"
+  | "roadmap.feature1Desc"
+  | "roadmap.feature1Date"
+  | "roadmap.feature2Title"
+  | "roadmap.feature2Desc"
+  | "roadmap.feature2Date"
+  | "roadmap.feature3Title"
+  | "roadmap.feature3Desc"
+  | "roadmap.feature3Date"
+  | "roadmap.feature4Title"
+  | "roadmap.feature4Desc"
+  | "roadmap.feature4Date"
+  | "roadmap.feature5Title"
+  | "roadmap.feature5Desc"
+  | "roadmap.feature5Date"
+  | "roadmap.feature6Title"
+  | "roadmap.feature6Desc"
+  | "roadmap.feature6Date"
+  | "roadmap.inProgress1Title"
+  | "roadmap.inProgress1Desc"
+  | "roadmap.inProgress1Date"
+  | "roadmap.inProgress2Title"
+  | "roadmap.inProgress2Desc"
+  | "roadmap.inProgress2Date"
+  | "roadmap.inProgress3Title"
+  | "roadmap.inProgress3Desc"
+  | "roadmap.inProgress3Date"
+  | "roadmap.inProgress4Title"
+  | "roadmap.inProgress4Desc"
+  | "roadmap.inProgress4Date"
+  | "roadmap.upcoming1Title"
+  | "roadmap.upcoming1Desc"
+  | "roadmap.upcoming1Date"
+  | "roadmap.upcoming2Title"
+  | "roadmap.upcoming2Desc"
+  | "roadmap.upcoming2Date"
+  | "roadmap.upcoming3Title"
+  | "roadmap.upcoming3Desc"
+  | "roadmap.upcoming3Date"
+  | "roadmap.upcoming4Title"
+  | "roadmap.upcoming4Desc"
+  | "roadmap.upcoming4Date"
+  | "roadmap.upcoming5Title"
+  | "roadmap.upcoming5Desc"
+  | "roadmap.upcoming5Date"
+  | "roadmap.upcoming6Title"
+  | "roadmap.upcoming6Desc"
+  | "roadmap.upcoming6Date"
+  | "roadmap.feedbackTitle"
+  | "roadmap.feedbackDesc"
+  | "roadmap.noteTitle"
+  | "roadmap.noteDesc"
   | "terms.contactUsDesc"
   | "terms.supportTitle"
   // Privacy page
@@ -1489,6 +1757,51 @@ export type TranslationKey =
   | "report.improvement"
   | "report.needToReport"
   | "report.sendReport"
+  | "report.whatToReportList"
+  | "report.catIllegal"
+  | "report.catIllegalDesc"
+  | "report.catTerms"
+  | "report.catTermsDesc"
+  | "report.catGuidelines"
+  | "report.catGuidelinesDesc"
+  | "report.catItem1"
+  | "report.catItem2"
+  | "report.catItem3"
+  | "report.catItem4"
+  | "report.catItem5"
+  | "report.catItem6"
+  | "report.catItem7"
+  | "report.catItem8"
+  | "report.howToSubmitDesc"
+  | "report.inPlatformDesc"
+  | "report.contactSupportDesc"
+  | "report.infoName"
+  | "report.infoNameDesc"
+  | "report.infoDescription"
+  | "report.infoDescriptionDesc"
+  | "report.infoDate"
+  | "report.infoDateDesc"
+  | "report.infoDocs"
+  | "report.infoDocsDesc"
+  | "report.infoCategory"
+  | "report.infoCategoryDesc"
+  | "report.afterSubmitDesc"
+  | "report.acknowledgementDesc"
+  | "report.reviewInvestigationDesc"
+  | "report.actionsTakenDesc"
+  | "report.action1"
+  | "report.action1Desc"
+  | "report.action2"
+  | "report.action2Desc"
+  | "report.action3"
+  | "report.action3Desc"
+  | "report.action4"
+  | "report.action4Desc"
+  | "report.timelineDesc"
+  | "report.falseReportingDesc"
+  | "report.objectivityDesc"
+  | "report.improvementDesc"
+  | "report.closing"
   // Roadmap page
   | "roadmap.title"
   | "roadmap.subtitle"
@@ -1566,8 +1879,247 @@ export const translations: Record<"en" | "sv", Translations> = {
     "general.close": "Close",
     "general.confirm": "Confirm",
     "general.loading": "Loading...",
+    "general.errorTryAgain": "Could not complete purchase. Please try again.",
     "general.error": "An error occurred",
     "general.success": "Success",
+    "cookies.effectiveDate": "Effective Date",
+    "cookies.lastUpdated": "Last Updated",
+    "cookies.browserControl": "Browser-specific Cookie Control:",
+    "contact.howCanWeHelp": "How can we help you today?",
+    "contact.howCanWeHelpDesc": "Our knowledgeable support team can assist you with a wide variety of topics, including:",
+    "contact.accountHelpItem1": "Troubleshooting login issues (e.g., password reset, account recovery)",
+    "contact.accountHelpItem2": "Guidance on managing your profile settings and customizing your account",
+    "contact.accountHelpItem3": "Assistance with account verification processes",
+    "contact.accountHelpItem4": "Help with updating your account information",
+    "contact.techHelpItem1": "Resolving technical issues, bugs, or performance problems on our website, in our app(s), or in our services",
+    "contact.techHelpItem2": "Providing guidance on browser and app compatibility",
+    "contact.techHelpItem3": "Assisting with troubleshooting error messages",
+    "contact.techHelpItem4": "Offering solutions for connectivity problems",
+    "contact.billingHelpItem1": "Clarifying transaction details and billing cycles",
+    "contact.billingHelpItem2": "Providing information about our subscription plans and pricing",
+    "contact.billingHelpItem3": "Answering questions related to payment methods and processing",
+    "contact.billingHelpItem4": "Handling inquiries regarding potential refunds",
+    "contact.billingHelpItem5": "Helping to manage or cancel your subscriptions",
+    "contact.safetyHelpItem1": "Providing clarifications on our Terms of Use and Community Guidelines",
+    "contact.safetyHelpItem2": "Handling reports and complaints about user-generated content or behavior (see our Complaints and Reports Policy)",
+    "contact.safetyHelpItem3": "Answering questions about content moderation processes",
+    "contact.safetyHelpItem4": "Guiding you on how to report violations",
+    "contact.generalHelpItem1": "Providing information on how to use specific features of Dintype (e.g., AI character creation, image generation, chat features)",
+    "contact.generalHelpItem2": "Offering tips and tricks to improve your experience",
+    "contact.generalHelpItem3": "Answering questions about feature limitations or updates",
+    "contact.howToContact": "How to Contact Us",
+    "contact.howToContactDesc": "We offer several convenient ways to reach our support team:",
+    "contact.liveChat": "Live Chat",
+    "contact.liveChatDesc": "For quick questions and real-time help, our Live Chat feature is often available on our website and in our app(s). Look for the chat icon in the bottom right corner of the screen.",
+    "contact.responseTime": "We strive to respond to all email inquiries within 24 hours.",
+    "contact.expectedQuick": "Quick acknowledgement",
+    "contact.expectedQuickDesc": "We aim to acknowledge all inquiries within 24 hours of receipt.",
+    "contact.expectedEfficient": "Efficient and effective assistance",
+    "contact.expectedEfficientDesc": "Our team is dedicated to providing you with accurate and helpful solutions as quickly as possible.",
+    "contact.expectedProfessional": "Professional and respectful communication",
+    "contact.expectedProfessionalDesc": "You can expect to be treated with courtesy and respect by our support agents.",
+    "contact.expectedConfidential": "Confidentiality",
+    "contact.expectedConfidentialDesc": "We handle your personal information and support inquiries with the utmost confidentiality, in accordance with our Privacy Policy.",
+    "contact.expectedImpartial": "Impartiality",
+    "contact.expectedImpartialDesc": "We strive to handle all matters fairly and impartially, in accordance with our policies and guidelines.",
+    "contact.valueFeedback": "We value your feedback",
+    "contact.valueFeedbackDesc": "Your feedback is essential in helping us improve our services and support. After interacting with our support team, you may receive a survey or be invited to share your experience. We encourage you to provide your honest feedback so we can continue to enhance our support services.",
+    "roadmap.productDev": "Product Development",
+    "roadmap.description": "Our product roadmap shows what we have accomplished and what we are planning for the future.",
+    "roadmap.doneLaunched": "Done & Launched",
+    "roadmap.featuresAvailable": "Features that are already available on the platform",
+    "roadmap.workingOnNow": "What our team is working on right now",
+    "roadmap.comingSoon": "Exciting features planned for the future",
+    "roadmap.feature1Title": "AI Character Creation",
+    "roadmap.feature1Desc": "Full 6-step wizard to create custom AI characters with personality, appearance, and traits.",
+    "roadmap.feature1Date": "Launched Q4 2024",
+    "roadmap.feature2Title": "AI Image Generation",
+    "roadmap.feature2Desc": "Powerful image generator supporting 1-8 images simultaneously, negative prompts, and automatic saving to gallery.",
+    "roadmap.feature2Date": "Launched Q4 2024",
+    "roadmap.feature3Title": "Intelligent Chat Feature",
+    "roadmap.feature3Desc": "Real-time AI conversations with context awareness, personality adaptation, and chat history.",
+    "roadmap.feature3Date": "Launched Q4 2024",
+    "roadmap.feature4Title": "Premium System",
+    "roadmap.feature4Desc": "Token-based system with premium memberships, Stripe payments, and automatic invoice management.",
+    "roadmap.feature4Date": "Launched Q4 2024",
+    "roadmap.feature5Title": "Collections & Gallery",
+    "roadmap.feature5Desc": "Organize and manage generated images with collections, favorites, and download feature.",
+    "roadmap.feature5Date": "Launched Q4 2024",
+    "roadmap.feature6Title": "OAuth Login",
+    "roadmap.feature6Desc": "Easy login with Google, Discord, and Twitter/X in addition to traditional email/password.",
+    "roadmap.feature6Date": "Launched Q1 2025",
+    "roadmap.inProgress1Title": "Voice Generation (TTS)",
+    "roadmap.inProgress1Desc": "Text-to-speech for characters so they can \"speak\" their messages with unique voices.",
+    "roadmap.inProgress1Date": "Expected Q1 2025",
+    "roadmap.inProgress2Title": "Improved Admin Dashboard",
+    "roadmap.inProgress2Desc": "Extended administrator panel with user management, ban feature, cost logging, and detailed statistics.",
+    "roadmap.inProgress2Date": "Expected Q1 2025",
+    "roadmap.inProgress3Title": "Mobile App (PWA)",
+    "roadmap.inProgress3Desc": "Progressive Web App for a better mobile experience with offline support and push notifications.",
+    "roadmap.inProgress3Date": "Expected Q2 2025",
+    "roadmap.inProgress4Title": "Community Features",
+    "roadmap.inProgress4Desc": "Share characters, follow other users, comment, and like creations in the community feed.",
+    "roadmap.inProgress4Date": "Expected Q2 2025",
+    "roadmap.upcoming1Title": "Video Calls with AI",
+    "roadmap.upcoming1Desc": "Live video calls where the character's face is animated based on the conversation with lipsync and emotions.",
+    "roadmap.upcoming1Date": "Planned Q3 2025",
+    "roadmap.upcoming2Title": "Voice Cloning",
+    "roadmap.upcoming2Desc": "Upload voice samples to give your character a completely unique and natural voice based on real recordings.",
+    "roadmap.upcoming2Date": "Planned Q3 2025",
+    "roadmap.upcoming3Title": "Multi-language Support",
+    "roadmap.upcoming3Desc": "Expanded support for more languages beyond Swedish and English, including automatic real-time translation.",
+    "roadmap.upcoming3Date": "Planned Q3 2025",
+    "roadmap.upcoming4Title": "AI Model Selection",
+    "roadmap.upcoming4Desc": "Choose between different AI models (GPT-4, Claude, Gemini) for varying personality types and response styles.",
+    "roadmap.upcoming4Date": "Planned Q4 2025",
+    "roadmap.upcoming5Title": "Character Marketplace",
+    "roadmap.upcoming5Desc": "Buy and sell characters, image packs, and prompt templates from other creators in the community.",
+    "roadmap.upcoming5Date": "Planned Q4 2025",
+    "roadmap.upcoming6Title": "Developer API",
+    "roadmap.upcoming6Desc": "Open API to integrate Dintype.se's features into your own applications and services.",
+    "roadmap.upcoming6Date": "Planned 2026",
+    "roadmap.feedbackTitle": "Your feedback is important!",
+    "roadmap.feedbackDesc": "Want to see a specific feature? Have ideas on how we can improve the platform? We listen to our users, and your feedback shapes our roadmap.",
+    "roadmap.noteTitle": "NOTE:",
+    "roadmap.noteDesc": "All dates are estimates and subject to change based on development priorities and user feedback. We always strive for the highest quality in every release.",
+    "guide.createAccount": "Create Your Account",
+    "guide.accountS1": "Step 1: Open the login box",
+    "guide.accountS1Desc": "Click the \"Login\" button in the top right corner of the page.",
+    "guide.accountS2": "Step 2: Choose registration method",
+    "guide.accountS2Desc": "You have three options:",
+    "guide.accountS2Option1": "Email and Password: Fill in your email address and choose a secure password",
+    "guide.accountS2Option2": "Google: Log in with your Google account",
+    "guide.accountS2Option3": "Discord: Log in with your Discord account",
+    "guide.accountS3": "Step 3: Click \"Create account\"",
+    "guide.accountS3Desc": "If you see the login box, click the \"Create account\" link at the bottom to switch to the registration form.",
+    "guide.accountS4": "Step 4: Done!",
+    "guide.accountS4Desc": "You are now logged in and can start exploring the platform.",
+    "guide.accountTip": "If you've forgotten your password, you can click the \"Forgot password?\" link in the login box to reset it.",
+    "guide.genIntro": "Create unique AI-generated images with our advanced image generator.",
+    "guide.howToGen": "How to Generate Images:",
+    "guide.genS1": "Navigate to Create Image",
+    "guide.genS1Desc": "Find \"Create Image\" in the menu or sidebar.",
+    "guide.genS2": "Write your prompt",
+    "guide.genS2Desc": "Describe in detail what you want to see in the image. The more specific the description, the better the result.",
+    "guide.genS2Example": "Example of a good prompt:",
+    "guide.genS2Prompt": "A young woman with long brown hair, blue eyes, friendly smile, sunset in background, photo-realistic style",
+    "guide.genS3": "Add negative prompt (optional)",
+    "guide.genS3Desc": "Click on \"Show negative prompt\" to specify what you DO NOT want in the image. Example: \"blurry, poor quality, distorted\"",
+    "guide.genS4": "Select number of images",
+    "guide.genS4Desc": "Choose how many images you want to generate simultaneously:",
+    "guide.genS4Item1": "1 image: 5 tokens",
+    "guide.genS4Item2": "4 images: 20 tokens",
+    "guide.genS4Item3": "6 images: 30 tokens",
+    "guide.genS4Item4": "8 images: 40 tokens",
+    "guide.genS5": "Use suggestions (optional)",
+    "guide.genS5Desc": "Above the prompt field, there are categories with suggestions. Click a category and then a suggestion to quickly fill in a prompt.",
+    "guide.genS6": "Click \"Generate\"",
+    "guide.genS6Desc": "Your images are generated in seconds. You can see the progress indicator while the images are being created.",
+    "guide.manageGen": "Manage Generated Images",
+    "guide.autoSave": "Automatic saving in Gallery",
+    "guide.autoSaveDesc": "All generated images are automatically saved in your Gallery (Collection). You don't have to do anything - they are there immediately after generation.",
+    "guide.imgMgmt": "Image Management",
+    "guide.imgMgmtDesc": "In the gallery, you can:",
+    "guide.imgMgmtItem1": "Mark images as favorites with the heart icon",
+    "guide.imgMgmtItem2": "Download images to your device",
+    "guide.imgMgmtItem3": "Delete images you don't want to keep",
+    "guide.imgMgmtItem4": "Create collections to organize your images",
+    "guide.imgMgmtItem5": "Add images to specific collections",
+    "guide.imgMgmtItem6": "Use selection mode to manage multiple images at once",
+    "guide.createCharTitle": "Create AI Character",
+    "guide.charWizard": "6-step Guided Process",
+    "guide.charWizardDesc": "Our character creator uses a 6-step wizard that guides you through the process:",
+    "guide.charS1": "Step 1: Choose style and model",
+    "guide.charS1Desc": "Start by choosing from existing character templates. You can filter based on:",
+    "guide.charS1Age": "Age",
+    "guide.charS1Body": "Body",
+    "guide.charS1Ethnicity": "Ethnicity",
+    "guide.charS1Lang": "Language",
+    "guide.charS1Rel": "Relationship",
+    "guide.charS1Occ": "Occupation",
+    "guide.charS1Hobby": "Hobbies",
+    "guide.charS1Pers": "Personality",
+    "guide.charS1Note": "When you use filters, matching characters are highlighted. Click on one to select it as your base.",
+    "guide.charS2": "Step 2: Basic Info",
+    "guide.charS2Desc": "Review the character's basic traits: Age, Body, and Ethnicity.",
+    "guide.charS3": "Step 3: Communication",
+    "guide.charS3Desc": "Set how the character communicates: Language and Relationship Status.",
+    "guide.charS4": "Step 4: Career",
+    "guide.charS4Desc": "Review the character's Occupation.",
+    "guide.charS5": "Step 5: Personality",
+    "guide.charS5Desc": "See the character's hobbies and personality traits displayed as badges/tags.",
+    "guide.charS6": "Step 6: Final Preview",
+    "guide.charS6Desc": "Review all information about your character: Name, Profile Picture, Description, and all summarized traits.",
+    "guide.charS6Note": "Click \"Create my AI\" to finish!",
+    "guide.charWizardTip": "You can navigate back and forth between steps using the arrow buttons to adjust your choices.",
+    "guide.exploreChar": "Explore Existing Characters",
+    "guide.exploreCharDesc": "Go to the Characters page to browse all available AI characters. Click \"View Character\" or \"New Character\" to create or chat.",
+    "guide.startConv": "Start a Conversation",
+    "guide.convS1": "Find a Character",
+    "guide.convS1Desc": "Go to Characters to see all available characters, or go to Chat to see your recent conversations.",
+    "guide.convS2": "Click the Character",
+    "guide.convS2Desc": "Click a character card to open the chat window with that character.",
+    "guide.convS3": "Start Talking",
+    "guide.convS3Desc": "Type your message in the text field at the bottom and press Enter or click the send button (arrow icon). The character responds based on its personality and conversation history.",
+    "guide.chatFeaturesTitle": "Chat Features",
+    "guide.chatAutoSave": "Automatic Saving",
+    "guide.chatAutoSaveDesc": "All chat history is saved automatically. You can see your previous conversations on the Chat page under \"Recent Conversations\".",
+    "guide.chatClear": "Clear Chat",
+    "guide.chatClearDesc": "Click on the menu icon (three dots) at the top of the chat window to open the menu. Select the option to clear chat history. This starts a brand new conversation without previous context.",
+    "guide.chatSidebar": "Chat List Sidebar",
+    "guide.chatSidebarDesc": "In the chat window, you can open the sidebar to see all the characters you have chatted with. It shows the latest message from each conversation. Click a character to switch conversations.",
+    "guide.chatImgReq": "Request Images in Chat",
+    "guide.chatImgReqDesc": "The AI can identify when you ask for images. Write something like \"Show me a picture of...\" or \"Create an image of...\" and the character will generate an image based on your description.",
+    "guide.chatVoice": "Voice Features (Experimental)",
+    "guide.chatVoiceDesc": "Some characters may have voice features where you can listen to the AI's response. Click the speaker icon to hear the message read aloud.",
+    "guide.chatTipsTitle": "Chat Tips",
+    "guide.chatCtx": "Context Awareness",
+    "guide.chatCtxDesc": "The AI remembers the entire conversation history in the current session, so you can refer back to previous topics.",
+    "guide.chatAdapt": "Personality Adaptation",
+    "guide.chatAdaptDesc": "Each character has its own personality, occupation, hobbies, and communication style based on its traits.",
+    "guide.chatClearNeed": "Clear When Needed",
+    "guide.chatClearNeedDesc": "If the conversation feels outdated or you want to start over, use the \"Clear Chat\" feature for a fresh start.",
+    "guide.chatRules": "Follow Guidelines",
+    "guide.chatRulesDesc": "Keep conversations respectful and follow our Community Guidelines.",
+    "guide.tokensTitle": "What are Tokens?",
+    "guide.tokensDesc": "Tokens are the platform currency used for image generation. Token costs per image generation:",
+    "guide.tokenCost1": "1 image: 5 tokens",
+    "guide.tokenCost4": "4 images: 20 tokens",
+    "guide.tokenCost6": "6 images: 30 tokens",
+    "guide.tokenCost8": "8 images: 40 tokens",
+    "guide.buyTokenTitle": "Buy Token Packs",
+    "guide.buyTokenDesc": "On the Premium page, you can buy various token packs. Prices and packs are configured by administrators and may vary.",
+    "guide.howToBuy": "How to Buy Tokens:",
+    "guide.buyS1": "Go to the Premium page",
+    "guide.buyS2": "Scroll down to the \"Token Packs\" section",
+    "guide.buyS3": "Choose a pack that fits your needs",
+    "guide.buyS4": "Click \"Buy Now\"",
+    "guide.buyS5": "Fill in payment details via Stripe",
+    "guide.buyS6": "Your tokens are added to your account immediately after payment",
+    "guide.premiumTitle": "Premium Membership",
+    "guide.premiumDesc": "Premium members get enhanced features and benefits. Exact features are configured by administrators in the \"Plan Features\" table.",
+    "guide.premiumNote": "Premium features may include unlimited tokens, faster generation, higher image quality, priority support, and much more. Visit the Premium page to see current benefits and prices.",
+    "guide.premiumCTA": "View Pricing and Upgrade",
+    "guide.profTitle": "Profile Settings",
+    "guide.profDesc": "Manage your account and preferences via the Settings page.",
+    "guide.profAvail": "Available Settings:",
+    "guide.profNick": "Nickname: Change your display name",
+    "guide.profGender": "Gender: Select Male, Female, or other",
+    "guide.profEmail": "Email: Your registered email address",
+    "guide.profPass": "Password: Masked (********)",
+    "guide.profPlan": "Current Plan: Shows \"Free\" or \"Premium\"",
+    "guide.delAcc": "Delete Account",
+    "guide.delAccDesc": "At the bottom of the settings page is a \"Danger Zone\". Here you can permanently delete your account and all associated data.",
+    "guide.delAccWarn": "Warning: This cannot be undone! All data, characters, chats, and images will be permanently lost.",
+    "guide.supportDesc": "Need help? We're here for you!",
+    "guide.supportFaq": "FAQ",
+    "guide.supportFaqDesc": "Find answers to the most frequently asked questions.",
+    "guide.supportContact": "Contact Support",
+    "guide.supportContactDesc": "Send a message to our support team.",
+    "guide.readyTitle": "Ready to Begin?",
+    "guide.readyDesc": "Now that you know all the features, it's time to explore Dintype.se! Create your first AI character, generate amazing images, and have fun conversations.",
+    "guide.createCharBtn": "Create Character",
+    "guide.genImgBtn": "Generate Image",
     "general.warning": "Warning",
     "general.info": "Info",
     "general.explore": "Explore",
@@ -2301,8 +2853,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "imageGeneration.cancelButton": "Cancel",
     "home.exploreAIGirlfriends": "Explore AI Companions",
     "general.aiGirlfriends": "AI Companions",
-    "footer.companyDescription": "Dintype delivers immersive experiences with AI companions that feel real, allowing users to generate images and chat.",
-    "footer.contact": "Contact",
+    "footer.companyDescription": "AI character explorer delivers immersive experiences with AI girlfriends that feel real, allowing users to create images and chat.",
+    "footer.contact": "Contact Us",
     "footer.features.createImage": "Create Image",
     "footer.features.chat": "Chat",
     "footer.features.createCharacter": "Create Companion",
@@ -2402,6 +2954,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "premium.priceLabel": "PRICE",
     "premium.premiumRequiredForTokens": "You need Premium to be able to use tokens.",
     "premium.upgradeNow": "UPGRADE NOW",
+    "premium.pleaseLogin": "Please log in to continue.",
+    "premium.tokensRemaining": "You still have tokens left. Buy more when your balance reaches 0.",
     "premium.chatLabel": "Chat",
     "premium.perMessage": "per message",
     "premium.createAILabel": "Create AI",
@@ -2465,8 +3019,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "profile.noActivity": "No recent activity",
     "auth.loginSuccess": "Logged in successfully!",
     // Footer column headings
-    "footer.colAiCompanions": "AI Companions",
-    "footer.colLegal": "Legal",
+    "footer.colAiCompanions": "AI Girlfriends",
+    "footer.colLegal": "Policies",
     "footer.colAboutUs": "About Us",
     "footer.legal.terms": "Terms and Conditions",
     "footer.legal.privacyPolicy": "Privacy Policy",
@@ -2744,6 +3298,30 @@ export const translations: Record<"en" | "sv", Translations> = {
     "howItWorks.ctaTitle": "Ready to Begin?",
     "howItWorks.ctaDesc": "Start your AI companion journey today",
     "howItWorks.ctaButton": "Get Started",
+    "howItWorks.step1List1": "Choose age, body type, and ethnicity",
+    "howItWorks.step1List2": "Define occupation and hobbies",
+    "howItWorks.step1List3": "Customize personality traits",
+    "howItWorks.step1Button": "Create Character Now",
+    "howItWorks.step2List1": "Natural real-time conversations",
+    "howItWorks.step2List2": "AI remembers previous parts of the conversation",
+    "howItWorks.step2List3": "Personality-adapted responses",
+    "howItWorks.step2Button": "Start Chatting",
+    "howItWorks.step3List1": "Photo-realistic results",
+    "howItWorks.step3List2": "Generate 1-8 images simultaneously",
+    "howItWorks.step3List3": "Automatic saving to gallery",
+    "howItWorks.step3Button": "Generate Images",
+    "howItWorks.featuresTitle": "Powerful Features",
+    "howItWorks.feature1Title": "Advanced AI",
+    "howItWorks.feature1Desc": "Powered by the latest AI models for natural conversations and high-quality images",
+    "howItWorks.feature2Title": "Unlimited Creativity",
+    "howItWorks.feature2Desc": "Create as many characters as you want and explore different personalities and styles",
+    "howItWorks.feature3Title": "Available 24/7",
+    "howItWorks.feature3Desc": "Your AI characters are always ready to chat, any time of the day",
+    "howItWorks.fullGuideButton": "Read Full Guide",
+    "howItWorks.questions": "Have questions? Visit our",
+    "howItWorks.or": "or",
+    "howItWorks.visitFaq": "FAQ page",
+    "howItWorks.contactSupport": "contact support",
     // Contact page
     "contact.title": "Dintype Support: We are here to help!",
     "contact.subtitle": "Get help with your account, billing, or any questions you may have about Dintype.",
@@ -3044,7 +3622,7 @@ export const translations: Record<"en" | "sv", Translations> = {
   },
 
   sv: {
-    "general.siteName": "Dintype",
+    "general.siteName": "Dintyp.se",
     "general.welcome": "Välkommen",
     "general.home": "Hem",
     "navigation.home": "Tillbaka till startsidan",
@@ -3089,8 +3667,247 @@ export const translations: Record<"en" | "sv", Translations> = {
     "general.close": "Stäng",
     "general.confirm": "Bekräfta",
     "general.loading": "Laddar",
+    "general.errorTryAgain": "Köpet kunde inte slutföras. Försök igen.",
     "general.error": "Fel",
-    "general.success": "Klart",
+    "general.success": "Framgång",
+    "cookies.effectiveDate": "Ikraftträdandedatum",
+    "cookies.lastUpdated": "Senast uppdaterad",
+    "cookies.browserControl": "Webbläsarspecifik cookie-kontroll:",
+    "contact.howCanWeHelp": "Hur kan vi hjälpa dig idag?",
+    "contact.howCanWeHelpDesc": "Vårt kunniga supportteam kan hjälpa dig med ett brett utbud av ämnen, inklusive:",
+    "contact.accountHelpItem1": "Felsökning av inloggningsproblem (t.ex. återställning av lösenord, kontoåterställning)",
+    "contact.accountHelpItem2": "Vägledning om hantering av dina profilinställningar och anpassning av ditt konto",
+    "contact.accountHelpItem3": "Hjälp med kontoverifieringsprocesser",
+    "contact.accountHelpItem4": "Hjälp med att uppdatera din kontoinformation",
+    "contact.techHelpItem1": "Åtgärda tekniska problem, buggar eller prestandaproblem på vår webbplats, i våra appar eller i våra tjänster",
+    "contact.techHelpItem2": "Ge vägledning om webbläsar- och appkompatibilitet",
+    "contact.techHelpItem3": "Hjälp med felsökning av felmeddelanden",
+    "contact.techHelpItem4": "Erbjuda lösningar för anslutningsproblem",
+    "contact.billingHelpItem1": "Förtydliga transaktionsdetaljer och faktureringscykler",
+    "contact.billingHelpItem2": "Ge information om våra prenumerationsplaner och priser",
+    "contact.billingHelpItem3": "Svara på frågor relaterade till betalningsmetoder och behandling",
+    "contact.billingHelpItem4": "Hantera förfrågningar om eventuella återbetalningar",
+    "contact.billingHelpItem5": "Hjälpa till att hantera eller avsluta dina prenumerationer",
+    "contact.safetyHelpItem1": "Ge förtydliganden om våra användarvillkor och riktlinjer",
+    "contact.safetyHelpItem2": "Hantera rapporter och klagomål om användargenererat innehåll eller beteende (se vår policy för klagomål och rapportering)",
+    "contact.safetyHelpItem3": "Svara på frågor om processer för innehållsmoderering",
+    "contact.safetyHelpItem4": "Vägleda dig om hur du rapporterar överträdelser",
+    "contact.generalHelpItem1": "Ge information om hur du använder specifika funktioner i Dintype (t.ex. skapande av AI-karaktärer, bildgenerering, chattfunktioner)",
+    "contact.generalHelpItem2": "Erbjuda tips och tricks för att förbättra din upplevelse",
+    "contact.generalHelpItem3": "Svara på frågor om funktionsbegränsningar eller uppdateringar",
+    "contact.howToContact": "Hur du kontaktar oss",
+    "contact.howToContactDesc": "Vi erbjuder flera bekväma sätt att nå vårt supportteam:",
+    "contact.liveChat": "Livechatt",
+    "contact.liveChatDesc": "För snabba frågor och hjälp i realtid är vår livechatt-funktion ofta tillgänglig på vår webbplats och i våra appar. Leta efter chattikonen i det nedre högra hörnet av skärmen.",
+    "contact.responseTime": "Vi strävar efter att svara på alla e-postförfrågningar inom 24 timmar.",
+    "contact.expectedQuick": "Snabb bekräftelse",
+    "contact.expectedQuickDesc": "Vi siktar på att bekräfta alla förfrågningar inom 24 timmar efter mottagandet.",
+    "contact.expectedEfficient": "Effektiv och verksam hjälp",
+    "contact.expectedEfficientDesc": "Vårt team är dedikerat till att ge dig korrekta och hjälpsamma lösningar så snabbt som möjligt.",
+    "contact.expectedProfessional": "Professionell och respektfull kommunikation",
+    "contact.expectedProfessionalDesc": "Du kan förvänta dig att bli behandlad med artighet och respekt av våra supportagenter.",
+    "contact.expectedConfidential": "Sekretess",
+    "contact.expectedConfidentialDesc": "Vi hanterar din personliga information och supportförfrågningar med största konfidentialitet, i enlighet med vår integritetspolicy.",
+    "contact.expectedImpartial": "Opartiskhet",
+    "contact.expectedImpartialDesc": "Vi strävar efter att hantera alla ärenden rättvist och opartiskt, i enlighet med våra policyer och riktlinjer.",
+    "contact.valueFeedback": "Vi värdesätter din feedback",
+    "contact.valueFeedbackDesc": "Din feedback är avgörande för att hjälpa oss att förbättra våra tjänster och support. Efter att du har interagerat med vårt supportteam kan du få en enkät eller bli inbjuden att dela din upplevelse. Vi uppmuntrar dig att ge din ärliga feedback så att vi kan fortsätta att förbättra våra supporttjänster.",
+    "roadmap.productDev": "Produktutveckling",
+    "roadmap.description": "Vår produktplan visar vad vi har åstadkommit och vad vi planerar för framtiden.",
+    "roadmap.doneLaunched": "Klar & lanserad",
+    "roadmap.featuresAvailable": "Funktioner som redan är tillgängliga på plattformen",
+    "roadmap.workingOnNow": "Vad vårt team arbetar med just nu",
+    "roadmap.comingSoon": "Spännande funktioner som planeras för framtiden",
+    "roadmap.feature1Title": "Skapande av AI-karaktärer",
+    "roadmap.feature1Desc": "Fullständig 6-stegsguide för att skapa anpassade AI-karaktärer med personlighet, utseende och egenskaper.",
+    "roadmap.feature1Date": "Lanserad Q4 2024",
+    "roadmap.feature2Title": "AI-bildgenerering",
+    "roadmap.feature2Desc": "Kraftfull bildgenerator med stöd för 1-8 bilder samtidigt, negativa prompter och automatisk sparande till galleriet.",
+    "roadmap.feature2Date": "Lanserad Q4 2024",
+    "roadmap.feature3Title": "Intelligent chattfunktion",
+    "roadmap.feature3Desc": "AI-konversationer i realtid med sammanhangsmedvetenhet, personlighetsanpassning och chatthistorik.",
+    "roadmap.feature3Date": "Lanserad Q4 2024",
+    "roadmap.feature4Title": "Premiumsystem",
+    "roadmap.feature4Desc": "Token-baserat system med premiummedlemskap, Stripe-betalningar och automatisk fakturahantering.",
+    "roadmap.feature4Date": "Lanserad Q4 2024",
+    "roadmap.feature5Title": "Samlingar & Galleri",
+    "roadmap.feature5Desc": "Organisera och hantera genererade bilder med samlingar, favoriter och nedladdningsfunktion.",
+    "roadmap.feature5Date": "Lanserad Q4 2024",
+    "roadmap.feature6Title": "OAuth-inloggning",
+    "roadmap.feature6Desc": "Enkel inloggning med Google, Discord och Twitter/X utöver traditionell e-post/lösenord.",
+    "roadmap.feature6Date": "Lanserad Q1 2025",
+    "roadmap.inProgress1Title": "Röstgenerering (TTS)",
+    "roadmap.inProgress1Desc": "Text-till-tal för karaktärer så att de kan \"tala\" sina meddelanden med unika röster.",
+    "roadmap.inProgress1Date": "Förväntas Q1 2025",
+    "roadmap.inProgress2Title": "Förbättrad adminpanel",
+    "roadmap.inProgress2Desc": "Utökad administratörspanel med användarhantering, avstängningsfunktion, kostnadsloggning och detaljerad statistik.",
+    "roadmap.inProgress2Date": "Förväntas Q1 2025",
+    "roadmap.inProgress3Title": "Mobilapp (PWA)",
+    "roadmap.inProgress3Desc": "Progressiv webbapp för en bättre mobilupplevelse med offline-stöd och push-notiser.",
+    "roadmap.inProgress3Date": "Förväntas Q2 2025",
+    "roadmap.inProgress4Title": "Community-funktioner",
+    "roadmap.inProgress4Desc": "Dela karaktärer, följ andra användare, kommentera och gilla skapelser i community-flödet.",
+    "roadmap.inProgress4Date": "Förväntas Q2 2025",
+    "roadmap.upcoming1Title": "Videosamtal med AI",
+    "roadmap.upcoming1Desc": "Live-videosamtal där karaktärens ansikte animeras baserat på konversationen med lipsync och känslor.",
+    "roadmap.upcoming1Date": "Planerad Q3 2025",
+    "roadmap.upcoming2Title": "Röstkloning",
+    "roadmap.upcoming2Desc": "Ladda upp röstprov för att ge din karaktär en helt unik och naturlig röst baserat på verkliga inspelningar.",
+    "roadmap.upcoming2Date": "Planerad Q3 2025",
+    "roadmap.upcoming3Title": "Stöd för flera språk",
+    "roadmap.upcoming3Desc": "Utökat stöd för fler språk utöver svenska och engelska, inklusive automatisk realtidsöversättning.",
+    "roadmap.upcoming3Date": "Planerad Q3 2025",
+    "roadmap.upcoming4Title": "Val av AI-modell",
+    "roadmap.upcoming4Desc": "Välj mellan olika AI-modeller (GPT-4, Claude, Gemini) för olika personlighetstyper och svarsstilar.",
+    "roadmap.upcoming4Date": "Planerad Q4 2025",
+    "roadmap.upcoming5Title": "Marknadsplats för karaktärer",
+    "roadmap.upcoming5Desc": "Köp och sälj karaktärer, bildpaket och prompt-mallar från andra skapare i communityn.",
+    "roadmap.upcoming5Date": "Planerad Q4 2025",
+    "roadmap.upcoming6Title": "Utvecklar-API",
+    "roadmap.upcoming6Desc": "Öppet API för att integrera Dintype.se:s funktioner i dina egna applikationer och tjänster.",
+    "roadmap.upcoming6Date": "Planerad 2026",
+    "roadmap.feedbackTitle": "Din feedback är viktig!",
+    "roadmap.feedbackDesc": "Vill du se en specifik funktion? Har du idéer om hur vi kan förbättra plattformen? Vi lyssnar på våra användare, och din feedback formar vår framtidsplan.",
+    "roadmap.noteTitle": "OBS:",
+    "roadmap.noteDesc": "Alla datum är uppskattningar och kan ändras baserat på utvecklingsprioriteringar och användarfeedback. Vi strävar alltid efter högsta kvalitet i varje release.",
+    "guide.createAccount": "Skapa ditt konto",
+    "guide.accountS1": "Steg 1: Öppna inloggningsrutan",
+    "guide.accountS1Desc": "Klicka på knappen \"Logga in\" i det övre högra hörnet på sidan.",
+    "guide.accountS2": "Steg 2: Välj registreringsmetod",
+    "guide.accountS2Desc": "Du har tre alternativ:",
+    "guide.accountS2Option1": "E-post och lösenord: Fyll i din e-postadress och välj ett säkert lösenord",
+    "guide.accountS2Option2": "Google: Logga in med ditt Google-konto",
+    "guide.accountS2Option3": "Discord: Logga in med ditt Discord-konto",
+    "guide.accountS3": "Steg 3: Klicka på \"Skapa konto\"",
+    "guide.accountS3Desc": "Om du ser inloggningsrutan, klicka på länken \"Skapa konto\" längst ner för att byta till registreringsformuläret.",
+    "guide.accountS4": "Steg 4: Klart!",
+    "guide.accountS4Desc": "Du är nu inloggad och kan börja utforska plattformen.",
+    "guide.accountTip": "Om du har glömt ditt lösenord kan du klicka på länken \"Glömt lösenord?\" i inloggningsrutan för att återställa det.",
+    "guide.genIntro": "Skapa unika AI-genererade bilder med vår avancerade bildgenerator.",
+    "guide.howToGen": "Hur man genererar bilder:",
+    "guide.genS1": "Navigera till Skapa bild",
+    "guide.genS1Desc": "Hitta \"Skapa bild\" i menyn eller sidofältet.",
+    "guide.genS2": "Skriv din prompt",
+    "guide.genS2Desc": "Beskriv i detalj vad du vill se i bilden. Ju mer specifik beskrivningen är, desto bättre blir resultatet.",
+    "guide.genS2Example": "Exempel på en bra prompt:",
+    "guide.genS2Prompt": "En ung kvinna med långt brunt hår, blå ögon, vänligt leende, solnedgång i bakgrunden, fotorealistisk stil",
+    "guide.genS3": "Lägg till negativ prompt (valfritt)",
+    "guide.genS3Desc": "Klicka på \"Visa negativ prompt\" för att specificera vad du INTE vill se i bilden. Exempel: \"suddig, dålig kvalitet, förvrängd\"",
+    "guide.genS4": "Välj antal bilder",
+    "guide.genS4Desc": "Välj hur många bilder du vill generera samtidigt:",
+    "guide.genS4Item1": "1 bild: 5 tokens",
+    "guide.genS4Item2": "4 bilder: 20 tokens",
+    "guide.genS4Item3": "6 bilder: 30 tokens",
+    "guide.genS4Item4": "8 bilder: 40 tokens",
+    "guide.genS5": "Använd förslag (valfritt)",
+    "guide.genS5Desc": "Ovanför promptfältet finns kategorier med förslag. Klicka på en kategori och sedan på ett förslag för att snabbt fylla i en prompt.",
+    "guide.genS6": "Klicka på \"Generera\"",
+    "guide.genS6Desc": "Dina bilder genereras på några sekunder. Du kan se förloppsindikatorn medan bilderna skapas.",
+    "guide.manageGen": "Hantera genererade bilder",
+    "guide.autoSave": "Automatisk sparande i galleriet",
+    "guide.autoSaveDesc": "Alla genererade bilder sparas automatiskt i ditt galleri (samling). Du behöver inte göra något - de finns där direkt efter generering.",
+    "guide.imgMgmt": "Bildhantering",
+    "guide.imgMgmtDesc": "I galleriet kan du:",
+    "guide.imgMgmtItem1": "Markera bilder som favoriter med hjärtikonen",
+    "guide.imgMgmtItem2": "Ladda ner bilder till din enhet",
+    "guide.imgMgmtItem3": "Ta bort bilder du inte vill behålla",
+    "guide.imgMgmtItem4": "Skapa samlingar för att organisera dina bilder",
+    "guide.imgMgmtItem5": "Lägg till bilder i specifika samlingar",
+    "guide.imgMgmtItem6": "Använd markeringsläge för att hantera flera bilder samtidigt",
+    "guide.createCharTitle": "Skapa AI-karaktär",
+    "guide.charWizard": "6-stegs guidad process",
+    "guide.charWizardDesc": "Vår karaktärsskapare använder en 6-stegs guide som leder dig genom processen:",
+    "guide.charS1": "Steg 1: Välj stil och modell",
+    "guide.charS1Desc": "Börja med att välja bland befintliga karaktärsmallar. Du kan filtrera baserat på:",
+    "guide.charS1Age": "Ålder",
+    "guide.charS1Body": "Kropp",
+    "guide.charS1Ethnicity": "Etnicitet",
+    "guide.charS1Lang": "Språk",
+    "guide.charS1Rel": "Relation",
+    "guide.charS1Occ": "Yrke",
+    "guide.charS1Hobby": "Hobbys",
+    "guide.charS1Pers": "Personlighet",
+    "guide.charS1Note": "När du använder filter framhävs matchande karaktärer. Klicka på en för att välja den som din bas.",
+    "guide.charS2": "Steg 2: Grundläggande info",
+    "guide.charS2Desc": "Granska karaktärens grundläggande egenskaper: Ålder, kropp och etnicitet.",
+    "guide.charS3": "Steg 3: Kommunikation",
+    "guide.charS3Desc": "Ställ in hur karaktären kommunicerar: Språk och relationsstatus.",
+    "guide.charS4": "Steg 4: Karriär",
+    "guide.charS4Desc": "Granska karaktärens yrke.",
+    "guide.charS5": "Steg 5: Personlighet",
+    "guide.charS5Desc": "Se karaktärens hobbys och personlighetsdrag visas som märken/taggar.",
+    "guide.charS6": "Steg 6: Slutlig förhandsgranskning",
+    "guide.charS6Desc": "Granska all information om din karaktär: Namn, profilbild, beskrivning och alla sammanfattade egenskaper.",
+    "guide.charS6Note": "Klicka på \"Skapa min AI\" för att avsluta!",
+    "guide.charWizardTip": "Du kan navigera fram och tillbaka mellan stegen med pilknapparna för att justera dina val.",
+    "guide.exploreChar": "Utforska befintliga karaktärer",
+    "guide.exploreCharDesc": "Gå till sidan Karaktärer för att bläddra bland alla tillgängliga AI-karaktärer. Klicka på \"Visa karaktär\" eller \"Ny karaktär\" för att skapa eller chatta.",
+    "guide.startConv": "Starta en konversation",
+    "guide.convS1": "Hitta en karaktär",
+    "guide.convS1Desc": "Gå till Karaktärer för att se alla tillgängliga karaktärer, eller gå till Chatt för att se dina senaste konversationer.",
+    "guide.convS2": "Klicka på karaktären",
+    "guide.convS2Desc": "Klicka på ett karaktärskort för att öppna chattfönstret med den karaktären.",
+    "guide.convS3": "Börja prata",
+    "guide.convS3Desc": "Skriv ditt meddelande i textfältet längst ner och tryck på Enter eller klicka på skicka-knappen (pilikonen). Karaktären svarar baserat på sin personlighet och konversationshistorik.",
+    "guide.chatFeaturesTitle": "Chattfunktioner",
+    "guide.chatAutoSave": "Automatisk sparande",
+    "guide.chatAutoSaveDesc": "All chatthistorik sparas automatiskt. Du kan se dina tidigare konversationer på sidan Chatt under \"Senaste konversationer\".",
+    "guide.chatClear": "Rensa chatt",
+    "guide.chatClearDesc": "Klicka på menyikonen (tre prickar) längst upp i chattfönstret för att öppna menyn. Välj alternativet för att rensa chatthistoriken. Detta startar en helt ny konversation utan tidigare sammanhang.",
+    "guide.chatSidebar": "Sidofält med chattlista",
+    "guide.chatSidebarDesc": "I chattfönstret kan du öppna sidofältet för att se alla karaktärer du har chattat med. Det visar det senaste meddelandet från varje konversation. Klicka på en karaktär för att byta konversation.",
+    "guide.chatImgReq": "Begär bilder i chatten",
+    "guide.chatImgReqDesc": "AI:n kan identifiera när du ber om bilder. Skriv något i stil med \"Visa mig en bild på...\" eller \"Skapa en bild av...\" så kommer karaktären att generera en bild baserat på din beskrivning.",
+    "guide.chatVoice": "Röstfunktioner (experimentell)",
+    "guide.chatVoiceDesc": "Vissa karaktärer kan ha röstfunktioner där du kan lyssna på AI:ns svar. Klicka på högtalarikonen för att höra meddelandet läsas upp.",
+    "guide.chatTipsTitle": "Chattips",
+    "guide.chatCtx": "Sammanhangsmedvetenhet",
+    "guide.chatCtxDesc": "AI:n kommer ihåg hela konversationshistoriken i den aktuella sessionen, så du kan referera tillbaka till tidigare ämnen.",
+    "guide.chatAdapt": "Personlighetsanpassning",
+    "guide.chatAdaptDesc": "Varje karaktär har sin egen personlighet, yrke, hobbys och kommunikationsstil baserat på sina egenskaper.",
+    "guide.chatClearNeed": "Rensa vid behov",
+    "guide.chatClearNeedDesc": "Om konversationen känns föråldrad eller om du vill börja om, använd funktionen \"Rensa chatt\" för en nystart.",
+    "guide.chatRules": "Följ riktlinjerna",
+    "guide.chatRulesDesc": "Håll konversationerna respektfulla och följ våra community-riktlinjer.",
+    "guide.tokensTitle": "Vad är tokens?",
+    "guide.tokensDesc": "Tokens är plattformens valuta som används för bildgenerering. Tokenkostnader per bildgenerering:",
+    "guide.tokenCost1": "1 bild: 5 tokens",
+    "guide.tokenCost4": "4 bilder: 20 tokens",
+    "guide.tokenCost6": "6 bilder: 30 tokens",
+    "guide.tokenCost8": "8 bilder: 40 tokens",
+    "guide.buyTokenTitle": "Köp tokenpaket",
+    "guide.buyTokenDesc": "På Premium-sidan kan du köpa olika tokenpaket. Priser och paket konfigureras av administratörer och kan variera.",
+    "guide.howToBuy": "Hur man köper tokens:",
+    "guide.buyS1": "Gå till Premium-sidan",
+    "guide.buyS2": "Scrolla ner till avsnittet \"Tokenpaket\"",
+    "guide.buyS3": "Välj ett paket som passar dina behov",
+    "guide.buyS4": "Klicka på \"Köp nu\"",
+    "guide.buyS5": "Fyll i betalningsuppgifter via Stripe",
+    "guide.buyS6": "Dina tokens läggs till på ditt konto omedelbart efter betalning",
+    "guide.premiumTitle": "Premium-medlemskap",
+    "guide.premiumDesc": "Premiummedlemmar får utökade funktioner och fördelar. Exakta funktioner konfigureras av administratörer i tabellen \"Planfunktioner\".",
+    "guide.premiumNote": "Premiumfunktioner kan inkludera obegränsade tokens, snabbare generering, högre bildkvalitet, prioriterad support och mycket mer. Besök Premium-sidan för att se aktuella förmåner och priser.",
+    "guide.premiumCTA": "Visa priser och uppgradera",
+    "guide.profTitle": "Profilinställningar",
+    "guide.profDesc": "Hantera ditt konto och dina preferenser via sidan Inställningar.",
+    "guide.profAvail": "Tillgängliga inställningar:",
+    "guide.profNick": "Smeknamn: Ändra ditt visningsnamn",
+    "guide.profGender": "Kön: Välj man, kvinna eller annat",
+    "guide.profEmail": "E-post: Din registrerade e-postadress",
+    "guide.profPass": "Lösenord: Maskerat (********)",
+    "guide.profPlan": "Aktuell plan: Visar \"Gratis\" eller \"Premium\"",
+    "guide.delAcc": "Radera konto",
+    "guide.delAccDesc": "Längst ner på inställningssidan finns en \"Riskzon\". Här kan du permanent radera ditt konto och all tillhörande data.",
+    "guide.delAccWarn": "Varning: Detta kan inte ångras! All data, karaktärer, chattar och bilder kommer att gå förlorade permanent.",
+    "guide.supportDesc": "Behöver du hjälp? Vi finns här för dig!",
+    "guide.supportFaq": "FAQ",
+    "guide.supportFaqDesc": "Hitta svar på de vanligaste frågorna.",
+    "guide.supportContact": "Kontakta support",
+    "guide.supportContactDesc": "Skicka ett meddelande till vårt supportteam.",
+    "guide.readyTitle": "Redo att börja?",
+    "guide.readyDesc": "Nu när du känner till alla funktioner är det dags att utforska Dintype.se! Skapa din första AI-karaktär, generera fantastiska bilder och ha roliga konversationer.",
+    "guide.createCharBtn": "Skapa karaktär",
+    "guide.genImgBtn": "Generera bild",
     "general.warning": "Varning",
     "general.info": "Info",
     "general.explore": "Utforska",
@@ -3143,7 +3960,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "home.complaints.email": "E-post",
     "home.complaints.note1": "Ange länk/ID för innehållet och en kort beskrivning av problemet.",
     "home.complaints.note2": "Akuta ärenden (säkerhet/missbruk) prioriteras inom 24 timmar.",
-    "faq.title": "Vanliga frågor",
+    "faq.title": "Frågor och svar",
     "faq.addFaq": "Lägg till FAQ",
     "faq.cancel": "Avbryt",
     "faq.addNewFaqTitle": "Lägg till ny FAQ",
@@ -3822,11 +4639,11 @@ export const translations: Record<"en" | "sv", Translations> = {
     "imageGeneration.cancelButton": "Avbryt",
     "home.exploreAIGirlfriends": "Utforska AI-sällskap",
     "general.aiGirlfriends": "AI-sällskap",
-    "footer.companyDescription": "Dintype levererar uppslukande upplevelser med AI-sällskap som känns verkliga, så att användare kan generera bilder och chatta.",
-    "footer.contact": "Kontakt",
+    "footer.companyDescription": "AI Karaktärsutforskare ger uppslukande upplevelser med AI-flickvänner som känns verkliga, vilket gör att användarna kan skapa bilder och chatta.",
+    "footer.contact": "Kontakta oss",
     "footer.features.createImage": "Skapa bild",
-    "footer.features.chat": "Chatt",
-    "footer.features.createCharacter": "Skapa sällskap",
+    "footer.features.chat": "Chatta",
+    "footer.features.createCharacter": "Skapa flickvän",
     "footer.features.gallery": "Galleri",
     "footer.features.explore": "Utforska",
     "footer.about.title": "Om oss",
@@ -3836,7 +4653,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "footer.about.aiSexting": "AI-chatt",
     "footer.about.howItWorks": "Hur det fungerar",
     "footer.about.aboutUs": "Om oss",
-    "footer.about.roadmap": "Färdplan",
+    "footer.about.roadmap": "Roadmap",
     "footer.about.blog": "Blogg",
     "footer.about.guide": "Guide",
     "footer.about.complaints": "Klagomål och innehållsborttagning",
@@ -3918,6 +4735,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "premium.newBalance": "Nytt saldo",
     "premium.tokensAdded": "+{{amount}} token tillagda",
     "premium.systemLogsUpdated": "Systemloggar uppdaterade med administratörsåtgärd.",
+    "premium.pleaseLogin": "Logga in för att fortsätta.",
+    "premium.tokensRemaining": "Du har fortfarande token kvar. Köp mer när ditt saldo är 0.",
     "premium.balanceSynced": "Din profil och ditt saldo har synkroniserats globalt.",
     "premium.continueToDashboard": "FORTSÄTT TILL INSTRUMENTPANEL",
     "premium.priceLabel": "PRIS",
@@ -3986,12 +4805,12 @@ export const translations: Record<"en" | "sv", Translations> = {
     "profile.noActivity": "Ingen senaste aktivitet",
     "auth.loginSuccess": "Inloggning lyckades!",
     // Footer column headings
-    "footer.colAiCompanions": "AI-sällskaper",
-    "footer.colLegal": "Juridik",
+    "footer.colAiCompanions": "AI-flickvänner",
+    "footer.colLegal": "Villkor",
     "footer.colAboutUs": "Om oss",
-    "footer.legal.terms": "Villkor",
+    "footer.legal.terms": "Regler och villkor",
     "footer.legal.privacyPolicy": "Integritetspolicy",
-    "footer.legal.reportComplaints": "Rapport och klagomål",
+    "footer.legal.reportComplaints": "Rapportering och klagomål",
     "footer.legal.guidelines": "Riktlinjer",
     "footer.legal.cookies": "Cookies",
     // Admin sidebar navigation
@@ -4265,6 +5084,30 @@ export const translations: Record<"en" | "sv", Translations> = {
     "howItWorks.ctaTitle": "Redo att börja?",
     "howItWorks.ctaDesc": "Starta din AI-partnerresa idag",
     "howItWorks.ctaButton": "Kom igång",
+    "howItWorks.step1List1": "Välj ålder, kroppstyp och etnicitet",
+    "howItWorks.step1List2": "Definiera yrke och hobbyer",
+    "howItWorks.step1List3": "Anpassa personlighetsdrag",
+    "howItWorks.step1Button": "Skapa karaktär nu",
+    "howItWorks.step2List1": "Naturliga konversationer i realtid",
+    "howItWorks.step2List2": "AI minns tidigare delar av konversationen",
+    "howItWorks.step2List3": "Personlighetsanpassade svar",
+    "howItWorks.step2Button": "Börja chatta",
+    "howItWorks.step3List1": "Fotorealistiska resultat",
+    "howItWorks.step3List2": "Generera 1-8 bilder samtidigt",
+    "howItWorks.step3List3": "Automatisk sparande till galleri",
+    "howItWorks.step3Button": "Generera bilder",
+    "howItWorks.featuresTitle": "Kraftfulla funktioner",
+    "howItWorks.feature1Title": "Avancerad AI",
+    "howItWorks.feature1Desc": "Drivs av de senaste AI-modellerna för naturliga konversationer och högkvalitativa bilder",
+    "howItWorks.feature2Title": "Obegränsad kreativitet",
+    "howItWorks.feature2Desc": "Skapa så många karaktärer du vill och utforska olika personligheter och stilar",
+    "howItWorks.feature3Title": "Tillgänglig 24/7",
+    "howItWorks.feature3Desc": "Dina AI-karaktärer är alltid redo att chatta, när som helst på dygnet",
+    "howItWorks.fullGuideButton": "Läs hela guiden",
+    "howItWorks.questions": "Har du frågor? Besök vår",
+    "howItWorks.or": "eller",
+    "howItWorks.visitFaq": "FAQ-sida",
+    "howItWorks.contactSupport": "kontakta support",
     // Contact page
     "contact.title": "Dintype Support: Vi finns här för att hjälpa!",
     "contact.subtitle": "Få hjälp med ditt konto, fakturering eller frågor om Dintype.",
@@ -4538,6 +5381,51 @@ export const translations: Record<"en" | "sv", Translations> = {
     "report.improvement": "Kontinuerlig förbättring:",
     "report.needToReport": "Behöver du rapportera något?",
     "report.sendReport": "Skicka rapport till support@dintype.se",
+    "report.whatToReportList": "Rapportera innehåll som faller inom, men inte är begränsat till, följande kategorier:",
+    "report.catIllegal": "Olagligt innehåll:",
+    "report.catIllegalDesc": "Innehåll som bryter mot tillämpliga lokala, nationella eller internationella lagar och regler.",
+    "report.catTerms": "Brott mot användarvillkor:",
+    "report.catTermsDesc": "Innehåll som strider mot någon av de regler och riktlinjer som beskrivs i våra användarvillkor.",
+    "report.catGuidelines": "Brott mot gemenskapsregler:",
+    "report.catGuidelinesDesc": "Innehåll som bryter mot de beteendestandarder och innehållsregler som beskrivs i våra gemenskapsregler, inklusive men inte begränsat till:",
+    "report.catItem1": "Hatpropaganda, trakasserier och diskriminering",
+    "report.catItem2": "Obscent, pornografiskt eller sexuellt explicit material (där det är förbjudet)",
+    "report.catItem3": "Våldsamt eller hotfullt innehåll",
+    "report.catItem4": "Spam eller obehörig reklam",
+    "report.catItem5": "Intrång i immateriella rättigheter",
+    "report.catItem6": "Imitering av annan person",
+    "report.catItem7": "Innehåll som utnyttjar eller skadar barn",
+    "report.catItem8": "Falsk information eller desinformation (där det är uttryckligen förbjudet)",
+    "report.howToSubmitDesc": "För att hjälpa oss att utreda och lösa din rapport effektivt, vänligen ange så många detaljer som möjligt. Du kan vanligtvis skicka en rapport via följande metoder:",
+    "report.inPlatformDesc": "Leta efter en \"Rapportera\"-knapp, länk eller flaggikon nära innehållet i fråga. Detta är det mest effektiva sättet att skicka en rapport eftersom det ofta inkluderar kontextuell information. Följ instruktionerna på skärmen för att ange detaljer om problemet.",
+    "report.contactSupportDesc": "Om du inte hittar ett rapporteringsalternativ på plattformen eller har ett mer komplext problem att rapportera, vänligen kontakta vårt dedikerade supportteam på support@dintype.se. När du kontaktar oss, inkludera följande information:",
+    "report.infoName": "Ditt fullständiga namn och e-post:",
+    "report.infoNameDesc": "Detta gör att vi kan kontakta dig för förtydliganden eller uppdateringar.",
+    "report.infoDescription": "Tydlig beskrivning av problemet:",
+    "report.infoDescriptionDesc": "Var specifik om innehållet eller beteendet du rapporterar och varför du anser att det bryter mot våra policyer eller är olagligt. Inkludera den exakta platsen för innehållet (t.ex. URL, användarnamn, inläggs-ID).",
+    "report.infoDate": "Datum och tid för händelsen (om tillämpligt):",
+    "report.infoDateDesc": "Detta hjälper oss att hitta det specifika innehållet eller aktiviteten.",
+    "report.infoDocs": "Stödjande dokumentation (om tillämpligt):",
+    "report.infoDocsDesc": "Inkludera skärmdumpar, länkar eller andra bevis som stöder din rapport. Se till att skärmdumparna är tydliga och visar hela sammanhanget.",
+    "report.infoCategory": "Kategori av överträdelse:",
+    "report.infoCategoryDesc": "Om möjligt, ange vilken specifik regel eller riktlinje du anser har överträtts.",
+    "report.afterSubmitDesc": "När ditt klagomål har skickats in kan du förvänta dig följande:",
+    "report.acknowledgementDesc": "Vårt supportteam kommer att bekräfta mottagandet av din rapport inom 24 timmar via e-post till den adress du angav. Denna bekräftelse indikerar att din rapport har mottagits och behandlas.",
+    "report.reviewInvestigationDesc": "Vårt dedikerade modereringsteam kommer noggrant att granska det rapporterade innehållet och all tillhandahållen information. Vi strävar efter att genomföra denna granskning opartiskt och i enlighet med våra policyer och tillämpliga lagar.",
+    "report.actionsTakenDesc": "Baserat på resultaten av vår granskning kan en eller flera av följande åtgärder vidtas:",
+    "report.action1": "Borttagning eller ändring av innehåll:",
+    "report.action1Desc": "Om innehållet play sig bryta mot våra policyer eller lagar kommer det omedelbart att tas bort eller ändras.",
+    "report.action2": "Kontoåtgärder:",
+    "report.action2Desc": "Beroende på överträdelsens allvar kan vi utfärda varningar, tillfälligt stänga av kontot eller permanent avsluta konton.",
+    "report.action3": "Ingen åtgärd:",
+    "report.action3Desc": "Om granskningen fastställer att det rapporterade innehållet inte bryter mot våra policyer kan det förbli tillgängligt.",
+    "report.action4": "Eskalering till juridiska myndigheter:",
+    "report.action4Desc": "I fall som rör potentiellt olaglig verksamhet kan vi eskalera ärendet till lämpliga myndigheter.",
+    "report.timelineDesc": "Vi strävar efter att granska och lösa alla klagomål inom sju (7) arbetsdagar från mottagandet. Men ärendets komplexitet och volymen av rapporter kan ibland kräva en längre utredningsperiod. Vi uppskattar ditt tålamod och din förståelse i sådana situationer.",
+    "report.falseReportingDesc": "Observera att avsiktlig insändning av falska eller vilseledande rapporter är ett brott mot våra villkor och kan leda till åtgärder mot ditt eget konto.",
+    "report.objectivityDesc": "Vår granskningsprocess är utformad för att vara objektiv och baserad på våra etablerade policyer och juridiska krav.",
+    "report.improvementDesc": "Vi utvärderar och förbättrar kontinuerligt våra rapporterings- och modereringsprocesser för att säkerställa effektivitet och rättvisa.",
+    "report.closing": "Ditt engagemang för att rapportera olämpligt innehåll är ovärderligt för att hjälpa oss att upprätthålla en säker och respektfull plattform för alla. Tack för ditt samarbete och för att du bidrar till en positiv användarupplevelse på Dintype.",
     // Roadmap page
     "roadmap.title": "Vår färdplan",
     "roadmap.subtitle": "Följ med på vår resa! Här kan du se vad vi har uppnått, vad vi arbetar med just nu och vad som kommer härnäst.",

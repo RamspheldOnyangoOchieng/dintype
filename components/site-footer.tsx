@@ -20,7 +20,7 @@ export function SiteFooter() {
   const [isEditing, setIsEditing] = useState(false)
 
   const defaultData = useMemo(() => ({
-    companyName: settings.logoText || settings.siteName || "Dintype",
+    companyName: t("general.siteName"),
     companyDescription: t("footer.companyDescription"),
     features: [
       { id: 1, title: t("footer.features.createImage"), url: "/generera" },
@@ -33,7 +33,9 @@ export function SiteFooter() {
       { id: 2, title: t("footer.legal.privacyPolicy"), url: "/integritetspolicy" },
       { id: 3, title: t("footer.legal.reportComplaints"), url: "/rapportera" },
       { id: 4, title: t("footer.legal.guidelines"), url: "/riktlinjer" },
-      { id: 5, title: t("footer.legal.cookies"), url: "/kakor" },
+      { id: 5, title: t("footer.legal.cookies"), url: "/cookies" },
+      { id: 6, title: t("footer.contact"), url: "/kontakta" },
+      { id: 7, title: t("faq.title"), url: "/faq" },
     ],
     aboutUs: [
       { id: 1, title: t("footer.about.howItWorks"), url: "/hur-det-fungerar" },
@@ -41,8 +43,6 @@ export function SiteFooter() {
       { id: 3, title: t("footer.about.roadmap"), url: "/fardplan" },
       { id: 4, title: t("footer.about.blog"), url: "/blogg" },
       { id: 5, title: t("footer.about.guide"), url: "/guide" },
-      { id: 6, title: t("footer.contact"), url: "/kontakt" },
-      { id: 7, title: t("faq.title"), url: "/vanliga-fragor" },
     ],
   }), [language, settings.logoText, settings.siteName])
 
@@ -181,7 +181,7 @@ export function SiteFooter() {
           <div className="space-y-4">
             <Link href="/" className="inline-block">
               <h2 className="text-xl font-bold text-zinc-100 dark:text-foreground">
-                {settings.logoText || settings.siteName}<span className="text-primary">.ai</span>
+                {t("general.siteName")}
               </h2>
             </Link>
             <p className="text-zinc-400 dark:text-muted-foreground text-sm">{tempData.companyDescription}</p>
@@ -250,7 +250,7 @@ export function SiteFooter() {
                   />
                 ) : (
                   <span className="text-zinc-100 dark:text-foreground">
-                    {settings.logoText || settings.siteName}<span className="text-primary">.ai</span>
+                    {t("general.siteName")}
                   </span>
                 )}
               </h2>
@@ -377,7 +377,7 @@ export function SiteFooter() {
 
         {/* Bottom */}
         <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-border">
-          <div className="text-muted-foreground text-xs text-center">© {currentYear} {settings.logoText || settings.siteName}. {t("footer.rightsReserved")}.</div>
+          <div className="text-muted-foreground text-xs text-center">© {currentYear} {t("general.siteName")}. {t("footer.rightsReserved")}.</div>
         </div>
       </div>
     </div>

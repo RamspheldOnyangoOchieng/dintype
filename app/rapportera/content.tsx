@@ -14,133 +14,145 @@ export function ReportContent() {
           {t("report.intro")}
         </p>
 
-        <section>
-          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">{t("report.whatToReport")}</h2>
-          <p>Please report content that falls within, but is not limited to, the following categories:</p>
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              {t("report.whatToReport")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p>{t("report.whatToReportList")}</p>
+            <ul className="space-y-4">
+              <li>
+                <h3 className="font-bold underline">{t("report.catIllegal")}</h3>
+                <p>{t("report.catIllegalDesc")}</p>
+              </li>
+              <li>
+                <h3 className="font-bold underline">{t("report.catTerms")}</h3>
+                <p>
+                  {t("report.catTermsDesc")}
+                </p>
+              </li>
+              <li>
+                <h3 className="font-bold underline">{t("report.catGuidelines")}</h3>
+                <p>
+                  {t("report.catGuidelinesDesc")}
+                </p>
+                <ul className="list-disc pl-6 mt-2 space-y-1">
+                  <li>{t("report.catItem1")}</li>
+                  <li>{t("report.catItem2")}</li>
+                  <li>{t("report.catItem3")}</li>
+                  <li>{t("report.catItem4")}</li>
+                  <li>{t("report.catItem5")}</li>
+                  <li>{t("report.catItem6")}</li>
+                  <li>{t("report.catItem7")}</li>
+                  <li>{t("report.catItem8")}</li>
+                </ul>
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
 
-          <ul className="list-disc pl-6 space-y-2 text-zinc-600 dark:text-zinc-400">
-            <li><strong>Illegal Content:</strong> Content that violates applicable local, national, or international laws and regulations.</li>
-            <li><strong>Violations of Terms of Use:</strong> Content that contravenes any of the rules and guidelines described in our <a href="/villkor" className="text-primary hover:underline">Terms of Use</a>.</li>
-            <li><strong>Violations of Community Guidelines:</strong> Content that breaches the behavioral standards and content rules described in our <a href="/riktlinjer" className="text-primary hover:underline">Community Guidelines</a>, including but not limited to:
-              <ul className="list-disc pl-6 mt-2 space-y-1">
-                <li>Hate speech, harassment, and discrimination</li>
-                <li>Obscene, pornographic, or sexually explicit material (where prohibited)</li>
-                <li>Violent or threatening content</li>
-                <li>Spam or unauthorized advertising</li>
-                <li>Intellectual property infringement</li>
-                <li>Impersonation</li>
-                <li>Content that exploits, abuses, or endangers children</li>
-                <li>False information or disinformation (where explicitly prohibited)</li>
-              </ul>
-            </li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">{t("report.howToSubmit")}</h2>
-          <p>To help us investigate and resolve your report effectively, please provide as many details as possible. You can typically submit a report via the following methods:</p>
-
-          <h3 className="text-xl font-semibold text-zinc-800 dark:text-white mt-6 mb-3">{t("report.inPlatform")}</h3>
-          <p>
-            Look for a "Report" button, link, or flag icon near the content in question. This is the most efficient way to submit a report as it often includes contextual information. Follow the on-screen instructions to provide details about the issue.
-          </p>
-
-          <h3 className="text-xl font-semibold text-zinc-800 dark:text-white mt-6 mb-3">{t("report.contactSupport")}</h3>
-          <p>
-            If you cannot find an in-platform reporting option or have a more complex issue to report, please contact our dedicated support team at <a href="mailto:support@dintype.se" className="text-primary hover:underline">support@dintype.se</a>. When contacting us, please include the following information:
-          </p>
-
-          <ul className="list-disc pl-6 space-y-2 text-zinc-600 dark:text-zinc-400">
-            <li><strong>Your Full Name and Email:</strong> This allows us to contact you for clarifications or updates.</li>
-            <li><strong>Clear Description of the Issue:</strong> Be specific about the content or behavior you are reporting and why you believe it violates our policies or is illegal. Include the exact location of the content (e.g., URL, username, post ID).</li>
-            <li><strong>Date and Time of Occurrence (if applicable):</strong> This helps us locate the specific content or activity.</li>
-            <li><strong>Supporting Documentation (if applicable):</strong> Include screenshots, links, or other evidence that supports your report. Ensure screenshots are clear and show the full context.</li>
-            <li><strong>Category of Violation:</strong> If possible, specify which particular rule or guideline you believe has been violated.</li>
-          </ul>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">{t("report.afterSubmit")}</h2>
-          <p>Once your complaint has been submitted, you can expect the following:</p>
-
-          <div className="space-y-4 text-zinc-600 dark:text-zinc-400">
-            <div>
-              <h3 className="text-lg font-semibold text-zinc-800 dark:text-white mb-2">{t("report.acknowledgement")}</h3>
-              <p>
-                Our customer support team will acknowledge receipt of your report within 24 hours via email to the address you provided. This acknowledgement indicates that your report has been received and is being processed.
-              </p>
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-primary" />
+              {t("report.howToSubmit")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p>{t("report.howToSubmitDesc")}</p>
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-bold">{t("report.inPlatform")}</h3>
+                <p>{t("report.inPlatformDesc")}</p>
+              </div>
+              <div>
+                <h3 className="font-bold">{t("report.contactSupport")}</h3>
+                <p>{t("report.contactSupportDesc")}</p>
+                <ul className="list-disc pl-6 mt-2 space-y-1">
+                  <li><span className="font-bold italic">{t("report.infoName")}</span> {t("report.infoNameDesc")}</li>
+                  <li><span className="font-bold italic">{t("report.infoDescription")}</span> {t("report.infoDescriptionDesc")}</li>
+                  <li><span className="font-bold italic">{t("report.infoDate")}</span> {t("report.infoDateDesc")}</li>
+                  <li><span className="font-bold italic">{t("report.infoDocs")}</span> {t("report.infoDocsDesc")}</li>
+                  <li><span className="font-bold italic">{t("report.infoCategory")}</span> {t("report.infoCategoryDesc")}</li>
+                </ul>
+              </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <div>
-              <h3 className="text-lg font-semibold text-zinc-800 dark:text-white mb-2">{t("report.reviewInvestigation")}</h3>
-              <p>
-                Our dedicated moderation team will carefully review the reported content and any provided information. We aim to conduct this review impartially and in accordance with our policies and applicable laws.
-              </p>
-            </div>
+        <Card className="mb-8 border-primary/20 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-primary" />
+              {t("report.afterSubmit")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm">
+            <p>{t("report.afterSubmitDesc")}</p>
+            <ol className="list-decimal pl-6 space-y-3">
+              <li><span className="font-bold italic">{t("report.acknowledgement")}</span> {t("report.acknowledgementDesc")}</li>
+              <li><span className="font-bold italic">{t("report.reviewInvestigation")}</span> {t("report.reviewInvestigationDesc")}</li>
+              <li>
+                <span className="font-bold italic">{t("report.actionsTaken")}</span> {t("report.actionsTakenDesc")}
+                <ul className="list-disc pl-6 mt-2 space-y-1">
+                  <li><span className="font-bold">{t("report.action1")}</span> {t("report.action1Desc")}</li>
+                  <li><span className="font-bold">{t("report.action2")}</span> {t("report.action2Desc")}</li>
+                  <li><span className="font-bold">{t("report.action3")}</span> {t("report.action3Desc")}</li>
+                  <li><span className="font-bold">{t("report.action4")}</span> {t("report.action4Desc")}</li>
+                </ul>
+              </li>
+            </ol>
+          </CardContent>
+        </Card>
 
-            <div>
-              <h3 className="text-lg font-semibold text-zinc-800 dark:text-white mb-2">{t("report.actionsTaken")}</h3>
-              <p>Based on the findings of our review, one or more of the following actions may be taken:</p>
-              <ul className="list-disc pl-6 space-y-2 mt-2">
-                <li><strong>Removal or Modification of Content:</strong> If the content is found to violate our policies or laws, it will be immediately removed or modified.</li>
-                <li><strong>Account Actions:</strong> Depending on the severity of the violation, we may issue warnings, temporarily suspend account access, or permanently terminate accounts.</li>
-                <li><strong>No Action:</strong> If the review determines that the reported content does not violate our policies, it may remain available.</li>
-                <li><strong>Escalation to Legal Authorities:</strong> In cases involving potentially illegal activity, we may escalate the matter to appropriate authorities.</li>
-              </ul>
-            </div>
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <CheckCircle2 className="h-4 w-4 text-primary" />
+              {t("report.timeline")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm">
+            <p>{t("report.timelineDesc")}</p>
+          </CardContent>
+        </Card>
 
-            <div>
-              <h3 className="text-lg font-semibold text-zinc-800 dark:text-white mb-2">{t("report.timeline")}</h3>
-              <p>
-                We strive to review and resolve all complaints within seven (7) business days from the date of receipt. However, the complexity of the case and the volume of reports may sometimes require a longer investigation period. We appreciate your patience and understanding in such situations.
-              </p>
-            </div>
+        <div className="space-y-4 text-xs text-muted-foreground mt-12 pt-8 border-t border-border/40">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+            <p>
+              <span className="font-bold text-foreground italic">{t("report.important")}</span> {t("report.falseReportingDesc")}
+            </p>
           </div>
-        </section>
-
-        <section>
-          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">{t("report.important")}</h2>
-
-          <div className="bg-muted/50 p-6 rounded-lg space-y-4 text-zinc-600 dark:text-zinc-400">
-            <div>
-              <h3 className="text-lg font-semibold text-zinc-800 dark:text-white mb-2">{t("report.falseReporting")}</h3>
-              <p>
-                Please note that intentional submission of false or misleading reports is a violation of our terms and may lead to actions against your own account.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-zinc-800 dark:text-white mb-2">{t("report.objectivity")}</h3>
-              <p>
-                Our review process is designed to be objective and based on our established policies and legal requirements.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-zinc-800 dark:text-white mb-2">{t("report.improvement")}</h3>
-              <p>
-                We continuously evaluate and improve our reporting and moderation processes to ensure effectiveness and fairness.
-              </p>
-            </div>
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0" />
+            <p>
+              <span className="font-bold text-foreground italic">{t("report.objectivity")}</span> {t("report.objectivityDesc")}
+            </p>
           </div>
-        </section>
-
-        <section className="mt-8">
-          <p className="text-lg text-zinc-600 dark:text-zinc-400">
-            Your commitment to reporting inappropriate content is invaluable in helping us maintain a safe and respectful platform for everyone. Thank you for your cooperation and for contributing to a positive user experience on Dintype.
+          <div className="flex items-start gap-2">
+            <Activity className="h-4 w-4 mt-0.5 flex-shrink-0" />
+            <p>
+              <span className="font-bold text-foreground italic">{t("report.improvement")}</span> {t("report.improvementDesc")}
+            </p>
+          </div>
+          <p className="mt-8 pt-4 italic">
+            {t("report.closing")}
           </p>
-        </section>
+        </div>
 
-        <section className="mt-12 bg-primary/10 p-6 rounded-lg">
-          <h2 className="text-2xl font-bold text-zinc-800 dark:text-white mb-4">{t("report.needToReport")}</h2>
-          <p className="mb-4">Contact our support team directly:</p>
-          <a
+        <div className="text-center mt-12 py-8 bg-muted/30 rounded-2xl border border-border/40">
+          <p className="text-muted-foreground mb-4">{t("report.needToReport")}</p>
+          <Link
             href="mailto:support@dintype.se"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-3 rounded-full hover:bg-primary/90 transition-all font-bold shadow-lg shadow-primary/20"
           >
             {t("report.sendReport")}
-          </a>
-        </section>
+          </Link>
+        </div>
       </div>
     </div>
   );

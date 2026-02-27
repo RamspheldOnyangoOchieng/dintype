@@ -46,8 +46,8 @@ export default function FAQPage() {
               <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">{t("faq.q.createAccount")}</h3>
               <p>{t("faq.a.createAccount")}</p>
               <ul className="list-disc pl-6 space-y-2 mt-2">
-                <li><strong>Social Login:</strong> {t("faq.a.createAccountSocial")}</li>
-                <li><strong>Email Registration:</strong> {t("faq.a.createAccountEmail")}</li>
+                <li>{t("faq.a.createAccountSocial")}</li>
+                <li>{t("faq.a.createAccountEmail")}</li>
               </ul>
             </div>
           </div>
@@ -149,9 +149,9 @@ export default function FAQPage() {
               <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">{t("faq.q.isSafe")}</h3>
               <p>{t("faq.a.isSafe")}</p>
               <ul className="list-disc pl-6 space-y-2 mt-2">
-                <li><strong>Content Moderation:</strong> {t("faq.a.isSafeModeration")}</li>
-                <li><strong>Reporting Tools:</strong> {t("faq.a.isSafeReporting")}</li>
-                <li><strong>Data Security:</strong> {t("faq.a.isSafeSecurity")}</li>
+                <li>{t("faq.a.isSafeModeration")}</li>
+                <li>{t("faq.a.isSafeReporting")}</li>
+                <li>{t("faq.a.isSafeSecurity")}</li>
               </ul>
             </div>
 
@@ -159,7 +159,7 @@ export default function FAQPage() {
               <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">{t("faq.q.isPrivate")}</h3>
               <p>{t("faq.a.isPrivate")}</p>
               <p className="mt-2">
-                <Link href="/integritetspolicy" className="text-primary hover:underline">Privacy Policy</Link>
+                <Link href="/integritetspolicy" className="text-primary hover:underline">{t("footer.legal.privacyPolicy")}</Link>
               </p>
             </div>
 
@@ -177,8 +177,8 @@ export default function FAQPage() {
               <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">{t("faq.q.reportContent")}</h3>
               <p>{t("faq.a.reportContent")}</p>
               <ul className="list-disc pl-6 space-y-2 mt-2">
-                <li><strong>In-app Reporting:</strong> {t("faq.a.reportInApp")}</li>
-                <li><strong>Contact Support:</strong> {t("faq.a.reportEmail")}</li>
+                <li>{t("faq.a.reportInApp")}</li>
+                <li>{t("faq.a.reportEmail")}</li>
               </ul>
             </div>
           </div>
@@ -192,7 +192,7 @@ export default function FAQPage() {
               <h3 className="text-xl font-semibold mb-3 text-zinc-800 dark:text-white">{t("faq.q.refunds")}</h3>
               <p>{t("faq.a.refunds")}</p>
               <p className="mt-2">
-                <Link href="/villkor" className="text-primary hover:underline">Refund Policy</Link>
+                <Link href="/villkor" className="text-primary hover:underline">{t("footer.legal.terms")}</Link>
               </p>
             </div>
           </div>
@@ -227,7 +227,7 @@ export default function FAQPage() {
               {t("faq.cta.contactSupport")}
             </a>
             <Link
-              href="/kontakt"
+              href="/kontakta"
               className="inline-flex items-center justify-center rounded-md border border-input bg-background px-6 py-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               {t("faq.cta.moreOptions")}

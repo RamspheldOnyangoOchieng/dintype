@@ -47,22 +47,22 @@ export function HowItWorksContent() {
             <ul className="space-y-2 mb-6">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span>Choose age, body type, and ethnicity</span>
+                <span>{t("howItWorks.step1List1")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span>Define occupation and hobbies</span>
+                <span>{t("howItWorks.step1List2")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <span>Customize personality traits</span>
+                <span>{t("howItWorks.step1List3")}</span>
               </li>
             </ul>
             <Link
               href="/skapa-karaktar"
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-md hover:bg-primary/90 transition-colors font-semibold"
             >
-              Create Character Now
+              {t("howItWorks.step1Button")}
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
@@ -92,22 +92,22 @@ export function HowItWorksContent() {
             <ul className="space-y-2 mb-6">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                <span>Natural real-time conversations</span>
+                <span>{t("howItWorks.step2List1")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                <span>AI remembers previous parts of the conversation</span>
+                <span>{t("howItWorks.step2List2")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                <span>Personality-adapted responses</span>
+                <span>{t("howItWorks.step2List3")}</span>
               </li>
             </ul>
             <Link
               href="/chatt"
               className="inline-flex items-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 transition-colors font-semibold"
             >
-              Start Chatting
+              {t("howItWorks.step2Button")}
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
@@ -131,22 +131,22 @@ export function HowItWorksContent() {
             <ul className="space-y-2 mb-6">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
-                <span>Photo-realistic results</span>
+                <span>{t("howItWorks.step3List1")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
-                <span>Generate 1-8 images simultaneously</span>
+                <span>{t("howItWorks.step3List2")}</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
-                <span>Automatic saving to gallery</span>
+                <span>{t("howItWorks.step3List3")}</span>
               </li>
             </ul>
             <Link
               href="/generera"
               className="inline-flex items-center gap-2 bg-purple-500 text-white px-6 py-3 rounded-md hover:bg-purple-600 transition-colors font-semibold"
             >
-              Generate Images
+              {t("howItWorks.step3Button")}
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
@@ -159,15 +159,15 @@ export function HowItWorksContent() {
 
       {/* Features Overview */}
       <div className="bg-muted/50 rounded-2xl p-8 md:p-12 mb-16">
-        <h2 className="text-3xl font-bold text-center mb-8">Powerful Features</h2>
+        <h2 className="text-3xl font-bold text-center mb-8">{t("howItWorks.featuresTitle")}</h2>
         <div className="grid md:grid-cols-3 gap-8">
           <div className="text-center">
             <div className="bg-primary/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <Sparkles className="h-8 w-8 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Advanced AI</h3>
+            <h3 className="font-semibold text-lg mb-2">{t("howItWorks.feature1Title")}</h3>
             <p className="text-sm text-muted-foreground">
-              Powered by the latest AI models for natural conversations and high-quality images
+              {t("howItWorks.feature1Desc")}
             </p>
           </div>
 
@@ -175,9 +175,9 @@ export function HowItWorksContent() {
             <div className="bg-primary/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <Users className="h-8 w-8 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Unlimited Creativity</h3>
+            <h3 className="font-semibold text-lg mb-2">{t("howItWorks.feature2Title")}</h3>
             <p className="text-sm text-muted-foreground">
-              Create as many characters as you want and explore different personalities and styles
+              {t("howItWorks.feature2Desc")}
             </p>
           </div>
 
@@ -185,9 +185,9 @@ export function HowItWorksContent() {
             <div className="bg-primary/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <MessageSquare className="h-8 w-8 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Available 24/7</h3>
+            <h3 className="font-semibold text-lg mb-2">{t("howItWorks.feature3Title")}</h3>
             <p className="text-sm text-muted-foreground">
-              Your AI characters are always ready to chat, any time of the day
+              {t("howItWorks.feature3Desc")}
             </p>
           </div>
         </div>
@@ -211,7 +211,7 @@ export function HowItWorksContent() {
             href="/guide"
             className="inline-flex items-center gap-2 border-2 border-primary text-primary px-8 py-4 rounded-md hover:bg-primary/10 transition-colors font-semibold text-lg"
           >
-            Read Full Guide
+            {t("howItWorks.fullGuideButton")}
           </Link>
         </div>
       </div>
@@ -219,13 +219,13 @@ export function HowItWorksContent() {
       {/* Need Help */}
       <div className="text-center mt-12">
         <p className="text-muted-foreground">
-          Have questions? Visit our{" "}
-          <Link href="/vanliga-fragor" className="text-primary hover:underline font-semibold">
-            FAQ page
+          {t("howItWorks.questions")}{" "}
+          <Link href="/faq" className="text-primary hover:underline font-semibold">
+            {t("howItWorks.visitFaq")}
           </Link>
-          {" "}or{" "}
-          <Link href="/kontakt" className="text-primary hover:underline font-semibold">
-            contact support
+          {" "}{t("howItWorks.or")}{" "}
+          <Link href="/kontakta" className="text-primary hover:underline font-semibold">
+            {t("howItWorks.contactSupport")}
           </Link>
         </p>
       </div>
