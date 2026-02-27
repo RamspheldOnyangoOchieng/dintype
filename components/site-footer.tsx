@@ -50,22 +50,9 @@ export function SiteFooter() {
   const [tempData, setTempData] = useState(defaultData)
   const supabase = createClient()
 
-  useEffect(() => {
-    const loadFooterData = async () => {
-      try {
-        const { data, error } = await supabase.from("footer_content").select("*").single() as { data: any; error: any }
-
-        if (data && !error) {
-          setFooterData(data.content)
-          setTempData(data.content)
-        }
-      } catch (error) {
-        console.error("Error loading footer data:", error)
-      }
-    }
-
-    loadFooterData()
-  }, []) // Remove supabase from dependencies
+  // Footer content is always driven by translations (defaultData).
+  // DB persistence is only used when admin explicitly saves custom edits.
+  // This prevents stale English DB rows from overriding Swedish translations.
 
   // Rebuild default translated data when language changes and not editing
   useEffect(() => {
