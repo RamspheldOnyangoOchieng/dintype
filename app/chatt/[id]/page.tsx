@@ -2247,7 +2247,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   onOpenChange={setIsClearDialogOpen}
                   showTrigger={false}
                 />
-                {user?.id && character?.id && (
+                {FEATURES.ENABLE_TELEGRAM && user?.id && character?.id && (
                   <TelegramConnectButton
                     userId={user.id}
                     characterId={character.id}

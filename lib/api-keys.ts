@@ -17,32 +17,41 @@ let lastKeyFetch = 0;
 const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 
 export async function getNovitaApiKey(): Promise<string | null> {
-  const now = Date.now();
-  if (cachedNovitaKey && (now - lastKeyFetch < CACHE_TTL)) {
-    return cachedNovitaKey;
-  }
-
   try {
-    // Try environment variables first (fastest)
-    const envKey = process.env.NOVITA_API || process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY;
-    if (envKey && envKey.trim() !== "") {
-      cachedNovitaKey = envKey;
-      lastKeyFetch = now;
-      return envKey;
+    // 1. Check all environmental variants
+    const envKeys = [
+      process.env.NOVITA_API_KEY,
+      process.env.NOVITA_API,
+      process.env.NEXT_PUBLIC_NOVITA_API_KEY,
+      process.env.OPEN_AI_KEY,
+      process.env.OPENAI_API_KEY
+    ];
+
+    for (const key of envKeys) {
+      if (key && key.trim().startsWith('sk_') && key.length > 20) {
+        console.log(`🔑 Found valid sk_ key in ENV (Starts with: ${key.substring(0, 8)}...)`);
+        return key.trim();
+      }
     }
 
-    // Fall back to database
-    const dbKey = await getApiKey("novita_api_key");
-    if (dbKey && dbKey.trim() !== "") {
-      cachedNovitaKey = dbKey;
-      lastKeyFetch = now;
-      return dbKey;
+    // 2. Fall back to database
+    const dbKeys = ["novita_api_key", "openai_api_key", "novita_key"];
+    for (const dbId of dbKeys) {
+      const dbKey = await getApiKey(dbId);
+      if (dbKey && dbKey.trim().startsWith('sk_') && dbKey.length > 20) {
+        console.log(`🔑 Found valid sk_ key in DB [${dbId}] (Starts with: ${dbKey.substring(0, 8)}...)`);
+        return dbKey.trim();
+      }
     }
 
-    return null;
+    // 3. Last ditch: return any key found even if it doesn't match 'sk_' pattern
+    const lastDitch = process.env.NOVITA_API_KEY || process.env.OPEN_AI_KEY || null;
+    if (lastDitch) console.log(`🔄 Using last-ditch fallback key (Starts with: ${lastDitch.substring(0, 8)}...)`);
+
+    return lastDitch;
   } catch (error) {
     console.error("Error getting Novita API key:", error);
-    return process.env.NOVITA_API || process.env.NEXT_PUBLIC_NOVITA_API_KEY || null;
+    return process.env.NOVITA_API_KEY || null;
   }
 }
 

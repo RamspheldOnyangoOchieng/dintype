@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { FEATURES } from "@/lib/features"
 import { BarChart, CreditCard, Home, Settings, Users, Image, MessageSquare, DollarSign, FileText, Package, Gem, Activity, Search, FileEdit, Upload, Shield, PanelLeft, Smartphone, UserCircle, Palette } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslations } from "@/lib/use-translations"
@@ -29,8 +30,10 @@ export default function AdminSidebar({
     { name: t("admin.nav.blogPosts"), href: "/admin/dashboard/blog", icon: FileText },
     { name: t("admin.nav.characters"), href: "/admin/dashboard/characters", icon: MessageSquare },
     { name: t("admin.nav.users"), href: "/admin/dashboard/users", icon: Users },
-    { name: t("admin.nav.telegramProfiles"), href: "/admin/dashboard/telegram-profiles", icon: UserCircle },
-    { name: t("admin.nav.miniAppMgmt"), href: "/admin/dashboard/mini-app", icon: Smartphone },
+    ...(FEATURES.ENABLE_TELEGRAM ? [
+      { name: t("admin.nav.telegramProfiles"), href: "/admin/dashboard/telegram-profiles", icon: UserCircle },
+      { name: t("admin.nav.miniAppMgmt"), href: "/admin/dashboard/mini-app", icon: Smartphone },
+    ] : []),
     { name: t("admin.nav.imageSuggestions"), href: "/admin/dashboard/image-suggestions", icon: Image },
     { name: t("admin.nav.banners"), href: "/admin/dashboard/banners", icon: BarChart },
     { name: t("admin.nav.tokenPackages"), href: "/admin/dashboard/token-packages", icon: Package },
