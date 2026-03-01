@@ -6,6 +6,7 @@ import { ArrowRight, X, ChevronLeft, Heart, MessageCircle, Wand2, PlusSquare, Cr
 import { cn } from "@/lib/utils"
 import { useTranslations } from "@/lib/use-translations"
 import { CONSENT_STORAGE_KEY, CONSENT_VERSION, POLICY_VERSION } from "@/lib/consent-config"
+import { useSidebar } from "@/components/sidebar-context"
 
 interface TourStep {
     id: string
@@ -20,6 +21,7 @@ interface TourStep {
 
 export function OnboardingTour() {
     const { t } = useTranslations()
+    const { setIsOpen: setSidebarOpen } = useSidebar()
     const [currentStep, setCurrentStep] = useState(-1)
     const [isVisible, setIsVisible] = useState(false)
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
@@ -79,7 +81,7 @@ export function OnboardingTour() {
         return () => window.removeEventListener("resize", updateSize)
     }, [])
 
-    // Find and highlight target element
+    // Find and highlight target element — auto-skip if element not found
     const updateTargetPosition = useCallback(() => {
         if (currentStep >= 0 && currentStep < TOUR_STEPS.length) {
             const step = TOUR_STEPS[currentStep]
@@ -87,11 +89,19 @@ export function OnboardingTour() {
             if (element) {
                 const rect = element.getBoundingClientRect()
                 setTargetRect(rect)
-
-                // Scroll element into view if needed
                 element.scrollIntoView({ behavior: "smooth", block: "center" })
+            } else {
+                // Element not in DOM — skip to next step (or complete if at end)
+                setTargetRect(null)
+                const next = currentStep + 1
+                if (next < TOUR_STEPS.length) {
+                    setCurrentStep(next)
+                } else {
+                    handleComplete()
+                }
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentStep, TOUR_STEPS])
 
     useEffect(() => {
@@ -112,6 +122,8 @@ export function OnboardingTour() {
         let timer: ReturnType<typeof setTimeout>
 
         const startTour = () => {
+            // Expand sidebar so all nav data-tour targets are in the DOM
+            setSidebarOpen(true)
             timer = setTimeout(() => {
                 setIsVisible(true)
                 setCurrentStep(0)

@@ -99,7 +99,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const router = useRouter();
   const { user, isLoading } = useAuth()
   const { openLoginModal } = useAuthModal()
-  const { t, language } = useTranslations()
+  const { t, language, t_db } = useTranslations()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const lastMessageIdRef = useRef<string | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)

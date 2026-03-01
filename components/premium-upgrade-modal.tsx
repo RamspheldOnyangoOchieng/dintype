@@ -55,6 +55,7 @@ export function PremiumUpgradeModal({
     displayImage = displayImage || "https://res.cloudinary.com/ddg02aqiw/image/upload/v1767043020/daily_limit_reached.jpg"
     displayDescription = displayDescription || t("premium.modal.displayDescription.messageLimit")
     displayBadge = t("premium.modal.displayBadge.limitReached")
+    displayButtonText = buttonText || t("premium.modal.displayButton.upgrade")
   } else {
     displayImage = displayImage || "https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963040/premium-modals/premium_upgrade.jpg"
     displayDescription = displayDescription || t("premium.modal.displayDescription.default")

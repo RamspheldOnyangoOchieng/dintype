@@ -62,8 +62,24 @@ export default function Home() {
     }
   }, [isLoaded, consent?.version, consent?.policyVersion, consent?.timestamp])
 
-  // Split effect for login modal to avoid conflicts with consent modal
+  // Handle Supabase Auth redirects (code exchange or OTP)
   useEffect(() => {
+    const code = searchParams.get("code")
+    const token_hash = searchParams.get("token_hash")
+    const type = searchParams.get("type")
+
+    if (code) {
+      // If code is present on home page, redirect to callback handler
+      router.replace(`/auth/callback?code=${code}`)
+      return
+    }
+
+    if (token_hash && type) {
+      // If token_hash is present on home page, redirect to confirm handler
+      router.replace(`/auth/confirm?token_hash=${token_hash}&type=${type}`)
+      return
+    }
+
     if (searchParams.get("login") === "true") {
       // Remove query param immediately to clean up URL
       const url = new URL(window.location.href)
@@ -71,14 +87,13 @@ export default function Home() {
       window.history.replaceState({}, "", url.toString())
 
       // Only open login modal if user is not already authenticated
-      // This handles the case where the callback route successfully signed them in
       if (!user) {
         openLoginModal()
       } else {
         toast.success(t("auth.loginSuccess") || "Logged in successfully!")
       }
     }
-  }, [searchParams, openLoginModal, user, t])
+  }, [searchParams, openLoginModal, user, t, router])
 
   const handleConfirm = (prefs: { analytics: boolean; marketing: boolean }) => {
     updateConsent(prefs)

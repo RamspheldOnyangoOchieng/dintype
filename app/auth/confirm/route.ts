@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 
 export async function GET(request: NextRequest) {
-    const { searchParams } = new URL(request.url)
+    const { searchParams, origin } = new URL(request.url)
     const token_hash = searchParams.get('token_hash')
     const type = searchParams.get('type')
     const next = searchParams.get('next') || '/'
@@ -16,14 +16,20 @@ export async function GET(request: NextRequest) {
         })
 
         if (!error) {
-            // Redirect to next page (successful confirmation)
-            return NextResponse.redirect(new URL(next, request.url))
+            // Redirect to home with login flag to show success toast
+            return NextResponse.redirect(new URL('/?login=true', request.url))
+        }
+
+        // Check if user is already logged in (maybe verifyOtp failed because already verified)
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+            return NextResponse.redirect(new URL('/?login=true', request.url))
         }
 
         // If there's an error, log it
         console.error('Email confirmation error:', error)
     }
 
-    // Redirect to error page if token invalid or missing
-    return NextResponse.redirect(new URL('/auth/error?message=Invalid+confirmation+link', request.url))
+    // Redirect to login with error message
+    return NextResponse.redirect(new URL('/logga-in?error=Invalid+confirmation+link', request.url))
 }

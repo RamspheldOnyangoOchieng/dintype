@@ -1,5 +1,8 @@
 "use client"
 
+import Link from "next/link"
+import { Shield, CheckCircle2, AlertTriangle, Activity } from "lucide-react"
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { useTranslations } from "@/lib/use-translations"
 
 export function ReportContent() {

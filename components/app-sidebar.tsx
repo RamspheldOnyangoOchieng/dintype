@@ -167,7 +167,14 @@ export default function AppSidebar() {
                           <Link
                             href={item.href}
                             id={`sidebar-link-${item.href.replace("/", "") || "home"}`}
-                            data-tour={item.href === "/" ? "home" : item.href.replace("/", "").replace("-", "")}
+                            data-tour={
+                              item.href === "/" ? "home"
+                                : item.href === "/chatt" ? "chat"
+                                  : item.href === "/generera" ? "generate"
+                                    : item.href === "/skapa-karaktar" ? "createcharacter"
+                                      : item.href === "/premium" ? "premium"
+                                        : item.href.replace(/\//g, "").replace(/-/g, "")
+                            }
                             onClick={(e) => {
                               if ((item.href === "/min-ai" || item.href === "/samlingar") && !user) {
                                 e.preventDefault()

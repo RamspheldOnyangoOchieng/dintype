@@ -1397,6 +1397,7 @@ export type TranslationKey =
   | "contact.visitFaqDesc"
   | "contact.communityGuidelines"
   | "contact.communityGuidelinesDesc"
+  | "contact.supportContact"
   | "contact.supportExpect"
   | "contact.supportExpectDesc"
   // Monetization page
@@ -3336,6 +3337,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "contact.visitFaqDesc": "Find answers to the most common questions.",
     "contact.communityGuidelines": "Community Guidelines",
     "contact.communityGuidelinesDesc": "Read our community guidelines to learn what's allowed.",
+    "contact.supportContact": "Contact Support",
     "contact.supportExpect": "What to Expect",
     "contact.supportExpectDesc": "Our support team typically responds within 24 hours. For urgent matters, please include 'URGENT' in your email subject.",
     // Monetization page
@@ -4183,7 +4185,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.gallery": "Galleri",
     "chat.imageGenerationLocked": "Bildgenerering låst tills berättelsen är klar",
     "chat.messageLimitTitle": "Meddelandegräns",
-    "chat.messageLimitDesc": "Daglig meddelandegräns uppnådd. Uppgradera till premium för att fortsätta chatta obegränsat.",
+    "chat.messageLimitDesc": "Uppgradera till Premium för att skicka obegränsat antal meddelanden",
     "chat.tokenBalance": "Token-saldo",
     "chat.tokensSlut": "Tokens Slut",
     "chat.noTokensLeft": "Du har inga tokens kvar. Köp fler för att generera fler bilder eller använda premiumfunktioner.",
@@ -4759,7 +4761,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "premium.modal.displayButton.buyTokens": "Köp Tokens",
     "premium.modal.displayDescription.expired": "Premium-planen har gått ut. Förnya din Premium-plan.",
     "premium.modal.displayDescription.tokensDepleted": "Du har använt dina 100 gratis premium-tokens. Köp fler tokens för att använda premium-funktioner",
-    "premium.modal.displayDescription.messageLimit": "Daglig meddelandegräns nådd. Uppgradera för obegränsad chatt!",
+    "premium.modal.displayDescription.messageLimit": "Uppgradera till Premium för att skicka obegränsat antal meddelanden",
     "premium.modal.displayDescription.default": "Uppgradera till Premium för att låsa upp obegränsade funktioner.",
     "premium.modal.benefit.createAI": "Fortsätt skapa AI-karaktärer",
     "premium.modal.benefit.highQualityImages": "Generera högkvalitativa bilder",
@@ -5122,6 +5124,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "contact.visitFaqDesc": "Hitta svar på de vanligaste frågorna.",
     "contact.communityGuidelines": "Gemenskapsregler",
     "contact.communityGuidelinesDesc": "Läs våra gemenskapsregler för att veta vad som gäller.",
+    "contact.supportContact": "Kontakta support",
     "contact.supportExpect": "Vad du kan förvänta dig",
     "contact.supportExpectDesc": "Vårt supportteam svarar vanligtvis inom 24 timmar. Vid brådskande ärenden, skriv 'BRÅDSKANDE' i ämnesraden.",
     // Monetization page

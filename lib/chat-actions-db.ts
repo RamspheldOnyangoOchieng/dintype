@@ -81,7 +81,7 @@ export async function sendChatMessageDB(
     if (!limitCheck.allowed) {
       return {
         success: false,
-        error: language === "sv" ? "Du har nått din dagliga meddelandegräns." : "You've reached your daily message limit.",
+        error: language === "sv" ? "Uppgradera till Premium för att skicka obegränsat antal meddelanden" : "Upgrade to Premium to send unlimited messages",
         limitReached: true,
         upgradeRequired: true
       }
