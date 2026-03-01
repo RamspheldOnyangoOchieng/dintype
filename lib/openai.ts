@@ -33,10 +33,13 @@ export type GenerateCharacterParams = {
 export async function generateCharacterDescription(params: GenerateCharacterParams): Promise<string> {
   try {
     // PRIORITY: Use OPENAI_API_KEY from .env first, then fallback to NOVITA
-    const openaiApiKey = process.env.OPENAI_API_KEY
-    const novitaApiKey = process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY
-
-    const useOpenAI = !!openaiApiKey
+    const openaiApiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_KEY 
+    const novitaApiKey = process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY 
+    
+    // Check if the provided key is actually a Novita key (often starts with sk_ instead of sk- for OpenAI)
+    const isNovitaKey = novitaApiKey || (openaiApiKey?.includes('novita') || openaiApiKey?.startsWith('sk_'));
+    const useOpenAI = !!openaiApiKey && !isNovitaKey;
+    
     let apiKey = openaiApiKey || novitaApiKey
 
     // Only try database if environment variables are not available
@@ -171,10 +174,12 @@ export async function generateSystemPrompt(character: {
 }): Promise<string> {
   try {
     // PRIORITY: Use OPENAI_API_KEY from .env first, then fallback to NOVITA
-    const openaiApiKey = process.env.OPENAI_API_KEY
+    const openaiApiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_KEY
     const novitaApiKey = process.env.NOVITA_API_KEY || process.env.NEXT_PUBLIC_NOVITA_API_KEY
 
-    const useOpenAI = !!openaiApiKey
+    const isNovitaKey = novitaApiKey || (openaiApiKey?.includes('novita') || openaiApiKey?.startsWith('sk_'));
+    const useOpenAI = !!openaiApiKey && !isNovitaKey;
+
     let apiKey = openaiApiKey || novitaApiKey
 
     // Only try database if environment variables are not available

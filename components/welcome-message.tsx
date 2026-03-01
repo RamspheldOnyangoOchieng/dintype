@@ -5,6 +5,7 @@ import { Send, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import { MeetOnTelegramButton } from './meet-on-telegram-button'
 import { useTranslations } from '@/lib/use-translations'
+import { FEATURES } from '@/lib/features'
 
 interface WelcomeMessageProps {
     characterName: string
@@ -34,17 +35,21 @@ export function WelcomeMessage({ characterName, characterId, onStartChat }: Welc
                     {t("chat.chatOnWeb")}
                 </Button>
 
-                <MeetOnTelegramButton
-                    characterId={characterId}
-                    characterName={characterName}
-                    variant="outline"
-                    className="flex-1 border-white/20 hover:bg-white/10 text-white font-bold h-auto py-4 rounded-xl backdrop-blur-sm transition-all hover:scale-[1.02]"
-                />
+                {FEATURES.ENABLE_TELEGRAM && (
+                    <MeetOnTelegramButton
+                        characterId={characterId}
+                        characterName={characterName}
+                        variant="outline"
+                        className="flex-1 border-white/20 hover:bg-white/10 text-white font-bold h-auto py-4 rounded-xl backdrop-blur-sm transition-all hover:scale-[1.02]"
+                    />
+                )}
             </div>
 
-            <p className="text-white/40 text-xs text-center pt-2">
-                {t("chat.syncMessage")}
-            </p>
+            {FEATURES.ENABLE_TELEGRAM && (
+                <p className="text-white/40 text-xs text-center pt-2">
+                    {t("chat.syncMessage")}
+                </p>
+            )}
         </div>
     )
 }

@@ -15,6 +15,7 @@ import { TelegramConnectButton } from "@/components/telegram-connect-button"
 import { EditCharacterDialog } from "@/components/edit-character-dialog"
 import { useAuth } from "@/components/auth-context"
 import { Edit, ArrowLeft, Globe, MessageCircle, Send, Sparkles, BookOpen, ImageIcon, User, Activity } from "lucide-react"
+import { FEATURES } from "@/lib/features"
 import type { Character } from "@/lib/types"
 
 interface CharacterDetailPageProps {
@@ -98,13 +99,13 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
           </Button>
 
           {user && character && (user.id === character.user_id || (user as any).isAdmin) && (
-              <EditCharacterDialog 
-                 character={character} 
-                 onUpdate={(updated) => {
-                    setCharacter(updated);
-                    refreshCharacters();
-                 }} 
-              />
+            <EditCharacterDialog
+              character={character}
+              onUpdate={(updated) => {
+                setCharacter(updated);
+                refreshCharacters();
+              }}
+            />
           )}
         </div>
 
@@ -162,14 +163,20 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
                   </Link>
                 </Button>
 
-                <MeetOnTelegramButton
-                  characterId={character.id}
-                  characterName={character.name}
-                  variant="outline"
-                  className="flex-1 border-white/10 hover:bg-white/5 text-white font-bold h-14 rounded-xl transition-all hover:scale-[1.02]"
-                />
+                {FEATURES.ENABLE_TELEGRAM ? (
+                  <MeetOnTelegramButton
+                    characterId={character.id}
+                    characterName={character.name}
+                    variant="outline"
+                    className="flex-1 border-white/10 hover:bg-white/5 text-white font-bold h-14 rounded-xl transition-all hover:scale-[1.02]"
+                  />
+                ) : (
+                  <div className="flex-1" />
+                )}
               </div>
-              <p className="text-center text-xs text-white/30 mt-3">Messages sync automatically between platforms 💕</p>
+              {FEATURES.ENABLE_TELEGRAM && (
+                <p className="text-center text-xs text-white/30 mt-3">Messages sync automatically between platforms 💕</p>
+              )}
             </div>
           </div>
         </div>

@@ -444,15 +444,22 @@ ${branchInfo}
     ]
 
     // 11. AI Call
+    // 11. AI Call - Unified Selection
+    // ALWAYS prioritize NOVITA_API_KEY from env or DB first, then fallback to OPEN_AI_KEY
     const novitaKey = await getNovitaApiKey();
-    const openaiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_KEY;
-    const isActuallyNovita = openaiKey?.startsWith('sk_') && !openaiKey?.startsWith('sk-');
+    const fallbackKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_KEY;
+    
+    // Determine the working key
+    let apiKey = novitaKey || fallbackKey;
+    
+    // Choose endpoint and model
+    // Novita's Llama models use the OpenAI-compatible endpoint
+    const url = "https://api.novita.ai/openai/v1/chat/completions";
+    const model = isPremium ? "deepseek/deepseek-v3.1" : "meta-llama/llama-3.1-8b-instruct";
 
-    let apiKey = (isPremium && novitaKey) ? novitaKey : (openaiKey && !isActuallyNovita ? openaiKey : (novitaKey || openaiKey));
-    let url = (apiKey === openaiKey && !isActuallyNovita) ? "https://api.openai.com/v1/chat/completions" : "https://api.novita.ai/openai/v1/chat/completions";
-    let model = (url.includes("openai.com")) ? "gpt-4o-mini" : "deepseek/deepseek-v3.1";
+    console.log(`🚀 Using AI Endpoint: ${url}, Model: ${model}, Key Source: ${novitaKey ? 'NOVITA' : 'FALLBACK'}`);
 
-    if (!apiKey) throw new Error("AI API Key Missing");
+    if (!apiKey) throw new Error("AI API Key Missing. Please configure NOVITA_API_KEY in .env");
 
     const response = await fetch(url, {
       method: "POST",

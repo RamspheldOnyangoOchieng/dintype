@@ -72,6 +72,8 @@ import {
 import { Trash2, UserCircle, Settings, Info, Share2, MessageCircle, Lock, Reply, Copy, Smile, Forward, Pin, Star, FilePlus, Flag, ChevronDown } from "lucide-react"
 import { getStoryProgress, getChapter, initializeStoryProgress, completeChapter, type StoryChapter, type UserStoryProgress } from "@/lib/story-mode"
 import { Progress } from "@/components/ui/progress"
+import { FEATURES } from "@/lib/features"
+
 
 export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
@@ -1872,7 +1874,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         const welcomeMessage: Message = {
           id: `welcome-${characterId}-${Date.now()}`,
           role: "assistant",
-          content: `Hey there... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\nTell me about yourself... or take me with you on Telegram @dintypebot. Either way, I'm all yours. 🌹`,
+          content: FEATURES.ENABLE_TELEGRAM 
+            ? `Hey there... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\nTell me about yourself... or take me with you on Telegram @dintypebot. Either way, I'm all yours. 🌹`
+            : `Hey there... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\nTell me about yourself... I'm all yours. 🌹`,
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           isWelcome: true
         }
@@ -2147,7 +2151,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               {/* Desktop Actions */}
               <div className="hidden sm:flex items-center gap-1 md:gap-2">
                 <ClearChatDialog onConfirm={handleClearChat} isClearing={isClearingChat} />
-                {user?.id && character?.id && (
+                {FEATURES.ENABLE_TELEGRAM && user?.id && character?.id && (
                   <TelegramConnectButton
                     userId={user.id}
                     characterId={character.id}
@@ -2191,13 +2195,15 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
                   {/* Mobile-only Items */}
                   <div className="sm:hidden">
-                    <DropdownMenuItem
-                      onSelect={() => setIsTelegramModalOpen(true)}
-                      className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer"
-                    >
-                      <Send className="h-4 w-4 text-primary" />
-                      <span>{t("chat.connectTelegram")}</span>
-                    </DropdownMenuItem>
+                    {FEATURES.ENABLE_TELEGRAM && (
+                      <DropdownMenuItem
+                        onSelect={() => setIsTelegramModalOpen(true)}
+                        className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer"
+                      >
+                        <Send className="h-4 w-4 text-primary" />
+                        <span>{t("chat.connectTelegram")}</span>
+                      </DropdownMenuItem>
+                    )}
 
                     <DropdownMenuItem
                       onSelect={() => setIsClearDialogOpen(true)}
@@ -2440,7 +2446,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       <p className="text-current leading-relaxed break-words whitespace-pre-wrap">
                         {message.content.replace(/\[TELEGRAM_LINK\]/g, '')}
                       </p>
-                      {message.content.includes('[TELEGRAM_LINK]') && character && (
+                      {FEATURES.ENABLE_TELEGRAM && message.content.includes('[TELEGRAM_LINK]') && character && (
                         <div className="mt-3">
                           <MeetOnTelegramButton
                             characterId={character.id}
