@@ -1,6 +1,8 @@
 import { getPrivacyPolicy, getTermsOfService } from "@/app/actions/document-actions";
 import DocumentForm from "./document-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function DocumentsPage() {
     const privacyPolicy = await getPrivacyPolicy();
     const termsOfService = await getTermsOfService();
