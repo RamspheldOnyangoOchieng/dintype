@@ -302,8 +302,8 @@ export async function checkImageGenerationLimit(userId: string): Promise<UsageCh
     };
   }
 
-  // Free users check weekly limit
-  const weeklyLimit = parseInt(planInfo.restrictions.weekly_image_generation || 2);
+  // Free users check weekly limit - default to 1 free image per week
+  const weeklyLimit = parseInt(planInfo.restrictions.weekly_image_generation || '1');
 
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);

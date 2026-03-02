@@ -166,28 +166,42 @@ function GenerateContent() {
     loadSuggestions()
   }, [toast])
 
-  // Fetch free usage count
+  // Check if free user can generate images
+  const [canGenerateFree, setCanGenerateFree] = useState(true)
+  
+  // Fetch free usage count and check limit
   useEffect(() => {
     async function checkUsage() {
       if (!user) return
+      // Skip check for premium users and admins
+      if (isPremium || user.isAdmin) {
+        setIsCheckingUsage(false)
+        setCanGenerateFree(true)
+        return
+      }
+      
       setIsCheckingUsage(true)
       try {
-        const response = await fetch('/api/user-usage-stats')
+        const response = await fetch('/api/check-image-limit')
         const data = await response.json()
         if (data.success) {
-          // For now, using imagesGenerated as a proxy for free usage
-          // in a production app, we'd specifically track free vs paid generations
-          setFreeGenerationsCount(data.imagesGenerated || 0)
+          setFreeGenerationsCount(data.currentUsage || 0)
+          setCanGenerateFree(data.allowed)
+          
+          // If not allowed, show premium modal immediately
+          if (!data.allowed) {
+            setShowPremiumModal(true)
+          }
         }
       } catch (error) {
-        console.error("Error checking usage stats:", error)
+        console.error("Error checking image limit:", error)
       } finally {
         setIsCheckingUsage(false)
       }
     }
 
     checkUsage()
-  }, [user])
+  }, [user, isPremium])
 
   // Handle category change
   const handleCategoryChange = async (category: string) => {
@@ -284,8 +298,8 @@ function GenerateContent() {
       return
     }
 
-    // Check free limit for non-premium users
-    if (!isPremium && !user.isAdmin && freeGenerationsCount >= 1) {
+    // Check free limit for non-premium users - use the canGenerateFree state
+    if (!isPremium && !user.isAdmin && !canGenerateFree) {
       setShowPremiumModal(true)
       return
     }
@@ -448,7 +462,15 @@ function GenerateContent() {
                 return
               }
 
-              // Handle premium restriction error
+              // Handle premium restriction error (403 Forbidden) - show premium modal
+              if (response.status === 403 && errorJson.upgrade_required) {
+                setCanGenerateFree(false) // Mark as cannot generate
+                setShowPremiumModal(true)
+                setIsGenerating(false)
+                return
+              }
+
+              // Handle other premium restriction errors
               if (response.status === 403 && errorJson.upgradeUrl) {
                 setError(errorMessage)
                 setIsGenerating(false)
@@ -511,9 +533,10 @@ function GenerateContent() {
         // We no longer refresh user balance immediately on submission to avoid render collisions.
         // Balance will be updated when status check completes successfully or fails.
 
-        // Increment free generations count if this was a free one
+        // For free users generating their free image, mark as used
         if (!isPremium && !user?.isAdmin && selectedCount === "1") {
           setFreeGenerationsCount(prev => prev + 1)
+          setCanGenerateFree(false) // Block further free generations
         }
       } else {
         throw new Error("No Task ID or direct images returned from the API.");
@@ -1013,8 +1036,8 @@ function GenerateContent() {
                           setShowPremiumModal(true)
                           return
                         }
-                        // If free user already used their 1 free image, show premium modal on click
-                        if (!isPremium && !user?.isAdmin && freeGenerationsCount >= 1) {
+                        // If free user already used their free image, show premium modal on click
+                        if (!isPremium && !user?.isAdmin && !canGenerateFree) {
                           setShowPremiumModal(true)
                           return
                         }
