@@ -290,8 +290,8 @@ function GenerateContent() {
     // Check for NSFW content in prompt for free users
     if (!isPremium && !user.isAdmin && containsNSFW(prompt)) {
       toast({
-        title: t("chat.genError"),
-        description: t("chat.upgradeRequired"),
+        title: t("generate.nsfwBlockedTitle"),
+        description: t("generate.nsfwBlockedDescription"),
         variant: "destructive",
       })
       setShowPremiumModal(true)

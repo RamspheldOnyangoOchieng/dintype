@@ -229,8 +229,13 @@ export async function checkMessageLimit(userId: string): Promise<UsageCheck> {
 }
 
 export async function incrementMessageUsage(userId: string): Promise<void> {
+  console.log('📝 Incrementing message usage for user:', userId);
+  
   const supabase = await createAdminClient();
-  if (!supabase) return;
+  if (!supabase) {
+    console.error('❌ Failed to create admin client for incrementMessageUsage');
+    return;
+  }
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -238,6 +243,8 @@ export async function incrementMessageUsage(userId: string): Promise<void> {
   const { error } = await supabase.rpc('increment_message_usage_simple', { p_user_id: userId });
 
   if (error) {
+    console.log('⚠️ RPC increment_message_usage_simple not available, using fallback upsert:', error.message);
+    
     // Fallback if RPC doesn't exist
     const { data: existing } = await supabase
       .from('message_usage_tracking')
@@ -247,7 +254,7 @@ export async function incrementMessageUsage(userId: string): Promise<void> {
       .maybeSingle();
 
     if (existing) {
-      await supabase
+      const { error: updateError } = await supabase
         .from('message_usage_tracking')
         .update({
           message_count: (existing.message_count || 0) + 1,
@@ -255,8 +262,14 @@ export async function incrementMessageUsage(userId: string): Promise<void> {
         })
         .eq('user_id', userId)
         .eq('date', today);
+      
+      if (updateError) {
+        console.error('❌ Error updating message_usage_tracking:', updateError);
+      } else {
+        console.log('✅ Message usage updated:', existing.message_count + 1);
+      }
     } else {
-      await supabase
+      const { error: insertError } = await supabase
         .from('message_usage_tracking')
         .insert({
           user_id: userId,
@@ -265,7 +278,15 @@ export async function incrementMessageUsage(userId: string): Promise<void> {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
+      
+      if (insertError) {
+        console.error('❌ Error inserting message_usage_tracking:', insertError);
+      } else {
+        console.log('✅ Message usage created: 1');
+      }
     }
+  } else {
+    console.log('✅ Message usage incremented via RPC');
   }
 }
 

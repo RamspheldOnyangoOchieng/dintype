@@ -308,8 +308,8 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     : (character ? `(MATCH ALL TRAINING FEATURES:1.8), (EXACT HAIRSTYLE FROM REFERENCES:1.9), (COPY REFERENCE APPEARANCE:1.8), (IDENTICAL TO TRAINING IMAGES:1.9), ` : '');
   const anatomyEngine = `(perfectly detailed biological anatomy:1.7), (smoothed structured anatomy:1.8), (clean well-defined biological structure:1.7), (STRICT BUST AND TEAT CONSISTENCY:2.0), (IDENTICAL BODY DNA:1.9), (exact reference replication:1.8), (realistic physiological details:1.6), (high-fidelity private parts:1.6), (biological precision:1.6), `;
 
-  // SMOOTH FLAWLESS SKIN ENGINE - Clean beautiful skin without imperfections
-  const skinRealismEngine = `(flawless smooth skin:1.9), (perfect clear skin:1.8), (no freckles:2.0), (no spots:2.0), (no dots:2.0), (no moles:1.8), (unblemished skin:1.8), (clean poreless skin:1.7), (silky smooth skin:1.7), (even skin tone:1.8), (beautiful clear complexion:1.8), (spotless skin:1.9), (immaculate skin:1.7), (soft smooth skin:1.6), (airbrushed perfection:1.5), `;
+  // HEALTHY NATURAL SKIN ENGINE - Real, smooth, radiant skin that looks alive and healthy (NOT plastic/waxy)
+  const skinRealismEngine = `(healthy smooth radiant skin:2.0), (natural skin texture:1.9), (soft supple skin:1.8), (dewy fresh complexion:1.8), (vibrant youthful skin:1.7), (organic skin texture:1.8), (natural subsurface scattering:1.7), (even skin tone:1.8), (beautiful clear complexion:1.8), (healthy natural glow:1.7), (real human skin:1.9), (NOT plastic skin:2.0), (NOT waxy:2.0), (NOT synthetic:2.0), (NOT airbrushed:1.8), (no freckles:2.0), (no spots:2.0), (no moles:1.8), (unblemished:1.7), `;
 
   // BANNER-SPECIFIC SFW NEGATIVES - No intimate content for commercial banners
   const bannerSFWNegatives = `(nudity:3.0), (naked:3.0), (nude:3.0), (nsfw:3.0), (explicit:3.0), (erotic:3.0), (sexy pose:2.5), (seductive:2.5), (intimate:2.5), (suggestive:2.5), (provocative:2.5), (revealing clothing:2.0), (cleavage:2.0), (lingerie:2.5), (underwear:2.5), (bikini:2.0), (exposed skin:2.0), (adult content:3.0), (sexual:3.0), (sensual:2.5), (bedroom:2.0), (bed:1.8), (laying down:1.5), (spreading legs:3.0), (exotic pose:2.5), (seductive eyes:2.0), (bedroom eyes:2.0), (woman:2.5), (girl:2.5), (lady:2.5), (female:2.5), (person:2.0), (human figure:2.0), (model:2.0)`;
@@ -408,9 +408,18 @@ export function buildAttributePrompt(attributes: {
   age?: string;
   ethnicity?: string;
   bodyType?: string;
+  hair_style?: string;
+  hair_length?: string;
+  hair_color?: string;
+  eye_color?: string;
+  eye_shape?: string;
+  lip_shape?: string;
+  face_shape?: string;
+  hips?: string;
+  bust?: string;
   style?: 'realistic' | 'anime';
 }): string {
-  const { age, ethnicity, bodyType, style = 'realistic' } = attributes;
+  const { age, ethnicity, bodyType, hair_style, hair_length, hair_color, eye_color, eye_shape, lip_shape, face_shape, hips, bust, style = 'realistic' } = attributes;
   const parts: string[] = [];
   if (style === 'realistic') {
     parts.push('attractive female avatar with life-like, ultra-realistic features, skin texture, and proportions');
@@ -463,6 +472,136 @@ export function buildAttributePrompt(attributes: {
     };
     parts.push(bodyMap[bodyType] || '');
   }
+  
+  // Hair Style - with strong emphasis
+  if (hair_style) {
+    const hairStyleMap: Record<string, string> = {
+      'Straight': '(straight sleek hair:1.8), (smooth straight hair texture:1.7), perfectly straight hair',
+      'Wavy': '(wavy flowing hair:1.8), (natural soft waves:1.7), beautiful wavy hair',
+      'Curly': '(curly bouncy hair:1.8), (spiral curls:1.7), gorgeous curly hair',
+      'Coily': '(coily afro-textured hair:1.8), (tight coils:1.7), natural coily hair',
+      'Braided': '(braided hairstyle:1.8), (intricate braids:1.7), beautifully braided hair',
+      'Bun': '(elegant hair bun:1.8), (updo bun style:1.7), sophisticated bun hairstyle',
+      'Ponytail': '(high ponytail:1.8), (pulled back ponytail:1.7), classic ponytail style',
+      'Bob': '(bob haircut:1.8), (chin-length bob:1.7), stylish bob hairstyle',
+    };
+    parts.push(hairStyleMap[hair_style] || `(${hair_style.toLowerCase()} hair:1.8)`);
+  }
+
+  // Hair Length - with strong emphasis
+  if (hair_length) {
+    const hairLengthMap: Record<string, string> = {
+      'Bald': '(completely bald head:1.8), (shaved head:1.7), no hair',
+      'Buzz Cut': '(buzz cut:1.8), (very short cropped hair:1.7), buzzed hair',
+      'Short': '(short hair:1.8), (ear-length hair:1.7), pixie cut length',
+      'Shoulder': '(shoulder-length hair:1.8), (hair touching shoulders:1.7)',
+      'Mid-Back': '(mid-back length hair:1.8), (long flowing hair:1.7)',
+      'Waist': '(waist-length hair:1.8), (very long hair reaching waist:1.7)',
+      'Hip': '(hip-length hair:1.8), (extremely long hair:1.7)',
+      'Floor': '(floor-length hair:1.8), (rapunzel-length hair:1.7), incredibly long hair',
+    };
+    parts.push(hairLengthMap[hair_length] || `(${hair_length.toLowerCase()} length hair:1.8)`);
+  }
+
+  // Hair Color - with strong emphasis
+  if (hair_color) {
+    const hairColorMap: Record<string, string> = {
+      'Black': '(jet black hair:1.9), (deep black hair color:1.8), pure black hair',
+      'Dark Brown': '(dark brown hair:1.9), (rich chocolate brown hair:1.8)',
+      'Brown': '(brown hair:1.9), (natural brown hair color:1.8)',
+      'Light Brown': '(light brown hair:1.9), (caramel brown hair:1.8)',
+      'Blonde': '(blonde hair:1.9), (golden blonde hair:1.8), beautiful blonde',
+      'Platinum': '(platinum blonde hair:1.9), (icy platinum hair:1.8), white-blonde hair',
+      'Red': '(red hair:1.9), (vibrant red ginger hair:1.8), fiery red hair',
+      'Auburn': '(auburn hair:1.9), (reddish-brown hair:1.8), warm auburn',
+      'Gray': '(gray hair:1.9), (silver gray hair:1.8), elegant gray',
+      'White': '(pure white hair:1.9), (snow white hair:1.8), white hair color',
+      'Blue': '(blue hair:1.9), (vibrant blue hair color:1.8), bright blue hair',
+      'Pink': '(pink hair:1.9), (pastel pink hair:1.8), beautiful pink hair',
+      'Purple': '(purple hair:1.9), (vibrant purple hair:1.8), deep purple hair',
+      'Green': '(green hair:1.9), (emerald green hair:1.8), vivid green hair',
+    };
+    parts.push(hairColorMap[hair_color] || `(${hair_color.toLowerCase()} hair color:1.9)`);
+  }
+
+  // Eye Color - with strong emphasis
+  if (eye_color) {
+    const eyeColorMap: Record<string, string> = {
+      'Brown': '(brown eyes:1.9), (warm brown eye color:1.8), beautiful brown eyes',
+      'Dark Brown': '(dark brown eyes:1.9), (deep brown eyes:1.8), rich dark brown eyes',
+      'Amber': '(amber eyes:1.9), (golden amber eye color:1.8), striking amber eyes',
+      'Hazel': '(hazel eyes:1.9), (green-brown hazel eyes:1.8), beautiful hazel eyes',
+      'Green': '(green eyes:1.9), (emerald green eyes:1.8), vivid green eyes',
+      'Blue': '(blue eyes:1.9), (ocean blue eyes:1.8), bright blue eyes',
+      'Light Blue': '(light blue eyes:1.9), (sky blue eyes:1.8), pale blue eyes',
+      'Gray': '(gray eyes:1.9), (steel gray eyes:1.8), striking gray eyes',
+      'Violet': '(violet eyes:1.9), (purple violet eyes:1.8), rare violet eyes',
+      'Heterochromia': '(heterochromia:1.9), (two different colored eyes:1.8), one blue and one brown eye',
+    };
+    parts.push(eyeColorMap[eye_color] || `(${eye_color.toLowerCase()} eyes:1.9)`);
+  }
+
+  // Eye Shape
+  if (eye_shape) {
+    const eyeShapeMap: Record<string, string> = {
+      'Almond': '(almond-shaped eyes:1.7), elegant almond eyes',
+      'Round': '(round eyes:1.7), big round eyes',
+      'Monolid': '(monolid eyes:1.7), single eyelid',
+      'Hooded': '(hooded eyes:1.7), hooded eyelids',
+      'Downturned': '(downturned eyes:1.7), eyes that turn down at outer corners',
+      'Upturned': '(upturned eyes:1.7), cat-like upturned eyes',
+    };
+    parts.push(eyeShapeMap[eye_shape] || `(${eye_shape.toLowerCase()} eyes:1.7)`);
+  }
+
+  // Lip Shape
+  if (lip_shape) {
+    const lipShapeMap: Record<string, string> = {
+      'Full': '(full lips:1.7), plump full lips',
+      'Thin': '(thin lips:1.7), delicate thin lips',
+      'Heart': '(heart-shaped lips:1.7), cupid bow lips',
+      'Wide': '(wide lips:1.7), broad smile',
+      'Bow': '(bow-shaped lips:1.7), defined cupid bow',
+      'Pouty': '(pouty lips:1.7), seductive pouty lips',
+    };
+    parts.push(lipShapeMap[lip_shape] || `(${lip_shape.toLowerCase()} lips:1.7)`);
+  }
+
+  // Face Shape
+  if (face_shape) {
+    const faceShapeMap: Record<string, string> = {
+      'Oval': '(oval face shape:1.6), balanced oval face',
+      'Round': '(round face:1.6), soft round face',
+      'Square': '(square jawline:1.6), strong square face',
+      'Heart': '(heart-shaped face:1.6), wide forehead narrow chin',
+      'Diamond': '(diamond face shape:1.6), prominent cheekbones',
+      'Oblong': '(oblong face:1.6), longer face shape',
+    };
+    parts.push(faceShapeMap[face_shape] || `(${face_shape.toLowerCase()} face:1.6)`);
+  }
+
+  // Hips
+  if (hips) {
+    const hipsMap: Record<string, string> = {
+      'Narrow': '(narrow hips:1.5), slim hip area',
+      'Average': '(average hips:1.5), balanced proportions',
+      'Wide': '(wide hips:1.5), curvy wide hips',
+      'Very Wide': '(very wide hips:1.5), extremely curvy hips',
+    };
+    parts.push(hipsMap[hips] || `(${hips.toLowerCase()} hips:1.5)`);
+  }
+
+  // Bust
+  if (bust) {
+    const bustMap: Record<string, string> = {
+      'Small': '(small breasts:1.5), petite bust',
+      'Medium': '(medium breasts:1.5), average bust size',
+      'Large': '(large breasts:1.5), full bust',
+      'Very Large': '(very large breasts:1.5), ample bust',
+    };
+    parts.push(bustMap[bust] || `(${bust.toLowerCase()} bust:1.5)`);
+  }
+
   if (style === 'realistic') {
     parts.push('professional third-person photography, captured by Canon EOS R5, 85mm lens, f/1.8');
     parts.push('cinematic lighting, elegant masterpiece photography, sharp focus on subject');

@@ -1874,10 +1874,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     }
 
     // 2. Pre-check message limit (client-side for better UX)
+    // Free users only get 3 SFW messages per day across all AI girlfriends
     if (user?.id && !user?.isAdmin) {
       try {
         const messageCheck = await checkMessageLimit(user.id)
+        console.log('📊 Message limit check result:', messageCheck)
         if (!messageCheck.allowed) {
+          console.log('🚫 Message limit reached - showing premium modal')
           setPremiumModalFeature(t("chat.messageLimitTitle"))
           setPremiumModalDescription(t("chat.messageLimitDesc"))
           setPremiumModalMode("message-limit")
@@ -1888,6 +1891,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         }
       } catch (error) {
         console.error("Error checking message limit:", error)
+        // On error, block message for free users to be safe
+        const isFreeUser = user?.subscriptionPlan === 'free' || !user?.isPremium;
+        if (isFreeUser) {
+          toast.error(language === 'sv' ? 'Kunde inte verifiera meddelandegräns. Försök igen.' : 'Could not verify message limit. Please try again.')
+          isSubmittingRef.current = false
+          return
+        }
       }
     }
 

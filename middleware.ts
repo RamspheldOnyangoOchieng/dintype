@@ -26,6 +26,30 @@ export async function middleware(req: NextRequest) {
   res.headers.set('x-trace-id', traceId)
   if (debug) res.headers.set('x-mw-debug', '1')
 
+  // English to Swedish URL redirects
+  const englishToSwedishRoutes: Record<string, string> = {
+    '/characters': '/karaktarer',
+    '/chat': '/chatt',
+    '/create-character': '/skapa-karaktar',
+    '/generate': '/generera',
+    '/generate-character': '/generera-karaktar',
+    '/settings': '/installningar',
+    '/favorites': '/favoriter',
+    '/collections': '/samlingar',
+    '/login': '/logga-in',
+    '/premium': '/premium',
+    '/profile': '/profil',
+  }
+
+  // Check if the path starts with an English route and redirect to Swedish
+  for (const [english, swedish] of Object.entries(englishToSwedishRoutes)) {
+    if (url.pathname === english || url.pathname.startsWith(english + '/')) {
+      const newPath = url.pathname.replace(english, swedish)
+      log(`redirect ${url.pathname} -> ${newPath}`)
+      return NextResponse.redirect(new URL(newPath + url.search, req.url))
+    }
+  }
+
   try {
     log('start')
 

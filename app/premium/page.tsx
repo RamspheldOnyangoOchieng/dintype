@@ -447,24 +447,44 @@ export default function PremiumPage() {
           </Card>
         </div>
 
-        {/* Feature Highlights - Very Compact */}
-        <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { title: t("premium.chatLabel"), value: "5 Tokens", desc: t("premium.perMessage"), icon: <MessageSquare className="w-5 h-5 text-blue-500" /> },
-            { title: t("premium.createAILabel"), value: "2 Tokens", desc: t("premium.perProfile"), icon: <UserPlus className="w-5 h-5 text-primary" /> },
-            { title: t("premium.imagesLabel"), value: "5-10 Tokens", desc: t("premium.perImage"), icon: <ImageIcon className="w-5 h-5 text-blue-500" /> }
-          ].map((item, i) => (
-            <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-card/20 border border-border/40 backdrop-blur-sm">
-              <div className="p-2.5 rounded-xl bg-muted/40">
-                {item.icon}
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{item.title}</h4>
-                <p className="text-lg font-black tracking-tight leading-none">{item.value}</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">{item.desc}</p>
-              </div>
+        {/* Token Usage Table Section */}
+        <div className="max-w-4xl mx-auto space-y-4">
+          <h2 className="text-2xl font-bold italic text-center">{t("premium.tokenUsageTitle")}</h2>
+          <Card className="border-border/40 bg-card/30 backdrop-blur-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-border/40 bg-muted/20">
+                    <th className="text-left p-4 text-sm font-bold text-muted-foreground">{t("premium.tokenFunction")}</th>
+                    <th className="text-left p-4 text-sm font-bold text-muted-foreground">{t("premium.tokenCost")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="border-b border-border/20 hover:bg-muted/10 transition-colors">
+                    <td className="p-4 flex items-center gap-3">
+                      <MessageSquare className="w-5 h-5 text-blue-500" />
+                      <span className="font-medium">{t("premium.chatLabel")}</span>
+                    </td>
+                    <td className="p-4 font-semibold">5 tokens {t("premium.perMessage")}</td>
+                  </tr>
+                  <tr className="border-b border-border/20 hover:bg-muted/10 transition-colors">
+                    <td className="p-4 flex items-center gap-3">
+                      <UserPlus className="w-5 h-5 text-primary" />
+                      <span className="font-medium">{t("premium.createAILabel")}</span>
+                    </td>
+                    <td className="p-4 font-semibold">2 tokens {t("premium.perGirlfriend")}</td>
+                  </tr>
+                  <tr className="hover:bg-muted/10 transition-colors">
+                    <td className="p-4 flex items-center gap-3">
+                      <ImageIcon className="w-5 h-5 text-blue-500" />
+                      <span className="font-medium">{t("premium.imagesLabel")}</span>
+                    </td>
+                    <td className="p-4 font-semibold">5-10 tokens {t("premium.perImage")}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          ))}
+          </Card>
         </div>
 
         {/* Purchase Interface - Tighter Layout */}
@@ -560,6 +580,12 @@ export default function PremiumPage() {
           <div className="flex items-center gap-2"><Shield className="w-3 h-3" /> {t("premium.secureLabel")}</div>
           <div className="flex items-center gap-2"><Lock className="w-3 h-3" /> {t("premium.privateLabel")}</div>
           <div className="flex items-center gap-2"><Sparkles className="w-3 h-3" /> {t("premium.unlimitedLabel")}</div>
+        </div>
+
+        {/* Bottom Disclaimers */}
+        <div className="text-center space-y-2 pt-4 pb-8">
+          <p className="text-sm text-muted-foreground font-medium">{t("premium.noAdultTransaction")}</p>
+          <p className="text-sm text-muted-foreground font-medium">{t("premium.noHiddenFees")}</p>
         </div>
       </div>
 

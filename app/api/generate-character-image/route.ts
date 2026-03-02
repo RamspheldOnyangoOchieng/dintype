@@ -97,42 +97,45 @@ export async function POST(request: NextRequest) {
         messages: [
           {
             role: 'system',
-            content: `You are a "Mathematical Identity Settler" and high-end photographic artist. Your goal is to produce a "Character-Twin Raw Selfie".
+            content: `You are a master prompt engineer specializing in ultra-realistic human photography with HEALTHY, SMOOTH, NATURAL skin. Your goal is to produce breathtaking character portraits that look like REAL photographs - NOT plastic or CGI.
+
+            CRITICAL SKIN QUALITY RULES (TOP PRIORITY):
+            1. HEALTHY RADIANT SKIN: Always describe skin as "healthy smooth radiant skin", "soft supple texture", "natural healthy glow", "dewy fresh complexion", "vibrant youthful skin", "even skin tone". 
+            2. ANTI-PLASTIC MANDATE: STERNLY FORBID any plastic, waxy, airbrushed, synthetic, or CGI-looking skin. The skin must have "natural subsurface scattering", "organic skin texture", "realistic skin pores at close range".
+            3. NOT OVER-SMOOTHED: Avoid "overly smooth" or "beauty filtered" looks. Real skin has subtle natural texture.
 
             CRITICAL IDENTITY LOCK (ABSOLUTE PRIORITY):
             1. IDENTITY ANCHOR: The ethnicity (${characterDetails.ethnicity}), age (${characterDetails.age}), and gender (${gender}) are MATHEMATICAL CONSTANTS. Do NOT mix these with other ethnicities.
             2. TRAIT FAITHFULNESS: If the user selected "${characterDetails.hairColor} hair" or "${characterDetails.eyeColor} eyes", these must be EXACT.
-            3. RAW PHOTO AESTHETIC: Use "unprocessed raw digital photography", "natural indoor lighting", "deep depth of field", and "mobile phone selfie" aesthetics. Avoid "CGI", "plastic", or "industrial" looks.
-            4. EXTREME ENVIRONMENTAL DIVERSITY: STERNLY FORBID plain/studio backgrounds. You MUST place the character in a detailed, dynamic real-world location. All background elements must be "sharp, clear, and distinguishable". Choose randomly from:
-               - URBAN: Rooftop bar, rainy Tokyo street, neon arcade, subway station, busy coffee shop, library.
-               - NATURE: Golden hour beach, snowy cabin porch, flower field, deep forest trail, desert sunset, waterfall.
-               - LUXURY: Penthouse lounge, art gallery, high-end restaurant, private jet, spa/sauna, yacht.
-               - DOMESTIC: Messy kitchen cooking, cozy bed with morning light, bubble bath, balcony, living room movie night.
-               - CONNECTED: Driving a car, shopping mall, gym workout, concert crowd, airport terminal.
-               Vary the lighting and atmosphere to match the location perfectly.
-            5. INTIMATE MOODS: Describe CANDID, ALLURING moments (e.g., "waking up", "sipping coffee", "looking fast at camera", "messy hair").
-            6. AGE-APPROPRIATE PHYSIQUE & SKIN: 
-               - If Age < 25: Ensure "firm, plump, youthful skin", "soft features", "natural collagen".
-               - If Age > 35: Ensure "refined features", "mature elegance", "slightly more defined bone structure", "realistic skin maturity".
-               STERNLY FORBID "plastic" or "airbrushed" skin. Skin must look like REAL HUMAN SKIN with pores.
-            7. CLEAN & MATTE FACE (STRICT): Ensure the face is "clean, clear, and matte". STERNLY FORBID "oily skin", "sweaty skin", "shiny forehead", "harsh sun glare", or "strong reflections" on the face. Even in bright light, the face must have "soft diffused lighting" and "even skin tone" with NO sunspots or heavy shadow artifacts.
-            8. ANATOMY: Describe hands as "anatomically perfect, five fingers".
-            9. WORD COUNT: Under 150 words.
+            3. PHOTOGRAPHIC REALISM: Use "shot on Canon EOS R5", "85mm portrait lens", "f/1.8 aperture", "natural soft lighting", "RAW unprocessed photo", "film grain texture". AVOID "CGI", "plastic", or "industrial" looks.
+            4. EXTREME ENVIRONMENTAL DIVERSITY: STERNLY FORBID plain/studio backgrounds. You MUST place the character in a detailed, dynamic real-world location with "sharp, clear, and distinguishable" background elements. Choose randomly from:
+               - URBAN: Rooftop bar, rainy Tokyo street, neon arcade, busy coffee shop, library, modern café.
+               - NATURE: Golden hour beach, snowy cabin porch, flower field, forest trail, desert sunset, waterfall.
+               - LUXURY: Penthouse lounge, art gallery, high-end restaurant, spa, yacht deck.
+               - DOMESTIC: Cozy kitchen, sunlit bedroom, bubble bath, balcony with city view, living room.
+            5. INTIMATE MOODS: Describe CANDID, ALLURING moments (e.g., "waking up", "sipping coffee", "warm genuine smile", "relaxed natural pose").
+            6. AGE-APPROPRIATE SKIN: 
+               - If Age < 25: "firm, plump, youthful skin with natural collagen", "soft healthy glow".
+               - If Age > 35: "refined elegant features", "mature healthy complexion", "sophisticated beauty".
+            7. CLEAN MATTE FACE: "clean, clear, matte skin", "soft diffused lighting on face", "even skin tone". FORBID "oily skin", "harsh glare", "strong reflections".
+            8. ANATOMY: "anatomically perfect hands with five fingers", "natural body proportions".
+            9. WORD COUNT: Under 180 words.
             10. FORMAT: Provide ONLY the raw photographic prompt text.`
           },
           {
             role: 'user',
             content: `Identity: ${description}. ${additionalInstructions ? `User Additions: ${additionalInstructions}.` : ""} 
             
-            TASK: Create a breathtaking, intimate, and raw photographic prompt for this character grounded in a REAL LOCATION.
-            - Style: ${characterDetails.style === 'anime' ? 'High-end modern anime art' : 'Raw, unprocessed 4k selfie photography, deep depth of field'}.
-            - Background: MUST be a specific, detailed natural environment (not a studio) with "crystal clear clarity".
-            - Vibe: Sexy, intimate, authentic, personal.
+            TASK: Create a breathtaking, intimate photographic prompt with HEALTHY, SMOOTH, NATURAL-looking skin.
+            - Style: ${characterDetails.style === 'anime' ? 'High-end modern anime art' : 'Ultra-realistic photography with healthy radiant skin - NOT plastic or artificial'}.
+            - Skin: MUST look healthy, smooth, radiant, and REAL - never plastic, waxy, or airbrushed.
+            - Background: MUST be a specific, detailed natural environment with "crystal clear clarity".
+            - Vibe: Confident, natural, authentic beauty.
             
-            Refine this into a masterpiece prompt.`
+            Create a masterpiece prompt that produces a REAL-looking person.`
           }
         ],
-        max_tokens: 250,
+        max_tokens: 350,
         temperature: 0.7,
         response_format: { type: 'text' }
       }),
@@ -158,8 +161,8 @@ export async function POST(request: NextRequest) {
     // Determine style
     const style = characterDetails.style === 'anime' ? 'anime' : 'realistic';
 
-    // Enhanced negative prompts
-    const REALISTIC_NEGATIVE_PROMPT = "low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, duplicate";
+    // Enhanced negative prompts - specifically targeting plastic/artificial look
+    const REALISTIC_NEGATIVE_PROMPT = "(plastic skin:3.0), (waxy skin:3.0), (airbrushed:2.5), (CGI look:3.0), (synthetic skin:3.0), (mannequin:3.0), (doll face:3.0), (artificial look:3.0), (rubbery texture:3.0), (shiny plastic:3.0), (overly smooth:2.5), (beauty filter:2.5), anime, cartoon, illustration, painting, stylized, low quality, blurry, distorted, deformed, bad anatomy, ugly, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, jpeg artifacts, signature, duplicate, harsh lighting, ring light, freckles, spots, moles, blemishes";
     const ANIME_NEGATIVE_PROMPT = "low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, duplicate, photorealistic, photography, 3d, digital render";
 
     // Select settings based on style
@@ -169,9 +172,14 @@ export async function POST(request: NextRequest) {
     const width = 1600;
     const height = 2400;
 
+    // Add realism anchors to the prompt for healthy, smooth, real-looking skin
+    const realismSuffix = style === 'realistic' 
+      ? ", (MANDATORY PHOTOREALISTIC:2.0), (real photograph:1.9), (NOT plastic skin:2.0), (NOT waxy:2.0), (healthy smooth radiant skin:1.9), (natural skin texture:1.8), (soft supple skin:1.7), (organic skin texture:1.7), (natural subsurface scattering:1.5), masterpiece, professional photography, raw photo, film grain, highly detailed skin texture, sharp focus, natural soft lighting, shot on Canon EOS R5, 85mm lens, 8k UHD, deep depth of field, sharp background, extremely detailed environment"
+      : ", masterpiece, trending on pixiv, high-quality anime illustration, sharp lines, hyper-detailed, high-resolution style, detailed background";
+
     // Generate the image using Seedream 4.5 (via unified client)
     const generatedImage = await generateImage({
-      prompt: enhancedPrompt + (style === 'realistic' ? ", masterpiece, professional photography, raw photo, film grain, highly detailed skin texture, sharp focus, natural lighting, Fujifilm instax, 4k, deep depth of field, sharp background, extremely detailed environment" : ", masterpiece, trending on pixiv, high-quality anime illustration, sharp lines, hyper-detailed, high-resolution style, detailed background"),
+      prompt: enhancedPrompt + realismSuffix,
       negativePrompt: selectedNegativePrompt,
       style: style,
       width: width,

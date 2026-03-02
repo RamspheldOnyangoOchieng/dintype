@@ -99,7 +99,8 @@ function SelectionCard({
     imageUrl,
     loading,
     selected, 
-    onClick 
+    onClick,
+    size = 'default'
 }: { 
     emoji: string; 
     label: string; 
@@ -108,13 +109,22 @@ function SelectionCard({
     loading?: boolean;
     selected: boolean; 
     onClick: () => void;
+    size?: 'default' | 'large';
 }) {
+    // Size-based classes
+    const sizeClasses = size === 'large' 
+        ? 'min-w-[160px] max-w-[240px] md:min-w-[180px] md:max-w-[260px]'
+        : 'min-w-[140px] max-w-[200px]';
+    const imageHeightClass = size === 'large' 
+        ? 'h-48 md:h-56'
+        : 'h-40';
+
     return (
         <div
             onClick={onClick}
             className={`
                 relative cursor-pointer rounded-2xl overflow-hidden flex flex-col
-                transition-all duration-300 hover:scale-105 border-2 min-w-[140px] max-w-[200px]
+                transition-all duration-300 hover:scale-105 border-2 ${sizeClasses}
                 ${selected 
                     ? 'border-primary bg-accent shadow-2xl scale-105' 
                     : 'border-[#23232b] bg-[#18181f] hover:border-primary/50'
@@ -129,18 +139,18 @@ function SelectionCard({
             
             {/* Image or Loading Spinner */}
             {loading ? (
-                <div className="w-full h-40 bg-[#23232b] flex flex-col items-center justify-center gap-2">
+                <div className={`w-full ${imageHeightClass} bg-[#23232b] flex flex-col items-center justify-center gap-2`}>
                     <Loader2 className="w-8 h-8 animate-spin text-primary" />
                     <span className="text-xs text-gray-400">Generating image...</span>
                     <span className="text-[10px] text-gray-500">First time may take 20s</span>
                 </div>
             ) : !imageUrl ? (
-                <div className="w-full h-40 bg-[#23232b] flex flex-col items-center justify-center gap-2">
+                <div className={`w-full ${imageHeightClass} bg-[#23232b] flex flex-col items-center justify-center gap-2`}>
                     <div className="text-4xl">{emoji}</div>
                     <span className="text-xs text-gray-400">Tap to select</span>
                 </div>
             ) : (
-                <div className="relative w-full h-40 bg-[#0a0a0a]">
+                <div className={`relative w-full ${imageHeightClass} bg-[#0a0a0a]`}>
                     <img 
                         src={imageUrl} 
                         alt={label}
@@ -153,7 +163,7 @@ function SelectionCard({
                             if (fallback) fallback.style.display = 'flex';
                         }}
                     />
-                    <div className="hidden w-full h-40 absolute top-0 left-0 bg-[#23232b] flex-col items-center justify-center gap-2">
+                    <div className={`hidden w-full ${imageHeightClass} absolute top-0 left-0 bg-[#23232b] flex-col items-center justify-center gap-2`}>
                         <div className="text-4xl">{emoji}</div>
                         <div className="text-xs text-gray-400 px-2 text-center">{label}</div>
                     </div>
@@ -1085,7 +1095,7 @@ export default function CreateCharacterFlow() {
                         Choose the eye color for your character
                     </div>
                     
-                    <div className="flex flex-wrap gap-4 justify-center max-w-5xl">
+                    <div className="flex flex-wrap gap-4 md:gap-6 justify-center max-w-6xl">
                         {eyeColorOptions.map((option) => {
                             const imageKey = `eye_color-${option.value}-${style}`;
                             return (
@@ -1098,6 +1108,7 @@ export default function CreateCharacterFlow() {
                                     loading={imageLoading[imageKey]}
                                     selected={customization.eye_color === option.value}
                                     onClick={() => setSingleSelect('eye_color', option.value)}
+                                    size="large"
                                 />
                             );
                         })}
@@ -1113,7 +1124,7 @@ export default function CreateCharacterFlow() {
                         Choose the eye shape for your character
                     </div>
                     
-                    <div className="flex flex-wrap gap-4 justify-center max-w-5xl">
+                    <div className="flex flex-wrap gap-4 md:gap-6 justify-center max-w-6xl">
                         {eyeShapeOptions.map((option) => {
                             const imageKey = `eye_shape-${option.value}-${style}`;
                             return (
@@ -1126,6 +1137,7 @@ export default function CreateCharacterFlow() {
                                     loading={imageLoading[imageKey]}
                                     selected={customization.eye_shape === option.value}
                                     onClick={() => setSingleSelect('eye_shape', option.value)}
+                                    size="large"
                                 />
                             );
                         })}

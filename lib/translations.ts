@@ -12,6 +12,7 @@ export type TranslationKey =
   | "general.edit"
   | "general.success"
   | "general.warning"
+  | "general.info"
   | "guide.createAccount"
   | "guide.accountS1"
   | "guide.accountS1Desc"
@@ -463,6 +464,8 @@ export type TranslationKey =
   | "generate.freeTrial"
   | "generate.promptRequired"
   | "generate.promptRequiredDescription"
+  | "generate.nsfwBlockedTitle"
+  | "generate.nsfwBlockedDescription"
   | "generate.loginRequired"
   | "generate.loginRequiredDescription"
   | "generate.downloadFailed"
@@ -850,6 +853,7 @@ export type TranslationKey =
   | "premium.chatLabel"
   | "premium.perMessage"
   | "premium.createAILabel"
+  | "premium.perGirlfriend"
   | "premium.perProfile"
   | "premium.imagesLabel"
   | "premium.perImage"
@@ -1817,16 +1821,6 @@ export type TranslationKey =
   | "report.objectivityDesc"
   | "report.improvementDesc"
   | "report.closing"
-  // Roadmap page
-  | "roadmap.title"
-  | "roadmap.subtitle"
-  | "roadmap.productDev"
-  | "roadmap.doneLaunched"
-  | "roadmap.featuresAvailable"
-  | "roadmap.inProgress"
-  | "roadmap.workingOnNow"
-  | "roadmap.upcoming"
-  | "roadmap.comingSoon"
   // Guide page
   | "guide.title"
   | "guide.subtitle"
@@ -2428,8 +2422,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.typing": "typing...",
     "chat.sendingPhoto": "is sending photo..",
     "chat.replyingToMsg": "Replying to {target}",
-    "chat.welcomeGreeting": "Hey there, my love... 💕 I'm **{name}**. I've been waiting for someone like you.",
-    "chat.welcomeAction": "*leans in closer* So tell me... where would you like to get to know me?",
+    "chat.welcomeGreeting": "Hello there, my darling... 💕 I'm {name}. I've been waiting for someone like you.",
+    "chat.welcomeAction": "So tell me... where do you want to get to know me?",
     "chat.openingTelegramConnect": "Opening Telegram... Connect with {name}",
     "chat.openingTelegramGuest": "Opening Telegram as guest...",
     "chat.couldNotGenerateLink": "Could not generate Telegram link",
@@ -2617,6 +2611,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "generate.freeTrial": "Free Trial",
     "generate.promptRequired": "Prompt required",
     "generate.promptRequiredDescription": "Please enter a description for the image you want to generate.",
+    "generate.nsfwBlockedTitle": "NSFW Content Blocked",
+    "generate.nsfwBlockedDescription": "Free users can only generate SFW (safe for work) images. Upgrade to Premium to unlock NSFW image generation.",
     "generate.loginRequired": "Login required",
     "generate.loginRequiredDescription": "Please log in to generate and save images",
     "generate.downloadFailed": "Download failed",
@@ -2961,10 +2957,10 @@ export const translations: Record<"en" | "sv", Translations> = {
     "premium.subscriptionActiveLabel": "Subscription Active",
     "premium.adminAccount": "Admin Account",
     "premium.noMonthlyCredits": "No monthly credits",
-    "premium.freeMessagesPerDay": "3 free messages per day",
-    "premium.cannotCreateCharacter": "Cannot create AI character",
-    "premium.oneFreeImage": "Only 1 free image (SFW)",
-    "premium.monthlyCreditsIncluded": "110 Credits included every month",
+    "premium.freeMessagesPerDay": "3 free SFW messages per day",
+    "premium.cannotCreateCharacter": "Cannot create AI girlfriend",
+    "premium.oneFreeImage": "1 free SFW image",
+    "premium.monthlyCreditsIncluded": "100 Credits included every month",
     "premium.unlimitedMessages": "Unlimited text messages",
     "premium.unlimitedCharacters": "Create unlimited AI characters",
     "premium.unlimitedImages": "Unlimited images (NSFW/SFW)",
@@ -2995,6 +2991,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "premium.chatLabel": "Chat",
     "premium.perMessage": "per message",
     "premium.createAILabel": "Create AI",
+    "premium.perGirlfriend": "per girlfriend",
     "premium.perProfile": "per profile",
     "premium.imagesLabel": "Images",
     "premium.perImage": "per image",
@@ -3397,26 +3394,6 @@ export const translations: Record<"en" | "sv", Translations> = {
     "monetization.tokensEarned": "tokens earned",
     "monetization.recentActivity": "Recent Activity",
     "monetization.activityDesc": "Activity will appear here as you use the platform",
-    // Cookies page
-    "cookies.title": "Cookie Policy",
-    "cookies.intro": "This Cookie Policy explains how Dintype uses cookies and similar tracking technologies when you visit our website.",
-    "cookies.whatAreCookies": "What Are Cookies?",
-    "cookies.whatAreCookiesDesc": "Cookies are small text files stored on your device when you visit a website. They help the website remember your preferences and improve your experience.",
-    "cookies.typesTitle": "Types of Cookies We Use",
-    "cookies.essentialTitle": "Essential Cookies",
-    "cookies.essentialDesc": "Required for the website to function properly. These cannot be disabled.",
-    "cookies.functionalTitle": "Functional Cookies",
-    "cookies.functionalDesc": "Enable personalized features like language preferences and theme settings.",
-    "cookies.analyticsTitle": "Analytics Cookies",
-    "cookies.analyticsDesc": "Help us understand how visitors use our website to improve performance.",
-    "cookies.marketingTitle": "Marketing Cookies",
-    "cookies.marketingDesc": "Used to deliver relevant advertisements and track campaign effectiveness.",
-    "cookies.manageCookies": "Managing Your Cookies",
-    "cookies.manageCookiesDesc": "You can control and delete cookies through your browser settings. Note that disabling certain cookies may affect website functionality.",
-    "cookies.gdprTitle": "GDPR Compliance",
-    "cookies.gdprDesc": "In accordance with GDPR, we obtain your consent before placing non-essential cookies. You can withdraw your consent at any time.",
-    "cookies.contactTitle": "Contact Us",
-    "cookies.contactDesc": "If you have questions about our cookie policy, please contact us.",
     // Terms page
     "terms.title": "Rules and Terms of Use",
     "terms.intro": "Welcome to Dintype. By using our services, you agree to these terms. Please read them carefully to understand your rights and obligations.",
@@ -3636,16 +3613,6 @@ export const translations: Record<"en" | "sv", Translations> = {
     "report.improvement": "Continuous Improvement:",
     "report.needToReport": "Need to Report Something?",
     "report.sendReport": "Send Report to support@dintype.se",
-    // Roadmap page
-    "roadmap.title": "Our Roadmap",
-    "roadmap.subtitle": "Join us on our journey! Here you can see what we have achieved, what we are currently working on, and what's coming next.",
-    "roadmap.productDev": "Product Development",
-    "roadmap.doneLaunched": "Done & Launched",
-    "roadmap.featuresAvailable": "Features already available",
-    "roadmap.inProgress": "In Progress",
-    "roadmap.workingOnNow": "What we are working on right now",
-    "roadmap.upcoming": "Upcoming",
-    "roadmap.comingSoon": "Coming soon",
     // Guide page
     "guide.title": "Platform Guide",
     "guide.subtitle": "Your complete guide to Dintype - from registration to advanced features",
@@ -3715,9 +3682,6 @@ export const translations: Record<"en" | "sv", Translations> = {
     "general.errorTryAgain": "Köpet kunde inte slutföras. Försök igen.",
     "general.error": "Fel",
     "general.success": "Framgång",
-    "cookies.effectiveDate": "Ikraftträdandedatum",
-    "cookies.lastUpdated": "Senast uppdaterad",
-    "cookies.browserControl": "Webbläsarspecifik cookie-kontroll:",
     "contact.howCanWeHelp": "Hur kan vi hjälpa dig idag?",
     "contact.howCanWeHelpDesc": "Vårt kunniga supportteam kan hjälpa dig med ett brett utbud av ämnen, inklusive:",
     "contact.accountHelpItem1": "Felsökning av inloggningsproblem (t.ex. återställning av lösenord, kontoåterställning)",
@@ -4257,8 +4221,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.typing": "skriver...",
     "chat.sendingPhoto": "skickar ett foto..",
     "chat.replyingToMsg": "Svarar till {target}",
-    "chat.welcomeGreeting": "Hej där, min skatt... 💕 Jag är **{name}**. Jag har väntat på någon som dig.",
-    "chat.welcomeAction": "*lutar sig närmare* Så säg mig... var vill du lära känna mig?",
+    "chat.welcomeGreeting": "Hej där, min älskling... 💕 Jag är {name}. Jag har väntat på någon som dig.",
+    "chat.welcomeAction": "Så berätta för mig... var vill du lära känna mig?",
     "db.girls": "Tjejer",
     "db.guys": "Killar",
     "db.createyouraifriend": "Skapa din AI-vän",
@@ -4415,6 +4379,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "generate.freeTrial": "Gratis provperiod",
     "generate.promptRequired": "Prompt krävs",
     "generate.promptRequiredDescription": "Ange en beskrivning av bilden du vill generera.",
+    "generate.nsfwBlockedTitle": "NSFW-innehåll blockerat",
+    "generate.nsfwBlockedDescription": "Gratisanvändare kan bara generera SFW-bilder (säkra för arbete). Uppgradera till Premium för att låsa upp NSFW-bildgenerering.",
     "generate.loginRequired": "Inloggning krävs",
     "generate.loginRequiredDescription": "Logga in för att generera och spara bilder",
     "generate.downloadFailed": "Nedladdning misslyckades",
@@ -4757,11 +4723,11 @@ export const translations: Record<"en" | "sv", Translations> = {
     "premium.mostPopular": "MEST POPULÄR",
     "premium.subscriptionActiveLabel": "Abonnemang aktivt",
     "premium.adminAccount": "Adminkonto",
-    "premium.noMonthlyCredits": "Inga månadskredit",
-    "premium.freeMessagesPerDay": "3 gratis meddelanden per dag",
-    "premium.cannotCreateCharacter": "Kan inte skapa AI-karaktär",
-    "premium.oneFreeImage": "Bara 1 gratis bild (SFW)",
-    "premium.monthlyCreditsIncluded": "110 krediter inkluderat varje månad",
+    "premium.noMonthlyCredits": "0 EUR / 0 SEK",
+    "premium.freeMessagesPerDay": "3 gratis SFW meddelanden per dag",
+    "premium.cannotCreateCharacter": "Kan inte skapa AI-flickvän",
+    "premium.oneFreeImage": "1 gratis SFW bild",
+    "premium.monthlyCreditsIncluded": "100 krediter ingår varje månad",
     "premium.unlimitedMessages": "Obegränsade textmeddelanden",
     "premium.unlimitedCharacters": "Skapa obegränsat AI-karaktärer",
     "premium.unlimitedImages": "Obegränsat bilder (NSFW/SFW)",
@@ -4792,6 +4758,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "premium.chatLabel": "Chatt",
     "premium.perMessage": "per meddelande",
     "premium.createAILabel": "Skapa AI",
+    "premium.perGirlfriend": "per flickvän",
     "premium.perProfile": "per profil",
     "premium.imagesLabel": "Bilder",
     "premium.perImage": "per bild",
@@ -5482,16 +5449,6 @@ export const translations: Record<"en" | "sv", Translations> = {
     "report.objectivityDesc": "Vår granskningsprocess är utformad för att vara objektiv och baserad på våra etablerade policyer och juridiska krav.",
     "report.improvementDesc": "Vi utvärderar och förbättrar kontinuerligt våra rapporterings- och modereringsprocesser för att säkerställa effektivitet och rättvisa.",
     "report.closing": "Ditt engagemang för att rapportera olämpligt innehåll är ovärderligt för att hjälpa oss att upprätthålla en säker och respektfull plattform för alla. Tack för ditt samarbete och för att du bidrar till en positiv användarupplevelse på Dintype.",
-    // Roadmap page
-    "roadmap.title": "Vår färdplan",
-    "roadmap.subtitle": "Följ med på vår resa! Här kan du se vad vi har uppnått, vad vi arbetar med just nu och vad som kommer härnäst.",
-    "roadmap.productDev": "Produktutveckling",
-    "roadmap.doneLaunched": "Klart & lanserat",
-    "roadmap.featuresAvailable": "Funktioner som redan finns",
-    "roadmap.inProgress": "Pågår",
-    "roadmap.workingOnNow": "Vad vi arbetar med just nu",
-    "roadmap.upcoming": "Kommande",
-    "roadmap.comingSoon": "Kommer snart",
     // Guide page
     "guide.title": "Plattformsguide",
     "guide.subtitle": "Din kompletta guide till Dintype - från registrering till avancerade funktioner",

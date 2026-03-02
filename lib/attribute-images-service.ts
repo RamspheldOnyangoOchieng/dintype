@@ -72,10 +72,27 @@ export async function generateAndCacheImage(
 
   try {
     // Build prompt based on category and value
+    // Map category names to attribute keys properly
     const attributes: any = { style };
-    attributes[category === 'body' ? 'bodyType' : category] = value;
+    const categoryMapping: Record<string, string> = {
+      'body': 'bodyType',
+      'hair_style': 'hair_style',
+      'hair_length': 'hair_length', 
+      'hair_color': 'hair_color',
+      'eye_color': 'eye_color',
+      'eye_shape': 'eye_shape',
+      'lip_shape': 'lip_shape',
+      'face_shape': 'face_shape',
+      'hips': 'hips',
+      'bust': 'bust',
+      'age': 'age',
+      'ethnicity': 'ethnicity',
+    };
+    const attributeKey = categoryMapping[category] || category;
+    attributes[attributeKey] = value;
 
     const prompt = buildAttributePrompt(attributes);
+    console.log(`🎨 Generating image for ${category}:${value} with prompt: ${prompt.substring(0, 100)}...`);
 
     // Generate image
     const generatedImage = await generateImage({ prompt, style });
