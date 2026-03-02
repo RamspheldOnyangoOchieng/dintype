@@ -178,6 +178,7 @@ export type TranslationKey =
   | "chat.storyComplete"
   | "chat.loginRequired"
   | "chat.upgradeRequired"
+  | "chat.upgradeForNsfw"
   | "chat.aiResponseError"
   | "chat.genericError"
   | "auth.welcomeBack"
@@ -1868,6 +1869,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.genTechError": "Sorry, I couldn't generate that image. There was a technical issue with the image processing.",
     "chat.loginRequired": "Please login to continue chatting.",
     "chat.upgradeRequired": "Upgrade to premium to continue.",
+    "chat.upgradeForNsfw": "Upgrade to Premium to unlock exclusive, uncensored content! 🔥",
     "chat.aiResponseError": "Failed to get AI response",
     "chat.genericError": "An error occurred.",
     "general.legal": "Legal",
@@ -3681,6 +3683,7 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.genTechError": "Tyvärr, jag kunde inte generera den bilden. Det uppstod ett tekniskt fel vid bildbehandlingen.",
     "chat.loginRequired": "Vänligen logga in för att fortsätta chatta.",
     "chat.upgradeRequired": "Uppgradera till premium för att fortsätta.",
+    "chat.upgradeForNsfw": "Uppgradera till Premium för att låsa upp exklusivt, ocensurerat innehåll! 🔥",
     "chat.aiResponseError": "Misslyckades med att hämta svar från AI",
     "chat.genericError": "Ett fel uppstod.",
     "general.legal": "Juridik",
