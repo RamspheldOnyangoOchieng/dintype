@@ -133,6 +133,9 @@ export async function checkModelAccess(userId: string, model: string): Promise<{
       }
     }
 
+    return { allowed: true };
+  } catch (error) {
+    console.error('Error checking model access:', error);
     return { allowed: false, message: "System error checking model access. Please try again or contact support." };
   }
 }
@@ -156,6 +159,9 @@ export async function checkNsfwAccess(userId: string): Promise<{ allowed: boolea
       };
     }
 
+    return { allowed: true };
+  } catch (error) {
+    console.error('Error checking NSFW access:', error);
     return { allowed: false, message: "System error checking safety access." };
   }
 }
