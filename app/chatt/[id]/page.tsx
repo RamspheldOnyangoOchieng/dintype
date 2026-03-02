@@ -1951,61 +1951,61 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
   // Clear chat history
   const handleClearChat = async () => {
-  if (!isMounted || !character) return
+    if (!isMounted || !character) return
 
-  setIsClearingChat(true)
-  setDebugInfo((prev) => ({ ...prev, lastAction: "clearingChat" }))
+    setIsClearingChat(true)
+    setDebugInfo((prev) => ({ ...prev, lastAction: "clearingChat" }))
 
-  try {
-    // 1. Clear local storage
-    const localSuccess = clearChatHistoryFromLocalStorage(character.id)
+    try {
+      // 1. Clear local storage
+      const localSuccess = clearChatHistoryFromLocalStorage(character.id)
 
-    // 2. Clear database history (archive session)
-    const dbSuccess = user?.id ? await clearChatHistoryDB(character.id, user.id) : false
+      // 2. Clear database history (archive session)
+      const dbSuccess = user?.id ? await clearChatHistoryDB(character.id, user.id) : false
 
-    setDebugInfo((prev) => ({
-      ...prev,
-      lastAction: (localSuccess || dbSuccess) ? "chatCleared" : "chatClearFailed",
-    }))
+      setDebugInfo((prev) => ({
+        ...prev,
+        lastAction: (localSuccess || dbSuccess) ? "chatCleared" : "chatClearFailed",
+      }))
 
-    if (localSuccess || dbSuccess) {
-      // Set default welcome message after clearing
-      const welcomeMessage: Message = {
-        id: `welcome-${characterId}-${Date.now()}`,
-        role: "assistant",
-        content: FEATURES.ENABLE_TELEGRAM
-          ? `Hey there... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\nTell me about yourself... or take me with you on Telegram @dintypebot. Either way, I'm all yours. 🌹`
-          : `Hey there... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\nTell me about yourself... I'm all yours. 🌹`,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        isWelcome: true
+      if (localSuccess || dbSuccess) {
+        // Set default welcome message after clearing
+        const welcomeMessage: Message = {
+          id: `welcome-${characterId}-${Date.now()}`,
+          role: "assistant",
+          content: FEATURES.ENABLE_TELEGRAM
+            ? `Hey there... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\nTell me about yourself... or take me with you on Telegram @dintypebot. Either way, I'm all yours. 🌹`
+            : `Hey there... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\nTell me about yourself... I'm all yours. 🌹`,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          isWelcome: true
+        }
+
+        setMessages([welcomeMessage])
+        saveMessageToLocalStorage(characterId!, welcomeMessage)
+        toast.success(t("status.cleared"))
       }
+    } catch (error) {
+      console.error("Error clearing chat:", error)
+      setDebugInfo((prev) => ({ ...prev, lastError: error, lastAction: "clearChatError" }))
 
-      setMessages([welcomeMessage])
-      saveMessageToLocalStorage(characterId!, welcomeMessage)
-      toast.success(t("status.cleared"))
-    }
-  } catch (error) {
-    console.error("Error clearing chat:", error)
-    setDebugInfo((prev) => ({ ...prev, lastError: error, lastAction: "clearChatError" }))
-
-    // Set default message on error
-    setMessages([
-      {
-        id: `error-welcome-${characterId}`,
-        role: "assistant",
-        content: `Hey there, my love... 💕 I'm ${character?.name || 'your companion'}. I've been waiting for someone like you. Tell me... what brings you here tonight? 🌹`,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        isWelcome: true
-      },
-    ])
-  } finally {
-    if (isMounted) {
-      setIsClearingChat(false)
+      // Set default message on error
+      setMessages([
+        {
+          id: `error-welcome-${characterId}`,
+          role: "assistant",
+          content: `Hey there, my love... 💕 I'm ${character?.name || 'your companion'}. I've been waiting for someone like you. Tell me... what brings you here tonight? 🌹`,
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          isWelcome: true
+        },
+      ])
+    } finally {
+      if (isMounted) {
+        setIsClearingChat(false)
+      }
     }
   }
-}
 
-const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent) => {
   if (e.key === "Enter" && !e.shiftKey) {
     e.preventDefault()
     handleSendMessage()
