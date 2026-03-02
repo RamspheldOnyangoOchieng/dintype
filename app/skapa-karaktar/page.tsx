@@ -412,6 +412,10 @@ export default function CreateCharacterPage() {
             'relationship': maleImages.relationship || {
                 'realistic': {},
                 'anime': {}
+            },
+            'ethnicity': maleImages.ethnicity || {
+                'realistic': {},
+                'anime': {}
             }
         };
 
@@ -536,49 +540,54 @@ export default function CreateCharacterPage() {
 
     const getNextButtonText = () => {
         if (gender === 'lady') {
-            if (currentStep === 5) return 'Review Character →';
-            if (currentStep === 6) return 'Create my AI →';
-            if (currentStep === 7) return 'Continue →';
+            if (currentStep === 5) return 'Granska karaktär →';
+            if (currentStep === 6) return 'Skapa min AI →';
+            if (currentStep === 7) return 'Fortsätt →';
         } else { // gent
-            if (currentStep === 2) return 'Review Character →';
-            if (currentStep === 3) return 'Create my AI →';
-            if (currentStep === 4) return 'Continue →';
+            if (currentStep === 2) return 'Granska karaktär →';
+            if (currentStep === 3) return 'Skapa min AI →';
+            if (currentStep === 4) return 'Fortsätt →';
         }
-        return 'Next →';
+        return 'Nästa →';
     };
 
     // Step 5 is summary/preview step for lady, step 3 for gent
     const [activeTab, setActiveTab] = useState<'appearance' | 'character'>('appearance');
 
     const renderStepSummary = () => {
-        // Shared Preview Image for Both Genders
-        const previewImage = gender === 'gent'
+        // Dynamic Preview Image based on Ethnicity
+        let previewImage = gender === 'gent'
             ? "https://res.cloudinary.com/ddg02aqiw/image/upload/v1770381678/previews/male_character_preview.jpg"
             : "https://res.cloudinary.com/ddg02aqiw/image/upload/v1766907081/previews/character_selection_preview_premium.jpg";
 
+        // If ethnicity selected, use that specific preview for both genders
+        if (selectedEthnicity) {
+            previewImage = getImageUrl('ethnicity', selectedEthnicity, previewImage);
+        }
+
         const attributes = gender === 'lady' ? [
-            { label: 'Ethnicity', value: selectedEthnicity, type: 'ethnicity' },
-            { label: 'Age', value: `${selectedAge}yo` },
-            { label: 'Eye Color', value: selectedEyeColor, type: 'eyeColor' },
-            { label: 'Body Type', value: selectedBodyType, type: 'bodyType' },
-            { label: 'Breast Size', value: selectedBreastSize, type: 'breastSize' },
-            { label: 'Hair Style', value: selectedHairStyle, type: 'hairStyle' },
-            { label: 'Hair Color', value: selectedHairColor, type: 'hairColor' }
+            { label: 'Etnicitet', value: selectedEthnicity, type: 'ethnicity' },
+            { label: 'Ålder', value: `${selectedAge} år` },
+            { label: 'Ögonfärg', value: selectedEyeColor, type: 'eyeColor' },
+            { label: 'Kroppstyp', value: selectedBodyType, type: 'bodyType' },
+            { label: 'Bröststorlek', value: selectedBreastSize, type: 'breastSize' },
+            { label: 'Hårstil', value: selectedHairStyle, type: 'hairStyle' },
+            { label: 'Hårfärg', value: selectedHairColor, type: 'hairColor' }
         ] : [
-            { label: 'Body Type', value: selectedBodyType, type: 'bodyType' },
-            { label: 'Age', value: `${selectedAge}yo` },
-            { label: 'Personality', value: selectedPersonality, type: 'personality' },
-            { label: 'Relationship', value: selectedRelationship, type: 'relationship' }
+            { label: 'Kroppstyp', value: selectedBodyType, type: 'bodyType' },
+            { label: 'Ålder', value: `${selectedAge} år` },
+            { label: 'Personlighet', value: selectedPersonality, type: 'personality' },
+            { label: 'Relation', value: selectedRelationship, type: 'relationship' }
         ];
 
         return (
-            <div className="max-w-5xl mx-auto bg-[#0a0a0a] rounded-xl sm:rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10 flex flex-col md:flex-row min-h-0 md:min-h-[600px] relative">
+            <div className="max-w-4xl mx-auto bg-[#0a0a0a] rounded-2xl sm:rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 flex flex-col md:flex-row min-h-0 md:min-h-[550px] relative">
                 <div className="absolute top-4 right-4 sm:top-8 sm:right-8 z-20 text-white/40 cursor-pointer hover:text-white transition-colors">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" /></svg>
                 </div>
 
-                <div className="w-full md:w-[45%] p-4 sm:p-6 md:p-8">
-                    <div className="relative h-full w-full rounded-lg sm:rounded-[2rem] overflow-hidden aspect-[4/5] md:aspect-auto">
+                <div className="w-full md:w-[42%] p-3 sm:p-5 md:p-6">
+                    <div className="relative h-full w-full rounded-xl sm:rounded-[1.5rem] overflow-hidden aspect-[4/5]">
                         <img
                             src={previewImage}
                             alt="Preview"
@@ -587,11 +596,11 @@ export default function CreateCharacterPage() {
                     </div>
                 </div>
 
-                <div className="w-full md:w-[55%] p-6 md:p-12 md:pl-0 flex flex-col">
+                <div className="w-full md:w-[58%] p-5 sm:p-8 md:p-10 md:pl-0 flex flex-col">
                     <div className="mb-6 md:mb-8">
                         <div className="flex items-center gap-2 mb-2">
                             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight">
-                                {gender === 'lady' ? 'AI Partner' : 'AI Companion'}, {selectedAge}
+                                {gender === 'lady' ? 'AI-Partner' : 'AI-Följeslagare'}, {selectedAge}
                             </h2>
                         </div>
                         <div className="flex items-center gap-3 sm:gap-4">
@@ -612,7 +621,7 @@ export default function CreateCharacterPage() {
                                 "px-4 sm:px-8 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all",
                                 activeTab === 'appearance' ? "bg-white/20 text-white shadow-lg" : "text-white/40 hover:text-white/60"
                             )}>
-                            Attributes
+                            Attribut
                         </button>
                         <button
                             onClick={() => setActiveTab('character')}
@@ -620,11 +629,11 @@ export default function CreateCharacterPage() {
                                 "px-4 sm:px-8 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all",
                                 activeTab === 'character' ? "bg-white/20 text-white shadow-lg" : "text-white/40 hover:text-white/60"
                             )}>
-                            Identity
+                            Identitet
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[40vh] md:max-h-none">
+                    <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[35vh] md:max-h-[380px]">
                         {activeTab === 'appearance' ? (
                             <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-8 md:mb-12">
                                 {attributes.map((attr, i) => (
@@ -646,13 +655,13 @@ export default function CreateCharacterPage() {
                         ) : (
                             <div className="space-y-3 sm:space-y-4 mb-2">
                                 <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-white/10">
-                                    <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1 sm:mb-2">Base Personality</h4>
+                                    <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1 sm:mb-2">Grundläggande personlighet</h4>
                                     <p className="text-white text-xs sm:text-base font-medium">{getDisplayValue(selectedPersonality || '', 'personality')}</p>
                                 </div>
                                 <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-white/10 relative">
                                     <div className="flex justify-between items-center mb-2">
                                         <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest flex items-center gap-2">
-                                            Soul & Persona
+                                            Själ & Persona
                                             {isRefining && <Loader2 className="w-3 h-3 animate-spin text-primary" />}
                                         </h4>
                                         <button
@@ -661,7 +670,7 @@ export default function CreateCharacterPage() {
                                             className="text-[10px] text-primary hover:text-primary/80 transition-colors flex items-center gap-1 font-bold"
                                         >
                                             <RefreshCw className={cn("w-3 h-3", isRefining && "animate-spin")} />
-                                            Re-Refine
+                                            Förfina igen
                                         </button>
                                     </div>
 
@@ -675,7 +684,7 @@ export default function CreateCharacterPage() {
                                         <textarea
                                             value={characterDescription}
                                             onChange={(e) => setCharacterDescription(e.target.value)}
-                                            placeholder="What makes them special?"
+                                            placeholder="Vad gör dem speciella?"
                                             className={cn(
                                                 "w-full h-24 sm:h-28 bg-transparent border-none text-white text-xs sm:text-sm focus:ring-0 resize-none p-0 outline-none leading-relaxed transition-opacity duration-500",
                                                 isRefining ? "opacity-30" : "opacity-100"
@@ -685,9 +694,9 @@ export default function CreateCharacterPage() {
                                 </div>
 
                                 <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-white/10">
-                                    <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1 sm:mb-2">Public status</h4>
+                                    <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1 sm:mb-2">Offentlig status</h4>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-white text-xs sm:text-base font-medium">{isPublic ? 'Public' : 'Private'}</span>
+                                        <span className="text-white text-xs sm:text-base font-medium">{isPublic ? 'Offentlig' : 'Privat'}</span>
                                         <Switch checked={isPublic} onCheckedChange={setIsPublic} />
                                     </div>
                                 </div>
@@ -695,13 +704,13 @@ export default function CreateCharacterPage() {
                                 {user?.isPremium && (
                                     <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-white/10">
                                         <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-3 flex items-center gap-1">
-                                            Memory Recall <Sparkles className="w-3 h-3 text-yellow-500" />
+                                            Minnesåterkallande <Sparkles className="w-3 h-3 text-yellow-500" />
                                         </h4>
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-white text-xs sm:text-sm font-medium">Memory Depth</span>
+                                                <span className="text-white text-xs sm:text-sm font-medium">Minnesdjup</span>
                                                 <span className="text-primary text-xs font-bold">
-                                                    {memoryLevel === 1 ? 'Standard' : memoryLevel === 2 ? 'Enhanced' : 'Lifetime'}
+                                                    {memoryLevel === 1 ? 'Standard' : memoryLevel === 2 ? 'Utökat' : 'Livstid'}
                                                 </span>
                                             </div>
                                             <Slider
@@ -719,18 +728,9 @@ export default function CreateCharacterPage() {
                         )}
                     </div>
 
+                    {/* DUPLICATE BUTTON REMOVED AS PER USER REQUEST */}
                     <div className="pt-4 md:pt-6">
-                        <button
-                            onClick={() => {
-                                if (!user?.isPremium && !user?.isAdmin) {
-                                    setShowPremiumModal(true);
-                                    return;
-                                }
-                                setShowNameDialog(true);
-                            }}
-                            className="w-full py-4 sm:py-5 rounded-lg sm:rounded-[1.5rem] bg-gradient-to-r from-primary to-blue-600 text-white font-black text-base sm:text-lg tracking-wider shadow-2xl shadow-primary/20 hover:scale-[1.02] hover:shadow-primary/40 active:scale-[0.98] transition-all uppercase">
-                            Bring my AI to life
-                        </button>
+                        <p className="text-[10px] text-white/20 text-center italic">Granska detaljerna ovan innan du skapar din AI</p>
                     </div>
                 </div>
             </div>
@@ -744,8 +744,8 @@ export default function CreateCharacterPage() {
                 <>
                     {/* Creating your AI Section - Loading */}
                     <div className="text-center mb-8">
-                        <h2 className="text-3xl font-bold mb-2 text-card-foreground">Creating your AI</h2>
-                        <p className="text-muted-foreground">Please wait while we generate your perfect AI partner...</p>
+                        <h2 className="text-3xl font-bold mb-2 text-card-foreground">Skapar din AI</h2>
+                        <p className="text-muted-foreground">Vänligen vänta medan vi genererar din perfekta AI-partner...</p>
                     </div>
 
                     {/* Loading Animation */}
@@ -760,8 +760,8 @@ export default function CreateCharacterPage() {
 
                     {/* Progress Text */}
                     <div className="text-center">
-                        <p className="text-lg text-muted-foreground mb-2">Generating your AI character...</p>
-                        <p className="text-sm text-muted-foreground">This may take a few moments</p>
+                        <p className="text-lg text-muted-foreground mb-2">Genererar din AI-karaktär...</p>
+                        <p className="text-sm text-muted-foreground">Detta kan ta några ögonblick</p>
                     </div>
                 </>
             );
@@ -770,8 +770,8 @@ export default function CreateCharacterPage() {
                 <>
                     {/* Creating your AI Section - Complete */}
                     <div className="text-center mb-8">
-                        <h2 className="text-3xl font-bold mb-2">Your AI is Ready!</h2>
-                        <p className="text-muted-foreground">Your AI character has been created successfully</p>
+                        <h2 className="text-3xl font-bold mb-2">Din AI är klar!</h2>
+                        <p className="text-muted-foreground">Din AI-karaktär har skapats framgångsrikt</p>
                     </div>
 
                     {/* Generated Image Display */}
@@ -784,7 +784,7 @@ export default function CreateCharacterPage() {
                             >
                                 <img
                                     src={generatedImageUrl}
-                                    alt="Generated AI Character"
+                                    alt="Genererad AI-karaktär"
                                     className="w-full h-auto"
                                 />
                             </div>
@@ -792,17 +792,17 @@ export default function CreateCharacterPage() {
                             <div className="w-full max-w-xl bg-card border border-border p-6 rounded-[2rem] shadow-xl">
                                 <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
                                     <Sparkles className="w-5 h-5 text-primary" />
-                                    Not quite perfect?
+                                    Inte helt perfekt?
                                 </h3>
                                 <p className="text-sm text-muted-foreground mb-4">
-                                    Add specific details (like "wearing a red dress" or "standing in a futuristic city") and try again!
+                                    Lägg till specifika detaljer (som "bär en röd klänning" eller "står i en futuristisk stad") och försök igen!
                                 </p>
 
                                 <div className="space-y-4">
                                     <textarea
                                         value={additionalInstructions}
                                         onChange={(e) => setAdditionalInstructions(e.target.value)}
-                                        placeholder="Add more details for regeneration..."
+                                        placeholder="Lägg till mer detaljer för regenerering..."
                                         className="w-full h-24 bg-background border border-border rounded-xl p-4 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
                                     />
 
@@ -812,7 +812,7 @@ export default function CreateCharacterPage() {
                                         className="w-full py-4 rounded-xl bg-secondary hover:bg-secondary/80 text-secondary-foreground font-bold flex items-center justify-center gap-2 transition-all"
                                     >
                                         <RefreshCw className={cn("w-5 h-5", isGenerating && "animate-spin")} />
-                                        {isGenerating ? "Regenerating..." : "Regenerate Character"}
+                                        {isGenerating ? "Regenererar..." : "Regenerera karaktär"}
                                     </button>
                                 </div>
                             </div>
@@ -1025,109 +1025,118 @@ export default function CreateCharacterPage() {
 
     // Helper function to get display values
     const getDisplayValue = (value: string | null, type: string) => {
-        if (!value) return 'Not selected';
+        if (!value) return 'Inte vald';
 
         const displayMap: { [key: string]: { [key: string]: string } } = {
             style: {
-                'realistic': 'Realistic',
+                'realistic': 'Realistisk',
                 'anime': 'Anime'
             },
             ethnicity: {
-                'caucasian': 'Caucasian',
+                'caucasian': 'Kaukasisk',
                 'latina': 'Latina',
-                'asian': 'Asian'
+                'asian': 'Asiat',
+                'african': 'Afrikansk',
+                'indian': 'Indisk'
             },
             age: {
-                'teen': 'Teen (18+)',
-                '20s': '20s'
+                'teen': 'Tonåring (18+)',
+                '20s': '20-årsåldern'
             },
             eyeColor: {
-                'brown': 'Brown',
-                'blue': 'Blue',
-                'green': 'Green',
-                'red': 'Red',
-                'yellow': 'Yellow'
+                'brown': 'Brun',
+                'blue': 'Blå',
+                'green': 'Grön',
+                'red': 'Röd',
+                'yellow': 'Gul',
+                'hazel': 'Hassel',
+                'grey': 'Grå'
             },
             hairStyle: {
-                'straight': 'Straight',
-                'short': 'Short',
-                'long': 'Long',
-                'curly': 'Curly',
-                'bangs': 'Bangs',
-                'bun': 'Bun',
-                'ponytail': 'Ponytail'
+                'straight': 'Rak',
+                'short': 'Kort',
+                'long': 'Lång',
+                'curly': 'Lockig',
+                'bangs': 'Lugg',
+                'bun': 'Knut',
+                'ponytail': 'Hästsvans'
             },
             hairColor: {
-                'blonde': 'Blonde',
-                'brunette': 'Brunette',
-                'black': 'Black'
+                'blonde': 'Blond',
+                'brunette': 'Brunett',
+                'black': 'Svart'
             },
             bodyType: {
                 'petite': 'Petite',
-                'slim': 'Slim',
-                'athletic': 'Athletic',
-                'voluptuous': 'Voluptuous',
-                'curvy': 'Curvy'
+                'slim': 'Smal',
+                'athletic': 'Atletisk',
+                'voluptuous': 'Vällustig',
+                'curvy': 'Kurvig'
             },
             breastSize: {
-                'small': 'Small',
-                'medium': 'Medium',
-                'large': 'Large',
-                'huge': 'Huge',
-                'flat': 'Flat'
+                'small': 'Liten',
+                'medium': 'Mellan',
+                'large': 'Stor',
+                'huge': 'Enorm',
+                'flat': 'Platt'
             },
             buttSize: {
-                'small': 'Small',
-                'medium': 'Medium',
-                'large': 'Large',
-                'athletic': 'Athletic',
-                'skinny': 'Skinny'
+                'small': 'Liten',
+                'medium': 'Mellan',
+                'large': 'Stor',
+                'athletic': 'Atletisk',
+                'skinny': 'Mager'
             },
             'eyeShape': {
-                'almond': 'Almond',
-                'round': 'Round',
+                'almond': 'Mandelformad',
+                'round': 'Rund',
                 'monolid': 'Monolid',
-                'hooded': 'Hooded',
-                'downturned': 'Downturned',
-                'upturned': 'Upturned'
+                'hooded': 'Huvad',
+                'downturned': 'Nedåtvänd',
+                'upturned': 'Uppåtvänd'
             },
             'outfit': {
                 'bikini': 'Bikini',
-                'dress': 'Elegant Dress',
-                'lingerie': 'Lingerie',
-                'casual': 'Casual Wear',
-                'sporty': 'Sporty Outfit',
-                'office': 'Office Wear',
+                'dress': 'Elegant klänning',
+                'lingerie': 'Underkläder',
+                'casual': 'Vardaglig',
+                'sporty': 'Sportig',
+                'office': 'Kontorskläder',
                 'uniform': 'Uniform',
-                'traditional': 'Traditional'
+                'traditional': 'Traditionell'
             },
             personality: {
-                'caregiver': 'Caregiver',
-                'sage': 'Sage',
-                'innocent': 'Innocent',
-                'jester': 'Jester',
-                'temptress': 'Temptress',
+                'caregiver': 'Omtänksam',
+                'sage': 'Vis',
+                'innocent': 'Oskyldig',
+                'jester': 'Skämtsam',
+                'temptress': 'Fresterska',
                 'dominant': 'Dominant',
-                'submissive': 'Submissive',
-                'lover': 'Lover',
-                'nympho': 'Nympho',
-                'mean': 'Mean',
-                'confidant': 'Confidant',
-                'experimenter': 'Experimenter'
+                'submissive': 'Undergiven',
+                'lover': 'Älskare',
+                'nympho': 'Nymfo',
+                'mean': 'Elak',
+                'confidant': 'Förtrogen',
+                'experimenter': 'Experimentell',
+                'confident': 'Självsäker',
+                'caring': 'Omtänksam',
+                'playful': 'Lekfull',
+                'mysterious': 'Mystisk',
+                'romantic': 'Romantisk'
             },
             relationship: {
-                'stranger': 'Stranger',
-                'school-mate': 'School Mate',
-                'colleague': 'Colleague',
+                'stranger': 'Främling',
+                'school-mate': 'Skolkamrat',
+                'colleague': 'Kollega',
                 'mentor': 'Mentor',
-                'girlfriend': 'Girlfriend',
-                'sex-friend': 'Sex Friend',
-                'wife': 'Wife',
-                'mistress': 'Mistress',
-                'friend': 'Friend',
-                'best-friend': 'Best Friend',
-                'step-sister': 'Step Sister',
-                'step-mom': 'Step Mom'
+                'girlfriend': 'Flickvän',
+                'sex-friend': 'Sexkompis',
+                'wife': 'Fru',
+                'mistress': 'Älskarinna',
+                'friend': 'Vän',
+                'best-friend': 'Bästa vän',
+                'step-sister': 'Styvsyster',
+                'step-mom': 'Styvmamma'
             }
         };
 
@@ -1219,7 +1228,7 @@ export default function CreateCharacterPage() {
                     <div className="flex items-center gap-2">
                         <span className="text-xl sm:text-2xl md:text-3xl">🧬</span>
                         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black italic tracking-tighter text-foreground leading-tight">
-                            Create my AI
+                            Skapa min AI
                         </h1>
                     </div>
                     {user && (
@@ -1272,17 +1281,17 @@ export default function CreateCharacterPage() {
                                 <div className="text-center">
                                     <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
                                         <User className="h-6 w-6 text-primary" />
-                                        Choose Ethnicity*
+                                        Välj etnicitet*
                                     </h2>
-                                    <p className="text-muted-foreground text-sm mt-1">Select the background that best fits your AI</p>
+                                    <p className="text-muted-foreground text-sm mt-1">Välj den bakgrund som bäst passar din AI</p>
                                 </div>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                                     {[
-                                        { id: 'caucasian', label: 'Caucasian', fallback: '/character creation/Ethnicity/realistic/caucasian-3a46e91357800f7a540500d0115fe6364650b7a1d9e42673061b670fc226464d.webp' },
+                                        { id: 'caucasian', label: 'Kaukasisk', fallback: '/character creation/Ethnicity/realistic/caucasian-3a46e91357800f7a540500d0115fe6364650b7a1d9e42673061b670fc226464d.webp' },
                                         { id: 'latina', label: 'Latina', fallback: '/character creation/Ethnicity/realistic/latina-9f20e7d69703c6489122ac5b69865ac1252a7527c4509522f5d8df717067d1a6.webp' },
-                                        { id: 'asian', label: 'Asian', fallback: '/character creation/Ethnicity/realistic/asian-45e23043a3b83e0bcffb1cf30a17f0c8d41f551616b930b11591e97cadfdde29.webp' },
-                                        { id: 'african', label: 'African', fallback: '/character creation/Ethnicity/realistic/black_afro-3221c8246e818f77797a50c83fca1f39767780b709deeb661cb80041b5fcc4c5.webp' },
-                                        { id: 'indian', label: 'Indian', fallback: '/character creation/Ethnicity/realistic/arab-29d6da7f90a7a14b34f080498a9996712ee80d3d5dfb6f9d7ce39be0e6b9922a.webp' }
+                                        { id: 'asian', label: 'Asiat', fallback: '/character creation/Ethnicity/realistic/asian-45e23043a3b83e0bcffb1cf30a17f0c8d41f551616b930b11591e97cadfdde29.webp' },
+                                        { id: 'african', label: 'Afrikansk', fallback: '/character creation/Ethnicity/realistic/black_afro-3221c8246e818f77797a50c83fca1f39767780b709deeb661cb80041b5fcc4c5.webp' },
+                                        { id: 'indian', label: 'Indisk', fallback: '/character creation/Ethnicity/realistic/arab-29d6da7f90a7a14b34f080498a9996712ee80d3d5dfb6f9d7ce39be0e6b9922a.webp' }
                                     ].map((eth) => (
                                         <div
                                             key={eth.id}
@@ -1302,7 +1311,7 @@ export default function CreateCharacterPage() {
                                                 />
                                             </div>
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end justify-center p-3">
-                                                <span className="text-white text-xs font-bold tracking-wide uppercase">
+                                                <span className="text-white text-[10px] sm:text-xs font-bold tracking-wide uppercase">
                                                     {eth.label}
                                                 </span>
                                             </div>
@@ -1321,9 +1330,9 @@ export default function CreateCharacterPage() {
                                 <div className="text-center">
                                     <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
                                         <Calendar className="h-6 w-6 text-primary" />
-                                        Choose Age
+                                        Välj ålder
                                     </h2>
-                                    <p className="text-muted-foreground text-sm mt-1">Drag the slider to set her age: <span className="text-primary font-bold">{selectedAge} years</span></p>
+                                    <p className="text-muted-foreground text-sm mt-1">Dra reglaget för att ställa in hennes ålder: <span className="text-primary font-bold">{selectedAge} år</span></p>
                                 </div>
                                 <div className="px-4 max-w-md mx-auto space-y-4">
                                     <Slider
@@ -1335,8 +1344,8 @@ export default function CreateCharacterPage() {
                                         className="py-4"
                                     />
                                     <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                        <span>18 Years</span>
-                                        <span>70 Years</span>
+                                        <span>18 År</span>
+                                        <span>70 År</span>
                                     </div>
                                 </div>
                             </div>
@@ -1351,17 +1360,17 @@ export default function CreateCharacterPage() {
                                 <div className="text-center">
                                     <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
                                         <Eye className="h-6 w-6 text-primary" />
-                                        Choose Eye Color*
+                                        Välj ögonfärg*
                                     </h2>
-                                    <p className="text-muted-foreground text-sm mt-1">Select the color that best fits your AI</p>
+                                    <p className="text-muted-foreground text-sm mt-1">Välj den färg som bäst passar din AI</p>
                                 </div>
                                 <div className="flex flex-wrap justify-center gap-4">
                                     {[
-                                        { id: 'brown', label: 'Brown', fallback: '/character creation/eye color/realistic/brown-9dbba1bb37191cf2fc0d0fd3f2c118277e3f1c257a66a870484739fa1bd33c42.webp' },
-                                        { id: 'blue', label: 'Blue', fallback: '/character creation/eye color/realistic/blue-f7e75e814204c4d8464d36f525b0f6e9191557a585cb4be01e91ca8eb45416d0.webp' },
-                                        { id: 'green', label: 'Green', fallback: '/character creation/eye color/realistic/green-8a705cc5c2c435ac0f7addd110f4dd2b883a2e35b6403659c3e30cc7a741359c.webp' },
-                                        { id: 'hazel', label: 'Hazel', fallback: 'https://res.cloudinary.com/ddg02aqiw/image/upload/v1766906815/attribute-images/eyeColor/eyeColor_hazel_realistic_1766906813010.jpg' },
-                                        { id: 'grey', label: 'Grey', fallback: 'https://res.cloudinary.com/ddg02aqiw/image/upload/v1766906815/attribute-images/eyeColor/eyeColor_gray_realistic_1766906813010.jpg' }
+                                        { id: 'brown', label: 'Brun', fallback: '/character creation/eye color/realistic/brown-9dbba1bb37191cf2fc0d0fd3f2c118277e3f1c257a66a870484739fa1bd33c42.webp' },
+                                        { id: 'blue', label: 'Blå', fallback: '/character creation/eye color/realistic/blue-f7e75e814204c4d8464d36f525b0f6e9191557a585cb4be01e91ca8eb45416d0.webp' },
+                                        { id: 'green', label: 'Grön', fallback: '/character creation/eye color/realistic/green-8a705cc5c2c435ac0f7addd110f4dd2b883a2e35b6403659c3e30cc7a741359c.webp' },
+                                        { id: 'hazel', label: 'Hassel', fallback: 'https://res.cloudinary.com/ddg02aqiw/image/upload/v1766906815/attribute-images/eyeColor/eyeColor_hazel_realistic_1766906813010.jpg' },
+                                        { id: 'grey', label: 'Grå', fallback: 'https://res.cloudinary.com/ddg02aqiw/image/upload/v1766906815/attribute-images/eyeColor/eyeColor_gray_realistic_1766906813010.jpg' }
                                     ].map((eye) => (
                                         <div
                                             key={eye.id}
@@ -1392,18 +1401,18 @@ export default function CreateCharacterPage() {
                                 <div className="text-center">
                                     <h2 className="text-2xl font-bold flex items-center justify-center gap-2">
                                         <Eye className="h-6 w-6 text-primary" />
-                                        Choose Eye Shape*
+                                        Välj ögonform*
                                     </h2>
-                                    <p className="text-muted-foreground text-sm mt-1">Select the eye shape that best defines her gaze</p>
+                                    <p className="text-muted-foreground text-sm mt-1">Välj den ögonform som bäst definierar hennes blick</p>
                                 </div>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                     {[
-                                        { id: 'almond', label: 'Almond' },
-                                        { id: 'round', label: 'Round' },
+                                        { id: 'almond', label: 'Mandelformad' },
+                                        { id: 'round', label: 'Rund' },
                                         { id: 'monolid', label: 'Monolid' },
-                                        { id: 'hooded', label: 'Hooded' },
-                                        { id: 'downturned', label: 'Downturned' },
-                                        { id: 'upturned', label: 'Upturned' }
+                                        { id: 'hooded', label: 'Huvad' },
+                                        { id: 'downturned', label: 'Nedåtvänd' },
+                                        { id: 'upturned', label: 'Uppåtvänd' }
                                     ].map((shape) => (
                                         <Button
                                             key={shape.id}
@@ -1430,7 +1439,7 @@ export default function CreateCharacterPage() {
                             {/* Choose Hair Style Section */}
                             <div className="mb-6 sm:mb-8 md:mb-12">
                                 <div className="text-center mb-4 sm:mb-6 md:mb-8">
-                                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2 text-card-foreground">Choose Hair Style*</h2>
+                                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2 text-card-foreground">Välj hårstil*</h2>
                                 </div>
 
                                 {/* Hair styles - Ultra-small: 2 columns, Small: 3 columns, Desktop: scattered layout */}
@@ -1448,7 +1457,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[70px] h-[70px] sm:w-[88px] sm:h-[88px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('hairStyle', 'straight', '/character creation/hair styles/realistic/straight-50860930cc288e0be0fef427289870b6d421a4eba489ec04600fd0b3b1b32826.webp')}
-                                                    alt="Straight hair"
+                                                    alt="Rakt hår"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1456,7 +1465,7 @@ export default function CreateCharacterPage() {
                                                         ? 'bg-primary-foreground text-primary'
                                                         : 'bg-background/50 text-foreground'
                                                         }`}>
-                                                        Straight
+                                                        Rak
                                                     </span>
                                                 </div>
                                             </div>
@@ -1473,7 +1482,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[88px] h-[88px] rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('hairStyle', 'curly', '/character creation/hair styles/realistic/curly-4110486ba90646770e43e75e045c0cd9db53fcec28cadbc0222985bdf39d3cea.webp')}
-                                                    alt="Curly hair"
+                                                    alt="Lockigt hår"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1481,7 +1490,7 @@ export default function CreateCharacterPage() {
                                                         ? 'bg-primary-foreground text-primary'
                                                         : 'bg-background/50 text-foreground'
                                                         }`}>
-                                                        Curly
+                                                        Lockig
                                                     </span>
                                                 </div>
                                             </div>
@@ -1498,7 +1507,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[88px] h-[88px] rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('hairStyle', 'bangs', '/character creation/hair styles/realistic/bangs-c696685cde2cdd4b88d2c80cd8bd71a1d62d94348a840e2ff3ec2b974f1b9e75.webp')}
-                                                    alt="Bangs hair"
+                                                    alt="Lugg"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1523,7 +1532,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[88px] h-[88px] rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('hairStyle', 'short', '/character creation/hair styles/realistic/short-f0217dbf9ddb599d1d7ceff342e1a9b846f4ea5c083e66630dbeff55ce574691.webp')}
-                                                    alt="Short hair"
+                                                    alt="Kort hår"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1548,7 +1557,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[88px] h-[88px] rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('hairStyle', 'long', '/character creation/hair styles/realistic/long-eb817bef0e59709224eaea96296f33b260b2574a6fc10a5a1f10bfcd5dffb9cd.webp')}
-                                                    alt="Long hair"
+                                                    alt="Långt hår"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1573,7 +1582,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[88px] h-[88px] rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('hairStyle', 'bun', '/character creation/hair styles/realistic/bun-93b58d32131d1905f6654d992d20bad3adc798ced8e028d89274aac1d7743885.webp')}
-                                                    alt="Bun hair"
+                                                    alt="Hårknut"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1598,7 +1607,7 @@ export default function CreateCharacterPage() {
                                                 <div className="w-[88px] h-[88px] rounded-xl overflow-hidden relative mx-auto">
                                                     <img
                                                         src={getImageUrl('hairStyle', 'ponytail', '/character creation/hair styles/anime/ponytail-860f6eb8a1c955f15bf6c66051cbda9ce78bdecdd27b3321b11a06c3537feb1b.webp')}
-                                                        alt="Ponytail hair"
+                                                        alt="Hästsvans"
                                                         className="w-full h-full object-cover"
                                                     />
                                                     <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1606,7 +1615,7 @@ export default function CreateCharacterPage() {
                                                             ? 'bg-primary-foreground text-primary'
                                                             : 'bg-background/50 text-foreground'
                                                             }`}>
-                                                            Ponytail
+                                                            Hästsvans
                                                         </span>
                                                     </div>
                                                 </div>
@@ -1630,7 +1639,7 @@ export default function CreateCharacterPage() {
                                                     <div className="w-[88px] h-[88px] lg:w-[120px] lg:h-[120px] rounded-xl overflow-hidden relative">
                                                         <img
                                                             src={getImageUrl('hairStyle', 'straight', '/character creation/hair styles/realistic/straight-50860930cc288e0be0fef427289870b6d421a4eba489ec04600fd0b3b1b32826.webp')}
-                                                            alt="Straight hair"
+                                                            alt="Rakt hår"
                                                             className="w-full h-full object-cover"
                                                         />
                                                         <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1638,7 +1647,7 @@ export default function CreateCharacterPage() {
                                                                 ? 'bg-primary-foreground text-primary'
                                                                 : 'bg-background/50 text-foreground'
                                                                 }`}>
-                                                                Straight
+                                                                Rak
                                                             </span>
                                                         </div>
                                                     </div>
@@ -1657,7 +1666,7 @@ export default function CreateCharacterPage() {
                                                     <div className="w-[88px] h-[88px] lg:w-[120px] lg:h-[120px] rounded-xl overflow-hidden relative">
                                                         <img
                                                             src={getImageUrl('hairStyle', 'curly', '/character creation/hair styles/realistic/curly-4110486ba90646770e43e75e045c0cd9db53fcec28cadbc0222985bdf39d3cea.webp')}
-                                                            alt="Curly hair"
+                                                            alt="Lockigt hår"
                                                             className="w-full h-full object-cover"
                                                         />
                                                         <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1665,7 +1674,7 @@ export default function CreateCharacterPage() {
                                                                 ? 'bg-primary-foreground text-primary'
                                                                 : 'bg-background/50 text-foreground'
                                                                 }`}>
-                                                                Curly
+                                                                Lockig
                                                             </span>
                                                         </div>
                                                     </div>
@@ -1684,7 +1693,7 @@ export default function CreateCharacterPage() {
                                                     <div className="w-[88px] h-[88px] lg:w-[120px] lg:h-[120px] rounded-xl overflow-hidden relative">
                                                         <img
                                                             src={getImageUrl('hairStyle', 'bangs', '/character creation/hair styles/realistic/bangs-c696685cde2cdd4b88d2c80cd8bd71a1d62d94348a840e2ff3ec2b974f1b9e75.webp')}
-                                                            alt="Bangs hair"
+                                                            alt="Lugg"
                                                             className="w-full h-full object-cover"
                                                         />
                                                         <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1692,7 +1701,7 @@ export default function CreateCharacterPage() {
                                                                 ? 'bg-primary-foreground text-primary'
                                                                 : 'bg-background/50 text-foreground'
                                                                 }`}>
-                                                                Bangs
+                                                                Lugg
                                                             </span>
                                                         </div>
                                                     </div>
@@ -1711,7 +1720,7 @@ export default function CreateCharacterPage() {
                                                     <div className="w-[88px] h-[88px] lg:w-[120px] lg:h-[120px] rounded-xl overflow-hidden relative">
                                                         <img
                                                             src={getImageUrl('hairStyle', 'short', '/character creation/hair styles/realistic/short-f0217dbf9ddb599d1d7ceff342e1a9b846f4ea5c083e66630dbeff55ce574691.webp')}
-                                                            alt="Short hair"
+                                                            alt="Kort hår"
                                                             className="w-full h-full object-cover"
                                                         />
                                                         <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1719,7 +1728,7 @@ export default function CreateCharacterPage() {
                                                                 ? 'bg-primary-foreground text-primary'
                                                                 : 'bg-background/50 text-foreground'
                                                                 }`}>
-                                                                Short
+                                                                Kort
                                                             </span>
                                                         </div>
                                                     </div>
@@ -1740,7 +1749,7 @@ export default function CreateCharacterPage() {
                                                     <div className="w-[88px] h-[88px] lg:w-[120px] lg:h-[120px] rounded-xl overflow-hidden relative">
                                                         <img
                                                             src={getImageUrl('hairStyle', 'long', '/character creation/hair styles/realistic/long-eb817bef0e59709224eaea96296f33b260b2574a6fc10a5a1f10bfcd5dffb9cd.webp')}
-                                                            alt="Long hair"
+                                                            alt="Långt hår"
                                                             className="w-full h-full object-cover"
                                                         />
                                                         <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1748,7 +1757,7 @@ export default function CreateCharacterPage() {
                                                                 ? 'bg-primary-foreground text-primary'
                                                                 : 'bg-background/50 text-foreground'
                                                                 }`}>
-                                                                Long
+                                                                Lång
                                                             </span>
                                                         </div>
                                                     </div>
@@ -1767,7 +1776,7 @@ export default function CreateCharacterPage() {
                                                     <div className="w-[88px] h-[88px] lg:w-[120px] lg:h-[120px] rounded-xl overflow-hidden relative">
                                                         <img
                                                             src={getImageUrl('hairStyle', 'bun', '/character creation/hair styles/realistic/bun-93b58d32131d1905f6654d992d20bad3adc798ced8e028d89274aac1d7743885.webp')}
-                                                            alt="Bun hair"
+                                                            alt="Hårknut"
                                                             className="w-full h-full object-cover"
                                                         />
                                                         <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1775,7 +1784,7 @@ export default function CreateCharacterPage() {
                                                                 ? 'bg-primary-foreground text-primary'
                                                                 : 'bg-background/50 text-foreground'
                                                                 }`}>
-                                                                Bun
+                                                                Knut
                                                             </span>
                                                         </div>
                                                     </div>
@@ -1789,17 +1798,17 @@ export default function CreateCharacterPage() {
                             {/* Choose Hair Color Section */}
                             <div className="mb-6 sm:mb-8 md:mb-12">
                                 <div className="text-center mb-4 sm:mb-6 md:mb-8">
-                                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2 text-card-foreground">Choose Hair Color*</h2>
+                                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2 text-card-foreground">Välj hårfärg*</h2>
                                 </div>
 
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-6 max-w-3xl mx-auto">
                                     {[
-                                        { id: 'black', label: 'Black' },
-                                        { id: 'brown', label: 'Brown' },
-                                        { id: 'blonde', label: 'Blonde' },
-                                        { id: 'red', label: 'Red' },
+                                        { id: 'black', label: 'Svart' },
+                                        { id: 'brown', label: 'Brun' },
+                                        { id: 'blonde', label: 'Blond' },
+                                        { id: 'red', label: 'Röd' },
                                         { id: 'silver', label: 'Silver' },
-                                        { id: 'blue', label: 'Blue' }
+                                        { id: 'blue', label: 'Blå' }
                                     ].map((color) => (
                                         <div
                                             key={color.id}
@@ -1834,7 +1843,7 @@ export default function CreateCharacterPage() {
                             {/* Choose Body Type Section */}
                             <div className="mb-6 sm:mb-8 md:mb-12">
                                 <div className="text-center mb-4 sm:mb-6 md:mb-8">
-                                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2">Choose Body Type*</h2>
+                                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2">Välj kroppstyp*</h2>
                                 </div>
                                 {/* Ultra-small: 2 columns with smaller items, Small: 3 columns, Desktop: 5 columns */}
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:justify-center md:items-center gap-1.5 sm:gap-2 md:gap-4 mb-4 sm:mb-6 md:mb-8 max-w-full overflow-x-hidden">
@@ -1853,7 +1862,7 @@ export default function CreateCharacterPage() {
                                                 <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                     <img
                                                         src={getImageUrl('bodyType', 'petite', '/character creation/Body Type/realistic/body_petite-b18f62bc362b356112dcf9255804da6c878a0d63d461b683201e6119aa78ea4e.webp')}
-                                                        alt="Petite body"
+                                                        alt="Petite kropp"
                                                         className="w-full h-full object-cover"
                                                     />
                                                     <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1878,7 +1887,7 @@ export default function CreateCharacterPage() {
                                                 <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                     <img
                                                         src={getImageUrl('bodyType', 'slim', '/character creation/Body Type/realistic/body_slim-ce55ea6a36780b0dcc3d75e5c8e23eeea3ff2177c9bbcadd92e02e61e6397b96.webp')}
-                                                        alt="Slim body"
+                                                        alt="Smal kropp"
                                                         className="w-full h-full object-cover"
                                                     />
                                                     <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1886,7 +1895,7 @@ export default function CreateCharacterPage() {
                                                             ? 'bg-primary-foreground text-primary'
                                                             : 'bg-background/50 text-foreground'
                                                             }`}>
-                                                            Slim
+                                                            Smal
                                                         </span>
                                                     </div>
                                                 </div>
@@ -1928,7 +1937,7 @@ export default function CreateCharacterPage() {
                                                 <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                     <img
                                                         src={getImageUrl('bodyType', 'voluptuous', '/character creation/Body Type/realistic/body_voluptuous-d4128f1812af6cff122eb24e973b08eed430b86a315cb80f2506f1258f12535c.webp')}
-                                                        alt="Voluptuous body"
+                                                        alt="Vällustig kropp"
                                                         className="w-full h-full object-cover"
                                                     />
                                                     <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1936,7 +1945,7 @@ export default function CreateCharacterPage() {
                                                             ? 'bg-primary-foreground text-primary'
                                                             : 'bg-background/50 text-foreground'
                                                             }`}>
-                                                            Voluptuous
+                                                            Vällustig
                                                         </span>
                                                     </div>
                                                 </div>
@@ -1953,7 +1962,7 @@ export default function CreateCharacterPage() {
                                                 <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                     <img
                                                         src={getImageUrl('bodyType', 'curvy', '/character creation/Body Type/realistic/body_curvy-f18d1ee332d545ae810fd3351824967d9710c4ae8991e6184abb5af5f5ec21bc.webp')}
-                                                        alt="Curvy body"
+                                                        alt="Kurvig kropp"
                                                         className="w-full h-full object-cover"
                                                     />
                                                     <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1961,7 +1970,7 @@ export default function CreateCharacterPage() {
                                                             ? 'bg-primary-foreground text-primary'
                                                             : 'bg-background/50 text-foreground'
                                                             }`}>
-                                                            Curvy
+                                                            Kurvig
                                                         </span>
                                                     </div>
                                                 </div>
@@ -1983,7 +1992,7 @@ export default function CreateCharacterPage() {
                                                 <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                     <img
                                                         src={getImageUrl('bodyType', 'athletic', '')}
-                                                        alt="Athletic body"
+                                                        alt="Atletisk kropp"
                                                         className="w-full h-full object-cover"
                                                     />
                                                     <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -1991,7 +2000,7 @@ export default function CreateCharacterPage() {
                                                             ? 'bg-primary-foreground text-primary'
                                                             : 'bg-background/50 text-foreground'
                                                             }`}>
-                                                            Athletic
+                                                            Atletisk
                                                         </span>
                                                     </div>
                                                 </div>
@@ -2008,7 +2017,7 @@ export default function CreateCharacterPage() {
                                                 <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                     <img
                                                         src={getImageUrl('bodyType', 'muscular', '')}
-                                                        alt="Muscular body"
+                                                        alt="Muskulös kropp"
                                                         className="w-full h-full object-cover"
                                                     />
                                                     <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -2016,7 +2025,7 @@ export default function CreateCharacterPage() {
                                                             ? 'bg-primary-foreground text-primary'
                                                             : 'bg-background/50 text-foreground'
                                                             }`}>
-                                                            Muscular
+                                                            Muskulös
                                                         </span>
                                                     </div>
                                                 </div>
@@ -2033,7 +2042,7 @@ export default function CreateCharacterPage() {
                                                 <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                     <img
                                                         src={getImageUrl('bodyType', 'slim', '')}
-                                                        alt="Slim body"
+                                                        alt="Smal kropp"
                                                         className="w-full h-full object-cover"
                                                     />
                                                     <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -2041,7 +2050,7 @@ export default function CreateCharacterPage() {
                                                             ? 'bg-primary-foreground text-primary'
                                                             : 'bg-background/50 text-foreground'
                                                             }`}>
-                                                            Slim
+                                                            Smal
                                                         </span>
                                                     </div>
                                                 </div>
@@ -2058,7 +2067,7 @@ export default function CreateCharacterPage() {
                                                 <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                     <img
                                                         src={getImageUrl('bodyType', 'average', '')}
-                                                        alt="Average body"
+                                                        alt="Genomsnittlig kropp"
                                                         className="w-full h-full object-cover"
                                                     />
                                                     <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -2066,7 +2075,7 @@ export default function CreateCharacterPage() {
                                                             ? 'bg-primary-foreground text-primary'
                                                             : 'bg-background/50 text-foreground'
                                                             }`}>
-                                                            Average
+                                                            Medel
                                                         </span>
                                                     </div>
                                                 </div>
@@ -2083,7 +2092,7 @@ export default function CreateCharacterPage() {
                                                 <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                     <img
                                                         src={getImageUrl('bodyType', 'dad-bod', '')}
-                                                        alt="Dad Bod"
+                                                        alt="Pappakropp"
                                                         className="w-full h-full object-cover"
                                                     />
                                                     <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -2091,7 +2100,7 @@ export default function CreateCharacterPage() {
                                                             ? 'bg-primary-foreground text-primary'
                                                             : 'bg-background/50 text-foreground'
                                                             }`}>
-                                                            Dad Bod
+                                                            Pappakropp
                                                         </span>
                                                     </div>
                                                 </div>
@@ -2106,7 +2115,7 @@ export default function CreateCharacterPage() {
                             {gender === 'lady' && (
                                 <div className="mb-6 sm:mb-8 md:mb-12">
                                     <div className="text-center mb-4 sm:mb-6 md:mb-8">
-                                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2">Choose Breast Size*</h2>
+                                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2">Välj bröststorlek*</h2>
                                     </div>
                                     {/* Ultra-small: 2 columns, Small: 3 columns, Desktop: 6 columns */}
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:justify-center md:items-center gap-1.5 sm:gap-2 md:gap-4 mb-4 sm:mb-6 md:mb-8 max-w-full overflow-x-hidden">
@@ -2121,7 +2130,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('breastSize', 'small', '/character creation/Breast Size/realistic/breasts_small-9063db23ae2bf7f45863129f664bef7edc1164fccc4d03007c1a92c561470cd5.webp')}
-                                                    alt="Small breast size"
+                                                    alt="Liten bröststorlek"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -2129,7 +2138,7 @@ export default function CreateCharacterPage() {
                                                         ? 'bg-primary-foreground text-primary'
                                                         : 'bg-background/50 text-foreground'
                                                         }`}>
-                                                        Small
+                                                        Liten
                                                     </span>
                                                 </div>
                                             </div>
@@ -2146,7 +2155,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('breastSize', 'medium', '/character creation/Breast Size/realistic/breasts_medium-93b4eeb0383da569f549ba5f0b63f2fd6e40b91dc987a5dc54818378507f9fa2.webp')}
-                                                    alt="Medium breast size"
+                                                    alt="Mellan bröststorlek"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -2154,7 +2163,7 @@ export default function CreateCharacterPage() {
                                                         ? 'bg-primary-foreground text-primary'
                                                         : 'bg-background/50 text-foreground'
                                                         }`}>
-                                                        Medium
+                                                        Mellan
                                                     </span>
                                                 </div>
                                             </div>
@@ -2171,7 +2180,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('breastSize', 'large', '/character creation/Breast Size/realistic/breasts_large-6a6177548ba4e4a026b91fd4d1cb335ca0af31fba1773355f160a31248e30263.webp')}
-                                                    alt="Large breast size"
+                                                    alt="Stor bröststorlek"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -2179,7 +2188,7 @@ export default function CreateCharacterPage() {
                                                         ? 'bg-primary-foreground text-primary'
                                                         : 'bg-background/50 text-foreground'
                                                         }`}>
-                                                        Large
+                                                        Stor
                                                     </span>
                                                 </div>
                                             </div>
@@ -2196,7 +2205,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('breastSize', 'huge', '/character creation/Breast Size/realistic/breasts_huge-f358a0ada25c9c77fa364bb83d10455f909f09c0b7c8779f27122ed7c91c98e2.webp')}
-                                                    alt="Huge breast size"
+                                                    alt="Enorm bröststorlek"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -2204,7 +2213,7 @@ export default function CreateCharacterPage() {
                                                         ? 'bg-primary-foreground text-primary'
                                                         : 'bg-background/50 text-foreground'
                                                         }`}>
-                                                        Huge
+                                                        Enorm
                                                     </span>
                                                 </div>
                                             </div>
@@ -2221,7 +2230,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('breastSize', 'flat', '/character creation/Breast Size/realistic/breasts_flat-340ebc7321d0635c127c7649dba47bbee9b64f6b7d1b9b30cedcf6c75fdd5cf8.webp')}
-                                                    alt="Flat breast size"
+                                                    alt="Platt bröststorlek"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -2229,7 +2238,7 @@ export default function CreateCharacterPage() {
                                                         ? 'bg-primary-foreground text-primary'
                                                         : 'bg-background/50 text-foreground'
                                                         }`}>
-                                                        Flat
+                                                        Platt
                                                     </span>
                                                 </div>
                                             </div>
@@ -2242,7 +2251,7 @@ export default function CreateCharacterPage() {
                             {gender === 'lady' && (
                                 <div className="mb-6 sm:mb-8 md:mb-12">
                                     <div className="text-center mb-4 sm:mb-6 md:mb-8">
-                                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2">Choose Butt Size*</h2>
+                                        <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-1 sm:mb-2">Välj rumpstorlek*</h2>
                                     </div>
                                     {/* Ultra-small: 2 columns, Small: 3 columns, Desktop: 5 columns */}
                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:flex md:justify-center md:items-center gap-1.5 sm:gap-2 md:gap-4 mb-4 sm:mb-6 md:mb-8 max-w-full overflow-x-hidden">
@@ -2257,7 +2266,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('buttSize', 'small', '/character creation/Butt Size/realistic/butt_small-48c1b16f769794ec161e5cd5c125e55d4d472abb1d0d99ecfb342f0905e4cc0f.webp')}
-                                                    alt="Small butt size"
+                                                    alt="Liten rumpstorlek"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -2265,7 +2274,7 @@ export default function CreateCharacterPage() {
                                                         ? 'bg-primary-foreground text-primary'
                                                         : 'bg-background/50 text-foreground'
                                                         }`}>
-                                                        Small
+                                                        Liten
                                                     </span>
                                                 </div>
                                             </div>
@@ -2282,7 +2291,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('buttSize', 'medium', '/character creation/Butt Size/realistic/butt_medium-04bd199dd8a881e43a677706acfa72c896b65f027ae63b9c098da6734eef6b0f.webp')}
-                                                    alt="Medium butt size"
+                                                    alt="Mellan rumpstorlek"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -2290,7 +2299,7 @@ export default function CreateCharacterPage() {
                                                         ? 'bg-primary-foreground text-primary'
                                                         : 'bg-background/50 text-foreground'
                                                         }`}>
-                                                        Medium
+                                                        Mellan
                                                     </span>
                                                 </div>
                                             </div>
@@ -2307,7 +2316,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('buttSize', 'large', '/character creation/Butt Size/realistic/butt_large-30ddcb640a43c5882b28b9a56a5d68e711c3f6cd0ad86adf68ebfc5433a8401f.webp')}
-                                                    alt="Large butt size"
+                                                    alt="Stor rumpstorlek"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -2315,7 +2324,7 @@ export default function CreateCharacterPage() {
                                                         ? 'bg-primary-foreground text-primary'
                                                         : 'bg-background/50 text-foreground'
                                                         }`}>
-                                                        Large
+                                                        Stor
                                                     </span>
                                                 </div>
                                             </div>
@@ -2332,7 +2341,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('buttSize', 'athletic', '/character creation/Butt Size/realistic/butt_athletic-48e02ae266c3edba8cb56ccc74300afd82493dea11a51850e7ad9ffa4a28e69f.webp')}
-                                                    alt="Athletic butt size"
+                                                    alt="Atletisk rumpstorlek"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -2340,7 +2349,7 @@ export default function CreateCharacterPage() {
                                                         ? 'bg-primary-foreground text-primary'
                                                         : 'bg-background/50 text-foreground'
                                                         }`}>
-                                                        Athletic
+                                                        Atletisk
                                                     </span>
                                                 </div>
                                             </div>
@@ -2357,7 +2366,7 @@ export default function CreateCharacterPage() {
                                             <div className="w-[60px] h-[60px] sm:w-[88px] sm:h-[88px] lg:w-[120px] lg:h-[120px] rounded-lg sm:rounded-xl overflow-hidden relative mx-auto">
                                                 <img
                                                     src={getImageUrl('buttSize', 'skinny', '/character creation/Butt Size/realistic/butt_skinny-1fdd436cdf4ccc633444352998fe0f1094c62c69a568196f646067b71f1b7152.webp')}
-                                                    alt="Skinny butt size"
+                                                    alt="Mager rumpstorlek"
                                                     className="w-full h-full object-cover"
                                                 />
                                                 <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2">
@@ -2365,7 +2374,7 @@ export default function CreateCharacterPage() {
                                                         ? 'bg-primary-foreground text-primary'
                                                         : 'bg-background/50 text-foreground'
                                                         }`}>
-                                                        Skinny
+                                                        Mager
                                                     </span>
                                                 </div>
                                             </div>
@@ -2382,9 +2391,9 @@ export default function CreateCharacterPage() {
                             <div className="text-center">
                                 <h2 className="text-3xl font-bold flex items-center justify-center gap-2">
                                     <Sparkles className="h-8 w-8 text-primary" />
-                                    Personality Traits
+                                    Personlighetsdrag
                                 </h2>
-                                <p className="text-muted-foreground">Choose {gender === 'lady' ? 'her' : 'his'} core personality</p>
+                                <p className="text-muted-foreground">Välj {gender === 'lady' ? 'hennes' : 'hans'} grundläggande personlighet</p>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {(gender === 'lady'
@@ -2416,9 +2425,9 @@ export default function CreateCharacterPage() {
                             <div className="text-center">
                                 <h2 className="text-3xl font-bold flex items-center justify-center gap-2">
                                     <Heart className="h-8 w-8 text-primary" />
-                                    Relationship
+                                    Relation
                                 </h2>
-                                <p className="text-muted-foreground">Define your current status with {gender === 'lady' ? 'her' : 'him'}</p>
+                                <p className="text-muted-foreground">Definiera din nuvarande status med {gender === 'lady' ? 'henne' : 'honom'}</p>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {['stranger', 'school-mate', 'colleague', 'mentor', 'girlfriend', 'sex-friend', 'wife', 'mistress', 'friend', 'best-friend', 'step-sister', 'step-mom'].map((key) => (
@@ -2459,7 +2468,7 @@ export default function CreateCharacterPage() {
                                 onClick={() => setCurrentStep(currentStep - 1)}
                                 disabled={isGenerating}
                             >
-                                ← Previous
+                                ← Föregående
                             </button>
                         )}
                         <button
@@ -2502,14 +2511,14 @@ export default function CreateCharacterPage() {
                 showNameDialog && (
                     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                         <div className="bg-card rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-8 max-w-md w-full shadow-2xl border border-border">
-                            <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 text-center text-card-foreground">Name your AI partner</h2>
-                            <p className="text-muted-foreground mb-4 sm:mb-6 text-center text-xs sm:text-sm md:text-base">Choose a unique name to bring your AI to life</p>
+                            <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 text-center text-card-foreground">Namnge din AI-partner</h2>
+                            <p className="text-muted-foreground mb-4 sm:mb-6 text-center text-xs sm:text-sm md:text-base">Välj ett unikt namn för att ge din AI liv</p>
 
                             <input
                                 type="text"
                                 value={characterName}
                                 onChange={(e) => setCharacterName(e.target.value)}
-                                placeholder="Enter character name..."
+                                placeholder="Ange karaktärsnamn..."
                                 className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg bg-background border border-border focus:border-primary focus:outline-none text-foreground mb-4 sm:mb-6 transition-colors text-sm sm:text-base"
                                 maxLength={50}
                                 autoFocus
@@ -2526,7 +2535,7 @@ export default function CreateCharacterPage() {
                                     disabled={isSaving}
                                     className="flex-1 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-lg bg-secondary hover:bg-secondary/80 text-secondary-foreground font-semibold transition-all text-xs sm:text-sm md:text-base"
                                 >
-                                    Cancel
+                                    Avbryt
                                 </button>
                                 <button
                                     onClick={handleSaveCharacter}
@@ -2536,7 +2545,7 @@ export default function CreateCharacterPage() {
                                         : 'bg-primary hover:bg-primary/90 text-primary-foreground'
                                         }`}
                                 >
-                                    {isSaving ? 'Saving...' : 'Name Character'}
+                                    {isSaving ? 'Sparar...' : 'Namnge karaktär'}
                                 </button>
                             </div>
                         </div>
@@ -2569,7 +2578,7 @@ export default function CreateCharacterPage() {
                                     onClick={() => setErrorModal({ ...errorModal, isOpen: false })}
                                     className="w-full px-4 py-3 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold transition-all text-sm sm:text-base"
                                 >
-                                    Close
+                                    Stäng
                                 </button>
                             </div>
                         </div>
@@ -2582,8 +2591,8 @@ export default function CreateCharacterPage() {
                 onClose={() => {
                     setShowPremiumModal(false);
                 }}
-                feature="Create AI Partners"
-                description="Upgrade to Premium to generate AI partners."
+                feature="Skapa AI-partner"
+                description="Uppgradera till Premium för att skapa AI-partner."
                 imageSrc="https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963048/premium-modals/create_character_premium.jpg"
             />
 
@@ -2591,8 +2600,8 @@ export default function CreateCharacterPage() {
                 isOpen={showTokensDepletedModal}
                 onClose={() => setShowTokensDepletedModal(false)}
                 mode="tokens-depleted"
-                feature="Tokens Depleted"
-                description="You used your 100 free premium tokens. Buy more tokens to use premium features"
+                feature="Tokens slut"
+                description="Du har använt dina 100 gratis premiumtokens. Köp fler tokens för att fortsätta använda premiumfunktioner."
                 imageSrc="https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963046/premium-modals/tokens_depleted.jpg"
             />
 
@@ -2600,8 +2609,8 @@ export default function CreateCharacterPage() {
                 isOpen={showExpiredModal}
                 onClose={() => setShowExpiredModal(false)}
                 mode="expired"
-                feature="Premium Expired"
-                description="Premium Plan expired. Renew your Premium Plan."
+                feature="Premium har löpt ut"
+                description="Ditt Premium-medlemskap har löpt ut. Förnya ditt medlemskap för att fortsätta."
             />
         </div>
     );

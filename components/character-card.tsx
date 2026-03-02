@@ -55,8 +55,8 @@ export function CharacterCard({ character }: CharacterCardProps) {
 
   return (
     <Link
-      href={`/chat/${character.id}`}
-      className="block relative overflow-hidden rounded-[var(--radius)] aspect-[3/4] cursor-pointer shadow-md hover:shadow-lg transition-all duration-300 bg-card text-card-foreground border border-border"
+      href={`/chatt/${character.id}`}
+      className="block relative overflow-hidden rounded-2xl md:rounded-3xl aspect-[4/5] cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-500 bg-zinc-900 text-card-foreground border border-white/5 ring-1 ring-white/5"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -64,11 +64,11 @@ export function CharacterCard({ character }: CharacterCardProps) {
       <img
         src={
           imageError
-            ? "/placeholder.svg?height=400&width=300"
-            : character.image || "/placeholder.svg?height=400&width=300"
+            ? "/placeholder.svg?height=500&width=400"
+            : character.image || character.imageUrl || "/placeholder.svg?height=500&width=400"
         }
         alt={character.name}
-        className={`w-full h-full object-cover transition-opacity duration-300 ${isHovering && character.videoUrl ? "opacity-0" : "opacity-100"}`}
+        className={`w-full h-full object-cover transition-all duration-700 ${isHovering && character.videoUrl ? "opacity-0 scale-105 blur-sm" : "opacity-100 scale-100"}`}
         onError={() => setImageError(true)}
       />
 
@@ -84,8 +84,8 @@ export function CharacterCard({ character }: CharacterCardProps) {
         />
       ) : null}
 
-      {/* Gradient Overlay using tokens */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent z-10 pointer-events-none"></div>
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10 pointer-events-none"></div>
 
       {/* NEW Badge */}
       {isNew && (

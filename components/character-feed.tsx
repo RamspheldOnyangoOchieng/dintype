@@ -42,6 +42,10 @@ export function CharacterFeed({ characterId, characterImage, characterName }: { 
     }, [characterId])
 
     const fetchPosts = async () => {
+        if (!characterId) {
+            setIsLoading(false)
+            return
+        }
         try {
             const res = await fetch(`/api/characters/${characterId}/posts`)
             if (res.ok) {
@@ -161,11 +165,11 @@ export function CharacterFeed({ characterId, characterImage, characterName }: { 
                         <div className="flex gap-4">
                             <Avatar>
                                 <AvatarImage src={characterImage} />
-                                <AvatarFallback>{characterName[0]}</AvatarFallback>
+                                <AvatarFallback>{characterName?.[0] || "?"}</AvatarFallback>
                             </Avatar>
                             <div className="flex-1 space-y-2">
                                 <Input
-                                    placeholder={`Write a new update as ${characterName}...`}
+                                    placeholder={`Write a new update as ${characterName || "AI"}...`}
                                     value={newPostContent}
                                     onChange={(e) => setNewPostContent(e.target.value)}
                                     className="bg-transparent border-white/20"
@@ -189,17 +193,23 @@ export function CharacterFeed({ characterId, characterImage, characterName }: { 
                         <CardHeader className="flex flex-row items-center gap-4 pb-2">
                             <Avatar>
                                 <AvatarImage src={characterImage} />
-                                <AvatarFallback>{characterName[0]}</AvatarFallback>
+                                <AvatarFallback>{characterName?.[0] || "?"}</AvatarFallback>
                             </Avatar>
                             <div>
-                                <h4 className="font-bold text-sm">{characterName}</h4>
+                                <h4 className="font-bold text-sm">{characterName || "AI Partner"}</h4>
                                 <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</p>
                             </div>
                         </CardHeader>
                         <CardContent className="pb-2">
                             <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.content}</p>
                             {post.image_url && (
-                                <img src={post.image_url} alt="Post content" className="mt-3 rounded-lg w-full object-cover max-h-96" />
+                                <div className="mt-3 rounded-xl overflow-hidden bg-black/40 border border-white/5">
+                                    <img 
+                                        src={post.image_url} 
+                                        alt="Post content" 
+                                        className="w-full h-auto max-h-[500px] object-contain block mx-auto" 
+                                    />
+                                </div>
                             )}
                         </CardContent>
                         <CardFooter className="flex flex-col items-start pt-2">

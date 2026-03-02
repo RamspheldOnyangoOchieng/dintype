@@ -65,7 +65,7 @@ export function CharacterGrid({
   }, [characters, showOnlyWithChatHistory])
 
   return (
-    <div className="grid grid-cols-2 gap-3 px-2 md:px-6 lg:px-8 md:gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-7xl mx-auto mt-4">
+    <div className="grid grid-cols-2 gap-3 px-2 md:px-4 lg:px-6 md:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 max-w-[1600px] mx-auto mt-4">
       {filteredCharacters.map((character) => (
         <CharacterCard key={character.id} character={character} />
       ))}

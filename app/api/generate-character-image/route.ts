@@ -5,10 +5,24 @@ import { getUnifiedNovitaKey } from '@/lib/unified-api-keys';
 import { createClient } from '@/lib/supabase-server';
 import { getUserPlanInfo } from '@/lib/subscription-limits';
 
+import { containsNSFW, containsProhibited } from '@/lib/nsfw-filter';
+
 export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
   try {
+    const body = await request.json();
+    const { characterDetails, gender, additionalInstructions } = body;
+
+    // 1. Content Moderation Check
+    if (additionalInstructions && containsProhibited(additionalInstructions)) {
+      console.warn("🚫 PROHIBITED content detected in character instructions:", additionalInstructions);
+      return NextResponse.json(
+        { error: 'Innehållet bryter mot våra riktlinjer för säkerhet.' },
+        { status: 400 }
+      );
+    }
+
     // Check authentication and premium status
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -43,9 +57,6 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       );
     }
-
-    const body = await request.json();
-    const { characterDetails, gender, additionalInstructions } = body;
     // Default to 'lady' if not specified or invalid
     const isMale = gender === 'gent';
     const subjectTerm = isMale ? 'man' : 'woman';

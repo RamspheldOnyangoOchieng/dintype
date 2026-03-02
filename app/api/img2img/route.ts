@@ -5,13 +5,23 @@ import { generateImage } from "@/lib/novita-api"
 import { getUnifiedNovitaKey } from "@/lib/unified-api-keys"
 import { createClient } from "@/lib/supabase-server"
 import { checkModelAccess, checkNsfwAccess } from "@/lib/subscription-limits"
-import { containsNSFW } from "@/lib/nsfw-filter"
+import { containsNSFW, containsProhibited, BANNED_CONTENT_MESSAGE } from "@/lib/nsfw-filter"
 
 export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
   try {
     const { prompt, negativePrompt, character, imageBase64 } = await req.json()
+
+    // 1. HARD PROHIBITED Content Check (Applies to ALL users)
+    if (containsProhibited(prompt)) {
+      console.warn("🚫 PROHIBITED content detected in image prompt:", prompt);
+      return NextResponse.json({
+        error: BANNED_CONTENT_MESSAGE,
+        prohibited: true
+      }, { status: 403 });
+    }
+
     const { key: apiKey } = await getUnifiedNovitaKey()
 
     if (!apiKey) {
@@ -31,6 +41,17 @@ export async function POST(req: NextRequest) {
     }
 
     if (userId) {
+      // 2. NSFW Check for Free/Limited Plans
+      if (containsNSFW(prompt)) {
+        const nsfwAccess = await checkNsfwAccess(userId)
+        if (!nsfwAccess.allowed) {
+          return NextResponse.json({
+            error: nsfwAccess.message || "NSFW generation is restricted on your plan.",
+            upgrade_required: true,
+            upgradeUrl: "/premium"
+          }, { status: 403 })
+        }
+      }
 
       // Check model access (Seedream is default for img2img)
       const modelAccess = await checkModelAccess(userId, 'seedream-4.5')
@@ -40,18 +61,6 @@ export async function POST(req: NextRequest) {
           upgrade_required: true,
           upgradeUrl: "/premium"
         }, { status: 403 })
-      }
-
-      // Check NSFW access if prompt contains NSFW content
-      if (containsNSFW(prompt)) {
-        const nsfwAccess = await checkNsfwAccess(userId)
-        if (!nsfwAccess.allowed) {
-          return NextResponse.json({
-            error: nsfwAccess.message,
-            upgrade_required: true,
-            upgradeUrl: "/premium"
-          }, { status: 403 })
-        }
       }
     }
 

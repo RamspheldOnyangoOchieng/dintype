@@ -37,12 +37,12 @@ export function WelcomeMessage({ characterName, characterId, galleryImages = [],
             <div className="pt-2 text-center group">
                 <div
                     onClick={onStartChat}
-                    className="relative cursor-pointer overflow-hidden rounded-2xl border border-white/10 shadow-2xl transition-all hover:scale-[1.02] hover:border-primary/50"
+                    className="relative cursor-pointer overflow-hidden rounded-2xl border border-white/10 shadow-2xl transition-all hover:scale-[1.01] hover:border-primary/40 bg-black/20"
                 >
                     <img
                         src={randomImage}
                         alt={characterName}
-                        className="w-full aspect-square object-cover"
+                        className="w-full aspect-[4/5] object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-4 text-center">

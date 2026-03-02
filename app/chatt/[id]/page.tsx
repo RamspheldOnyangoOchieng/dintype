@@ -51,7 +51,7 @@ import { PremiumUpgradeModal } from "@/components/premium-upgrade-modal"
 import { isAskingForImage, extractImagePrompt, imageUrlToBase64 } from "@/lib/image-utils"
 import { ImageModal } from "@/components/image-modal"
 import { CharacterGallery } from "@/components/character-gallery"
-import { containsNSFW } from "@/lib/nsfw-filter"
+import { containsNSFW, containsProhibited, BANNED_CONTENT_MESSAGE, BANNED_CONTENT_MESSAGE_SV } from "@/lib/nsfw-filter"
 import { TelegramConnectButton } from "@/components/telegram-connect-button"
 import { MeetOnTelegramButton } from "@/components/meet-on-telegram-button"
 import { WelcomeMessage } from "@/components/welcome-message"
@@ -199,6 +199,22 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const [galleryItems, setGalleryItems] = useState<any[]>([])
   const [isGalleryLoading, setIsGalleryLoading] = useState(false)
 
+  // NEW: Specifically selected carousel images
+  const [carouselItems, setCarouselItems] = useState<any[]>([])
+  const [isCarouselLoading, setIsCarouselLoading] = useState(false)
+
+  // NEW: Display settings
+  const [displaySettings, setDisplaySettings] = useState<any>({
+    show_age: true,
+    show_occupation: true,
+    show_personality: true,
+    show_hobbies: true,
+    show_body: true,
+    show_ethnicity: true,
+    show_language: true,
+    show_relationship: true
+  })
+
   // Swipe to Reply & Reactions State
   const [replyingTo, setReplyingTo] = useState<Message | null>(null)
   const [reactingToMessageId, setReactingToMessageId] = useState<string | null>(null)
@@ -306,7 +322,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     setMessages(prev => {
       const updated = prev.filter(msg => msg.id !== messageId)
       if (characterId) {
-      saveMessageToLocalStorage(characterId, updated as any) // Need to handle local storage properly
+        saveMessageToLocalStorage(characterId, updated as any) // Need to handle local storage properly
       }
       return updated
     })
@@ -342,11 +358,42 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     }
   }, [characterId])
 
+  const fetchCarousel = useCallback(async () => {
+    if (!characterId) return
+    try {
+      setIsCarouselLoading(true)
+      const response = await fetch(`/api/character-carousel/${characterId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setCarouselItems(data)
+      }
+    } catch (error) {
+      console.error("Error fetching carousel in ChatPage:", error)
+    } finally {
+      setIsCarouselLoading(false)
+    }
+  }, [characterId])
+
+  const fetchDisplaySettings = useCallback(async () => {
+    if (!characterId) return
+    try {
+      const response = await fetch(`/api/character-display-settings/${characterId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setDisplaySettings(data)
+      }
+    } catch (error) {
+      console.error("Error fetching display settings in ChatPage:", error)
+    }
+  }, [characterId])
+
   useEffect(() => {
     if (characterId) {
       fetchGallery()
+      fetchCarousel()
+      fetchDisplaySettings()
     }
-  }, [characterId, fetchGallery])
+  }, [characterId, fetchGallery, fetchCarousel, fetchDisplaySettings])
 
   // Carousel state
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -355,6 +402,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const galleryImages = useMemo(() => {
     if (!character) return []
 
+    // If we have specifically selected carousel images, USE THEM EXCLUSIVELY
+    if (carouselItems && carouselItems.length > 0) {
+      return carouselItems.map(item => item.image_url)
+    }
+
+    // FALLBACK: Original logic if no specifically selected carousel images exist
     // Start with the main image (always unlocked)
     let imgs = [character.image || "/placeholder.svg"]
 
@@ -395,7 +448,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
     // Ensure uniqueness and valid URLs
     return Array.from(new Set(imgs.filter(img => !!img)))
-  }, [character, galleryItems, isGalleryLoading])
+  }, [character, galleryItems, isGalleryLoading, carouselItems])
 
   const handleNextImage = () => {
     if (galleryImages.length === 0) return
@@ -1147,6 +1200,34 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     if (!isMounted) return
 
     try {
+      // 1. HARD PROHIBITED Check
+      if (containsProhibited(prompt)) {
+        toast.error(language === 'sv' ? BANNED_CONTENT_MESSAGE_SV : BANNED_CONTENT_MESSAGE)
+        return
+      }
+
+      // 2. Resolve Plan for Tiered Logic
+      const isFreeUser = user?.subscriptionPlan === 'free' || !user?.isPremium;
+      const isAdmin = user?.isAdmin || false;
+
+      // 3. NSFW Check for Free Users
+      if (isFreeUser && containsNSFW(prompt) && !isAdmin) {
+        setPremiumModalFeature(t("premium.premiumMember"))
+        setPremiumModalDescription(t("chat.upgradeForNsfw") || "Upgrade to Premium to unlock exclusive, uncensored chats! 🔥")
+        setPremiumModalMode('upgrade')
+        setIsPremiumModalOpen(true)
+        return
+      }
+
+      // 4. PRE-CHECK Token Balance / Model Access (Client-side UX)
+      if (user?.id && !isAdmin) {
+        // We'll rely on the API for the definitive check, but we check local state if available
+        if (tokensDepleted) {
+          setShowTokensDepletedModal(true)
+          return
+        }
+      }
+
       // If already generating an image, don't start another one
       if (isGeneratingImage) {
         console.log("Already generating an image, ignoring request")
@@ -1781,210 +1862,223 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     if (!isMounted || isSubmittingRef.current) return
 
     const content = inputValue.trim()
-    if (content && !isLoading) {
-      isSubmittingRef.current = true
-      setInputValue("")
-      setIsSendingMessage(true) // Show typing indicator
+    if (!content || isLoading) return
 
-      // Check message limit before sending
-      if (user?.isExpired) {
-        setShowExpiredModal(true)
-        isSubmittingRef.current = false
-        return
-      }
+    isSubmittingRef.current = true
 
-      // Pre-check limit (client-side for better UX)
-      if (user?.id) {
-        try {
-          const messageCheck = await checkMessageLimit(user.id)
-          if (!messageCheck.allowed) {
-            setPremiumModalFeature(t("chat.messageLimitTitle"))
-            setPremiumModalDescription(t("chat.messageLimitDesc"))
-            setPremiumModalMode("message-limit")
-            setIsPremiumModalOpen(true)
-            setDebugInfo((prev) => ({ ...prev, lastAction: "messageLimitReached" }))
-            isSubmittingRef.current = false
-            return
-          }
-        } catch (error) {
-          console.error("Error checking message limit:", error)
+    // 1. Basic Content Moderation Check (Client-side fast feedback)
+    if (containsProhibited(content)) {
+      toast.error(language === 'sv' ? BANNED_CONTENT_MESSAGE_SV : BANNED_CONTENT_MESSAGE)
+      isSubmittingRef.current = false
+      return
+    }
+
+    // 2. Pre-check message limit (client-side for better UX)
+    if (user?.id && !user?.isAdmin) {
+      try {
+        const messageCheck = await checkMessageLimit(user.id)
+        if (!messageCheck.allowed) {
+          setPremiumModalFeature(t("chat.messageLimitTitle"))
+          setPremiumModalDescription(t("chat.messageLimitDesc"))
+          setPremiumModalMode("message-limit")
+          setIsPremiumModalOpen(true)
+          setDebugInfo((prev) => ({ ...prev, lastAction: "messageLimitReached" }))
+          isSubmittingRef.current = false
+          return
         }
+      } catch (error) {
+        console.error("Error checking message limit:", error)
       }
+    }
 
-      if (!character) {
-        console.error("Cannot send message: Character is null")
-        isSubmittingRef.current = false
-        return
-      }
+    // 3. NSFW Check for Free Users (Client-side)
+    const isFreeUser = user?.subscriptionPlan === 'free' || !user?.isPremium;
+    if (isFreeUser && containsNSFW(content) && !user?.isAdmin) {
+      setPremiumModalFeature(t("premium.premiumMember"))
+      setPremiumModalDescription(t("chat.upgradeForNsfw") || "Upgrade to Premium to unlock exclusive, uncensored chats! 🔥")
+      setPremiumModalMode('upgrade')
+      setIsPremiumModalOpen(true)
+      isSubmittingRef.current = false
+      return
+    }
 
-      setDebugInfo((prev) => ({ ...prev, messagesCount: prev.messagesCount + 1, lastAction: "sendingMessage" }))
+    setInputValue("")
+    setIsSendingMessage(true) // Show typing indicator
 
-      // Create new user message
-      const newMessage: Message = {
-        id: Math.random().toString(36).substring(2, 15),
-        role: "user",
-        content: content,
+    if (!character) {
+      console.error("Cannot send message: Character is null")
+      isSubmittingRef.current = false
+      return
+    }
+
+    setDebugInfo((prev) => ({ ...prev, messagesCount: prev.messagesCount + 1, lastAction: "sendingMessage" }))
+
+    // Create new user message
+    const newMessage: Message = {
+      id: Math.random().toString(36).substring(2, 15),
+      role: "user",
+      content: content,
+      timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      replyToId: replyingTo?.id,
+      replyToContent: replyingTo?.content,
+      replyToImage: replyingTo?.imageUrl,
+    }
+
+    // Reset reply state
+    setReplyingTo(null)
+
+    // Add user message to chat UI immediately
+    setMessages((prev) => [...prev, newMessage])
+
+    // Push content to buffer for AI processing
+    messageBufferRef.current.push(content)
+
+    // Save user message locally (for persistence)
+    saveMessageToLocalStorage(character.id, newMessage)
+
+    // Debounce the AI processing call (Wait 2s for more messages)
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+    debounceTimerRef.current = setTimeout(processMessageBuffer, 500)
+
+    // Release the submission lock after a short delay to prevent double-clicks
+    // but allow sending multiple messages quickly.
+    setTimeout(() => {
+      isSubmittingRef.current = false
+    }, 250)
+  }
+}
+
+// Clear chat history
+const handleClearChat = async () => {
+  if (!isMounted || !character) return
+
+  setIsClearingChat(true)
+  setDebugInfo((prev) => ({ ...prev, lastAction: "clearingChat" }))
+
+  try {
+    // 1. Clear local storage
+    const localSuccess = clearChatHistoryFromLocalStorage(character.id)
+
+    // 2. Clear database history (archive session)
+    const dbSuccess = user?.id ? await clearChatHistoryDB(character.id, user.id) : false
+
+    setDebugInfo((prev) => ({
+      ...prev,
+      lastAction: (localSuccess || dbSuccess) ? "chatCleared" : "chatClearFailed",
+    }))
+
+    if (localSuccess || dbSuccess) {
+      // Set default welcome message after clearing
+      const welcomeMessage: Message = {
+        id: `welcome-${characterId}-${Date.now()}`,
+        role: "assistant",
+        content: FEATURES.ENABLE_TELEGRAM
+          ? `Hey there... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\nTell me about yourself... or take me with you on Telegram @dintypebot. Either way, I'm all yours. 🌹`
+          : `Hey there... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\nTell me about yourself... I'm all yours. 🌹`,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        replyToId: replyingTo?.id,
-        replyToContent: replyingTo?.content,
-        replyToImage: replyingTo?.imageUrl,
+        isWelcome: true
       }
 
-      // Reset reply state
-      setReplyingTo(null)
+      setMessages([welcomeMessage])
+      saveMessageToLocalStorage(characterId!, welcomeMessage)
+      toast.success(t("status.cleared"))
+    }
+  } catch (error) {
+    console.error("Error clearing chat:", error)
+    setDebugInfo((prev) => ({ ...prev, lastError: error, lastAction: "clearChatError" }))
 
-      // Add user message to chat UI immediately
-      setMessages((prev) => [...prev, newMessage])
-
-      // Push content to buffer for AI processing
-      messageBufferRef.current.push(content)
-
-      // Save user message locally (for persistence)
-      saveMessageToLocalStorage(character.id, newMessage)
-
-      // Debounce the AI processing call (Wait 2s for more messages)
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
-      debounceTimerRef.current = setTimeout(processMessageBuffer, 500)
-
-      // Release the submission lock after a short delay to prevent double-clicks
-      // but allow sending multiple messages quickly.
-      setTimeout(() => {
-        isSubmittingRef.current = false
-      }, 250)
+    // Set default message on error
+    setMessages([
+      {
+        id: `error-welcome-${characterId}`,
+        role: "assistant",
+        content: `Hey there, my love... 💕 I'm ${character?.name || 'your companion'}. I've been waiting for someone like you. Tell me... what brings you here tonight? 🌹`,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        isWelcome: true
+      },
+    ])
+  } finally {
+    if (isMounted) {
+      setIsClearingChat(false)
     }
   }
+}
 
-  // Clear chat history
-  const handleClearChat = async () => {
-    if (!isMounted || !character) return
-
-    setIsClearingChat(true)
-    setDebugInfo((prev) => ({ ...prev, lastAction: "clearingChat" }))
-
-    try {
-      // 1. Clear local storage
-      const localSuccess = clearChatHistoryFromLocalStorage(character.id)
-
-      // 2. Clear database history (archive session)
-      const dbSuccess = user?.id ? await clearChatHistoryDB(character.id, user.id) : false
-
-      setDebugInfo((prev) => ({
-        ...prev,
-        lastAction: (localSuccess || dbSuccess) ? "chatCleared" : "chatClearFailed",
-      }))
-
-      if (localSuccess || dbSuccess) {
-        // Set default welcome message after clearing
-        const welcomeMessage: Message = {
-          id: `welcome-${characterId}-${Date.now()}`,
-          role: "assistant",
-          content: FEATURES.ENABLE_TELEGRAM 
-            ? `Hey there... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\nTell me about yourself... or take me with you on Telegram @dintypebot. Either way, I'm all yours. 🌹`
-            : `Hey there... 💕 I'm ${character.name}. Fresh start, huh? I like that.\n\nTell me about yourself... I'm all yours. 🌹`,
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          isWelcome: true
-        }
-
-        setMessages([welcomeMessage])
-        saveMessageToLocalStorage(characterId!, welcomeMessage)
-        toast.success(t("status.cleared"))
-      }
-    } catch (error) {
-      console.error("Error clearing chat:", error)
-      setDebugInfo((prev) => ({ ...prev, lastError: error, lastAction: "clearChatError" }))
-
-      // Set default message on error
-      setMessages([
-        {
-          id: `error-welcome-${characterId}`,
-          role: "assistant",
-          content: `Hey there, my love... 💕 I'm ${character?.name || 'your companion'}. I've been waiting for someone like you. Tell me... what brings you here tonight? 🌹`,
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          isWelcome: true
-        },
-      ])
-    } finally {
-      if (isMounted) {
-        setIsClearingChat(false)
-      }
-    }
+const handleKeyPress = (e: React.KeyboardEvent) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault()
+    handleSendMessage()
+  } else if (e.key === "Escape") {
+    setReplyingTo(null)
+    setReactingToMessageId(null)
   }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
-    } else if (e.key === "Escape") {
-      setReplyingTo(null)
-      setReactingToMessageId(null)
-    }
-  }
+}
 
 
-  // Show loading while checking authentication
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
-  }
-
-  // Show login modal if not authenticated
-  if (!user) {
-    // The useEffect will trigger the login modal
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-muted-foreground">Please log in to continue...</div>
-      </div>
-    );
-  }
-
-  // Show loading while unwrapping params or loading characters
-  const isActuallyMounted = isMounted && characterId !== null;
-
-  // We are loading if:
-  // 1. Not mounted yet
-  // 2. Context is loading
-  // 3. Character is not set AND lookup is NOT complete
-  if (!isActuallyMounted || charactersLoading || (!character && !isLookupComplete)) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-background" key="loading-screen">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <div className="text-muted-foreground">{t("general.loading")}</div>
-        </div>
-      </div>
-    );
-  }
-
-  // Show "not found" ONLY if lookup is complete and no character exists
-  if (!character && isLookupComplete) {
-    return (
-      <div className="flex flex-col items-center justify-center h-screen bg-background p-4 text-center">
-        <div className="bg-card p-8 rounded-2xl shadow-xl max-w-md w-full border border-border">
-          <div className="p-3 bg-destructive/10 rounded-full w-fit mx-auto mb-6">
-            <X className="h-10 w-10 text-destructive" />
-          </div>
-          <h1 className="text-2xl font-bold mb-2">{t("chat.profileNotFound")}</h1>
-          <p className="text-muted-foreground mb-8">Character ID: {characterId}</p>
-          <div className="flex flex-col gap-3">
-            <Button onClick={() => router.push('/chatt')} className="w-full">
-              {t("chat.backToConversations")}
-            </Button>
-            <Button variant="outline" onClick={() => router.push('/')} className="w-full">
-              {t("general.home")}
-            </Button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
+// Show loading while checking authentication
+if (isLoading) {
   return (
-    <TooltipProvider delayDuration={0}>
+    <div className="flex items-center justify-center h-screen">
+      <div className="text-muted-foreground">Loading...</div>
+    </div>
+  );
+}
+
+// Show login modal if not authenticated
+if (!user) {
+  // The useEffect will trigger the login modal
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <div className="text-muted-foreground">Please log in to continue...</div>
+    </div>
+  );
+}
+
+// Show loading while unwrapping params or loading characters
+const isActuallyMounted = isMounted && characterId !== null;
+
+// We are loading if:
+// 1. Not mounted yet
+// 2. Context is loading
+// 3. Character is not set AND lookup is NOT complete
+if (!isActuallyMounted || charactersLoading || (!character && !isLookupComplete)) {
+  return (
+    <div className="flex items-center justify-center h-screen bg-background" key="loading-screen">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="text-muted-foreground">{t("general.loading")}</div>
+      </div>
+    </div>
+  );
+}
+
+// Show "not found" ONLY if lookup is complete and no character exists
+if (!character && isLookupComplete) {
+  return (
+    <div className="flex flex-col items-center justify-center h-screen bg-background p-4 text-center">
+      <div className="bg-card p-8 rounded-2xl shadow-xl max-w-md w-full border border-border">
+        <div className="p-3 bg-destructive/10 rounded-full w-fit mx-auto mb-6">
+          <X className="h-10 w-10 text-destructive" />
+        </div>
+        <h1 className="text-2xl font-bold mb-2">{t("chat.profileNotFound")}</h1>
+        <p className="text-muted-foreground mb-8">Character ID: {characterId}</p>
+        <div className="flex flex-col gap-3">
+          <Button onClick={() => router.push('/chatt')} className="w-full">
+            {t("chat.backToConversations")}
+          </Button>
+          <Button variant="outline" onClick={() => router.push('/')} className="w-full">
+            {t("general.home")}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+return (
+  <TooltipProvider delayDuration={0}>
     <div
       key="chat-page-root"
       className="flex flex-col md:flex-row bg-background w-full overflow-hidden h-full"
@@ -2362,10 +2456,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
               <div
                 className={cn(
-                  "max-w-[85%] md:max-w-[80%] lg:max-w-[70%] rounded-2xl p-3 md:p-4 shadow-sm transition-all duration-300 relative z-10 group/msg",
+                  "max-w-[90%] sm:max-w-[85%] md:max-w-[480px] lg:max-w-[520px] rounded-2xl transition-all duration-300 relative z-10 group/msg shadow-xl",
                   message.role === "user"
-                    ? "bg-[#252525] text-white rounded-tr-none"
-                    : "bg-[#252525] text-white rounded-tl-none border border-white/5"
+                    ? "bg-primary/95 text-primary-foreground rounded-tr-none ml-auto border border-primary/20"
+                    : "bg-[#222222] text-white rounded-tl-none border border-white/5",
+                  // Apply padding if it has text content (including welcome messages)
+                  ((message.content && !message.isWelcome) || message.isWelcome) ? "p-3.5 md:p-5" : "p-0 overflow-hidden"
                 )}
                 style={{
                   transform: swipeData?.id === message.id ? `translateX(${swipeData.offset}px)` : 'none',
@@ -2485,10 +2581,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       }}
                     />
                   ) : (
-                    <div className="pr-5 md:pr-6">
-                      <p className="text-current leading-relaxed break-words whitespace-pre-wrap">
-                        {message.content.replace(/\[TELEGRAM_LINK\]/g, '')}
-                      </p>
+                    <div className={cn("relative", message.content ? "pr-5 md:pr-6" : "")}>
+                      {message.content && (
+                        <p className="text-current leading-relaxed break-words whitespace-pre-wrap text-sm md:text-base">
+                          {message.content.replace(/\[TELEGRAM_LINK\]/g, '')}
+                        </p>
+                      )}
                       {FEATURES.ENABLE_TELEGRAM && message.content.includes('[TELEGRAM_LINK]') && character && (
                         <div className="mt-3">
                           <MeetOnTelegramButton
@@ -2505,9 +2603,12 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   )}
                 </div>
                 {message.isImage && message.imageUrl && (
-                  <div className="mt-2">
+                  <div className={cn(
+                    "relative group/img cursor-pointer transition-all",
+                    (message.content && !message.isWelcome) ? "mt-3.5 -mx-3.5 -mb-3.5 md:mt-5 md:-mx-5 md:-mb-5 border-t border-white/5" : "w-full h-full"
+                  )}>
                     <div
-                      className="relative w-full max-w-sm rounded-2xl overflow-hidden cursor-pointer"
+                      className="relative w-full overflow-hidden"
                       onClick={() => {
                         if (message.imageUrl) {
                           const urls = Array.isArray(message.imageUrl) ? message.imageUrl : [message.imageUrl]
@@ -2520,19 +2621,28 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       <img
                         src={imageErrors[message.id] ? "/placeholder.svg" : (Array.isArray(message.imageUrl) ? message.imageUrl[0] : message.imageUrl)}
                         alt="Generated image"
-                        className="w-full h-auto object-contain block"
-                        style={{ borderRadius: '1rem', maxHeight: '70vh' }}
+                        className="w-full h-auto object-cover block min-h-[200px]"
+                        style={{ maxHeight: '65vh' }}
                         onError={() => handleImageError(message.id)}
                         onLoad={() => {
-                          // Scroll again after image loads to account for height change
                           if (!isLoadingHistory) scrollToBottom("auto");
                         }}
-                        loading="eager" // Eager for latest messages
+                        loading="eager"
                       />
+                      {/* Subtle Gradient for Timestamp Overlay */}
+                      <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+
+                      {/* Timestamp Overlay for Images */}
+                      <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/40 backdrop-blur-md border border-white/10">
+                        <span className="text-[10px] text-white/90 font-medium">{message.timestamp}</span>
+                      </div>
                     </div>
                   </div>
                 )}
-                <span className="text-xs text-muted-foreground mt-1 block">{message.timestamp}</span>
+
+                {!message.isImage && !message.isWelcome && (
+                  <span className="text-[10px] text-white/40 mt-1 block text-right">{message.timestamp}</span>
+                )}
 
                 {/* Reactions Display */}
                 {message.reactions && Object.keys(message.reactions).map((emoji) => (
@@ -2792,12 +2902,14 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
             {/* Character Info Details */}
             <div className="grid grid-cols-2 gap-2 mt-2">
-              {character?.age && <ProfileDetail icon="🎂" label={t("db.age")} value={character.age.toString()} />}
-              {character?.relationship && <ProfileDetail icon="❤️" label={t("db.relationship")} value={t_db(character.relationship)} />}
-              {character?.body && <ProfileDetail icon="💃" label={t("db.bodytype")} value={t_db(character.body)} />}
-              {character?.ethnicity && <ProfileDetail icon="🌍" label={t("db.ethnicity")} value={t_db(character.ethnicity)} />}
-              {character?.occupation && <ProfileDetail icon="💼" label={t("db.occupation")} value={t_db(character.occupation)} />}
-              {character?.language && <ProfileDetail icon="🗣️" label={t("db.language")} value={t_db(character.language)} />}
+              {displaySettings.show_age && character?.age && <ProfileDetail icon="🎂" label={t("db.age")} value={character.age.toString()} />}
+              {displaySettings.show_relationship && character?.relationship && <ProfileDetail icon="❤️" label={t("db.relationship")} value={t_db(character.relationship)} />}
+              {displaySettings.show_body && character?.body && <ProfileDetail icon="💃" label={t("db.bodytype")} value={t_db(character.body)} />}
+              {displaySettings.show_ethnicity && character?.ethnicity && <ProfileDetail icon="🌍" label={t("db.ethnicity")} value={t_db(character.ethnicity)} />}
+              {displaySettings.show_occupation && character?.occupation && <ProfileDetail icon="💼" label={t("db.occupation")} value={t_db(character.occupation)} />}
+              {displaySettings.show_language && character?.language && <ProfileDetail icon="🗣️" label={t("db.language")} value={t_db(character.language)} />}
+              {displaySettings.show_personality && character?.personality && <ProfileDetail icon="🧠" label={t("db.personality")} value={t_db(character.personality)} />}
+              {displaySettings.show_hobbies && character?.hobbies && <ProfileDetail icon="🎨" label={t("db.hobbies")} value={t_db(character.hobbies)} />}
             </div>
 
             {/* Character Gallery */}
@@ -2949,11 +3061,14 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
                 {/* Mobile Details */}
                 <div className="grid grid-cols-2 gap-2 mb-6">
-                  {character?.age && <ProfileDetail icon="🎂" label={t("db.age")} value={character.age.toString()} />}
-                  {character?.relationship && <ProfileDetail icon="❤️" label={t("db.relationship")} value={t_db(character.relationship)} />}
-                  {character?.body && <ProfileDetail icon="💃" label={t("db.bodytype")} value={t_db(character.body)} />}
-                  {character?.ethnicity && <ProfileDetail icon="🌍" label={t("db.ethnicity")} value={t_db(character.ethnicity)} />}
-                  {character?.occupation && <ProfileDetail icon="💼" label={t("db.occupation")} value={t_db(character.occupation)} />}
+                  {displaySettings.show_age && character?.age && <ProfileDetail icon="🎂" label={t("db.age")} value={character.age.toString()} />}
+                  {displaySettings.show_relationship && character?.relationship && <ProfileDetail icon="❤️" label={t("db.relationship")} value={t_db(character.relationship)} />}
+                  {displaySettings.show_body && character?.body && <ProfileDetail icon="💃" label={t("db.bodytype")} value={t_db(character.body)} />}
+                  {displaySettings.show_ethnicity && character?.ethnicity && <ProfileDetail icon="🌍" label={t("db.ethnicity")} value={t_db(character.ethnicity)} />}
+                  {displaySettings.show_occupation && character?.occupation && <ProfileDetail icon="💼" label={t("db.occupation")} value={t_db(character.occupation)} />}
+                  {displaySettings.show_language && character?.language && <ProfileDetail icon="🗣️" label={t("db.language")} value={t_db(character.language)} />}
+                  {displaySettings.show_personality && character?.personality && <ProfileDetail icon="🧠" label={t("db.personality")} value={t_db(character.personality)} />}
+                  {displaySettings.show_hobbies && character?.hobbies && <ProfileDetail icon="🎨" label={t("db.hobbies")} value={t_db(character.hobbies)} />}
                 </div>
 
                 {/* Character Gallery */}
@@ -3075,8 +3190,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       {/* Welcome Marketing Modal */}
       <WelcomeModal pageType="chat" />
     </div>
-    </TooltipProvider>
-  )
+  </TooltipProvider>
+)
 }
 
 function ProfileDetail({ icon, label, value }: { icon: string; label: string; value: string }) {

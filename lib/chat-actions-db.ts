@@ -7,6 +7,9 @@ import { isAskingForImage } from "./image-utils";
 import { getNovitaApiKey } from "./api-keys";
 import crypto from "crypto";
 
+import { containsNSFW, containsProhibited, BANNED_CONTENT_MESSAGE, BANNED_CONTENT_MESSAGE_SV } from "./nsfw-filter";
+import { logModerationViolation } from "./moderation";
+
 /**
  * Clean up AI response to remove meta-talk, instructions, and name prefixes
  */
@@ -65,6 +68,7 @@ export async function sendChatMessageDB(
   details?: any
   limitReached?: boolean
   upgradeRequired?: boolean
+  prohibited?: boolean
 }> {
   console.log(`💬 AI Chat Action [ADMIN]: User=${userId}, Character=${characterId}`);
 
@@ -72,11 +76,34 @@ export async function sendChatMessageDB(
     const supabase = await createAdminClient() as any
     if (!supabase) throw new Error("Database admin client initialization failed")
 
-    // 1. Get Plan Info
+    // 1. HARD PROHIBITED Check
+    if (containsProhibited(userMessage)) {
+      console.warn("🚫 PROHIBITED content detected in DB chat:", userMessage);
+      logModerationViolation(userId, userMessage, 'PROHIBITED', { characterId });
+      return {
+        success: false,
+        error: language === "sv" ? BANNED_CONTENT_MESSAGE_SV : BANNED_CONTENT_MESSAGE,
+        prohibited: true
+      };
+    }
+
+    // 2. Resolve Plan Info
     const planInfo = await getUserPlanInfo(userId);
     const isPremium = planInfo.planType === 'premium';
+    const isFreeUser = !isPremium;
 
-    // 2. Limit Check
+    // 3. NSFW Check for Free Users
+    if (isFreeUser && containsNSFW(userMessage)) {
+      console.warn("🔒 NSFW content detected for free user:", userMessage);
+      logModerationViolation(userId, userMessage, 'NSFW_UPGRADE', { characterId });
+      return {
+        success: false,
+        error: "UPGRADE_FOR_NSFW: Upgrade to Premium to continue this conversation and unlock exclusive, uncensored chats! 🔥",
+        upgradeRequired: true
+      };
+    }
+
+    // 4. Limit Check
     const limitCheck = await checkMessageLimit(userId)
     if (!limitCheck.allowed) {
       return {
@@ -87,7 +114,7 @@ export async function sendChatMessageDB(
       }
     }
 
-    // 3. TOKEN DEDUCTION for Premium Users
+    // 5. TOKEN DEDUCTION for Premium Users
     if (isPremium) {
       const tokensDeducted = await deductTokens(
         userId,
@@ -104,10 +131,10 @@ export async function sendChatMessageDB(
       }
     }
 
-    // 4. Increment usage (tracked for free users)
+    // 6. Increment usage
     incrementMessageUsage(userId).catch(err => console.error("Error incrementing usage:", err));
 
-    // 4b. Check monthly budget
+    // 7. Check monthly budget
     const budgetStatus = await checkMonthlyBudget()
     if (!budgetStatus.allowed) {
       return {

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase-server';
 import { uploadImageToSupabase } from '@/lib/storage-utils';
 import { deductTokens, refundTokens, getUserTokenBalance } from '@/lib/token-utils';
 import { checkActiveGirlfriendsLimit, getUserPlanInfo } from '@/lib/subscription-limits';
+import { containsProhibited } from '@/lib/nsfw-filter';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -13,6 +14,19 @@ const CHARACTER_CREATION_TOKEN_COST = 0;
 
 export async function POST(request: NextRequest) {
     try {
+        const body = await request.json();
+        const { characterName, imageUrl, characterDetails, gender, description: userDescription, promptTemplate, isPublic = false, memoryLevel = 1 } = body;
+
+        // 1. Content Moderation Check
+        const contentToCheck = [characterName, userDescription, promptTemplate].filter(Boolean).join(" ");
+        if (containsProhibited(contentToCheck)) {
+            console.warn("🚫 PROHIBITED content detected in character save request:", contentToCheck);
+            return NextResponse.json(
+                { success: false, error: 'Character contains content that violates our Safety Guidelines.' },
+                { status: 400 }
+            );
+        }
+
         // Get user using standard server client which handles cookies correctly
         const supabase = await createClient();
         const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -27,9 +41,6 @@ export async function POST(request: NextRequest) {
 
         const userId = user.id;
         console.log('✅ Authenticated user:', userId.substring(0, 8));
-
-        const body = await request.json();
-        const { characterName, imageUrl, characterDetails, gender, description: userDescription, promptTemplate, isPublic = false, memoryLevel = 1 } = body;
 
         if (!characterName || !imageUrl) {
             return NextResponse.json(

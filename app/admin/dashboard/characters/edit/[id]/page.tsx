@@ -146,6 +146,24 @@ export default function EditCharacterPage() {
   const [suggestions, setSuggestions] = useState<Record<string, any[]>>({})
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
 
+  // NEW: State for carousel images
+  const [carouselImages, setCarouselImages] = useState<any[]>([])
+  const [isCarouselLoading, setIsCarouselLoading] = useState(false)
+  const carouselInputRef = useRef<HTMLInputElement>(null)
+
+  // NEW: State for display settings
+  const [displaySettings, setDisplaySettings] = useState<any>({
+    show_age: true,
+    show_occupation: true,
+    show_personality: true,
+    show_hobbies: true,
+    show_body: true,
+    show_ethnicity: true,
+    show_language: true,
+    show_relationship: true
+  })
+  const [isSettingsLoading, setIsSettingsLoading] = useState(false)
+
   // Fetch suggestions
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -231,12 +249,121 @@ export default function EditCharacterPage() {
         setImagePreview(character.image)
       }
 
+      // Fetch specifically selected carousel images
+      fetchCarouselImages(id)
+      
+      // Fetch display settings
+      fetchDisplaySettings(id)
+
       hasLoadedRef.current = true
     } else if (!isLoading && characters.length > 0) {
       console.warn(`⚠️ Character ${id} not found in characters array of length ${characters.length}`)
       setNotFound(true)
     }
   }, [id, characters, isLoading, getCharacter, params.id])
+
+  // NEW: Functions to handle display settings
+  const fetchDisplaySettings = async (charId: string) => {
+    try {
+      setIsSettingsLoading(true)
+      const res = await fetch(`/api/character-display-settings/${charId}`)
+      if (res.ok) {
+        const data = await res.json()
+        setDisplaySettings(data)
+      }
+    } catch (err) {
+      console.error("Error fetching display settings:", err)
+    } finally {
+      setIsSettingsLoading(false)
+    }
+  }
+
+  const handleDisplaySettingToggle = async (setting: string, value: boolean) => {
+    const updatedSettings = { ...displaySettings, [setting]: value }
+    setDisplaySettings(updatedSettings)
+
+    try {
+      const res = await fetch(`/api/character-display-settings/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [setting]: value })
+      })
+
+      if (!res.ok) {
+        throw new Error("Failed to update settings")
+      }
+    } catch (err) {
+      console.error("Error updating display settings:", err)
+      toast.error("Failed to update display settings")
+    }
+  }
+
+  // NEW: Functions to handle carousel images
+  const fetchCarouselImages = async (charId: string) => {
+    try {
+      setIsCarouselLoading(true)
+      const res = await fetch(`/api/character-carousel/${charId}`)
+      if (res.ok) {
+        const data = await res.json()
+        setCarouselImages(data)
+      }
+    } catch (err) {
+      console.error("Error fetching carousel images:", err)
+    } finally {
+      setIsCarouselLoading(false)
+    }
+  }
+
+  const handleAddCarouselImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      setIsCarouselLoading(true)
+      const imageUrl = await uploadImage(file)
+
+      const res = await fetch(`/api/character-carousel/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageUrl, sortOrder: carouselImages.length })
+      })
+
+      if (res.ok) {
+        const newImage = await res.json()
+        setCarouselImages(prev => [...prev, newImage])
+        toast.success("Carousel image added")
+      } else {
+        throw new Error("Failed to add carousel image")
+      }
+    } catch (err) {
+      console.error("Error adding carousel image:", err)
+      toast.error("Failed to add carousel image")
+    } finally {
+      setIsCarouselLoading(false)
+      if (carouselInputRef.current) carouselInputRef.current.value = ""
+    }
+  }
+
+  const handleDeleteCarouselImage = async (imageId: string) => {
+    try {
+      setIsCarouselLoading(true)
+      const res = await fetch(`/api/character-carousel/${id}?imageId=${imageId}`, {
+        method: "DELETE"
+      })
+
+      if (res.ok) {
+        setCarouselImages(prev => prev.filter(img => img.id !== imageId))
+        toast.success("Carousel image removed")
+      } else {
+        throw new Error("Failed to delete carousel image")
+      }
+    } catch (err) {
+      console.error("Error deleting carousel image:", err)
+      toast.error("Failed to remove carousel image")
+    } finally {
+      setIsCarouselLoading(false)
+    }
+  }
 
   // Redirect if not logged in or not admin
   useEffect(() => {
@@ -1409,6 +1536,103 @@ export default function EditCharacterPage() {
                         <p className="text-[10px] text-gray-500 italic">
                           Upload 5-10 clear photos from different angles for the best results in AI likeness preservation.
                         </p>
+                      </div>
+
+                      {/* Display / Carousel Settings Section */}
+                      <div className="space-y-6 pt-4 border-t border-[#333] mt-8 bg-[#1f1f1f] p-4 rounded-lg">
+                        <div className="border-b border-[#333] pb-4 mb-4">
+                          <h3 className="text-lg font-medium text-purple-400 flex items-center gap-2 mb-2">
+                           <Settings className="h-5 w-5" />
+                            Attribute Visibility
+                          </h3>
+                          <p className="text-xs text-gray-400 mb-4">Select which attributes should be visible in the user's chat profile.</p>
+                          
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            {[
+                              { id: 'show_age', label: 'Age' },
+                              { id: 'show_occupation', label: 'Occupation' },
+                              { id: 'show_personality', label: 'Personality' },
+                              { id: 'show_hobbies', label: 'Hobbies' },
+                              { id: 'show_body', label: 'Body Type' },
+                              { id: 'show_ethnicity', label: 'Ethnicity' },
+                              { id: 'show_language', label: 'Language' },
+                              { id: 'show_relationship', label: 'Relationship' },
+                            ].map((item) => (
+                              <div key={item.id} className="flex items-center space-x-2 bg-[#2a2a2a] p-2 rounded-md border border-[#333]">
+                                <Switch
+                                  id={item.id}
+                                  checked={displaySettings[item.id]}
+                                  onCheckedChange={(checked) => handleDisplaySettingToggle(item.id, checked)}
+                                />
+                                <Label htmlFor={item.id} className="text-xs cursor-pointer">{item.label}</Label>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h3 className="text-lg font-medium text-blue-400 flex items-center gap-2">
+                              <ImageIcon className="h-5 w-5" />
+                              Selected Carousel Images
+                            </h3>
+                            <p className="text-xs text-gray-400">Specially selected images for the chat profile carousel.</p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => carouselInputRef.current?.click()}
+                            disabled={isCarouselLoading}
+                            className="bg-blue-600 hover:bg-blue-700 text-white border-none"
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add Carousel Photo
+                          </Button>
+                        </div>
+                        <input
+                          type="file"
+                          ref={carouselInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleAddCarouselImage}
+                        />
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-2">
+                          {carouselImages.map((img: any) => (
+                            <div key={img.id} className="relative aspect-square rounded-lg overflow-hidden group border border-[#333]">
+                              <Image
+                                src={img.image_url}
+                                alt="Carousel Image"
+                                fill
+                                className="object-cover"
+                              />
+                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteCarouselImage(img.id)}
+                                  className="bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors"
+                                  title="Delete image"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+
+                          {carouselImages.length === 0 && !isCarouselLoading && (
+                            <div className="col-span-full py-8 text-center border-2 border-dashed border-[#333] rounded-lg">
+                              <p className="text-sm text-gray-500 italic">No specific carousel images selected.</p>
+                              <p className="text-xs text-gray-400 mt-1">Add images you want the user to see in the chat profile.</p>
+                            </div>
+                          )}
+
+                          {isCarouselLoading && (
+                            <div className="aspect-square rounded-lg bg-[#252525] flex items-center justify-center">
+                              <Loader2 className="animate-spin h-6 w-6 text-primary" />
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* Add a video upload field after the image upload section */}

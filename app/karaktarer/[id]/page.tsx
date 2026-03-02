@@ -28,9 +28,18 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
   const router = useRouter()
   const { characters, isLoading, refreshCharacters } = useCharacters()
   const { user } = useAuth()
-  const [character, setCharacter] = useState<Character | null>(null)
   const [characterId, setCharacterId] = useState<string | null>(null)
   const [isMounted, setIsMounted] = useState(false)
+  const [displaySettings, setDisplaySettings] = useState<any>({
+    show_age: true,
+    show_occupation: true,
+    show_personality: true,
+    show_hobbies: true,
+    show_body: true,
+    show_ethnicity: true,
+    show_language: true,
+    show_relationship: true
+  })
 
   // Unwrap params for Next.js 15
   useEffect(() => {
@@ -48,11 +57,24 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
       const found = characters.find(c => c.id === characterId)
       if (found) {
         setCharacter(found)
+        fetchDisplaySettings(characterId)
       } else {
         console.error("Character not found:", characterId)
       }
     }
   }, [characterId, characters, isLoading])
+
+  const fetchDisplaySettings = async (id: string) => {
+    try {
+      const response = await fetch(`/api/character-display-settings/${id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setDisplaySettings(data)
+      }
+    } catch (error) {
+      console.error("Error fetching display settings:", error)
+    }
+  }
 
   if (!isMounted || isLoading || !characterId) {
     return (
@@ -110,25 +132,27 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
         </div>
 
         {/* Hero Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-          <div className="md:col-span-1">
-            <div className="relative aspect-[3/4] overflow-hidden rounded-2xl shadow-xl border border-white/10">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 mb-8 items-start">
+          <div className="md:col-span-4 lg:col-span-4">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-3xl shadow-2xl border border-white/5 bg-zinc-900 group">
               {(character.imageUrl || character.image) ? (
                 <Image
                   src={character.imageUrl || character.image || "/placeholder.svg"}
                   alt={character.name}
                   fill
-                  className="object-cover"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  priority
                 />
               ) : (
                 <div className="h-full w-full bg-muted flex items-center justify-center">
-                  <span className="text-muted-foreground">No image</span>
+                  <span className="text-muted-foreground">Ingen bild</span>
                 </div>
               )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60 pointer-events-none" />
             </div>
           </div>
 
-          <div className="md:col-span-2 flex flex-col justify-between">
+          <div className="md:col-span-8 lg:col-span-8 flex flex-col h-full min-h-0">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h1 className="text-4xl font-black tracking-tight">{character.name}</h1>
@@ -145,7 +169,7 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
               </p>
 
               <div className="flex flex-wrap gap-2 mb-8">
-                {character.personality?.split(',').map((trait, i) => (
+                {displaySettings.show_personality && character.personality?.split(',').map((trait, i) => (
                   <span key={i} className="px-3 py-1 bg-white/5 rounded-lg text-xs font-medium text-white/80 border border-white/5">
                     {trait.trim()}
                   </span>
@@ -153,13 +177,16 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
               </div>
             </div>
 
-            <div className="bg-white/5 p-6 rounded-2xl border border-white/5 backdrop-blur-sm">
-              <h3 className="text-sm font-bold text-white/60 uppercase tracking-widest mb-4">Start Conversation</h3>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button asChild size="lg" className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold h-14 rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-[1.02]">
-                  <Link href={`/chat/${character.id}`}>
+            <div className="bg-white/5 p-6 md:p-8 rounded-3xl border border-white/10 backdrop-blur-md shadow-inner mt-auto relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                <Sparkles size={100} />
+              </div>
+              <h3 className="text-xs font-black text-primary uppercase tracking-[0.2em] mb-4">{t("characters.startConversation")}</h3>
+              <div className="flex flex-col sm:flex-row gap-4 relative z-10">
+                <Button asChild size="lg" className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold h-14 rounded-2xl shadow-lg shadow-primary/25 border-t border-white/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                  <Link href={`/chatt/${character.id}`}>
                     <Sparkles className="mr-2 h-5 w-5" />
-                    Quick Flirt Here
+                    {t("characters.quickFlirt")}
                   </Link>
                 </Button>
 
@@ -168,14 +195,16 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
                     characterId={character.id}
                     characterName={character.name}
                     variant="outline"
-                    className="flex-1 border-white/10 hover:bg-white/5 text-white font-bold h-14 rounded-xl transition-all hover:scale-[1.02]"
+                    className="flex-1 border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold h-14 rounded-2xl backdrop-blur-md transition-all hover:scale-[1.02] active:scale-[0.98]"
                   />
                 ) : (
-                  <div className="flex-1" />
+                  <div className="flex-1 h-0 pointer-events-none" />
                 )}
               </div>
               {FEATURES.ENABLE_TELEGRAM && (
-                <p className="text-center text-xs text-white/30 mt-3">Messages sync automatically between platforms 💕</p>
+                <p className="text-center text-[10px] md:text-xs text-white/30 mt-4 font-medium italic">
+                  {t("chat.syncMessage") || "Messages sync automatically between platforms 💕"}
+                </p>
               )}
             </div>
           </div>
@@ -221,22 +250,30 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
                   <CardTitle className="text-lg">Stats</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Age</p>
-                    <p className="font-bold text-lg">{character.age}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Ethnicity</p>
-                    <p className="font-bold text-lg capitalize">{character.ethnicity || "-"}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Body Type</p>
-                    <p className="font-bold text-lg capitalize">{character.body || "-"}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Occupation</p>
-                    <p className="font-bold text-lg capitalize">{character.occupation || "-"}</p>
-                  </div>
+                  {displaySettings.show_age && (
+                    <div>
+                      <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Age</p>
+                      <p className="font-bold text-lg">{character.age}</p>
+                    </div>
+                  )}
+                  {displaySettings.show_ethnicity && (
+                    <div>
+                      <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Ethnicity</p>
+                      <p className="font-bold text-lg capitalize">{character.ethnicity || "-"}</p>
+                    </div>
+                  )}
+                  {displaySettings.show_body && (
+                    <div>
+                      <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Body Type</p>
+                      <p className="font-bold text-lg capitalize">{character.body || "-"}</p>
+                    </div>
+                  )}
+                  {displaySettings.show_occupation && (
+                    <div>
+                      <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Occupation</p>
+                      <p className="font-bold text-lg capitalize">{character.occupation || "-"}</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -245,14 +282,18 @@ export default function CharacterDetailPage({ params }: CharacterDetailPageProps
                   <CardTitle className="text-lg">Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Relationship Status</p>
-                    <p className="font-bold text-lg capitalize">{character.relationship || "Single"}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Hobbies</p>
-                    <p className="text-base text-white/80">{character.hobbies || "-"}</p>
-                  </div>
+                  {displaySettings.show_relationship && (
+                    <div>
+                      <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Relationship Status</p>
+                      <p className="font-bold text-lg capitalize">{character.relationship || "Single"}</p>
+                    </div>
+                  )}
+                  {displaySettings.show_hobbies && (
+                    <div>
+                      <p className="text-xs text-white/40 uppercase tracking-widest font-bold mb-1">Hobbies</p>
+                      <p className="text-base text-white/80">{character.hobbies || "-"}</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

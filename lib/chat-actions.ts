@@ -5,7 +5,7 @@ import { isAskingForImage } from "./image-utils"
 import { checkMonthlyBudget, logApiCost } from "./budget-monitor"
 
 import { incrementMessageUsage, getUserPlanInfo, checkMessageLimit, deductTokens } from "./subscription-limits"
-import { SFW_SYSTEM_PROMPT, containsNSFW } from "./nsfw-filter"
+import { SFW_SYSTEM_PROMPT, containsNSFW, containsProhibited, BANNED_CONTENT_MESSAGE, BANNED_CONTENT_MESSAGE_SV } from "./nsfw-filter"
 
 export type Message = {
   id: string
@@ -29,7 +29,7 @@ export async function sendChatMessage(
   language: "en" | "sv" = "en",
 ): Promise<{ id: string; content: string; timestamp: string; isImage?: boolean; imageUrl?: string }> {
   try {
-    // 1. Check message limit BEFORE processing (for non-admins)
+    // 1. Basic Auth Check
     if (!userId) {
       return {
         id: Math.random().toString(36).substring(2, 15),
@@ -38,7 +38,9 @@ export async function sendChatMessage(
       }
     }
 
+    const lastMessage = messages[messages.length - 1]
     const limitCheck = await checkMessageLimit(userId)
+    
     if (!limitCheck.allowed) {
       return {
         id: Math.random().toString(36).substring(2, 15),
@@ -47,7 +49,29 @@ export async function sendChatMessage(
       }
     }
 
-    // Check monthly budget before processing
+    // 2. HARD PROHIBITED Check
+    if (lastMessage.role === "user" && containsProhibited(lastMessage.content)) {
+      return {
+        id: Math.random().toString(36).substring(2, 15),
+        content: language === "sv" ? BANNED_CONTENT_MESSAGE_SV : BANNED_CONTENT_MESSAGE,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+    }
+
+    // Resolve plan info for tiered content logic
+    const planInfo = await getUserPlanInfo(userId);
+    const isFreeUser = planInfo.planType === 'free';
+
+    // 3. NSFW Check for Free Users
+    if (isFreeUser && lastMessage.role === "user" && containsNSFW(lastMessage.content)) {
+      return {
+        id: Math.random().toString(36).substring(2, 15),
+        content: "UPGRADE_FOR_NSFW: Upgrade to Premium to continue this conversation and unlock exclusive, uncensored chats! 🔥",
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+    }
+
+    // Check monthly budget
     const budgetStatus = await checkMonthlyBudget()
     if (!budgetStatus.allowed) {
       return {
@@ -57,8 +81,7 @@ export async function sendChatMessage(
       }
     }
 
-    // Check if the user is asking for an image
-    const lastMessage = messages[messages.length - 1]
+    // 4. Image Generation Check
     if (lastMessage.role === "user" && isAskingForImage(lastMessage.content)) {
       // Return a placeholder response indicating an image is being generated
       return {
@@ -69,32 +92,15 @@ export async function sendChatMessage(
       }
     }
 
-    // Check user plan and tokens
-    let isFreeUser = true;
+    // Token deduction logic
     let tokensPerMessage = 0;
-
-    if (userId) {
-      const planInfo = await getUserPlanInfo(userId);
-      isFreeUser = planInfo.planType === 'free';
-
-      // Force 1 token per message for premium users as requested
-      if (!isFreeUser) {
-        tokensPerMessage = 1;
-      } else {
-        tokensPerMessage = parseInt(planInfo.restrictions.tokens_per_message || "0");
-      }
+    if (!isFreeUser) {
+      tokensPerMessage = 1;
+    } else {
+      tokensPerMessage = parseInt(planInfo.restrictions.tokens_per_message || "0");
     }
 
-    // 2. NSFW Check for Free Users - TRIGGER MODAL
-    if (isFreeUser && lastMessage.role === "user" && containsNSFW(lastMessage.content)) {
-      return {
-        id: Math.random().toString(36).substring(2, 15),
-        content: "UPGRADE_FOR_NSFW: Upgrade to Premium to continue this conversation and unlock exclusive, uncensored chats! 🔥",
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      };
-    }
-
-    // 3. Token Deduction for Premium Users
+    // 5. Token Deduction
     if (userId && tokensPerMessage > 0) {
       const deducted = await deductTokens(userId, tokensPerMessage, `Chat with ${messages[0]?.role === 'system' ? 'AI' : 'Assistant'}`);
       if (!deducted) {

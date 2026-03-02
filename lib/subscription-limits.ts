@@ -133,10 +133,7 @@ export async function checkModelAccess(userId: string, model: string): Promise<{
       }
     }
 
-    return { allowed: true };
-  } catch (error) {
-    console.error('Error checking model access:', error);
-    return { allowed: true }; // Fail open if error
+    return { allowed: false, message: "System error checking model access. Please try again or contact support." };
   }
 }
 
@@ -159,10 +156,7 @@ export async function checkNsfwAccess(userId: string): Promise<{ allowed: boolea
       };
     }
 
-    return { allowed: true };
-  } catch (error) {
-    console.error('Error checking NSFW access:', error);
-    return { allowed: true }; // Fail open if error
+    return { allowed: false, message: "System error checking safety access." };
   }
 }
 
@@ -224,7 +218,7 @@ export async function checkMessageLimit(userId: string): Promise<UsageCheck> {
     };
   } catch (error) {
     console.error('❌ Error in checkMessageLimit:', error);
-    return { allowed: true, currentUsage: 0, limit: null };
+    return { allowed: false, currentUsage: 0, limit: 0, message: "Error verifying limits." };
   }
 }
 

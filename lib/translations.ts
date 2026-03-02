@@ -1323,6 +1323,8 @@ export type TranslationKey =
   | "aboutUs.createCompanion"
   // Characters page
   | "characters.title"
+  | "characters.startConversation"
+  | "characters.quickFlirt"
   | "characters.description"
   | "characters.createCharacter"
   | "characters.loading"
@@ -1429,19 +1431,22 @@ export type TranslationKey =
   // Cookies page
   | "cookies.title"
   | "cookies.intro"
+  | "cookies.effectiveDate"
+  | "cookies.lastUpdated"
   | "cookies.whatAreCookies"
   | "cookies.whatAreCookiesDesc"
-  | "cookies.typesTitle"
-  | "cookies.essentialTitle"
+  | "cookies.howWeUse"
+  | "cookies.howWeUseDesc"
+  | "cookies.useItem1"
+  | "cookies.useItem2"
+  | "cookies.useItem3"
+  | "cookies.types"
+  | "cookies.essential"
   | "cookies.essentialDesc"
-  | "cookies.functionalTitle"
-  | "cookies.functionalDesc"
-  | "cookies.analyticsTitle"
+  | "cookies.analytics"
   | "cookies.analyticsDesc"
-  | "cookies.marketingTitle"
-  | "cookies.marketingDesc"
-  | "cookies.manageCookies"
-  | "cookies.manageCookiesDesc"
+  | "cookies.yourChoices"
+  | "cookies.yourChoicesDesc"
   | "cookies.gdprTitle"
   | "cookies.gdprDesc"
   | "cookies.contactTitle"
@@ -1894,9 +1899,24 @@ export const translations: Record<"en" | "sv", Translations> = {
     "general.errorTryAgain": "Could not complete purchase. Please try again.",
     "general.error": "An error occurred",
     "general.success": "Success",
+    "cookies.essential": "Essential Cookies",
+    "cookies.essentialDesc": "These cookies are strictly necessary for the website to function properly. They cannot be disabled.",
+    "cookies.analytics": "Analytical Cookies",
+    "cookies.analyticsDesc": "These cookies help us understand how visitors interact with our website, helping us improve performance.",
+    "cookies.howWeUse": "How we use cookies",
+    "cookies.howWeUseDesc": "We use cookies for various purposes, including:",
+    "cookies.useItem1": "To keep you logged into your account.",
+    "cookies.useItem2": "To understand how you use our service and improve it.",
+    "cookies.useItem3": "To save your settings and preferences.",
+    "cookies.types": "Types of cookies we use",
+    "cookies.yourChoices": "Your choices regarding cookies",
+    "cookies.yourChoicesDesc": "You can choose to accept or refuse cookies through your browser settings.",
+    "cookies.gdprTitle": "GDPR and your privacy",
+    "cookies.gdprDesc": "We process all data collected via cookies in accordance with our privacy policy and applicable data protection laws.",
+    "cookies.contactTitle": "Contact us",
+    "cookies.contactDesc": "If you have questions about our use of cookies, please contact us at:",
     "cookies.effectiveDate": "Effective Date",
     "cookies.lastUpdated": "Last Updated",
-    "cookies.browserControl": "Browser-specific Cookie Control:",
     "contact.howCanWeHelp": "How can we help you today?",
     "contact.howCanWeHelpDesc": "Our knowledgeable support team can assist you with a wide variety of topics, including:",
     "contact.accountHelpItem1": "Troubleshooting login issues (e.g., password reset, account recovery)",
@@ -3270,6 +3290,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "aboutUs.createCompanion": "Create Companion",
     // Characters page
     "characters.title": "All Characters",
+    "characters.startConversation": "Start Conversation",
+    "characters.quickFlirt": "Quick Flirt Here",
     "characters.description": "Explore public characters and manage your own.",
     "characters.createCharacter": "Create Character",
     "characters.loading": "Loading characters...",
@@ -5064,6 +5086,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "aboutUs.createCompanion": "Skapa partner",
     // Characters page
     "characters.title": "Alla karaktärer",
+    "characters.startConversation": "Starta konversation",
+    "characters.quickFlirt": "Snabbflirt här",
     "characters.description": "Utforska offentliga karaktärer och hantera dina egna.",
     "characters.createCharacter": "Skapa karaktär",
     "characters.loading": "Laddar karaktärer...",
@@ -5172,21 +5196,25 @@ export const translations: Record<"en" | "sv", Translations> = {
     "cookies.intro": "Denna cookiepolicy förklarar hur Dintype använder cookies och liknande spårningsteknologier när du besöker vår webbplats.",
     "cookies.whatAreCookies": "Vad är cookies?",
     "cookies.whatAreCookiesDesc": "Cookies är små textfiler som lagras på din enhet när du besöker en webbplats. De hjälper webbplatsen att komma ihåg dina preferenser och förbättra din upplevelse.",
-    "cookies.typesTitle": "Typer av cookies vi använder",
-    "cookies.essentialTitle": "Nödvändiga cookies",
+    "cookies.howWeUse": "Hur vi använder cookies",
+    "cookies.howWeUseDesc": "Vi använder cookies för flera ändamål, bland annat:",
+    "cookies.useItem1": "För att hålla dig inloggad på ditt konto.",
+    "cookies.useItem2": "För att förstå hur du använder vår tjänst och förbättra den.",
+    "cookies.useItem3": "För att spara dina inställningar och preferenser.",
+    "cookies.types": "Typer av cookies vi använder",
+    "cookies.essential": "Nödvändiga cookies",
     "cookies.essentialDesc": "Krävs för att webbplatsen ska fungera korrekt. Dessa kan inte inaktiveras.",
-    "cookies.functionalTitle": "Funktionella cookies",
-    "cookies.functionalDesc": "Aktiverar personliga funktioner som språkinställningar och temaval.",
-    "cookies.analyticsTitle": "Analytikcookies",
+    "cookies.analytics": "Analyscookies",
     "cookies.analyticsDesc": "Hjälper oss förstå hur besökare använder vår webbplats för att förbättra prestandan.",
-    "cookies.marketingTitle": "Marknadsföringscookies",
-    "cookies.marketingDesc": "Används för att leverera relevanta annonser och spåra kampanjers effektivitet.",
-    "cookies.manageCookies": "Hantera dina cookies",
-    "cookies.manageCookiesDesc": "Du kan kontrollera och radera cookies via dina webbläsarinställningar. Observera att inaktivering av vissa cookies kan påverka webbplatsens funktionalitet.",
-    "cookies.gdprTitle": "GDPR-efterlevnad",
-    "cookies.gdprDesc": "I enlighet med GDPR inhämtar vi ditt samtycke innan vi placerar icke-nödvändiga cookies. Du kan återkalla ditt samtycke när som helst.",
+    "cookies.yourChoices": "Dina val gällande cookies",
+    "cookies.yourChoicesDesc": "Du kan välja att acceptera eller avvisa cookies via din webbläsares inställningar.",
+    "cookies.browserControl": "Webbläsarspecifik kontroll:",
+    "cookies.gdprTitle": "GDPR och din integritet",
+    "cookies.gdprDesc": "Vi behandlar all data som samlas in via cookies i enlighet med vår integritetspolicy och gällande dataskyddslagar.",
     "cookies.contactTitle": "Kontakta oss",
-    "cookies.contactDesc": "Om du har frågor om vår cookiepolicy, vänligen kontakta oss.",
+    "cookies.contactDesc": "Om du har frågor om vår användning av cookies, vänligen kontakta oss på:",
+    "cookies.effectiveDate": "Giltighetsdatum",
+    "cookies.lastUpdated": "Senast uppdaterad",
     // Terms page
     "terms.title": "Regler och användarvillkor",
     "terms.intro": "Välkommen till Dintype. Genom att använda våra tjänster godkänner du dessa villkor. Läs dem noggrant för att förstå dina rättigheter och skyldigheter.",
