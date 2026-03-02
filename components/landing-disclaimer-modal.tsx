@@ -70,6 +70,7 @@ export default function LandingDisclaimerModal({
 
   const acceptAll = () => ensureReady(() => saveAndClose({ analytics: true, marketing: true }));
   const rejectNonEssential = () => ensureReady(() => saveAndClose({ analytics: false, marketing: false }));
+  const goToCookieSettings = () => setShowSettings(true);
   const saveCustom = () => ensureReady(() => saveAndClose(prefs));
 
   return (
@@ -141,10 +142,9 @@ export default function LandingDisclaimerModal({
                 </Button>
                 <Button
                   variant="destructive"
-                  className={`bg-red-500 hover:bg-red-600 text-white font-semibold flex-1 shadow cursor-pointer ${!ready && "opacity-60"}`}
+                  className="bg-red-500 hover:bg-red-600 text-white font-semibold flex-1 shadow cursor-pointer"
                   type="button"
-                  onClick={rejectNonEssential}
-                  aria-disabled={!ready}
+                  onClick={goToCookieSettings}
                 >
                   {t("disclaimer.reject")}
                 </Button>

@@ -1059,9 +1059,7 @@ function GenerateContent() {
                           </div>
                           <span className={`${isSelected ? 'text-primary-foreground/80' : 'text-muted-foreground'} text-[9px] font-medium`}>{option.tokens} tokens</span>
                         </div>
-                      ) : (
-                        <span className={`${isSelected ? 'text-primary-foreground/90' : 'text-emerald-500'} font-black text-[9px] uppercase tracking-wider`}>{t("generate.freeSFW")}</span>
-                      )}
+                      ) : null}
                       {isDisabled && (
                         <div className="absolute -top-2 -right-2 bg-amber-500 text-black p-0.5 rounded-full shadow-md">
                           <Lock className="h-3 w-3" />
@@ -1119,7 +1117,7 @@ function GenerateContent() {
                 ) : (
                   <>
                     <Wand2 className={`mr-2 ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                    {tokensRequired === 0 ? t("generate.generateFree") : t("generate.generateWithTokens").replace("{{tokens}}", String(tokensRequired))}
+                    {tokensRequired === 0 ? t("generate.generateButton") : t("generate.generateWithTokens").replace("{{tokens}}", String(tokensRequired))}
                   </>
                 )}
               </Button>

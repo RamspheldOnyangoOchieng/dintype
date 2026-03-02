@@ -344,11 +344,7 @@ export default function ImageGenerationForm() {
                       <>
                         <Sparkles className="mr-2 h-4 w-4" />
                         Generate Image
-                        {isFreeGeneration ? (
-                          <span className="ml-2 bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded border border-green-500/50">FREE</span>
-                        ) : (
-                          !isPremium && <span className="ml-2 text-xs opacity-70">(5 tokens)</span>
-                        )}
+                        {!isPremium && !isFreeGeneration && <span className="ml-2 text-xs opacity-70">(5 tokens)</span>}
                       </>
                     )}
                   </span>

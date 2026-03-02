@@ -77,11 +77,11 @@ export function ImageModal({
         <DialogDescription className="sr-only">View and manage your generated images</DialogDescription>
         <div className="relative flex flex-col h-full max-h-[90vh]">
           <div className="relative flex-1 min-h-0 bg-black/20 overflow-hidden flex items-center justify-center">
-            {/* Close button - Top-left */}
+            {/* Close button - Top-right */}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-4 left-4 z-50 bg-black/60 hover:bg-black/80 text-white rounded-full transition-all"
+              className="absolute top-4 right-4 z-50 bg-black/60 hover:bg-black/80 text-white rounded-full transition-all"
               onClick={() => onOpenChange(false)}
             >
               <X className="h-5 w-5" />

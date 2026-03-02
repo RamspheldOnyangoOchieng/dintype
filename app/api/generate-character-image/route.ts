@@ -4,6 +4,7 @@ import { generateImage } from '@/lib/novita-api';
 import { getUnifiedNovitaKey } from '@/lib/unified-api-keys';
 import { createClient } from '@/lib/supabase-server';
 import { getUserPlanInfo } from '@/lib/subscription-limits';
+import { getSkinTonePreset, buildEthnicityPromptSegment, getIdentityLockPrompt, getExclusionNegatives } from '@/lib/skin-tone-presets';
 
 import { containsNSFW, containsProhibited } from '@/lib/nsfw-filter';
 
@@ -68,16 +69,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Step 1: Build the character description from details
+    // Step 1: Get deterministic skin tone preset for the selected ethnicity
+    const skinTonePreset = getSkinTonePreset(characterDetails.ethnicity);
+    const ethnicityPrompt = buildEthnicityPromptSegment(characterDetails.ethnicity);
+    const identityLock = getIdentityLockPrompt(characterDetails.ethnicity, characterDetails.age, subjectTerm);
+    const ethnicityNegatives = getExclusionNegatives(characterDetails.ethnicity);
+
+    console.log(`🎨 [Skin Tone] Selected ethnicity: ${characterDetails.ethnicity}`);
+    console.log(`🎨 [Skin Tone] Melanin range: ${skinTonePreset.melanin_index_range}`);
+    console.log(`🎨 [Skin Tone] Skin description: ${skinTonePreset.skin_description}`);
+
+    // Step 2: Build the character description with STRONG ethnicity anchoring
     let description = '';
 
     if (isMale) {
-      description = `A ${characterDetails.style || 'realistic'} ${characterDetails.age || 'young'} ${characterDetails.ethnicity || ''} man. Body: ${characterDetails.bodyType || 'average'}. Personality: ${characterDetails.personality || 'friendly'}.`;
+      description = `${identityLock}. A ${characterDetails.style || 'realistic'} ${characterDetails.age || 'young'} year old ${characterDetails.ethnicity || ''} man with ${skinTonePreset.skin_description}. Body: ${characterDetails.bodyType || 'average'}. Personality: ${characterDetails.personality || 'friendly'}.`;
     } else {
-      description = `A ${characterDetails.style || 'realistic'} ${characterDetails.age || 'young'} ${characterDetails.ethnicity || ''} woman. Eyes: ${characterDetails.eyeColor || 'brown'}. Hair: ${characterDetails.hairColor || 'brown'} ${characterDetails.hairStyle || 'long'}. Body: ${characterDetails.bodyType || 'slim'} with ${characterDetails.breastSize || 'medium'} breasts and ${characterDetails.buttSize || 'medium'} curves.`;
+      description = `${identityLock}. A ${characterDetails.style || 'realistic'} ${characterDetails.age || 'young'} year old ${characterDetails.ethnicity || ''} woman with ${skinTonePreset.skin_description}. Eyes: ${characterDetails.eyeColor || 'brown'}. Hair: ${characterDetails.hairColor || 'brown'} ${characterDetails.hairStyle || 'long'}. Body: ${characterDetails.bodyType || 'slim'} with ${characterDetails.breastSize || 'medium'} breasts and ${characterDetails.buttSize || 'medium'} curves.`;
     }
 
-    // Step 2: Enhance the description using Novità API
+    // Step 3: Enhance the description using Novità API
     const { key: novitaApiKey, error: keyError } = await getUnifiedNovitaKey();
     if (!novitaApiKey) {
       return NextResponse.json(
@@ -98,6 +109,14 @@ export async function POST(request: NextRequest) {
           {
             role: 'system',
             content: `You are a master prompt engineer specializing in ultra-realistic human photography with HEALTHY, SMOOTH, NATURAL skin. Your goal is to produce breathtaking character portraits that look like REAL photographs - NOT plastic or CGI.
+
+            *** ABSOLUTE CRITICAL - SKIN TONE ENFORCEMENT ***
+            The user has selected ethnicity: "${characterDetails.ethnicity}".
+            MANDATORY SKIN DESCRIPTION: ${skinTonePreset.skin_description}
+            You MUST describe the skin EXACTLY as: "${ethnicityPrompt.skinDescription}"
+            
+            FORBIDDEN: ${ethnicityPrompt.negativePrompt.replace(/[():\d.]/g, '')}
+            You are STRICTLY PROHIBITED from describing ANY OTHER skin tone. This is NON-NEGOTIABLE.
 
             CRITICAL SKIN QUALITY RULES (TOP PRIORITY):
             1. HEALTHY RADIANT SKIN: Always describe skin as "healthy smooth radiant skin", "soft supple texture", "natural healthy glow", "dewy fresh complexion", "vibrant youthful skin", "even skin tone". 
@@ -155,15 +174,15 @@ export async function POST(request: NextRequest) {
 
     console.log('Enhanced prompt:', enhancedPrompt);
 
-    // Step 3: Generate image using Novita API
+    // Step 4: Generate image using Novita API
     console.log('Generating image with Novita...');
 
     // Determine style
     const style = characterDetails.style === 'anime' ? 'anime' : 'realistic';
 
-    // Enhanced negative prompts - specifically targeting plastic/artificial look
-    const REALISTIC_NEGATIVE_PROMPT = "(plastic skin:3.0), (waxy skin:3.0), (airbrushed:2.5), (CGI look:3.0), (synthetic skin:3.0), (mannequin:3.0), (doll face:3.0), (artificial look:3.0), (rubbery texture:3.0), (shiny plastic:3.0), (overly smooth:2.5), (beauty filter:2.5), anime, cartoon, illustration, painting, stylized, low quality, blurry, distorted, deformed, bad anatomy, ugly, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, jpeg artifacts, signature, duplicate, harsh lighting, ring light, freckles, spots, moles, blemishes";
-    const ANIME_NEGATIVE_PROMPT = "low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, duplicate, photorealistic, photography, 3d, digital render";
+    // Enhanced negative prompts - specifically targeting plastic/artificial look AND wrong ethnicities
+    const REALISTIC_NEGATIVE_PROMPT = `(plastic skin:3.0), (waxy skin:3.0), (airbrushed:2.5), (CGI look:3.0), (synthetic skin:3.0), (mannequin:3.0), (doll face:3.0), (artificial look:3.0), (rubbery texture:3.0), (shiny plastic:3.0), (overly smooth:2.5), (beauty filter:2.5), ${ethnicityNegatives}, anime, cartoon, illustration, painting, stylized, low quality, blurry, distorted, deformed, bad anatomy, ugly, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, jpeg artifacts, signature, duplicate, harsh lighting, ring light, freckles, spots, moles, blemishes`;
+    const ANIME_NEGATIVE_PROMPT = `low quality, blurry, distorted, deformed, bad anatomy, ugly, disgusting, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, unrealistic skin, waxy skin, plastic look, double limbs, broken legs, floating body parts, lowres, text, watermark, error, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, duplicate, photorealistic, photography, 3d, digital render`;
 
     // Select settings based on style
     const selectedNegativePrompt = style === 'anime' ? ANIME_NEGATIVE_PROMPT : REALISTIC_NEGATIVE_PROMPT;
@@ -172,14 +191,23 @@ export async function POST(request: NextRequest) {
     const width = 1600;
     const height = 2400;
 
+    // Build the ethnicity-locked prompt prefix
+    const ethnicityPrefix = `${ethnicityPrompt.positivePrompt}, ${identityLock}, `;
+
     // Add realism anchors to the prompt for healthy, smooth, real-looking skin
     const realismSuffix = style === 'realistic' 
-      ? ", (MANDATORY PHOTOREALISTIC:2.0), (real photograph:1.9), (NOT plastic skin:2.0), (NOT waxy:2.0), (healthy smooth radiant skin:1.9), (natural skin texture:1.8), (soft supple skin:1.7), (organic skin texture:1.7), (natural subsurface scattering:1.5), masterpiece, professional photography, raw photo, film grain, highly detailed skin texture, sharp focus, natural soft lighting, shot on Canon EOS R5, 85mm lens, 8k UHD, deep depth of field, sharp background, extremely detailed environment"
+      ? `, (MANDATORY PHOTOREALISTIC:2.0), (real photograph:1.9), (NOT plastic skin:2.0), (NOT waxy:2.0), (${skinTonePreset.skin_description}:1.9), (healthy smooth radiant skin:1.9), (natural skin texture:1.8), (soft supple skin:1.7), (organic skin texture:1.7), (natural subsurface scattering:1.5), masterpiece, professional photography, raw photo, film grain, highly detailed skin texture, sharp focus, natural soft lighting, shot on Canon EOS R5, 85mm lens, 8k UHD, deep depth of field, sharp background, extremely detailed environment`
       : ", masterpiece, trending on pixiv, high-quality anime illustration, sharp lines, hyper-detailed, high-resolution style, detailed background";
+
+    // Combine: Ethnicity Prefix + Enhanced Prompt + Realism Suffix
+    const finalPrompt = ethnicityPrefix + enhancedPrompt + realismSuffix;
+    
+    console.log(`🎨 [Final Prompt] Ethnicity anchored: ${characterDetails.ethnicity}`);
+    console.log(`🎨 [Final Prompt] Skin tone locked: ${skinTonePreset.skin_description}`);
 
     // Generate the image using Seedream 4.5 (via unified client)
     const generatedImage = await generateImage({
-      prompt: enhancedPrompt + realismSuffix,
+      prompt: finalPrompt,
       negativePrompt: selectedNegativePrompt,
       style: style,
       width: width,

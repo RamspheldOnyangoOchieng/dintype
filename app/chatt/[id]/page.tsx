@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { Suspense } from "react"
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { Button } from "@/components/ui/button"
@@ -79,8 +80,28 @@ import { getStoryProgress, getChapter, initializeStoryProgress, completeChapter,
 import { Progress } from "@/components/ui/progress"
 import { FEATURES } from "@/lib/features"
 
+// Loading fallback for Suspense
+function ChatPageLoading() {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+        <p className="text-muted-foreground">Laddar chatt...</p>
+      </div>
+    </div>
+  )
+}
 
-export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
+// Wrapper component with Suspense boundary for useSearchParams
+export default function ChatPageWrapper({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <Suspense fallback={<ChatPageLoading />}>
+      <ChatPage params={params} />
+    </Suspense>
+  )
+}
+
+function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   const [isClearDialogOpen, setIsClearDialogOpen] = useState(false);
   const [isTelegramModalOpen, setIsTelegramModalOpen] = useState(false);
   const [characterId, setCharacterId] = useState<string | null>(null);

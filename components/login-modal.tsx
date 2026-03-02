@@ -232,6 +232,7 @@ export function LoginModal() {
                         </div>
                     </form>
 
+                    {/* Social OAuth separator temporarily disabled
                     <div className="relative my-6">
                         <div className="absolute inset-0 flex items-center">
                             <span className="w-full border-t border-gray-600" />
@@ -240,7 +241,9 @@ export function LoginModal() {
                             <span className="bg-[#1E1E1E] px-2 text-muted-foreground">{t("login.orLoginWith")}</span>
                         </div>
                     </div>
+                    */}
 
+                    {/* Social OAuth buttons temporarily disabled
                     <div className="grid grid-cols-3 gap-3">
                         <Button
                             variant="outline"
@@ -270,6 +273,7 @@ export function LoginModal() {
                             X
                         </Button>
                     </div>
+                    */}
 
                     <div className="mt-6 text-center text-sm">
                         <p className="text-muted-foreground">

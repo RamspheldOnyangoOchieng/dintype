@@ -5,6 +5,7 @@
 
 import { getUnifiedNovitaKey } from "./unified-api-keys"
 import { containsNSFW } from "./nsfw-filter";
+import { getSkinTonePreset, buildEthnicityPromptSegment, getIdentityLockPrompt, getExclusionNegatives } from "./skin-tone-presets";
 
 export interface ImageGenerationParams {
   prompt: string;
@@ -67,6 +68,13 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     if (!char || isBanner) return '';
 
     const bodyType = char.bodyType || char.body_type || char.body || 'average';
+    const ethnicity = char.ethnicity || 'mixed';
+
+    // Get deterministic skin tone preset for the character's ethnicity
+    const skinTonePreset = getSkinTonePreset(ethnicity);
+    const ethnicityPrompt = buildEthnicityPromptSegment(ethnicity);
+    
+    console.log(`🎨 [DNA Engine] Ethnicity: ${ethnicity}, Skin: ${skinTonePreset.skin_description}`);
 
     // Explicit Body Shape & Bust Mapping for Consistency
     const getBustDNA = (body: string) => {
@@ -83,18 +91,19 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
       `NAME: ${char.name}`,
       `GENDER: ${char.gender || 'Female'}`,
       `AGE: ${char.age}`,
-      `ETHNICITY: ${char.ethnicity || 'mixed'}`,
+      `ETHNICITY: ${ethnicity}`,
+      `SKIN TONE LOCK: ${skinTonePreset.skin_description}`, // Deterministic skin tone
       `BODY: ${bodyType}`,
       `BUST: ${getBustDNA(bodyType)}`, // Explicit Bust Lock
       `HAIR: ${char.hairStyle || char.hair_style || ''} ${char.hairColor || char.hair_color || 'natural'}`,
       `EYES: ${char.eyeColor || char.eye_color || 'beautiful'}`,
-      `SKIN TONE: ${char.skinTone || char.skin_tone || 'natural tone'}`,
       `OCCUPATION: ${char.occupation || ''}`,
       `PERSONALITY: ${char.personality || ''}`,
       `GUIDELINES: ${char.systemPrompt || char.system_prompt || ''}`,
     ].filter(p => !p.endsWith(': ') && !p.endsWith(':'));
 
-    return `### [CHARACTER IDENTITY DNA: ${dnaParts.join(', ')}]. ### `;
+    // Include the ethnicity-locked prompt segment in the DNA
+    return `### [CHARACTER IDENTITY DNA: ${dnaParts.join(', ')}]. ${ethnicityPrompt.positivePrompt} ### `;
   };
 
   const identityPrefix = buildIdentityDNA(character);
@@ -288,7 +297,12 @@ export async function generateImage(params: ImageGenerationParams): Promise<Gene
     ? `(man:3.0), (male:3.0), (boy:3.0), (masculine:3.0), (beard:3.0), (mustache:3.0), (hairy chest:3.0), (muscular male:2.5), (guy:3.0), (gentleman:3.0), (penis:3.0), (testicles:3.0), (dick:3.0), (cock:3.0), `
     : `(woman:3.0), (female:3.0), (girl:3.0), (feminine:3.0), (breasts:3.0), (cleavage:3.0), (lady:3.0), (vagina:3.0), (pussy:3.0), (vulva:3.0), `;
 
-  const finalNegativePrompt = `${perspectiveNegatives}, ${defaultNegatives}, ${genderNegative}${userNegativePrompt ? `, ${userNegativePrompt}` : ''}${charNegativeRestrictions ? `, (${charNegativeRestrictions}:1.6)` : ''}${nudityNegatives}`;
+  // ETHNICITY ENFORCEMENT - Prevent cross-cluster skin tone blending
+  const characterEthnicity = character?.ethnicity || 'mixed';
+  const ethnicityExclusionNegatives = getExclusionNegatives(characterEthnicity);
+  console.log(`🎨 [Negatives] Adding ethnicity exclusions for: ${characterEthnicity}`);
+
+  const finalNegativePrompt = `${perspectiveNegatives}, ${defaultNegatives}, ${genderNegative}, ${ethnicityExclusionNegatives}${userNegativePrompt ? `, ${userNegativePrompt}` : ''}${charNegativeRestrictions ? `, (${charNegativeRestrictions}:1.6)` : ''}${nudityNegatives}`;
 
   const biometricAnchor = (character && !isBanner)
     ? `### [BIOMETRIC ANCHOR: (precise facial DNA:2.0), (match training photos:1.8), (locked identity:1.9), (100% identical face:1.9), (consistent skin tone:1.8), ${character.name} face]. ### `
