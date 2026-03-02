@@ -1576,27 +1576,19 @@ export default function EditCharacterPage() {
                               <ImageIcon className="h-5 w-5" />
                               Selected Carousel Images
                             </h3>
-                            <p className="text-xs text-gray-400">Specially selected images for the chat profile carousel.</p>
+                            <p className="text-xs text-gray-400">Images selected to appear in the chat profile carousel.</p>
                           </div>
                           <Button
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => carouselInputRef.current?.click()}
-                            disabled={isCarouselLoading}
+                            onClick={() => router.push(`/admin/dashboard/characters/${id}/images`)}
                             className="bg-blue-600 hover:bg-blue-700 text-white border-none"
                           >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Add Carousel Photo
+                            <ImageIcon className="h-4 w-4 mr-1" />
+                            Manage in Profile Photos
                           </Button>
                         </div>
-                        <input
-                          type="file"
-                          ref={carouselInputRef}
-                          className="hidden"
-                          accept="image/*"
-                          onChange={handleAddCarouselImage}
-                        />
 
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-2">
                           {carouselImages.map((img: any) => (
@@ -1612,7 +1604,7 @@ export default function EditCharacterPage() {
                                   type="button"
                                   onClick={() => handleDeleteCarouselImage(img.id)}
                                   className="bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors"
-                                  title="Delete image"
+                                  title="Remove from carousel"
                                 >
                                   <X className="h-4 w-4" />
                                 </button>
@@ -1622,8 +1614,8 @@ export default function EditCharacterPage() {
 
                           {carouselImages.length === 0 && !isCarouselLoading && (
                             <div className="col-span-full py-8 text-center border-2 border-dashed border-[#333] rounded-lg">
-                              <p className="text-sm text-gray-500 italic">No specific carousel images selected.</p>
-                              <p className="text-xs text-gray-400 mt-1">Add images you want the user to see in the chat profile.</p>
+                              <p className="text-sm text-gray-500 italic">No carousel images selected.</p>
+                              <p className="text-xs text-gray-400 mt-1">Go to Profile Photos to select images for the carousel.</p>
                             </div>
                           )}
 

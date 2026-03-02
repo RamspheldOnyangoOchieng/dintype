@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
-import { ArrowLeft, Image as ImageIcon, Loader2, Link as LinkIcon, Trash2, Plus, Star, LayoutGrid } from "lucide-react"
+import { ArrowLeft, Image as ImageIcon, Loader2, Link as LinkIcon, Trash2, Plus, Star, LayoutGrid, Images } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import Image from "next/image"
@@ -334,8 +334,10 @@ return (
                 </div>
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                    {images.map((img) => (
-                        <div key={img.id} className={`group relative aspect-[2/3] bg-[#1a1a1a] rounded-lg overflow-hidden border transition-colors ${img.isPrimary ? 'border-primary ring-1 ring-primary/50' : 'border-white/5 hover:border-primary/50'}`}>
+                    {images.map((img) => {
+                        const isInCarousel = carouselItems.find(item => item.image_url === img.imageUrl)
+                        return (
+                        <div key={img.id} className={`group relative aspect-[2/3] bg-[#1a1a1a] rounded-lg overflow-hidden border transition-colors ${img.isPrimary ? 'border-primary ring-1 ring-primary/50' : isInCarousel ? 'border-green-500 ring-1 ring-green-500/50' : 'border-white/5 hover:border-primary/50'}`}>
                             <Image
                                 src={img.imageUrl}
                                 alt="Character Photo"
@@ -349,9 +351,12 @@ return (
                                 </div>
                             )}
 
-                            {carouselItems.find(item => item.image_url === img.imageUrl) && !img.isPrimary && (
+                            {isInCarousel && !img.isPrimary && (
                                 <div className="absolute top-2 left-2 z-10">
-                                    <Badge className="bg-green-500 text-white border-none shadow-lg">Carousel</Badge>
+                                    <Badge className="bg-green-500 text-white border-none shadow-lg flex items-center gap-1">
+                                        <Images className="h-3 w-3" />
+                                        Carousel
+                                    </Badge>
                                 </div>
                             )}
 
@@ -361,7 +366,23 @@ return (
                                 </div>
                             )}
 
-                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
+                            {/* Always visible carousel toggle button in top right */}
+                            <Button
+                                variant="secondary"
+                                size="icon"
+                                className={cn(
+                                    "absolute top-2 right-2 z-10 h-8 w-8 backdrop-blur-sm transition-all",
+                                    isInCarousel
+                                        ? "bg-green-500 hover:bg-green-600 text-white"
+                                        : "bg-black/60 hover:bg-blue-500 text-white/70 hover:text-white"
+                                )}
+                                onClick={() => handleToggleCarousel(img)}
+                                title={isInCarousel ? "Remove from Carousel" : "Add to Carousel"}
+                            >
+                                <Images className="h-4 w-4" />
+                            </Button>
+
+                            <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
                                 <Button
                                     variant="secondary"
                                     size="icon"
@@ -384,22 +405,6 @@ return (
                                     </Button>
                                 )}
 
-                                <Button
-                                    variant="secondary"
-                                    size="icon"
-                                    className={cn(
-                                        "h-8 w-8 backdrop-blur-sm",
-                                        carouselItems.find(item => item.image_url === img.imageUrl)
-                                            ? "bg-green-500/60 hover:bg-green-500/80 text-white"
-                                            : "bg-blue-400/60 hover:bg-blue-400/80 text-white"
-                                    )}
-                                    onClick={() => handleToggleCarousel(img)}
-                                    title={carouselItems.find(item => item.image_url === img.imageUrl) ? "Remove from Carousel" : "Add to Carousel"}
-                                >
-                                    <div className="w-1 h-1" /> {/* Small placeholder if no icon */}
-                                    <ImageIcon className="h-4 w-4" />
-                                </Button>
-
                                 {!img.id.toString().endsWith('_profile') && (
                                     <Button
                                         variant="destructive"
@@ -413,7 +418,7 @@ return (
                                 )}
                             </div>
                         </div>
-                    ))}
+                    )})}
                 </div>
             )}
         </div>
