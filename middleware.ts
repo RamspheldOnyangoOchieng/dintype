@@ -37,7 +37,6 @@ export async function middleware(req: NextRequest) {
     '/favorites': '/favoriter',
     '/collections': '/samlingar',
     '/login': '/logga-in',
-    '/premium': '/premium',
     '/profile': '/profil',
   }
 
