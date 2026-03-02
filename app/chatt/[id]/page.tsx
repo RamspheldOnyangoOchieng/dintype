@@ -18,11 +18,16 @@ import {
   Wand2,
   AlertCircle,
   Sparkles,
+  PanelLeft,
+  PanelRight,
+  Layout,
+  Columns
 } from "lucide-react"
 import { createClient } from "@/utils/supabase/client"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { useTranslations } from "@/lib/use-translations"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useSidebar } from "@/components/sidebar-context"
 import { useCharacters } from "@/components/character-context"
 import { sendChatMessage, type Message } from "@/lib/chat-actions"
@@ -148,6 +153,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   const [lastMessages, setLastMessages] = useState<Record<string, Message | null>>({})
   const [isProfileOpen, setIsProfileOpen] = useState(true)
   const [isMobileProfileOpen, setIsMobileProfileOpen] = useState(false)
+  const [isChatListOpen, setIsChatListOpen] = useState(true)
   const [premiumModalFeature, setPremiumModalFeature] = useState(t("chat.messageLimitTitle"))
   const [premiumModalDescription, setPremiumModalDescription] = useState(t("chat.messageLimitDesc"))
   const [premiumModalMode, setPremiumModalMode] = useState<'upgrade' | 'message-limit'>('upgrade')
@@ -1978,6 +1984,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
   }
 
   return (
+    <TooltipProvider delayDuration={0}>
     <div
       key="chat-page-root"
       className="flex flex-col md:flex-row bg-background w-full overflow-hidden h-full"
@@ -1985,7 +1992,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       suppressHydrationWarning
     >
       {/* Left Sidebar - Chat List - Independent Scroll */}
-      <div className="hidden md:flex md:w-72 border-b md:border-b-0 md:border-r border-border flex-col rounded-tr-2xl rounded-br-2xl h-full overflow-hidden flex-shrink-0">
+      <div className={cn(
+        "hidden md:flex border-b md:border-b-0 md:border-r border-border flex-col rounded-tr-2xl rounded-br-2xl h-full overflow-hidden flex-shrink-0 transition-all duration-300 ease-in-out",
+        isChatListOpen ? "md:w-72" : "md:w-0 md:border-r-0"
+      )}>
         <div className="p-4 border-b border-border flex items-center justify-between">
           <div className="flex items-center">
             <Button variant="ghost" size="icon" className="mr-2 md:hidden" onClick={toggle}>
@@ -2101,6 +2111,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
           {/* Main Chat Header */}
           <div className="flex items-center px-3 md:px-4 py-3 md:py-4 justify-between">
             <div className="flex items-center min-w-0 flex-1">
+              {/* Main Sidebar Toggle (Mobile) */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -2109,14 +2120,39 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               >
                 <Menu className="h-5 w-5" />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="mr-2 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation"
-                onClick={() => router.push('/chatt')}
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
+
+              {/* Chat List Toggle (Desktop) */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hidden md:flex mr-2 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation"
+                    onClick={() => setIsChatListOpen(!isChatListOpen)}
+                  >
+                    <PanelLeft className={cn("h-5 w-5 transition-transform", !isChatListOpen && "rotate-180")} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {isChatListOpen ? t("chat.hideChatList" as any) : t("chat.showChatList" as any)}
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="mr-2 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation"
+                    onClick={() => router.push('/chatt')}
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {t("general.back")}
+                </TooltipContent>
+              </Tooltip>
               <div className="relative w-10 h-10 mr-3 flex-shrink-0">
                 {/* Use regular img tag for Cloudinary images */}
                 <img
@@ -2163,24 +2199,30 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
               </div>
 
               {/* Profile Toggle */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "flex text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation transition-colors",
-                  (isProfileOpen || isMobileProfileOpen) && "text-primary"
-                )}
-                onClick={() => {
-                  if (window.innerWidth < 1024) {
-                    setIsMobileProfileOpen(true)
-                  } else {
-                    setIsProfileOpen(!isProfileOpen)
-                  }
-                }}
-                title={t("chat.showProfileDetails")}
-              >
-                <User className="h-5 w-5" />
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      "flex text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation transition-colors",
+                      (isProfileOpen || isMobileProfileOpen) && "text-primary"
+                    )}
+                    onClick={() => {
+                      if (window.innerWidth < 1024) {
+                        setIsMobileProfileOpen(true)
+                      } else {
+                        setIsProfileOpen(!isProfileOpen)
+                      }
+                    }}
+                  >
+                    <PanelRight className={cn("h-5 w-5 transition-transform", !isProfileOpen && "rotate-180")} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {isProfileOpen ? t("chat.hideProfileDetails") : t("chat.showProfileDetails")}
+                </TooltipContent>
+              </Tooltip>
 
               {/* Responsive More Menu */}
               <DropdownMenu>
@@ -2436,6 +2478,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     <WelcomeMessage
                       characterName={character.name}
                       characterId={character.id}
+                      galleryImages={galleryImages}
                       onStartChat={() => {
                         const input = document.querySelector('input[type="text"]') as HTMLInputElement;
                         if (input) input.focus();
@@ -3032,6 +3075,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       {/* Welcome Marketing Modal */}
       <WelcomeModal pageType="chat" />
     </div>
+    </TooltipProvider>
   )
 }
 

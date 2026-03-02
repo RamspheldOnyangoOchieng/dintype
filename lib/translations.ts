@@ -11,6 +11,7 @@ export type TranslationKey =
   | "general.delete"
   | "general.edit"
   | "general.success"
+  | "general.warning"
   | "guide.createAccount"
   | "guide.accountS1"
   | "guide.accountS1Desc"
@@ -161,11 +162,14 @@ export type TranslationKey =
   | "navigation.home"
   | "chat.welcomeMessage"
   | "chat.welcomeMessageFallback"
+  | "chat.loveCaption"
   | "chat.photoLove"
   | "chat.photoCaption"
   | "chat.noMessagesYet"
   | "chat.recentConversations"
   | "chat.noConversationsYet"
+  | "chat.showChatList"
+  | "chat.hideChatList"
   | "chat.startChattingMessage"
   | "chat.browseCharacters"
   | "chat.genError"
@@ -707,6 +711,8 @@ export type TranslationKey =
   | "profile.autoNotifications"
   | "profile.autoNotificationsDesc"
   | "sidebar.toggleSidebar"
+  | "sidebar.showMainNavigation"
+  | "sidebar.hideMainNavigation"
   | "sidebar.userMenu"
   | "sidebar.profile"
   | "sidebar.navigation"
@@ -1843,10 +1849,13 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.welcomeMessageFallback": "Hey there, my love... 💕 I'm {name}. I've been waiting for someone like you. Tell me... what brings you here tonight? 🌹",
     "chat.photoLove": "I love this photo of you! 😍",
     "chat.photoCaption": "Here's a little something for you... 😘",
+    "chat.loveCaption": "A photo of me, with all my love... ❤️",
     "chat.noMessagesYet": "No messages yet",
     "chat.recentConversations": "Recent Conversations",
-    "chat.noConversationsYet": "No conversations yet",
-    "chat.startChattingMessage": "Start chatting with a character to see your conversation history here.",
+    "chat.noConversationsYet": "No conversations found yet.",
+    "chat.showChatList": "Show Chat List",
+    "chat.hideChatList": "Hide Chat List",
+    "chat.startChattingMessage": "Choose a character to start chatting.",
     "chat.browseCharacters": "Browse Characters",
     "chat.genError": "Sorry, I couldn't generate that image. Let's try something else.",
     "chat.genTechError": "Sorry, I couldn't generate that image. There was a technical issue with the image processing.",
@@ -2820,7 +2829,9 @@ export const translations: Record<"en" | "sv", Translations> = {
     "profile.verificationNote": "NOTE: Changing email requires verification.",
     "profile.autoNotifications": "Automatic Notifications",
     "profile.autoNotificationsDesc": "Show status updates and news",
-    "sidebar.toggleSidebar": "Toggle sidebar",
+    "sidebar.toggleSidebar": "Toggle Sidebar",
+    "sidebar.showMainNavigation": "Show Main Navigation",
+    "sidebar.hideMainNavigation": "Hide Main Navigation",
     "sidebar.userMenu": "User menu",
     "sidebar.profile": "Profile",
     "sidebar.navigation": "Navigation",
@@ -3632,10 +3643,13 @@ export const translations: Record<"en" | "sv", Translations> = {
     "chat.welcomeMessageFallback": "Hej där, min skatt... 💕 Jag är {name}. Jag har väntat på någon som dig. Säg mig... vad för dig hit ikväll? 🌹",
     "chat.photoLove": "Jag älskar det här fotot på dig! 😍",
     "chat.photoCaption": "Här är något speciellt till dig... 😘",
+    "chat.loveCaption": "En bild på mig, med all min kärlek... ❤️",
     "chat.noMessagesYet": "Inga meddelanden än",
     "chat.recentConversations": "Senaste konversationer",
-    "chat.noConversationsYet": "Inga konversationer än",
-    "chat.startChattingMessage": "Börja chatta med en karaktär för att se din konversationshistorik här.",
+    "chat.noConversationsYet": "Inga konversationer hittades än.",
+    "chat.showChatList": "Visa chattlista",
+    "chat.hideChatList": "Dölj chattlista",
+    "chat.startChattingMessage": "Välj en karaktär för att börja chatta.",
     "chat.browseCharacters": "Bläddra bland karaktärer",
     "chat.genError": "Tyvärr, jag kunde inte generera den bilden. Låt oss prova något annat.",
     "chat.genTechError": "Tyvärr, jag kunde inte generera den bilden. Det uppstod ett tekniskt fel vid bildbehandlingen.",
@@ -4608,7 +4622,9 @@ export const translations: Record<"en" | "sv", Translations> = {
     "profile.verificationNote": "OBS: Byte av e-post kräver verifiering.",
     "profile.autoNotifications": "Automatiska aviseringar",
     "profile.autoNotificationsDesc": "Visa statusuppdateringar och nyheter",
-    "sidebar.toggleSidebar": "Växla sidofält",
+    "sidebar.toggleSidebar": "Växla sidofältet",
+    "sidebar.showMainNavigation": "Visa huvudmenyn",
+    "sidebar.hideMainNavigation": "Dölj huvudmenyn",
     "sidebar.userMenu": "Användarmeny",
     "sidebar.profile": "Profil",
     "sidebar.navigation": "Navigering",

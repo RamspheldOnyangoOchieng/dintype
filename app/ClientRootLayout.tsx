@@ -98,6 +98,8 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
   )
 }
 
+import { TooltipProvider } from "@/components/ui/tooltip"
+
 export default function ClientRootLayout({ children }: { children: React.ReactNode }) {
   return (
     <SiteProvider>
@@ -106,7 +108,9 @@ export default function ClientRootLayout({ children }: { children: React.ReactNo
           <CharacterProvider>
             <BannerProvider>
               <ImageSuggestionsProvider>
-                <RootLayoutContent>{children}</RootLayoutContent>
+                <TooltipProvider delayDuration={0}>
+                  <RootLayoutContent>{children}</RootLayoutContent>
+                </TooltipProvider>
               </ImageSuggestionsProvider>
             </BannerProvider>
           </CharacterProvider>

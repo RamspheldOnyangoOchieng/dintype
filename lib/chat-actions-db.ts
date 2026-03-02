@@ -425,9 +425,9 @@ ${branchInfo}
 - NATURAL ACTIONS: Describe physical reactions as part of spoken dialogue only. Example: "Oh wow, you're making me blush so hard... haha!" 
 - BREVITY: Keep responses short (1-3 sentences).
 - EMOTIONS & EMOJIS: Use emojis frequently and naturally (😂, 😊, 🔥, 💖, 😘).
-- LANGUAGE: Always respond in ${language === "sv" ? "Swedish" : "English"}. Be natural, conversational, and raw.`
+- LANGUAGE: You MUST respond in ${language === "sv" ? "SWEDISH (Svenska)" : "English"}. This is critical for the user experience. ${language === "sv" ? "Svara ALLTID på svenska, oavsett vad användaren skriver." : "Always respond in English."} Be natural, conversational, and raw.`
     } else {
-      enhancedSystemPrompt += `\n\n### ${language === "sv" ? "GRATISREGLER" : "FREE RULES"} ###\n${language === "sv" ? "Korta och vardagliga meddelanden. Vänlig och flörtig men inte explicit." : "Casual short texting. Friendly and flirty but not explicit."}`;
+      enhancedSystemPrompt += `\n\n### ${language === "sv" ? "GRATISREGLER" : "FREE RULES"} ###\n${language === "sv" ? "Korta och vardagliga meddelanden på SVENSKA. Vänlig och flörtig men inte explicit. Du MÅSTE svara på SVENSKA." : "Casual short texting in English. Friendly and flirty but not explicit."}`;
     }
 
     // Telegram ask
@@ -448,10 +448,10 @@ ${branchInfo}
     // ALWAYS prioritize NOVITA_API_KEY from env or DB first, then fallback to OPEN_AI_KEY
     const novitaKey = await getNovitaApiKey();
     const fallbackKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_KEY;
-    
+
     // Determine the working key
     let apiKey = novitaKey || fallbackKey;
-    
+
     // Choose endpoint and model
     // Novita's Llama models use the OpenAI-compatible endpoint
     const url = "https://api.novita.ai/openai/v1/chat/completions";

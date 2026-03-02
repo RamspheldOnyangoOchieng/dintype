@@ -137,22 +137,40 @@ export default function AppSidebar() {
                       : <><span className="text-foreground">POCKET</span><span className="text-primary">LOVE</span></>}
                   </span>
                 </Link>
-                <button
-                  className="p-2 rounded-full hover:bg-secondary transition-colors"
-                  onClick={() => setIsOpen(false)}
-                  aria-label={t("sidebar.toggleSidebar")}
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        className="p-2 rounded-full hover:bg-secondary transition-colors"
+                        onClick={() => setIsOpen(false)}
+                        aria-label={t("sidebar.toggleSidebar")}
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      {t("sidebar.hideMainNavigation" as any)}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             ) : (
-              <button
-                className="p-2 rounded-full hover:bg-secondary transition-colors"
-                onClick={() => setIsOpen(true)}
-                aria-label={t("sidebar.toggleSidebar")}
-              >
-                <Menu className="h-5 w-5" />
-              </button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      className="p-2 rounded-full hover:bg-secondary transition-colors"
+                      onClick={() => setIsOpen(true)}
+                      aria-label={t("sidebar.toggleSidebar")}
+                    >
+                      <Menu className="h-5 w-5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    {t("sidebar.showMainNavigation" as any)}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
 

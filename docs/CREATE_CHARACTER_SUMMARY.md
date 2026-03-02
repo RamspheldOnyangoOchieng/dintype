@@ -119,7 +119,7 @@ Open browser console and look for:
 ### Issue: "NOVITA_API_KEY not configured"
 **Check**: 
 1. `.env` file exists in project root
-2. Contains line: `NOVITA_API_KEY=sk_SaCwNYi5f8Q-zqa7YqSttPVMos2xxkDTcJ3rK0jiQfk`
+2. Contains line: `NOVITA_API_KEY=sk_******************************************`
 3. Restart dev server after adding
 
 ## 📁 Files Modified
