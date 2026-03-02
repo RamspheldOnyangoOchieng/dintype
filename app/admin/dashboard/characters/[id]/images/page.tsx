@@ -3,13 +3,23 @@
 import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createClient } from "@/utils/supabase/client"
-import { ArrowLeft, Image as ImageIcon, Loader2, Link as LinkIcon, Trash2, Plus, Star, LayoutGrid, Images } from "lucide-react"
+import { ArrowLeft, Image as ImageIcon, Loader2, Link as LinkIcon, Trash2, Plus, Star, LayoutGrid, Images, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { useCharacters } from "@/components/character-context"
 import { cn } from "@/lib/utils"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 type GalleryImage = {
     id: string
@@ -40,6 +50,11 @@ export default function CharacterImagesPage() {
     const [stats, setStats] = useState<GalleryStats | null>(null)
     const { refreshCharacters } = useCharacters()
     const fileInputRef = useRef<HTMLInputElement>(null)
+    
+    // Delete confirmation state
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [imageToDelete, setImageToDelete] = useState<string | null>(null)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const supabase = createClient()
 
@@ -204,18 +219,22 @@ const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     }
 }
 
-const handleDelete = async (imageId: string) => {
+const openDeleteDialog = (imageId: string) => {
     // Prevent deleting the synthetic profile image
     if (imageId && imageId.toString().endsWith('_profile')) {
         toast.error("Main profile image cannot be deleted from here.")
         return
     }
+    setImageToDelete(imageId)
+    setDeleteDialogOpen(true)
+}
 
-    if (!confirm("Are you sure you want to delete this photo?")) return
+const handleDelete = async () => {
+    if (!imageToDelete) return
 
     try {
-        const toastId = toast.loading("Deleting image...")
-        const response = await fetch(`/api/gallery?id=${imageId}`, {
+        setIsDeleting(true)
+        const response = await fetch(`/api/gallery?id=${imageToDelete}`, {
             method: "DELETE"
         })
 
@@ -224,11 +243,15 @@ const handleDelete = async (imageId: string) => {
             throw new Error(data.error || "Failed to delete")
         }
 
-        toast.success("Image deleted", { id: toastId })
-        setImages(prev => prev.filter(img => img.id !== imageId))
+        toast.success("Photo deleted successfully")
+        setImages(prev => prev.filter(img => img.id !== imageToDelete))
+        setDeleteDialogOpen(false)
+        setImageToDelete(null)
     } catch (error) {
         console.error("Delete error:", error)
         toast.error(error instanceof Error ? error.message : "Failed to delete image")
+    } finally {
+        setIsDeleting(false)
     }
 }
 
@@ -410,7 +433,7 @@ return (
                                         variant="destructive"
                                         size="icon"
                                         className="h-8 w-8 bg-red-500/60 hover:bg-red-500/80 text-white backdrop-blur-sm"
-                                        onClick={() => handleDelete(img.id)}
+                                        onClick={() => openDeleteDialog(img.id)}
                                         title="Delete Photo"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -422,6 +445,46 @@ return (
                 </div>
             )}
         </div>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialogContent className="bg-[#1a1a1a] border-[#333] text-white">
+                <AlertDialogHeader>
+                    <AlertDialogTitle className="flex items-center gap-2 text-red-400">
+                        <AlertTriangle className="h-5 w-5" />
+                        Delete Photo
+                    </AlertDialogTitle>
+                    <AlertDialogDescription className="text-gray-400">
+                        Are you sure you want to delete this photo? This action cannot be undone and the image will be permanently removed.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel 
+                        className="bg-[#252525] border-[#333] text-white hover:bg-[#333] hover:text-white"
+                        disabled={isDeleting}
+                    >
+                        Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                        className="bg-red-500 hover:bg-red-600 text-white"
+                    >
+                        {isDeleting ? (
+                            <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Deleting...
+                            </>
+                        ) : (
+                            <>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete Photo
+                            </>
+                        )}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </div>
 )
 }
