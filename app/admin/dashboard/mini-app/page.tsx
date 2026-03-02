@@ -25,8 +25,16 @@ import {
     User,
     Upload,
     Trash2,
-    Image as ImageIcon
+    Image as ImageIcon,
+    Layout,
+    Star,
+    PlusCircle,
+    HelpCircle,
+    Info,
+    ChevronDown
 } from "lucide-react"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
@@ -547,78 +555,94 @@ export default function MiniAppManagementPage() {
                             <CardTitle>Feature Toggles</CardTitle>
                             <CardDescription>Enable or disable specific features in the mini app</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="flex items-center justify-between">
-                                <div className="space-y-0.5">
-                                    <Label className="text-base font-medium">Character Selection</Label>
-                                    <p className="text-sm text-muted-foreground">
-                                        Allow users to select and chat with characters
-                                    </p>
-                                </div>
-                                <Switch
-                                    checked={settings.features.character_selection}
-                                    onCheckedChange={(checked) =>
-                                        setSettings(prev => ({
-                                            ...prev,
-                                            features: { ...prev.features, character_selection: checked }
-                                        }))
-                                    }
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                                <div className="space-y-0.5">
-                                    <Label className="text-base font-medium">Image Generation</Label>
-                                    <p className="text-sm text-muted-foreground">
-                                        Enable AI image generation feature
-                                    </p>
-                                </div>
-                                <Switch
-                                    checked={settings.features.image_generation}
-                                    onCheckedChange={(checked) =>
-                                        setSettings(prev => ({
-                                            ...prev,
-                                            features: { ...prev.features, image_generation: checked }
-                                        }))
-                                    }
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                                <div className="space-y-0.5">
-                                    <Label className="text-base font-medium">Character Creation</Label>
-                                    <p className="text-sm text-muted-foreground">
-                                        Allow users to create custom characters
-                                    </p>
-                                </div>
-                                <Switch
-                                    checked={settings.features.character_creation}
-                                    onCheckedChange={(checked) =>
-                                        setSettings(prev => ({
-                                            ...prev,
-                                            features: { ...prev.features, character_creation: checked }
-                                        }))
-                                    }
-                                />
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                                <div className="space-y-0.5">
-                                    <Label className="text-base font-medium">Premium Features</Label>
-                                    <p className="text-sm text-muted-foreground">
-                                        Enable premium subscription features
-                                    </p>
-                                </div>
-                                <Switch
-                                    checked={settings.features.premium_features}
-                                    onCheckedChange={(checked) =>
-                                        setSettings(prev => ({
-                                            ...prev,
-                                            features: { ...prev.features, premium_features: checked }
-                                        }))
-                                    }
-                                />
-                            </div>
+                        <CardContent className="space-y-4">
+                            <Accordion type="single" collapsible defaultValue="all-features" className="w-full space-y-4">
+                                <AccordionItem value="all-features" className="border rounded-2xl px-4 bg-zinc-50/50 dark:bg-zinc-900/20">
+                                    <AccordionTrigger className="hover:no-underline py-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                                                <Layout className="h-5 w-5" />
+                                            </div>
+                                            <div className="text-left">
+                                                <h3 className="text-sm font-black uppercase tracking-wider">Available Features</h3>
+                                                <p className="text-[10px] text-muted-foreground font-medium">Toggle core mini-app functionalities</p>
+                                            </div>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pb-6 pt-2 space-y-4">
+                                        {[
+                                            {
+                                                id: "character_selection",
+                                                label: "Character Selection",
+                                                desc: "Allow users to select and chat with characters",
+                                                icon: Users,
+                                                checked: settings.features.character_selection
+                                            },
+                                            {
+                                                id: "image_generation",
+                                                label: "Image Generation",
+                                                desc: "Enable AI image generation feature",
+                                                icon: ImageIcon,
+                                                checked: settings.features.image_generation
+                                            },
+                                            {
+                                                id: "character_creation",
+                                                label: "Character Creation",
+                                                desc: "Allow users to create custom characters",
+                                                icon: PlusCircle,
+                                                checked: settings.features.character_creation
+                                            },
+                                            {
+                                                id: "premium_features",
+                                                label: "Premium Features",
+                                                desc: "Enable premium subscription features",
+                                                icon: Star,
+                                                checked: settings.features.premium_features
+                                            }
+                                        ].map((feature) => (
+                                            <div key={feature.id} className="p-4 rounded-xl border border-border bg-card/50 hover:bg-card transition-all duration-200">
+                                                <div className="flex items-center justify-between gap-4">
+                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                        <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+                                                            <feature.icon className="h-4 w-4" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2">
+                                                                <Label className="font-bold truncate text-sm">{feature.label}</Label>
+                                                                <TooltipProvider>
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger asChild>
+                                                                            <div className="cursor-help text-muted-foreground hover:text-foreground">
+                                                                                <HelpCircle className="h-3.5 w-3.5" />
+                                                                            </div>
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>
+                                                                            <p className="font-mono text-[10px]">{feature.id}</p>
+                                                                        </TooltipContent>
+                                                                    </Tooltip>
+                                                                </TooltipProvider>
+                                                            </div>
+                                                            <p className="text-xs text-muted-foreground mt-0.5">{feature.desc}</p>
+                                                        </div>
+                                                    </div>
+                                                    <Switch
+                                                        checked={feature.checked}
+                                                        onCheckedChange={(checked) =>
+                                                            setSettings(prev => ({
+                                                                ...prev,
+                                                                features: {
+                                                                    ...prev.features,
+                                                                    [feature.id as keyof typeof settings.features]: checked
+                                                                }
+                                                            }))
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
                         </CardContent>
                     </Card>
                 </TabsContent>

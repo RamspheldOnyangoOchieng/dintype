@@ -2801,7 +2801,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             </div>
 
             {/* Character Gallery */}
-            {characterId && (
+            {/* {characterId && (
               <CharacterGallery
                 characterId={characterId}
                 onImageClick={(url) => {
@@ -2812,10 +2812,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 }}
                 onGalleryUpdate={fetchGallery}
               />
-            )}
+            )} */}
 
             {/* Generate Image Button - Locked during story mode */}
-            {(() => {
+            {/* {(() => {
               const isLocked = !!(storyProgress && !storyProgress.is_completed);
               return (
                 <>
@@ -2843,7 +2843,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                   )}
                 </>
               );
-            })()}
+            })()} */}
           </div>
         </div>
       </div>
@@ -2957,7 +2957,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 </div>
 
                 {/* Character Gallery */}
-                {characterId && (
+                {/* {characterId && (
                   <div className="bg-background/80 backdrop-blur-xl rounded-2xl p-4 border border-white/5 mb-6">
                     <h5 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">{t("chat.gallery")}</h5>
                     <CharacterGallery
@@ -2971,10 +2971,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       onGalleryUpdate={fetchGallery}
                     />
                   </div>
-                )}
+                )} */}
 
                 {/* Mobile Generate Button */}
-                {(() => {
+                {/* {(() => {
                   const isLocked = !!(storyProgress && !storyProgress.is_completed);
                   return (
                     <div className="mb-8 mt-4">
@@ -3002,7 +3002,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                       )}
                     </div>
                   );
-                })()}
+                })()} */}
               </div>
             </div>
           </div>

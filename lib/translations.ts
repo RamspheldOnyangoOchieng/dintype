@@ -938,6 +938,8 @@ export type TranslationKey =
   | "admin.nav.banners"
   | "admin.nav.tokenPackages"
   | "admin.nav.premiumContent"
+  | "admin.nav.commerce"
+  | "admin.nav.system"
   | "admin.nav.premiumManagement"
   | "admin.nav.subscriptions"
   | "admin.nav.settings"
@@ -3059,6 +3061,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "admin.nav.banners": "Banners",
     "admin.nav.tokenPackages": "Token Packages",
     "admin.nav.premiumContent": "Premium Content",
+    "admin.nav.commerce": "Commerce",
+    "admin.nav.system": "System",
     "admin.nav.premiumManagement": "Premium Management",
     "admin.nav.subscriptions": "Subscriptions",
     "admin.nav.settings": "Settings",
@@ -4851,6 +4855,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "admin.nav.banners": "Banderoller",
     "admin.nav.tokenPackages": "Tokenpaket",
     "admin.nav.premiumContent": "Premiuminnehåll",
+    "admin.nav.commerce": "Handel",
+    "admin.nav.system": "System",
     "admin.nav.premiumManagement": "Premiumhantering",
     "admin.nav.subscriptions": "Abonnemang",
     "admin.nav.settings": "Inställningar",
