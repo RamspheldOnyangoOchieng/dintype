@@ -1948,10 +1948,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
       isSubmittingRef.current = false
     }, 250)
   }
-}
 
-// Clear chat history
-const handleClearChat = async () => {
+  // Clear chat history
+  const handleClearChat = async () => {
   if (!isMounted || !character) return
 
   setIsClearingChat(true)
