@@ -2318,7 +2318,7 @@ return (
                 )}
               </div>
 
-              {/* Responsive More Menu */}}
+              {/* Responsive More Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation">
