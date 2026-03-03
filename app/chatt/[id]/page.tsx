@@ -2189,9 +2189,9 @@ return (
       </div>
 
       {/* Middle - Chat Area - Independent Scroll with Fixed Header */}
-      <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
-        {/* Header & Story Progress - Unified Sticky Area */}
-        <div className="flex-shrink-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
+      <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden relative">
+        {/* Header & Story Progress - Fixed on Mobile to prevent keyboard hiding it */}
+        <div className="fixed md:relative top-0 left-0 right-0 md:top-auto md:left-auto md:right-auto flex-shrink-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
           {storyProgress && currentChapter && (
             <div className="px-4 py-3 border-b border-border/50 bg-amber-500/5">
               <div className="flex justify-between items-center mb-2 text-[10px] md:text-xs">
@@ -2240,17 +2240,7 @@ return (
           {/* Main Chat Header */}
           <div className="flex items-center px-3 md:px-4 py-3 md:py-4 justify-between">
             <div className="flex items-center min-w-0 flex-1">
-              {/* Main Sidebar Toggle (Mobile) */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden mr-2 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation"
-                onClick={() => toggle()}
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-
-              {/* Chat List Toggle (Desktop) */}
+              {/* Chat List Toggle (Desktop only) */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -2282,7 +2272,17 @@ return (
                   {t("general.back")}
                 </TooltipContent>
               </Tooltip>
-              <div className="relative w-10 h-10 mr-3 flex-shrink-0">
+              {/* Clickable Profile Photo - Opens profile on tap */}
+              <button
+                onClick={() => {
+                  if (window.innerWidth < 1024) {
+                    setIsMobileProfileOpen(true)
+                  } else {
+                    setIsProfileOpen(!isProfileOpen)
+                  }
+                }}
+                className="relative w-10 h-10 mr-3 flex-shrink-0 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-primary/50 transition-all active:scale-95 touch-manipulation"
+              >
                 {/* Use regular img tag for Cloudinary images */}
                 <img
                   src={
@@ -2295,8 +2295,8 @@ return (
                   onError={() => character?.id && handleImageError(character.id)}
                   loading="lazy"
                 />
-              </div>
-              <div className="flex flex-col min-w-0 flex-1 overflow-hidden cursor-pointer md:cursor-auto" onClick={() => window.innerWidth < 768 && setIsMobileProfileOpen(true)}>
+              </button>
+              <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
                 <h4 className="font-bold truncate text-foreground leading-tight">
                   {character?.name || t("general.loading")}
                 </h4>
@@ -2327,23 +2327,17 @@ return (
                 )}
               </div>
 
-              {/* Profile Toggle */}
+              {/* Profile Toggle - Desktop only, mobile uses photo click */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
                     className={cn(
-                      "flex text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation transition-colors",
-                      (isProfileOpen || isMobileProfileOpen) && "text-primary"
+                      "hidden lg:flex text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation transition-colors",
+                      isProfileOpen && "text-primary"
                     )}
-                    onClick={() => {
-                      if (window.innerWidth < 1024) {
-                        setIsMobileProfileOpen(true)
-                      } else {
-                        setIsProfileOpen(!isProfileOpen)
-                      }
-                    }}
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
                   >
                     <PanelRight className={cn("h-5 w-5 transition-transform", !isProfileOpen && "rotate-180")} />
                   </Button>
@@ -2436,10 +2430,11 @@ return (
         </div>
 
         {/* Chat Messages - Scrollable Area with Lazy Loading */}
+        {/* Added pt-[120px] md:pt-0 to account for fixed header on mobile */}
         <div
           ref={chatContainerRef}
           onScroll={handleChatScroll}
-          className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 md:space-y-4 min-h-0 chat-background"
+          className="flex-1 overflow-y-auto p-3 md:p-4 pt-[140px] md:pt-4 space-y-3 md:space-y-4 min-h-0 chat-background"
           style={{ overscrollBehavior: 'contain' }}
           data-messages-container
         >

@@ -22,6 +22,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { OnboardingTour } from "@/components/onboarding-tour"
 import { BrandThemeInjector } from "@/components/brand-theme-injector"
+import { AgeVerificationModal } from "@/components/age-verification-modal"
 
 function RootLayoutContent({ children }: { children: React.ReactNode }) {
   const { isOpen } = useSidebar()
@@ -46,6 +47,7 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
         {children}
         <Toaster />
         <SonnerToaster />
+        <AgeVerificationModal />
       </>
     )
   }
@@ -74,6 +76,7 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
         <Toaster />
         <SonnerToaster />
         <BrandThemeInjector />
+        <AgeVerificationModal />
       </div>
     )
   }
@@ -115,6 +118,7 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
       />
       <BrandThemeInjector />
       <OnboardingTour />
+      <AgeVerificationModal />
     </div>
   )
 }

@@ -54,19 +54,23 @@ async function enhancePromptWithAI(customization: CustomizationData): Promise<st
                         content: `You are a master prompt engineer specializing in ultra-realistic human photography. Your mission is to create breathtaking, REAL-looking character portraits with healthy, smooth, natural skin.
 
 CRITICAL REALISM RULES:
-1. SKIN QUALITY (TOP PRIORITY): Create prompts for "healthy, smooth, radiant skin". Use terms like "natural healthy glow", "soft supple skin", "even skin tone", "smooth clear complexion", "vibrant youthful skin", "dewy fresh skin", "natural subsurface scattering". ABSOLUTELY AVOID plastic, waxy, airbrushed, or synthetic-looking skin.
+1. SKIN QUALITY (TOP PRIORITY): Create prompts for "healthy, smooth, radiant skin". Use terms like "natural healthy glow", "soft supple skin", "even skin tone", "smooth clear complexion", "vibrant youthful skin", "natural subsurface scattering". ABSOLUTELY AVOID plastic, waxy, airbrushed, or synthetic-looking skin.
 
-2. PHOTOGRAPHIC REALISM: Use professional photography terms: "shot on Canon EOS R5", "85mm portrait lens", "f/1.8 aperture", "natural soft lighting", "golden hour warmth", "studio softbox", "deep depth of field", "RAW unprocessed photo", "film grain texture".
+2. CLEAN MATTE FACE (CRITICAL): Always describe skin as "clean, clear, matte skin", "soft diffused lighting on face", "even skin tone", "porcelain smooth finish". STRICTLY FORBID "oily skin", "greasy shine", "harsh glare", "strong reflections", "sweaty face", "wet look skin". The face must be MATTE and CLEAN, never shiny or oily.
 
-3. NATURAL HUMAN FEATURES: Emphasize "realistic eye moisture", "natural lip texture", "soft facial contours", "authentic bone structure", "natural hair physics", "realistic skin pores visible at close range".
+3. PHOTOGRAPHIC REALISM: Use professional photography terms: "shot on Canon EOS R5", "85mm portrait lens", "f/1.8 aperture", "natural soft lighting", "soft diffused light", "deep depth of field", "RAW unprocessed photo", "film grain texture".
 
-4. ENVIRONMENTAL GROUNDING: Always place the subject in a REAL, specific environment. Choose from: luxury apartment, rooftop bar, beach sunset, cozy café, art gallery, botanical garden, city street at dusk, modern kitchen, elegant bathroom.
+4. NATURAL HUMAN FEATURES: Emphasize "realistic eye moisture", "natural lip texture", "soft facial contours", "authentic bone structure", "natural hair physics", "flawless clear skin".
 
-5. MOOD & EXPRESSION: Use "confident gaze", "warm genuine smile", "relaxed natural pose", "authentic candid moment", "approachable demeanor".
+5. ENVIRONMENTAL GROUNDING: Always place the subject in a REAL, specific environment. Choose from: luxury apartment, rooftop bar, beach sunset, cozy café, art gallery, botanical garden, city street at dusk, modern kitchen, elegant bathroom.
 
-6. ANATOMY PERFECTION: Specify "anatomically perfect hands with five fingers", "natural body proportions", "elegant posture", "graceful limb placement".
+6. MOOD & EXPRESSION: Use "confident gaze", "warm genuine smile", "relaxed natural pose", "authentic candid moment", "approachable demeanor".
 
-7. ANTI-PLASTIC MANDATE: Explicitly include "(NOT plastic skin:2.0), (NOT waxy:2.0), (NOT airbrushed:1.8), (NOT CGI:2.0), (real human being:1.9), (actual photograph:1.8), (organic skin texture:1.7)".
+7. ANATOMY PERFECTION: Specify "anatomically perfect hands with five fingers", "natural body proportions", "elegant posture", "graceful limb placement".
+
+8. ANTI-PLASTIC MANDATE: Explicitly include "(NOT plastic skin:2.0), (NOT waxy:2.0), (NOT airbrushed:1.8), (NOT CGI:2.0), (NOT oily skin:2.0), (real human being:1.9), (actual photograph:1.8), (clean matte skin:1.9)".
+
+9. SKIN CLARITY: FORBID spots, blemishes, freckles, moles, acne, uneven patches, discoloration. The skin must be "flawless clear complexion", "porcelain smooth", "unblemished".
 
 OUTPUT: Return ONLY the enhanced photographic prompt (under 200 words). No explanations.`
                     },
@@ -84,7 +88,7 @@ CHARACTER DETAILS:
 - Face: ${customization.face_shape || 'elegant'} face with ${customization.lip_shape || 'natural'} lips
 - Figure: ${customization.bust || 'natural'} bust, ${customization.hips || 'natural'} hips
 
-Create a masterpiece prompt that produces a REAL-looking person with healthy, smooth, natural skin - NOT plastic or artificial. Focus on photographic authenticity.`
+Create a masterpiece prompt that produces a REAL-looking person with healthy, CLEAN MATTE skin - absolutely NOT oily, shiny, greasy, or plastic. The face must have soft diffused lighting with no harsh reflections or glare. Focus on flawless, porcelain-smooth, unblemished skin with even tone.`
                     }
                 ],
                 max_tokens: 400,
@@ -128,13 +132,13 @@ function buildCharacterDescription(customization: CustomizationData): string {
 function addRealismAnchors(prompt: string, customization: CustomizationData): string {
     const realismPrefix = customization.style === 'anime' 
         ? '' 
-        : `(MANDATORY PHOTOREALISTIC:2.0), (real photograph:1.9), (NOT plastic skin:2.0), (NOT waxy:2.0), (NOT airbrushed:1.8), (NOT CGI:2.0), (real human being:1.9), (actual person:1.8), `;
+        : `(MANDATORY PHOTOREALISTIC:2.0), (real photograph:1.9), (NOT plastic skin:2.0), (NOT waxy:2.0), (NOT airbrushed:1.8), (NOT CGI:2.0), (NOT oily skin:2.0), (NOT greasy shine:2.0), (real human being:1.9), (actual person:1.8), `;
     
-    const skinQuality = `(healthy smooth radiant skin:1.9), (natural skin texture:1.8), (soft supple skin:1.7), (even skin tone:1.8), (vibrant youthful complexion:1.7), (dewy fresh skin:1.6), (natural subsurface scattering:1.5), (organic skin texture:1.7), `;
+    const skinQuality = `(healthy smooth radiant skin:1.9), (clean matte skin:1.9), (porcelain smooth:1.8), (flawless clear complexion:1.8), (soft supple skin:1.7), (even skin tone:1.8), (soft diffused lighting on face:1.7), (NO oily shine:1.9), (natural subsurface scattering:1.5), `;
     
     const photoQuality = customization.style === 'anime' 
         ? `masterpiece, best quality, highly detailed, sharp focus, `
-        : `(shot on Canon EOS R5:1.3), (85mm portrait lens:1.2), (natural soft lighting:1.4), (RAW unprocessed photo:1.5), (film grain:1.2), (deep depth of field:1.3), (8k UHD:1.3), `;
+        : `(shot on Canon EOS R5:1.3), (85mm portrait lens:1.2), (soft diffused light:1.4), (RAW unprocessed photo:1.5), (film grain:1.2), (deep depth of field:1.3), (8k UHD:1.3), `;
     
     const anatomyGuard = `(anatomically perfect:1.8), (natural body proportions:1.7), (five fingers per hand:1.9), (correct limb placement:1.8), `;
 
@@ -168,10 +172,10 @@ function buildBasicPrompt(customization: CustomizationData): string {
         customization.hips && `${customization.hips.toLowerCase()} hips`,
     ].filter(Boolean).join(', ');
 
-    // Enhanced skin quality terms
+    // Enhanced skin quality terms - CLEAN MATTE SKIN, NOT OILY
     const skinQuality = customization.style === 'anime' 
         ? ''
-        : ', (healthy smooth radiant skin:1.9), (natural skin texture:1.8), (soft supple skin:1.7), (even skin tone:1.8), (vibrant youthful complexion:1.7), (dewy fresh skin:1.6), (organic skin texture:1.7), (NOT plastic skin:2.0), (NOT waxy:2.0), (NOT airbrushed:1.8)';
+        : ', (healthy smooth radiant skin:1.9), (clean matte skin:1.9), (porcelain smooth:1.8), (flawless clear complexion:1.8), (soft supple skin:1.7), (even skin tone:1.8), (soft diffused lighting on face:1.7), (NO oily shine:1.9), (NOT plastic skin:2.0), (NOT waxy:2.0), (NOT airbrushed:1.8), (NOT greasy:2.0)';
 
     const allDescriptors = [
         styleDescriptor,
@@ -193,7 +197,7 @@ function buildPromptFromCustomization(customization: CustomizationData): { promp
     // Enhanced negative prompt to prevent plastic/artificial look
     const baseNegative = customization.style === 'anime'
         ? 'low quality, blurry, distorted, deformed, bad anatomy, ugly, malformed hands, extra fingers, missing fingers, fused fingers, distorted face, uneven eyes, lowres, text, watermark, error, worst quality, jpeg artifacts, duplicate, photorealistic, photography, 3d render'
-        : '(plastic skin:3.0), (waxy skin:3.0), (airbrushed:2.5), (CGI look:3.0), (synthetic skin:3.0), (mannequin:3.0), (doll face:3.0), (artificial look:3.0), (rubbery texture:3.0), (shiny plastic:3.0), (overly smooth:2.5), (beauty filter:2.5), (face retouching:2.0), anime, cartoon, illustration, painting, stylized, deformed face, distorted face, bad anatomy, wrong proportions, extra limbs, extra fingers, missing fingers, fused fingers, asymmetrical face, uneven eyes, crossed eyes, melting face, warped face, floating body parts, disconnected limbs, duplicate body parts, low quality, blurry, jpeg artifacts, watermark, text, signature, worst quality, perfect symmetry, hyper symmetry, oversharpened, hdr, overprocessed, harsh lighting, ring light, freckles, spots, moles, blemishes, acne, skin imperfections';
+        : '(oily skin:3.0), (greasy skin:3.0), (shiny face:3.0), (sweaty face:2.5), (wet look skin:2.5), (glossy skin:3.0), (plastic skin:3.0), (waxy skin:3.0), (airbrushed:2.5), (CGI look:3.0), (synthetic skin:3.0), (mannequin:3.0), (doll face:3.0), (artificial look:3.0), (rubbery texture:3.0), (shiny plastic:3.0), (overly smooth:2.5), (beauty filter:2.5), (face retouching:2.0), (harsh glare:2.5), (strong reflections:2.5), (specular highlights on face:2.5), anime, cartoon, illustration, painting, stylized, deformed face, distorted face, bad anatomy, wrong proportions, extra limbs, extra fingers, missing fingers, fused fingers, asymmetrical face, uneven eyes, crossed eyes, melting face, warped face, floating body parts, disconnected limbs, duplicate body parts, low quality, blurry, jpeg artifacts, watermark, text, signature, worst quality, perfect symmetry, hyper symmetry, oversharpened, hdr, overprocessed, harsh lighting, ring light, freckles, spots, moles, blemishes, acne, skin imperfections, uneven skin tone, discoloration, skin spots';
 
     return { prompt, negativePrompt: baseNegative };
 }
