@@ -8,6 +8,7 @@ import { useAuth } from "@/components/auth-context"
 import { useTheme } from "next-themes"
 import { useAuthModal } from "@/components/auth-modal-context"
 import { CharacterPreviewModal } from "@/components/character-preview-modal"
+import { useTranslations } from "@/lib/use-translations"
 
 export function MobileNav() {
   const [isOpen, setIsOpen] = useState(false)
@@ -19,6 +20,7 @@ export function MobileNav() {
   const [mounted, setMounted] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
+  const { t } = useTranslations()
 
   // Modal state
   const [showPreviewModal, setShowPreviewModal] = useState(false)
@@ -87,17 +89,17 @@ export function MobileNav() {
   }
 
   const navItems = [
-    { name: "Home", href: "/", icon: Home },
-    { name: "Chat", href: "/chatt", icon: MessageSquare },
-    { name: "Generate", href: "/generera", icon: Sparkles },
-    { name: "Create AI", href: "/skapa-karaktar", icon: Users },
-    { name: "My AI", href: "/min-ai", icon: Heart, requiresAuth: true },
-    { name: "My Images", href: "/samlingar", icon: FolderHeart, requiresAuth: true },
-    { name: "Premium", href: "/premium", icon: DollarSign },
+    { name: t("nav.home"), href: "/", icon: Home },
+    { name: t("nav.chat"), href: "/chatt", icon: MessageSquare },
+    { name: t("nav.generateImage"), href: "/generera", icon: Sparkles },
+    { name: t("nav.createCharacter"), href: "/skapa-karaktar", icon: Users },
+    { name: t("nav.myAI"), href: "/min-ai", icon: Heart, requiresAuth: true },
+    { name: t("nav.myImages"), href: "/samlingar", icon: FolderHeart, requiresAuth: true },
+    { name: t("nav.premium"), href: "/premium", icon: DollarSign },
   ]
 
   if (user?.isAdmin) {
-    navItems.push({ name: "Admin Panel", href: "/admin/dashboard", icon: Crown })
+    navItems.push({ name: t("nav.adminPanel"), href: "/admin/dashboard", icon: Crown })
   }
 
   return (

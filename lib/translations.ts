@@ -773,6 +773,8 @@ export type TranslationKey =
   | "footer.addItem"
   | "footer.rightsReserved"
   | "footer.resetDefaults"
+  | "nav.home"
+  | "nav.chat"
   | "nav.generateImage"
   | "nav.createCharacter"
   | "nav.myAI"
@@ -2909,6 +2911,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "footer.addItem": "Add Item",
     "footer.rightsReserved": "All rights reserved",
     "footer.resetDefaults": "Reset to defaults",
+    "nav.home": "Home",
+    "nav.chat": "Chat",
     "nav.generateImage": "Generate Image",
     "nav.createCharacter": "Create Character",
     "nav.myAI": "My AI Character",
@@ -4676,6 +4680,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "footer.addItem": "Lägg till objekt",
     "footer.rightsReserved": "Alla rättigheter förbehållna",
     "footer.resetDefaults": "Återställ till standard",
+    "nav.home": "Hem",
+    "nav.chat": "Chatt",
     "nav.generateImage": "Generera bild",
     "nav.createCharacter": "Skapa karaktär",
     "nav.myAI": "Min AI-karaktär",

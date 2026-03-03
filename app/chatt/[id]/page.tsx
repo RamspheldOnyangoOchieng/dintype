@@ -2112,7 +2112,12 @@ return (
     <div
       key="chat-page-root"
       className="flex flex-col md:flex-row bg-background w-full overflow-hidden h-full"
-      style={{ height: '100dvh', maxHeight: '100dvh' }}
+      style={{ 
+        height: '100dvh', 
+        maxHeight: '100dvh',
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)'
+      }}
       suppressHydrationWarning
     >
       {/* Left Sidebar - Chat List - Independent Scroll */}
@@ -2186,7 +2191,7 @@ return (
       {/* Middle - Chat Area - Independent Scroll with Fixed Header */}
       <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
         {/* Header & Story Progress - Unified Sticky Area */}
-        <div className="flex-shrink-0 z-50 sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
+        <div className="flex-shrink-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
           {storyProgress && currentChapter && (
             <div className="px-4 py-3 border-b border-border/50 bg-amber-500/5">
               <div className="flex justify-between items-center mb-2 text-[10px] md:text-xs">
@@ -2744,7 +2749,7 @@ return (
         )}
 
         {/* Chat Input */}
-        <div className="p-3 md:p-4 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0">
+        <div className="p-3 md:p-4 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
           {/* Reply To Preview */}
           {replyingTo && (
             <div className="mb-3 p-3 bg-primary/10 border-l-4 border-primary rounded-lg flex justify-between items-center animate-in slide-in-from-bottom-2 duration-200 gap-3">

@@ -11,6 +11,28 @@ body {
     text-wrap: balance;
   }
 
+  /* Safe area insets for iOS/Android notches and home indicators */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pl-safe {
+    padding-left: env(safe-area-inset-left);
+  }
+  .pr-safe {
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  /* Combined safe area padding */
+  .p-safe {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
   .chat-background {
     background-color: #efeae2;
     background-image: url('/chat-bg-light.png');

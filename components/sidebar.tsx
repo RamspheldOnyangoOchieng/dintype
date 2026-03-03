@@ -71,7 +71,7 @@ export default function Sidebar() {
             <Link href="/">
               <Button variant="ghost" className={`w-full justify-start ${pathname === "/" ? "bg-[#252525]" : ""}`}>
                 <Home className="mr-2 h-5 w-5" />
-                Home
+                Hem
               </Button>
             </Link>
           <Link href="/skapa-karaktar">

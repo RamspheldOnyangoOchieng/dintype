@@ -9,27 +9,27 @@ const mobileNavItems = [
   {
     href: "/admin/dashboard",
     icon: LayoutDashboard,
-    title: "Dashboard",
+    title: "Översikt",
   },
   {
     href: "/admin/dashboard/characters",
     icon: MessageSquare,
-    title: "Characters",
+    title: "Karaktärer",
   },
   {
     href: "/admin/dashboard/users",
     icon: Users,
-    title: "Users",
+    title: "Användare",
   },
   {
     href: "/admin/dashboard/subscriptions",
     icon: CreditCard,
-    title: "Billing",
+    title: "Fakturering",
   },
   {
     href: "/admin/settings",
     icon: Settings,
-    title: "Settings",
+    title: "Inställningar",
   },
 ]
 

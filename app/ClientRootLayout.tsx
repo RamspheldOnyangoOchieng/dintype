@@ -56,6 +56,27 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
   const showFooter = !noFooterPaths.some((path) => pathname.startsWith(path))
 
   const isAdminPage = pathname?.startsWith("/admin")
+  const isChatPage = pathname?.startsWith("/chatt")
+
+  // Chat pages need special handling - they manage their own scroll
+  if (isChatPage) {
+    return (
+      <div
+        className="flex bg-background h-[100dvh] overflow-hidden"
+        style={{ position: 'relative', top: 0 }}
+        suppressHydrationWarning
+      >
+        <AppSidebar />
+        <div className={`flex-1 h-full overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "md:ml-64" : "md:ml-20"}`}>
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </div>
+        <AuthModals />
+        <Toaster />
+        <SonnerToaster />
+        <BrandThemeInjector />
+      </div>
+    )
+  }
 
   return (
     <div

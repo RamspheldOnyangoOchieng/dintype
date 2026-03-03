@@ -11,6 +11,7 @@ import { useSidebar } from "@/components/sidebar-context"
 interface TourStep {
     id: string
     targetSelector: string
+    mobileTargetSelector?: string // For mobile navigation
     title: string
     description: string
     icon: React.ComponentType<{ className?: string }>
@@ -26,12 +27,14 @@ export function OnboardingTour() {
     const [isVisible, setIsVisible] = useState(false)
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
     const [windowSize, setWindowSize] = useState({ width: 0, height: 0 })
+    const [isMobile, setIsMobile] = useState(false)
     const tooltipRef = useRef<HTMLDivElement>(null)
 
     const TOUR_STEPS: TourStep[] = useMemo(() => [
         {
             id: "home",
             targetSelector: "[data-tour='home']",
+            mobileTargetSelector: "a[href='/']",
             title: t("tour.home.title"),
             description: t("tour.home.description"),
             icon: Home,
@@ -40,6 +43,7 @@ export function OnboardingTour() {
         {
             id: "chat",
             targetSelector: "[data-tour='chat']",
+            mobileTargetSelector: "a[href='/chatt']",
             title: t("tour.chat.title"),
             description: t("tour.chat.description"),
             icon: MessageCircle,
@@ -48,6 +52,7 @@ export function OnboardingTour() {
         {
             id: "generate",
             targetSelector: "[data-tour='generate']",
+            mobileTargetSelector: "a[href='/generera']",
             title: t("tour.generate.title"),
             description: t("tour.generate.description"),
             icon: Image,
@@ -56,6 +61,7 @@ export function OnboardingTour() {
         {
             id: "create",
             targetSelector: "[data-tour='createcharacter']",
+            mobileTargetSelector: "a[href='/skapa-karaktar']",
             title: t("tour.create.title"),
             description: t("tour.create.description"),
             icon: PlusSquare,
@@ -64,6 +70,7 @@ export function OnboardingTour() {
         {
             id: "premium",
             targetSelector: "[data-tour='premium']",
+            mobileTargetSelector: "a[href='/premium']",
             title: t("tour.premium.title"),
             description: t("tour.premium.description"),
             icon: Crown,
@@ -71,10 +78,12 @@ export function OnboardingTour() {
         }
     ], [t])
 
-    // Update window size
+    // Update window size and detect mobile
     useEffect(() => {
         const updateSize = () => {
-            setWindowSize({ width: window.innerWidth, height: window.innerHeight })
+            const width = window.innerWidth
+            setWindowSize({ width, height: window.innerHeight })
+            setIsMobile(width < 768) // md breakpoint
         }
         updateSize()
         window.addEventListener("resize", updateSize)
@@ -85,11 +94,18 @@ export function OnboardingTour() {
     const updateTargetPosition = useCallback(() => {
         if (currentStep >= 0 && currentStep < TOUR_STEPS.length) {
             const step = TOUR_STEPS[currentStep]
-            const element = document.querySelector(step.targetSelector)
+            // On mobile, use mobile selector if available, otherwise skip the step
+            const selector = isMobile && step.mobileTargetSelector 
+                ? step.mobileTargetSelector 
+                : step.targetSelector
+            const element = document.querySelector(selector)
+            
             if (element) {
                 const rect = element.getBoundingClientRect()
                 setTargetRect(rect)
-                element.scrollIntoView({ behavior: "smooth", block: "center" })
+                if (!isMobile) {
+                    element.scrollIntoView({ behavior: "smooth", block: "center" })
+                }
             } else {
                 // Element not in DOM — skip to next step (or complete if at end)
                 setTargetRect(null)
@@ -102,7 +118,7 @@ export function OnboardingTour() {
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentStep, TOUR_STEPS])
+    }, [currentStep, TOUR_STEPS, isMobile])
 
     useEffect(() => {
         const hasSeenTour = localStorage.getItem("dintype_tour_completed")
@@ -122,8 +138,10 @@ export function OnboardingTour() {
         let timer: ReturnType<typeof setTimeout>
 
         const startTour = () => {
-            // Expand sidebar so all nav data-tour targets are in the DOM
-            setSidebarOpen(true)
+            // Only expand sidebar on desktop so all nav data-tour targets are in the DOM
+            if (window.innerWidth >= 768) {
+                setSidebarOpen(true)
+            }
             timer = setTimeout(() => {
                 setIsVisible(true)
                 setCurrentStep(0)
@@ -190,7 +208,144 @@ export function OnboardingTour() {
         localStorage.setItem("dintype_tour_completed", "true")
     }
 
-    if (!isVisible || currentStep === -1 || !targetRect) return null
+    if (!isVisible || currentStep === -1) return null
+    
+    // On mobile, show bottom sheet even without targetRect
+    if (isMobile) {
+        const step = TOUR_STEPS[currentStep]
+        const Icon = step.icon
+        
+        return (
+            <div className="fixed inset-0 z-[9999]">
+                {/* Dark overlay */}
+                <motion.div 
+                    className="absolute inset-0 bg-black/80"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    onClick={handleComplete}
+                />
+                
+                {/* Highlight target if exists */}
+                {targetRect && (
+                    <motion.div
+                        className="absolute border-2 border-sky-400 rounded-xl pointer-events-none"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{
+                            opacity: 1,
+                            scale: 1,
+                            top: targetRect.top - 4,
+                            left: targetRect.left - 4,
+                            width: targetRect.width + 8,
+                            height: targetRect.height + 8
+                        }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <motion.div
+                            className="absolute inset-0 border-2 border-sky-400 rounded-xl"
+                            animate={{ scale: [1, 1.1, 1], opacity: [0.8, 0, 0.8] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                        />
+                    </motion.div>
+                )}
+                
+                {/* Mobile Bottom Sheet */}
+                <motion.div
+                    className="absolute bottom-0 left-0 right-0 bg-[#111827] border-t border-sky-400/20 rounded-t-3xl overflow-hidden"
+                    style={{
+                        boxShadow: '0 -10px 40px rgba(0,0,0,0.8), 0 0 30px rgba(56,189,248,0.1)',
+                    }}
+                    initial={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    exit={{ y: "100%" }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                >
+                    {/* Progress bar */}
+                    <div className="h-1.5 bg-white/5">
+                        <motion.div
+                            className="h-full bg-gradient-to-r from-sky-400 to-cyan-500"
+                            animate={{ width: `${((currentStep + 1) / TOUR_STEPS.length) * 100}%` }}
+                            transition={{ duration: 0.3 }}
+                        />
+                    </div>
+                    
+                    {/* Handle bar */}
+                    <div className="flex justify-center pt-3 pb-2">
+                        <div className="w-10 h-1 bg-white/20 rounded-full" />
+                    </div>
+
+                    <div className="px-5 pb-8 pt-2">
+                        {/* Header */}
+                        <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 rounded-2xl bg-gradient-to-br from-sky-400 to-cyan-500">
+                                    <Icon className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-white">{step.title}</h3>
+                                    <p className="text-xs text-white/40">{t("tour.stepXofY", { current: (currentStep + 1).toString(), total: TOUR_STEPS.length.toString() })}</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleComplete}
+                                className="p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-full transition-all"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-white/70 text-sm leading-relaxed mb-6">
+                            {step.description}
+                        </p>
+
+                        {/* Navigation */}
+                        <div className="flex items-center justify-between">
+                            {/* Dots */}
+                            <div className="flex gap-1.5">
+                                {TOUR_STEPS.map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className={cn(
+                                            "h-2 rounded-full transition-all duration-300",
+                                            i === currentStep
+                                                ? "w-6 bg-gradient-to-r from-sky-400 to-cyan-500"
+                                                : "w-2 bg-white/20"
+                                        )}
+                                    />
+                                ))}
+                            </div>
+
+                            {/* Buttons */}
+                            <div className="flex gap-2">
+                                {currentStep > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={handleBack}
+                                        className="flex items-center gap-1 px-4 py-2.5 text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                                    >
+                                        <ChevronLeft className="w-4 h-4" />
+                                        {t("tour.back")}
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={handleNext}
+                                    className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-sky-400 to-cyan-500 rounded-xl shadow-lg"
+                                >
+                                    {currentStep === TOUR_STEPS.length - 1 ? t("tour.done") : t("tour.next")}
+                                    <ArrowRight className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        )
+    }
+
+    // Desktop version - requires targetRect
+    if (!targetRect) return null
 
     const step = TOUR_STEPS[currentStep]
     const Icon = step.icon

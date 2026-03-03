@@ -614,28 +614,14 @@ export default function CreateCharacterPage() {
                         </div>
                     </div>
 
-                    <div className="flex bg-white/5 p-1 rounded-xl sm:rounded-2xl w-fit mb-6 md:mb-8 border border-white/10">
-                        <button
-                            onClick={() => setActiveTab('appearance')}
-                            className={cn(
-                                "px-4 sm:px-8 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all",
-                                activeTab === 'appearance' ? "bg-white/20 text-white shadow-lg" : "text-white/40 hover:text-white/60"
-                            )}>
-                            Attribut
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('character')}
-                            className={cn(
-                                "px-4 sm:px-8 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold transition-all",
-                                activeTab === 'character' ? "bg-white/20 text-white shadow-lg" : "text-white/40 hover:text-white/60"
-                            )}>
-                            Identitet
-                        </button>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[35vh] md:max-h-[380px]">
-                        {activeTab === 'appearance' ? (
-                            <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-8 md:mb-12">
+                    {/* All content visible at once - no tabs */}
+                    <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar max-h-[50vh] md:max-h-[500px] space-y-6">
+                        {/* Attributes Section */}
+                        <div>
+                            <h3 className="text-white/60 text-xs uppercase font-bold tracking-widest mb-3 flex items-center gap-2">
+                                <Eye size={14} /> Attribut
+                            </h3>
+                            <div className="grid grid-cols-2 gap-2 sm:gap-3">
                                 {attributes.map((attr, i) => (
                                     <div key={i} className="group relative h-20 sm:h-24 rounded-xl sm:rounded-2xl overflow-hidden border border-white/5 bg-white/5 hover:border-primary/50 transition-all duration-300">
                                         <div className="absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity duration-300 hidden sm:block">
@@ -652,8 +638,17 @@ export default function CreateCharacterPage() {
                                     </div>
                                 ))}
                             </div>
-                        ) : (
-                            <div className="space-y-3 sm:space-y-4 mb-2">
+                        </div>
+
+                        {/* Divider */}
+                        <div className="border-t border-white/10" />
+
+                        {/* Identity Section */}
+                        <div>
+                            <h3 className="text-white/60 text-xs uppercase font-bold tracking-widest mb-3 flex items-center gap-2">
+                                <User size={14} /> Identitet
+                            </h3>
+                            <div className="space-y-3 sm:space-y-4">
                                 <div className="bg-white/5 rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-white/10">
                                     <h4 className="text-white/40 text-[8px] sm:text-[10px] uppercase font-bold tracking-widest mb-1 sm:mb-2">Grundläggande personlighet</h4>
                                     <p className="text-white text-xs sm:text-base font-medium">{getDisplayValue(selectedPersonality || '', 'personality')}</p>
@@ -725,7 +720,7 @@ export default function CreateCharacterPage() {
                                     </div>
                                 )}
                             </div>
-                        )}
+                        </div>
                     </div>
 
                     {/* DUPLICATE BUTTON REMOVED AS PER USER REQUEST */}
