@@ -57,6 +57,17 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* Mobile keyboard viewport stability - prevent layout shift when keyboard appears */
+  .h-screen-stable {
+    height: 100svh;
+  }
+  
+  @media (min-width: 768px) {
+    .h-screen-stable {
+      height: 100dvh;
+    }
+  }
 }
 
 @layer base {

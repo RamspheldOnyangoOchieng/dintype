@@ -2111,10 +2111,8 @@ return (
   <TooltipProvider delayDuration={0}>
     <div
       key="chat-page-root"
-      className="flex flex-col md:flex-row bg-background w-full overflow-hidden h-full"
+      className="flex flex-col md:flex-row bg-background w-full overflow-hidden h-[100svh] md:h-[100dvh]"
       style={{ 
-        height: '100dvh', 
-        maxHeight: '100dvh',
         paddingTop: 'env(safe-area-inset-top)',
         paddingBottom: 'env(safe-area-inset-bottom)'
       }}
@@ -2240,22 +2238,15 @@ return (
           {/* Main Chat Header */}
           <div className="flex items-center px-3 md:px-4 py-3 md:py-4 justify-between">
             <div className="flex items-center min-w-0 flex-1">
-              {/* Chat List Toggle (Desktop only) */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hidden md:flex mr-2 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation"
-                    onClick={() => setIsChatListOpen(!isChatListOpen)}
-                  >
-                    <PanelLeft className={cn("h-5 w-5 transition-transform", !isChatListOpen && "rotate-180")} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  {isChatListOpen ? t("chat.hideChatList" as any) : t("chat.showChatList" as any)}
-                </TooltipContent>
-              </Tooltip>
+              {/* Main Sidebar Toggle (Mobile) */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden mr-2 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation"
+                onClick={() => toggle()}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
 
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -2327,27 +2318,7 @@ return (
                 )}
               </div>
 
-              {/* Profile Toggle - Desktop only, mobile uses photo click */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      "hidden lg:flex text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation transition-colors",
-                      isProfileOpen && "text-primary"
-                    )}
-                    onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  >
-                    <PanelRight className={cn("h-5 w-5 transition-transform", !isProfileOpen && "rotate-180")} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  {isProfileOpen ? t("chat.hideProfileDetails") : t("chat.showProfileDetails")}
-                </TooltipContent>
-              </Tooltip>
-
-              {/* Responsive More Menu */}
+              {/* Responsive More Menu */}}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation">
@@ -2816,7 +2787,7 @@ return (
       )}>
         <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800" style={{ overscrollBehavior: 'contain' }}>
           {/* Profile Images Carousel */}
-          <div className="relative w-full h-[280px]">
+          <div className="relative w-full aspect-[3/4] max-h-[400px]">
             {showVideo ? (
               <div className="w-full h-full">
                 {character?.videoUrl ? (
@@ -2998,7 +2969,7 @@ return (
           <div className="h-full w-full flex flex-col">
             <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800" style={{ overscrollBehavior: 'contain' }}>
               {/* Profile Images Carousel */}
-              <div className="relative w-full h-[350px]">
+              <div className="relative w-full aspect-[3/4] max-h-[450px]">
                 {showVideo ? (
                   <div className="w-full h-full">
                     {character?.videoUrl ? (
@@ -3043,7 +3014,7 @@ return (
                           : (character?.image || "/placeholder.svg"))
                       }
                       alt={character?.name || "Character"}
-                      className="w-full h-full object-cover bg-background transition-opacity duration-300"
+                      className="w-full h-full object-contain bg-background transition-opacity duration-300"
                       onError={() => handleImageError("profile")}
                       loading="lazy"
                     />

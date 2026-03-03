@@ -28,16 +28,16 @@ export function MobileNav() {
 
   useEffect(() => setMounted(true), [])
 
-  // Handle scroll to fade navbar
+  // Handle scroll to show/hide navbar - hides when scrolling down, shows when scrolling up
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
 
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        // Scrolling down & past 100px
+        // Scrolling down & past 100px threshold
         setIsVisible(false)
       } else {
-        // Scrolling up or at top
+        // Scrolling up or near top
         setIsVisible(true)
       }
 
@@ -105,8 +105,9 @@ export function MobileNav() {
   return (
     <>
       <div
-        className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ease-in-out ${isVisible ? "translate-y-0" : "translate-y-full"
-          }`}
+        className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ease-in-out ${
+          isVisible ? "translate-y-0" : "translate-y-full"
+        }`}
       >
         <div className="bg-card/95 backdrop-blur-sm border-t border-border shadow-[0_-5px_10px_rgba(0,0,0,0.1)] pb-safe-area-bottom">
           <div className="flex overflow-x-auto no-scrollbar py-2 px-1 gap-1">

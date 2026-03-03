@@ -18,7 +18,6 @@ interface AgeVerificationModalProps {
 export function AgeVerificationModal({ onVerified, onDenied }: AgeVerificationModalProps) {
   const { t, language } = useTranslations()
   const [isOpen, setIsOpen] = useState(false)
-  const [day, setDay] = useState("")
   const [month, setMonth] = useState("")
   const [year, setYear] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -54,26 +53,17 @@ export function AgeVerificationModal({ onVerified, onDenied }: AgeVerificationMo
     return age
   }, [])
 
-  const validateDate = useCallback((d: string, m: string, y: string): Date | null => {
-    const dayNum = parseInt(d, 10)
+  const validateDate = useCallback((m: string, y: string): Date | null => {
     const monthNum = parseInt(m, 10)
     const yearNum = parseInt(y, 10)
     
     // Basic validation
-    if (isNaN(dayNum) || isNaN(monthNum) || isNaN(yearNum)) return null
-    if (dayNum < 1 || dayNum > 31) return null
+    if (isNaN(monthNum) || isNaN(yearNum)) return null
     if (monthNum < 1 || monthNum > 12) return null
     if (yearNum < 1900 || yearNum > new Date().getFullYear()) return null
     
-    // Create date and validate it's a real date
-    const date = new Date(yearNum, monthNum - 1, dayNum)
-    if (
-      date.getDate() !== dayNum ||
-      date.getMonth() !== monthNum - 1 ||
-      date.getFullYear() !== yearNum
-    ) {
-      return null
-    }
+    // Create date using the 1st of the month
+    const date = new Date(yearNum, monthNum - 1, 1)
     
     // Check if date is in the future
     if (date > new Date()) return null
@@ -85,7 +75,7 @@ export function AgeVerificationModal({ onVerified, onDenied }: AgeVerificationMo
     setError(null)
     
     // Validate all fields are filled
-    if (!day || !month || !year) {
+    if (!month || !year) {
       setError(language === 'sv' 
         ? "Vänligen fyll i alla fält" 
         : "Please fill in all fields")
@@ -93,11 +83,11 @@ export function AgeVerificationModal({ onVerified, onDenied }: AgeVerificationMo
     }
     
     // Validate date
-    const birthDate = validateDate(day, month, year)
+    const birthDate = validateDate(month, year)
     if (!birthDate) {
       setError(language === 'sv' 
-        ? "Ogiltigt datum. Kontrollera ditt födelsedatum." 
-        : "Invalid date. Please check your date of birth.")
+        ? "Ogiltig månad eller år. Vänligen kontrollera." 
+        : "Invalid month or year. Please check.")
       return
     }
     
@@ -123,7 +113,7 @@ export function AgeVerificationModal({ onVerified, onDenied }: AgeVerificationMo
       setIsDenied(true)
       onDenied?.()
     }
-  }, [day, month, year, validateDate, calculateAge, language, onVerified, onDenied])
+  }, [month, year, validateDate, calculateAge, language, onVerified, onDenied])
 
   const handleInputChange = (
     value: string, 
@@ -225,8 +215,8 @@ export function AgeVerificationModal({ onVerified, onDenied }: AgeVerificationMo
               <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
               <p className="text-amber-200/80 text-xs">
                 {language === 'sv' 
-                  ? 'Ange ditt riktiga födelsedatum. Falsk information kan leda till avstängning.'
-                  : 'Enter your real date of birth. False information may result in account suspension.'}
+                  ? 'Ange din riktiga födelsemånad och år. Falsk information kan leda till avstängning.'
+                  : 'Enter your real birth month and year. False information may result in account suspension.'}
               </p>
             </div>
 
@@ -234,32 +224,10 @@ export function AgeVerificationModal({ onVerified, onDenied }: AgeVerificationMo
             <div className="mb-6">
               <label className="block text-sm font-medium text-white/80 mb-3 flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
-                {language === 'sv' ? 'Födelsedatum' : 'Date of Birth'}
+                {language === 'sv' ? 'Födelsemånad & år' : 'Birth Month & Year'}
               </label>
               
-              <div className="grid grid-cols-3 gap-3">
-                {/* Day */}
-                <div>
-                  <label className="block text-xs text-white/50 mb-1.5 text-center">
-                    {language === 'sv' ? 'Dag' : 'Day'}
-                  </label>
-                  <input
-                    id="dob-day"
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="DD"
-                    value={day}
-                    onChange={(e) => handleInputChange(
-                      e.target.value, 
-                      setDay, 
-                      2, 
-                      document.getElementById('dob-month') as HTMLInputElement
-                    )}
-                    className="w-full h-14 text-center text-xl font-bold bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-                    maxLength={2}
-                  />
-                </div>
-                
+              <div className="grid grid-cols-2 gap-4">
                 {/* Month */}
                 <div>
                   <label className="block text-xs text-white/50 mb-1.5 text-center">
