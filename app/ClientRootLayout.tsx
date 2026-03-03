@@ -23,6 +23,7 @@ import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { OnboardingTour } from "@/components/onboarding-tour"
 import { BrandThemeInjector } from "@/components/brand-theme-injector"
 import { AgeVerificationModal } from "@/components/age-verification-modal"
+import { AgeVerificationProvider } from "@/components/age-verification-context"
 
 function RootLayoutContent({ children }: { children: React.ReactNode }) {
   const { isOpen } = useSidebar()
@@ -129,17 +130,19 @@ export default function ClientRootLayout({ children }: { children: React.ReactNo
   return (
     <SiteProvider>
       <LanguageProvider>
-        <SidebarProvider>
-          <CharacterProvider>
-            <BannerProvider>
-              <ImageSuggestionsProvider>
-                <TooltipProvider delayDuration={0}>
-                  <RootLayoutContent>{children}</RootLayoutContent>
-                </TooltipProvider>
-              </ImageSuggestionsProvider>
-            </BannerProvider>
-          </CharacterProvider>
-        </SidebarProvider>
+        <AgeVerificationProvider>
+          <SidebarProvider>
+            <CharacterProvider>
+              <BannerProvider>
+                <ImageSuggestionsProvider>
+                  <TooltipProvider delayDuration={0}>
+                    <RootLayoutContent>{children}</RootLayoutContent>
+                  </TooltipProvider>
+                </ImageSuggestionsProvider>
+              </BannerProvider>
+            </CharacterProvider>
+          </SidebarProvider>
+        </AgeVerificationProvider>
       </LanguageProvider>
     </SiteProvider>
   )

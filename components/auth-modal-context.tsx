@@ -1,7 +1,9 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext, useState, useEffect, useCallback } from "react"
+
+const AGE_STORAGE_KEY = "age_verified_dob"
 
 interface AuthModalContextType {
     isLoginModalOpen: boolean
@@ -23,25 +25,76 @@ export function AuthModalProvider({ children }: { children: React.ReactNode }) {
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
     const [isSignupModalOpen, setIsSignupModalOpen] = useState(false)
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
+    const [pendingModal, setPendingModal] = useState<'login' | 'signup' | null>(null)
 
-    const openLoginModal = () => setIsLoginModalOpen(true)
-    const closeLoginModal = () => setIsLoginModalOpen(false)
+    // Check if age is verified before opening auth modals
+    const isAgeVerified = useCallback(() => {
+        if (typeof window === 'undefined') return false
+        return !!localStorage.getItem(AGE_STORAGE_KEY)
+    }, [])
 
-    const openSignupModal = () => setIsSignupModalOpen(true)
-    const closeSignupModal = () => setIsSignupModalOpen(false)
+    // Watch for age verification completion to open pending modal
+    useEffect(() => {
+        if (!pendingModal) return
 
-    const openLogoutModal = () => setIsLogoutModalOpen(true)
-    const closeLogoutModal = () => setIsLogoutModalOpen(false)
+        const checkAgeVerification = () => {
+            if (isAgeVerified()) {
+                if (pendingModal === 'login') {
+                    setIsLoginModalOpen(true)
+                } else if (pendingModal === 'signup') {
+                    setIsSignupModalOpen(true)
+                }
+                setPendingModal(null)
+            }
+        }
 
-    const switchToSignup = () => {
+        // Check immediately and set up interval to check periodically
+        checkAgeVerification()
+        const interval = setInterval(checkAgeVerification, 500)
+        
+        return () => clearInterval(interval)
+    }, [pendingModal, isAgeVerified])
+
+    const openLoginModal = useCallback(() => {
+        if (isAgeVerified()) {
+            setIsLoginModalOpen(true)
+        } else {
+            // Queue the modal to open after age verification
+            setPendingModal('login')
+        }
+    }, [isAgeVerified])
+
+    const closeLoginModal = useCallback(() => {
+        setIsLoginModalOpen(false)
+        setPendingModal(null)
+    }, [])
+
+    const openSignupModal = useCallback(() => {
+        if (isAgeVerified()) {
+            setIsSignupModalOpen(true)
+        } else {
+            // Queue the modal to open after age verification
+            setPendingModal('signup')
+        }
+    }, [isAgeVerified])
+
+    const closeSignupModal = useCallback(() => {
+        setIsSignupModalOpen(false)
+        setPendingModal(null)
+    }, [])
+
+    const openLogoutModal = useCallback(() => setIsLogoutModalOpen(true), [])
+    const closeLogoutModal = useCallback(() => setIsLogoutModalOpen(false), [])
+
+    const switchToSignup = useCallback(() => {
         closeLoginModal()
-        openSignupModal()
-    }
+        setIsSignupModalOpen(true)
+    }, [closeLoginModal])
 
-    const switchToLogin = () => {
+    const switchToLogin = useCallback(() => {
         closeSignupModal()
-        openLoginModal()
-    }
+        setIsLoginModalOpen(true)
+    }, [closeSignupModal])
 
     return (
         <AuthModalContext.Provider

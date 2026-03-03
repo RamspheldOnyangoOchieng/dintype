@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Calendar, ShieldCheck, ShieldX, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useTranslations } from "@/lib/use-translations"
+import { useAgeVerification } from "./age-verification-context"
 
 const STORAGE_KEY = "age_verified_dob"
 const DENIED_KEY = "age_verification_denied"
@@ -17,29 +18,27 @@ interface AgeVerificationModalProps {
 
 export function AgeVerificationModal({ onVerified, onDenied }: AgeVerificationModalProps) {
   const { t, language } = useTranslations()
+  const { isAgeVerified, isAgeDenied, setAgeVerified, setAgeDenied } = useAgeVerification()
   const [isOpen, setIsOpen] = useState(false)
   const [month, setMonth] = useState("")
   const [year, setYear] = useState("")
   const [error, setError] = useState<string | null>(null)
-  const [isDenied, setIsDenied] = useState(false)
 
   // Check if user has already verified or been denied
   useEffect(() => {
-    const verified = localStorage.getItem(STORAGE_KEY)
-    const denied = localStorage.getItem(DENIED_KEY)
-    
-    if (denied) {
-      setIsDenied(true)
+    if (isAgeDenied) {
       setIsOpen(true)
       return
     }
     
-    if (!verified) {
+    if (!isAgeVerified) {
       // Small delay to let page load first
       const timer = setTimeout(() => setIsOpen(true), 500)
       return () => clearTimeout(timer)
+    } else {
+      setIsOpen(false)
     }
-  }, [])
+  }, [isAgeVerified, isAgeDenied])
 
   const calculateAge = useCallback((birthDate: Date): number => {
     const today = new Date()
@@ -102,6 +101,7 @@ export function AgeVerificationModal({ onVerified, onDenied }: AgeVerificationMo
         age: age
       }))
       localStorage.removeItem(DENIED_KEY)
+      setAgeVerified(true)
       setIsOpen(false)
       onVerified?.()
     } else {
@@ -110,10 +110,10 @@ export function AgeVerificationModal({ onVerified, onDenied }: AgeVerificationMo
         denied: true,
         timestamp: new Date().toISOString()
       }))
-      setIsDenied(true)
+      setAgeDenied(true)
       onDenied?.()
     }
-  }, [month, year, validateDate, calculateAge, language, onVerified, onDenied])
+  }, [month, year, validateDate, calculateAge, language, onVerified, onDenied, setAgeVerified, setAgeDenied])
 
   const handleInputChange = (
     value: string, 
@@ -133,7 +133,7 @@ export function AgeVerificationModal({ onVerified, onDenied }: AgeVerificationMo
   }
 
   // If denied, show blocked message
-  if (isDenied) {
+  if (isAgeDenied) {
     return (
       <AnimatePresence>
         {isOpen && (
