@@ -37,7 +37,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // Simple debounce function to prevent too many requests
-function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
+function debounce<T extends (...args: unknown[]) => unknown>(func: T, wait: number): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout | null = null
 
   return (...args: Parameters<T>) => {
@@ -114,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             tokenBalance = premiumData.tokenBalance || 0
             creditBalance = premiumData.creditBalance || 0
           }
-        } catch (e) {
+        } catch (_e) {
           console.error("Failed to check premium status during initial load")
         }
 
@@ -166,7 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (data) {
           // Transform the data to match our User type
-          const formattedUsers = data.map((u: any) => ({
+          const formattedUsers = data.map((u: { id: string, username?: string, email: string, is_admin?: boolean, is_premium?: boolean, created_at: string }) => ({
             id: u.id,
             username: u.username || u.email.split("@")[0],
             email: u.email,
@@ -236,7 +236,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             tokenBalance = premiumData.tokenBalance || 0
             creditBalance = premiumData.creditBalance || 0
           }
-        } catch (e) {
+        } catch (_e) {
           console.error("Failed to check premium status during login")
         }
 
@@ -353,7 +353,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const checkDeleteUserFunction = async (): Promise<boolean> => {
     try {
       // First try to check if the function exists in the database directly
-      const { data, error: functionCheckError } = await (supabase as any).rpc("exec_sql", {
+      const { data } = await (supabase as { rpc: (name: string, args: Record<string, unknown>) => Promise<{ data: { exists: boolean }[] | null, error: unknown }> }).rpc("exec_sql", {
         sql: "SELECT EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'delete_user')",
       })
 
@@ -363,7 +363,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Fallback: Try to call the function with a non-existent user ID
       // This will fail with a specific error if the function exists
-      const { error } = await (supabase as any).rpc("delete_user", { user_id: "00000000-0000-0000-0000-000000000000" })
+      const { error } = await (supabase as { rpc: (name: string, args: Record<string, unknown>) => Promise<{ data: unknown, error: { message: string } | null }> }).rpc("delete_user", { user_id: "00000000-0000-0000-0000-000000000000" })
 
       // If we get an error about the user not existing or admin permissions, the function exists
       if (

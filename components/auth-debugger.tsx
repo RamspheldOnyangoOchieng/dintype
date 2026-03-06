@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 
 /**
@@ -23,21 +23,7 @@ export default function AuthDebugger() {
 
     const supabase = createClient();
 
-    useEffect(() => {
-        checkAuth();
-
-        // Subscribe to auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            console.log('🔔 Auth state changed:', event, session?.user?.email);
-            checkAuth();
-        });
-
-        return () => {
-            subscription.unsubscribe();
-        };
-    }, []);
-
-    async function checkAuth() {
+    const checkAuth = useCallback(async () => {
         try {
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -56,11 +42,25 @@ export default function AuthDebugger() {
                 userId: user?.id,
                 email: user?.email
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error('❌ Auth check error:', error);
             setAuthState(prev => ({ ...prev, error: error.message }));
         }
-    }
+    }, [supabase]);
+
+    useEffect(() => {
+        checkAuth();
+
+        // Subscribe to auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            console.log('🔔 Auth state changed:', event, session?.user?.email);
+            checkAuth();
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, [checkAuth, supabase]);
 
     return (
         <div style={{

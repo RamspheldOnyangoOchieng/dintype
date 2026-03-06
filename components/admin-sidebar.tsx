@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { FEATURES } from "@/lib/features"
-import { BarChart, CreditCard, Home, Settings, Users, Image, MessageSquare, DollarSign, FileText, Package, Gem, Activity, Search, FileEdit, Upload, Shield, PanelLeft, Smartphone, UserCircle, Palette, ChevronDown, Layout } from "lucide-react"
+import { BarChart, CreditCard, Home, Settings, Users, Image, MessageSquare, DollarSign, FileText, Package, Gem, Activity, Search, FileEdit, Upload, Shield, PanelLeft, Smartphone, UserCircle, Palette } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useTranslations } from "@/lib/use-translations"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -81,7 +81,13 @@ export default function AdminSidebar({
     }
   ]
 
-  const NavItem = ({ item, isCollapsed, isActive }: { item: any, isCollapsed: boolean, isActive: boolean }) => (
+  interface NavItemProps {
+    name: string
+    href: string
+    icon: React.ElementType
+  }
+
+  const NavItem = ({ item, isCollapsed, isActive }: { item: NavItemProps, isCollapsed: boolean, isActive: boolean }) => (
     <TooltipProvider delayDuration={0}>
       <Tooltip>
         <TooltipTrigger asChild>

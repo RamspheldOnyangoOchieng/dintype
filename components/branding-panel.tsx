@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react"
 import { toast } from "sonner"
+import Image from "next/image"
 import { useSite, defaultBrandConfig } from "@/components/site-context"
 import type { BrandConfig, HSLColor, BrandColors, BrandGradient } from "@/components/site-context"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
@@ -228,9 +229,10 @@ export function BrandingPanel() {
       setSaved(true)
       toast.success(t("admin.branding.saveSuccess"))
       setTimeout(() => setSaved(false), 2500)
-    } catch (err: any) {
-      console.error("[branding-panel] save failed:", err)
-      toast.error(t("admin.branding.saveError", { error: err?.message || "unknown error" }))
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err))
+      console.error("[branding-panel] save failed:", error)
+      toast.error(t("admin.branding.saveError", { error: error.message }))
     } finally {
       setIsSaving(false)
     }
@@ -390,7 +392,7 @@ export function BrandingPanel() {
                       placeholder="https://…/logo.png" />
                     <div className="h-20 border border-dashed border-border rounded-xl flex items-center justify-center bg-muted/30">
                       {brand.logoUrl
-                        ? <img src={brand.logoUrl} alt="logo preview" className="max-h-16 max-w-full object-contain" />
+                        ? <Image src={brand.logoUrl} alt="logo preview" width={200} height={64} className="max-h-16 max-w-full object-contain" unoptimized />
                         : <span className="text-muted-foreground text-xs">{t("admin.branding.logoPreview")}</span>}
                     </div>
                   </div>
@@ -401,7 +403,7 @@ export function BrandingPanel() {
                       placeholder="https://…/favicon.ico" />
                     <div className="h-20 border border-dashed border-border rounded-xl flex items-center justify-center bg-muted/30">
                       {brand.faviconUrl
-                        ? <img src={brand.faviconUrl} alt="favicon preview" className="w-8 h-8 object-contain" />
+                        ? <Image src={brand.faviconUrl} alt="favicon preview" width={32} height={32} className="w-8 h-8 object-contain" unoptimized />
                         : <span className="text-muted-foreground text-xs">{t("admin.branding.faviconPreview")}</span>}
                     </div>
                   </div>

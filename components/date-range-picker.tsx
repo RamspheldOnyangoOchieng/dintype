@@ -97,8 +97,6 @@ export function DateRangePicker({ className, dateRange, setDateRange }) {
                 variant="outline"
                 size="sm"
                 onClick={() => selectPredefinedRange("last30days")}
-                size="sm"
-                onClick={() => selectPredefinedRange("last30days")}
               >
                 Last 30 days
               </Button>

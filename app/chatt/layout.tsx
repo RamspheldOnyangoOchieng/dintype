@@ -5,8 +5,9 @@ export default function ChatLayout({
 }: {
   children: React.ReactNode
 }) {
-  <div className="flex flex-1 bg-background overflow-hidden relative h-full">
-    <div className="flex-1 flex flex-col overflow-hidden h-full w-full">{children}</div>
-  </div>
+  return (
+    <div className="flex flex-1 bg-background overflow-hidden relative h-full">
+      <div className="flex-1 flex flex-col overflow-hidden h-full w-full">{children}</div>
+    </div>
   )
 }

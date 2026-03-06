@@ -65,7 +65,7 @@ export async function sendChatMessageDB(
   success: boolean
   message?: Message
   error?: string
-  details?: any
+  details?: unknown
   limitReached?: boolean
   upgradeRequired?: boolean
   prohibited?: boolean
@@ -73,7 +73,7 @@ export async function sendChatMessageDB(
   console.log(`💬 AI Chat Action [ADMIN]: User=${userId}, Character=${characterId}`);
 
   try {
-    const supabase = await createAdminClient() as any
+    const supabase = await createAdminClient()
     if (!supabase) throw new Error("Database admin client initialization failed")
 
     // 1. HARD PROHIBITED Check
@@ -193,11 +193,11 @@ export async function sendChatMessageDB(
       .update({ character_id: characterId })
       .eq('user_id', userId)
       .then(() => console.log("✅ [Sync] Telegram character updated"))
-      .catch((err: any) => console.error("⚠️ [Sync] Telegram sync failed:", err));
+      .catch((err: unknown) => console.error("⚠️ [Sync] Telegram sync failed:", err));
 
     // 6. Save user message
     if (!isSilent) {
-      const { error: userMsgError } = await (supabase as any)
+      const { error: userMsgError } = await supabase
         .from('messages')
         .insert({
           session_id: sessionId,
@@ -220,7 +220,7 @@ export async function sendChatMessageDB(
     }
 
     // 7. Get Conversation History across ALL sessions for this user+character
-    const { data: historyData } = await (supabase as any)
+    const { data: historyData } = await supabase
       .from('messages')
       .select('role, content, is_image, image_url, conversation_sessions!inner(id)')
       .eq('conversation_sessions.user_id', userId)
@@ -234,8 +234,8 @@ export async function sendChatMessageDB(
 
     // 8. Story Mode Logic
     let storyContext = "";
-    let storyProgressData: any = null;
-    let currentChapterData: any = null;
+    let storyProgressData: { id: string, current_chapter_number: number, is_completed: boolean } | null = null;
+    let currentChapterData: { chapter_number: number, title: string, description: string, tone: string, system_prompt: string, content: { opening_message?: string, branches?: Array<{ label: string, response_message: string }>, chapter_images?: string[], chapter_image_metadata?: string[] } } | null = null;
 
     if (isStorylineActive) {
       try {
@@ -265,17 +265,17 @@ export async function sendChatMessageDB(
      * Centralized progression logic for Story Mode
      */
     const handleStoryProgression = async (
-      p_storyProgressData: any,
-      p_currentChapterData: any,
-      p_history: any[],
+      p_storyProgressData: { id: string },
+      p_currentChapterData: { chapter_number: number, content: { chapter_images?: string[] } },
+      p_history: Array<{ is_image?: boolean }>,
       p_justSentImageCount: number = 0
     ) => {
       if (!p_storyProgressData || !p_currentChapterData) return;
 
       const messagesInChapter = p_history.length + 1;
       const chapterImages = (p_currentChapterData.content?.chapter_images || [])
-        .filter((img: any) => typeof img === 'string' && img.length > 0);
-      const sentImagesCount = p_history.filter((m: any) => m.is_image).length + p_justSentImageCount;
+        .filter((img: unknown) => typeof img === 'string' && img.length > 0);
+      const sentImagesCount = p_history.filter((m) => m.is_image).length + p_justSentImageCount;
 
       // PROGRESSION TRIGGER: 12 messages OR ALL images seen
       if (messagesInChapter >= 12 || (chapterImages.length > 0 && sentImagesCount >= chapterImages.length)) {
@@ -313,21 +313,21 @@ export async function sendChatMessageDB(
       // --- Storyline Logic (Branches, Images, Captions) ---
       const branches = currentChapterData.content?.branches || [];
       const chapterImages = (currentChapterData.content?.chapter_images || [])
-        .filter((img: any) => typeof img === 'string' && img.length > 0)
+        .filter((img: unknown) => typeof img === 'string' && img.length > 0)
         .slice(0, 6);
       const chapterImageMetadata = (currentChapterData.content?.chapter_image_metadata || []).slice(0, 6);
 
       const sentImages = new Set(
         conversationHistory
-          .filter((m: any) => m.is_image && m.image_url)
-          .map((m: any) => m.image_url)
+          .filter((m) => m.is_image && m.image_url)
+          .map((m) => m.image_url)
       );
       const remainingImages = chapterImages.filter((img: string) => !sentImages.has(img));
 
-      const lastImageIdx = [...conversationHistory].reverse().findIndex((m: any) => m.is_image);
+      const lastImageIdx = [...conversationHistory].reverse().findIndex((m) => m.is_image);
       const messagesSinceLastImage = lastImageIdx === -1 ? 99 : lastImageIdx;
 
-      const lastAssistantMsg = conversationHistory.filter((m: any) => m.role === 'assistant').pop();
+      const lastAssistantMsg = conversationHistory.filter((m) => m.role === 'assistant').pop();
       const wasSuggestion = lastAssistantMsg && (
         lastAssistantMsg.content.toLowerCase().includes("see") ||
         lastAssistantMsg.content.toLowerCase().includes("photo") ||
@@ -375,7 +375,7 @@ export async function sendChatMessageDB(
             imageUrl: bestImg
           }
 
-          await (supabase as any).from('messages').insert({
+          await supabase.from('messages').insert({
             session_id: sessionId,
             user_id: userId,
             role: 'assistant',
@@ -410,7 +410,7 @@ export async function sendChatMessageDB(
       let branchInfo = "";
       if (branches.length > 0) {
         branchInfo = "\n### NARRATIVE BRANCHES ###\nYou are at a pivot point. Listen for user's intent and follow a branch:\n" +
-          branches.map((b: any, i: number) =>
+          branches.map((b: { label: string, response_message: string }, i: number) =>
             `Path ${i + 1}: If they seem to want "${b.label}", steer towards: "${b.response_message}"`
           ).join("\n");
       }
@@ -469,7 +469,7 @@ ${branchInfo}
 
     const apiMessages = [
       { role: "system", content: enhancedSystemPrompt },
-      ...conversationHistory.filter((m: any) => !m.is_image || m.content).map((msg: any) => ({
+      ...conversationHistory.filter((m) => !m.is_image || m.content).map((msg) => ({
         role: msg.role === 'user' ? 'user' : 'assistant',
         content: msg.content,
       })),
@@ -541,9 +541,10 @@ ${branchInfo}
       }
     }
 
-  } catch (error: any) {
-    console.error("Fatal sendChatMessageDB error:", error);
-    return { success: false, error: language === "sv" ? `Systemfel: ${error.message}` : `System error: ${error.message}` }
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error))
+    console.error("Fatal sendChatMessageDB error:", err);
+    return { success: false, error: language === "sv" ? `Systemfel: ${err.message}` : `System error: ${err.message}` }
   }
 }
 
@@ -560,7 +561,7 @@ export async function loadChatHistory(
   offset: number = 0
 ): Promise<{ messages: Message[], hasMore: boolean, totalCount: number }> {
   try {
-    const supabase = await createAdminClient() as any
+    const supabase = await createAdminClient()
     if (!supabase) return { messages: [], hasMore: false, totalCount: 0 }
 
     // For priority load (initial load), enforce small limit for instant display
@@ -586,7 +587,7 @@ export async function loadChatHistory(
       return { messages: [], hasMore: false, totalCount: 0 };
     }
 
-    const sessionIds = sessions.map((s: any) => s.id);
+    const sessionIds = sessions.map((s: { id: string }) => s.id);
 
     // Get total count for "hasMore" indicator
     const { count: totalCount } = await supabase
@@ -610,7 +611,7 @@ export async function loadChatHistory(
     const hasMore = (offset + messages.length) < (totalCount || 0);
 
     // Reverse to chronological order (newest at bottom)
-    const formattedMessages = messages.reverse().map((m: any) => ({
+    const formattedMessages = messages.reverse().map((m: { id: string, role: string, content: string, created_at: string, is_image: boolean, image_url: string | null }) => ({
       id: m.id,
       role: m.role,
       content: m.content,
@@ -652,7 +653,7 @@ export async function loadOlderMessages(
  */
 export async function clearChatHistory(characterId: string, userId: string): Promise<boolean> {
   try {
-    const supabase = await createAdminClient() as any
+    const supabase = await createAdminClient()
     if (!supabase) return false
 
     const { error } = await supabase

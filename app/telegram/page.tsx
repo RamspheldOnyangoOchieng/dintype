@@ -4,8 +4,8 @@ import { useEffect, useState } from "react"
 import { createClient } from "@/utils/supabase/client"
 import Image from "next/image"
 import {
-    Loader2, Zap, Heart, Plus, MoreVertical, Users,
-    Home, Sparkles, UserPlus, User, Search, Filter,
+    Loader2, Zap, Heart, Plus, Users,
+    Home, Sparkles, UserPlus, User, Filter,
     ChevronRight, LogOut, Wallet
 } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation"
 declare global {
     interface Window {
         Telegram: {
-            WebApp: any
+            WebApp: unknown
         }
     }
 }
@@ -37,7 +37,6 @@ export default function TelegramRootPage() {
     const [filter, setFilter] = useState<'female' | 'male'>("female")
     const [selectingId, setSelectingId] = useState<string | null>(null)
     const [tokens, setTokens] = useState(0)
-    const [diamonds, setDiamonds] = useState(0)
     const [userName, setUserName] = useState("Player")
     const [activeCharacterId, setActiveCharacterId] = useState<string | null>(null)
     const [likedCharacters, setLikedCharacters] = useState<string[]>([])
@@ -56,11 +55,10 @@ export default function TelegramRootPage() {
                 const parsed = JSON.parse(cached)
                 setUserName(parsed.userName || "Player")
                 setTokens(parsed.tokens || 0)
-                setDiamonds(parsed.diamonds || 0)
                 setTotalLikes(parsed.totalLikes || 0)
                 setLikedCharacters(parsed.likedCharacters || [])
                 setIsPremium(parsed.isPremium || false)
-            } catch (e) { }
+            } catch (_e) { }
         }
 
         // Initialize Telegram WebApp IMMEDIATELY
@@ -114,7 +112,6 @@ export default function TelegramRootPage() {
                             const data = await response.json()
                             if (data.user) {
                                 setTokens(data.user.tokens || 0)
-                                setDiamonds(data.user.diamonds || 0) // totalLikes in characters/page.tsx
                                 setLikedCharacters(data.user.likedCharacters || [])
                                 setTotalLikes(data.user.totalLikes || data.user.likedCharacters?.length || 0)
                                 setActiveCharacterId(data.user.activeCharacterId || null)
@@ -141,7 +138,7 @@ export default function TelegramRootPage() {
         }
 
         fetchInitialData()
-    }, [])
+    }, [supabase])
 
     const handleSelect = async (character: Character) => {
         if (selectingId) return
@@ -428,7 +425,7 @@ export default function TelegramRootPage() {
                 </div>
                 <h3 className="text-xl font-black">Coming to Mobile!</h3>
                 <p className="text-white/30 text-sm leading-relaxed">
-                    We're optimizing the image generator for your phone. High-speed, high-quality generation is arriving in the next update.
+                    We&apos;re optimizing the image generator for your phone. High-speed, high-quality generation is arriving in the next update.
                 </p>
                 <button
                     onClick={() => router.push('/generera')}

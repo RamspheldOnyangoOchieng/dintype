@@ -6,8 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Coins, CreditCard, TrendingUp, User, Calendar, ImageIcon } from "lucide-react"
-import { TokenTransactionHistory } from "./token-transaction-history"
+import { CreditCard } from "lucide-react"
 import { TokenUsageStats } from "./token-usage-stats"
 import { UserProfileInfo } from "./user-profile-info"
 import Link from "next/link"
@@ -31,7 +30,6 @@ export function ProfileDashboard({ userId }: ProfileDashboardProps) {
   const [tokenBalance, setTokenBalance] = useState<TokenBalance | null>(null);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [subscriptionsEnabled, setSubscriptionsEnabled] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -40,7 +38,7 @@ export function ProfileDashboard({ userId }: ProfileDashboardProps) {
         const supabase = createClient()
         const { data: { session } } = await supabase.auth.getSession()
 
-        let headers: HeadersInit = {
+        const headers: Record<string, string> = {
           "Content-Type": "application/json",
         }
 
