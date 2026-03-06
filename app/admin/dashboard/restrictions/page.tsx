@@ -10,30 +10,39 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/hooks/use-toast"
 import {
-    Save,
-    Plus,
-    Trash2,
-    RefreshCw,
-    Shield,
-    DollarSign,
-    Lock,
-    Unlock,
-    ChevronDown,
-    MessageSquare,
-    Image as ImageIcon,
-    UserPlus,
-    Smartphone,
-    Phone,
-    Monitor,
-    Clock,
-    Zap,
-    HelpCircle,
-    Info,
-    Layout,
-    Loader2
+  Save,
+  Plus,
+  Trash2,
+  RefreshCw,
+  Shield,
+  DollarSign,
+  Lock,
+  Unlock,
+  ChevronDown,
+  MessageSquare,
+  Image as ImageIcon,
+  UserPlus,
+  Smartphone,
+  Phone,
+  Monitor,
+  Clock,
+  Zap,
+  HelpCircle,
+  Info,
+  Layout,
+  Loader2
 } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface PlanRestriction {
   id: string
@@ -49,28 +58,30 @@ export default function RestrictionsPage() {
   const [premiumRestrictions, setPremiumRestrictions] = useState<PlanRestriction[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [enforcementEnabled, setEnforcementEnabled] = useState(false)
+  const [showModal, setShowModal] = useState(false)
   const { toast } = useToast()
 
   // Predefined restrictions that should exist for full site control
   const DEFAULT_RESTRICTIONS: Record<string, { description: string; defaultFree: string | number | boolean; defaultPremium: string | number | boolean }> = {
-    'can_generate_nsfw': { description: 'Whether users can generate NSFW content', defaultFree: true, defaultPremium: true },
-    'can_use_flux': { description: 'Whether users can use the Flux model', defaultFree: true, defaultPremium: true },
-    'can_use_stability': { description: 'Whether users can use Stability AI models', defaultFree: true, defaultPremium: true },
-    'can_use_seedream': { description: 'Whether users can use the Seedream 4.5 model', defaultFree: true, defaultPremium: true },
-    'daily_free_messages': { description: 'Number of free messages per day', defaultFree: 5, defaultPremium: 50 },
-    'weekly_image_generation': { description: 'Weekly image generation limit', defaultFree: 5, defaultPremium: 20 },
-    'active_girlfriends_limit': { description: 'Maximum active AI companions', defaultFree: 1, defaultPremium: 3 },
-    'monthly_tokens': { description: 'Monthly token allocation', defaultFree: 50, defaultPremium: 200 },
+    'can_generate_nsfw': { description: 'Whether users can generate NSFW content', defaultFree: false, defaultPremium: true },
+    'can_use_flux': { description: 'Whether users can use the Flux model', defaultFree: false, defaultPremium: true },
+    'can_use_stability': { description: 'Whether users can use Stability AI models', defaultFree: false, defaultPremium: true },
+    'can_use_seedream': { description: 'Whether users can use the Seedream 4.5 model', defaultFree: false, defaultPremium: true },
+    'daily_free_messages': { description: 'Number of free messages per day', defaultFree: 0, defaultPremium: 0 },
+    'weekly_image_generation': { description: 'Weekly image generation limit', defaultFree: 0, defaultPremium: 0 },
+    'active_girlfriends_limit': { description: 'Maximum active AI companions', defaultFree: 0, defaultPremium: 0 },
+    'monthly_tokens': { description: 'Monthly token allocation', defaultFree: 0, defaultPremium: 0 },
     'tokens_per_image': { description: 'Tokens cost per image generation', defaultFree: 0, defaultPremium: 5 },
-    'MAX_FREE_DAILY_MESSAGES': { description: 'Maximum free messages per day', defaultFree: 5, defaultPremium: 50 },
+    'MAX_FREE_DAILY_MESSAGES': { description: 'Maximum free messages per day', defaultFree: 0, defaultPremium: 0 },
     'CAN_SEND_IMAGES': { description: 'Ability to send images in chat', defaultFree: false, defaultPremium: true },
-    'CAN_INITIATE_CHAT': { description: 'Ability to initiate new chats', defaultFree: true, defaultPremium: true },
-    'WAIT_TIME_BETWEEN_MESSAGES': { description: 'Wait time between messages in seconds', defaultFree: 10, defaultPremium: 0 },
-    'MAX_DAILY_IMAGE_GENERATION': { description: 'Maximum daily image generations', defaultFree: 5, defaultPremium: 50 },
+    'CAN_INITIATE_CHAT': { description: 'Ability to initiate new chats', defaultFree: false, defaultPremium: true },
+    'WAIT_TIME_BETWEEN_MESSAGES': { description: 'Wait time between messages in seconds', defaultFree: 60, defaultPremium: 0 },
+    'MAX_DAILY_IMAGE_GENERATION': { description: 'Maximum daily image generations', defaultFree: 0, defaultPremium: 0 },
     'CAN_VIEW_PREMIUM_GALLERY': { description: 'Ability to view premium image gallery', defaultFree: false, defaultPremium: true },
     'IMAGE_RESOLUTION_CAP': { description: 'Maximum image resolution (e.g., 512, 1024)', defaultFree: 512, defaultPremium: 1024 },
     'CAN_USE_TELEGRAM': { description: 'Ability to use Telegram integration', defaultFree: false, defaultPremium: true },
-    'MAX_CHARACTERS_PER_USER': { description: 'Maximum characters per user profile', defaultFree: 500, defaultPremium: 2000 },
+    'MAX_CHARACTERS_PER_USER': { description: 'Maximum characters per user profile', defaultFree: 0, defaultPremium: 0 },
     'HAS_VOICE_CALLS': { description: 'Ability to make voice calls', defaultFree: false, defaultPremium: true },
   }
 
@@ -124,6 +135,7 @@ export default function RestrictionsPage() {
 
         setFreeRestrictions(freeWithDefaults)
         setPremiumRestrictions(premiumWithDefaults)
+        setEnforcementEnabled(data.enforcementEnabled)
       } else {
         toast({
           title: "Error",
@@ -204,7 +216,8 @@ export default function RestrictionsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           free: freeRestrictions,
-          premium: premiumRestrictions
+          premium: premiumRestrictions,
+          enforcementEnabled
         })
       })
 
@@ -237,48 +250,48 @@ export default function RestrictionsPage() {
 
   const restrictionGroups = [
     {
-        id: "messaging",
-        name: "Messaging & Chat",
-        icon: MessageSquare,
-        keys: ["MAX_FREE_DAILY_MESSAGES", "CAN_SEND_IMAGES", "CAN_INITIATE_CHAT", "WAIT_TIME_BETWEEN_MESSAGES", "daily_free_messages"]
+      id: "messaging",
+      name: "Messaging & Chat",
+      icon: MessageSquare,
+      keys: ["MAX_FREE_DAILY_MESSAGES", "CAN_SEND_IMAGES", "CAN_INITIATE_CHAT", "WAIT_TIME_BETWEEN_MESSAGES", "daily_free_messages"]
     },
     {
-        id: "media",
-        name: "Media & Images",
-        icon: ImageIcon,
-        keys: ["MAX_DAILY_IMAGE_GENERATION", "CAN_VIEW_PREMIUM_GALLERY", "IMAGE_RESOLUTION_CAP", "weekly_image_generation", "tokens_per_image", "can_generate_nsfw", "can_use_flux", "can_use_stability", "can_use_seedream"]
+      id: "media",
+      name: "Media & Images",
+      icon: ImageIcon,
+      keys: ["MAX_DAILY_IMAGE_GENERATION", "CAN_VIEW_PREMIUM_GALLERY", "IMAGE_RESOLUTION_CAP", "weekly_image_generation", "tokens_per_image", "can_generate_nsfw", "can_use_flux", "can_use_stability", "can_use_seedream"]
     },
     {
-        id: "account",
-        name: "Account & Features",
-        icon: Layout,
-        keys: ["CAN_USE_TELEGRAM", "MAX_CHARACTERS_PER_USER", "HAS_VOICE_CALLS", "active_girlfriends_limit", "monthly_tokens"]
+      id: "account",
+      name: "Account & Features",
+      icon: Layout,
+      keys: ["CAN_USE_TELEGRAM", "MAX_CHARACTERS_PER_USER", "HAS_VOICE_CALLS", "active_girlfriends_limit", "monthly_tokens"]
     }
   ];
 
   const getRestrictionIcon = (key: string) => {
-      switch (key) {
-          case "MAX_FREE_DAILY_MESSAGES": return MessageSquare;
-          case "daily_free_messages": return MessageSquare;
-          case "CAN_SEND_IMAGES": return ImageIcon;
-          case "CAN_INITIATE_CHAT": return UserPlus;
-          case "WAIT_TIME_BETWEEN_MESSAGES": return Clock;
-          case "MAX_DAILY_IMAGE_GENERATION": return Zap;
-          case "weekly_image_generation": return Zap;
-          case "CAN_VIEW_PREMIUM_GALLERY": return Shield;
-          case "IMAGE_RESOLUTION_CAP": return Monitor;
-          case "tokens_per_image": return DollarSign;
-          case "can_generate_nsfw": return Lock;
-          case "can_use_flux": return Zap;
-          case "can_use_stability": return Zap;
-          case "can_use_seedream": return Zap;
-          case "CAN_USE_TELEGRAM": return Smartphone;
-          case "MAX_CHARACTERS_PER_USER": return Layout;
-          case "HAS_VOICE_CALLS": return Phone;
-          case "active_girlfriends_limit": return UserPlus;
-          case "monthly_tokens": return DollarSign;
-          default: return Info;
-      }
+    switch (key) {
+      case "MAX_FREE_DAILY_MESSAGES": return MessageSquare;
+      case "daily_free_messages": return MessageSquare;
+      case "CAN_SEND_IMAGES": return ImageIcon;
+      case "CAN_INITIATE_CHAT": return UserPlus;
+      case "WAIT_TIME_BETWEEN_MESSAGES": return Clock;
+      case "MAX_DAILY_IMAGE_GENERATION": return Zap;
+      case "weekly_image_generation": return Zap;
+      case "CAN_VIEW_PREMIUM_GALLERY": return Shield;
+      case "IMAGE_RESOLUTION_CAP": return Monitor;
+      case "tokens_per_image": return DollarSign;
+      case "can_generate_nsfw": return Lock;
+      case "can_use_flux": return Zap;
+      case "can_use_stability": return Zap;
+      case "can_use_seedream": return Zap;
+      case "CAN_USE_TELEGRAM": return Smartphone;
+      case "MAX_CHARACTERS_PER_USER": return Layout;
+      case "HAS_VOICE_CALLS": return Phone;
+      case "active_girlfriends_limit": return UserPlus;
+      case "monthly_tokens": return DollarSign;
+      default: return Info;
+    }
   };
 
   // Render restriction input based on type
@@ -291,73 +304,73 @@ export default function RestrictionsPage() {
 
     return (
       <div key={restriction_key} className="p-4 rounded-xl border border-border bg-card/50 hover:bg-card transition-all duration-200">
-          <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
-                      <Icon className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                          <Label htmlFor={restriction_key} className="font-bold truncate text-sm">
-                              {restriction_key.replace(/_/g, ' ').toUpperCase()}
-                          </Label>
-                          <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <div className="cursor-help text-muted-foreground hover:text-foreground">
-                                        <HelpCircle className="h-3.5 w-3.5" />
-                                    </div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p className="font-mono text-[10px]">{restriction_key}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+              <Icon className="h-4 w-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <Label htmlFor={restriction_key} className="font-bold truncate text-sm">
+                  {restriction_key.replace(/_/g, ' ').toUpperCase()}
+                </Label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="cursor-help text-muted-foreground hover:text-foreground">
+                        <HelpCircle className="h-3.5 w-3.5" />
                       </div>
-                      {description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{description}</p>}
-                  </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="font-mono text-[10px]">{restriction_key}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
-
-              <div className="shrink-0">
-                  {typeof restriction_value === 'boolean' ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <div className="flex items-center">
-                                    <Switch
-                                        id={restriction_key}
-                                        checked={restriction_value}
-                                        onCheckedChange={(checked) => handleUpdateRestrictionValue(planType, restriction_key, checked)}
-                                    />
-                                </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{restriction_value ? 'Enabled' : 'Disabled'}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                  ) : (
-                      <div className="flex items-center gap-2">
-                          <Input
-                              type="number"
-                              className="w-20 font-bold"
-                              value={restriction_value as number}
-                              onChange={(e) => handleUpdateRestrictionValue(planType, restriction_key, parseInt(e.target.value))}
-                          />
-                          <span className="text-xs text-muted-foreground font-medium">units</span>
-                      </div>
-                  )}
-              </div>
-
-              <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                  onClick={() => handleDeleteRestriction(planType, restriction_key)}
-              >
-                  <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              {description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{description}</p>}
+            </div>
           </div>
+
+          <div className="shrink-0">
+            {typeof restriction_value === 'boolean' ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center">
+                      <Switch
+                        id={restriction_key}
+                        checked={restriction_value}
+                        onCheckedChange={(checked) => handleUpdateRestrictionValue(planType, restriction_key, checked)}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{restriction_value ? 'Enabled' : 'Disabled'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  className="w-20 font-bold"
+                  value={restriction_value as number}
+                  onChange={(e) => handleUpdateRestrictionValue(planType, restriction_key, parseInt(e.target.value))}
+                />
+                <span className="text-xs text-muted-foreground font-medium">units</span>
+              </div>
+            )}
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:bg-destructive/10"
+            onClick={() => handleDeleteRestriction(planType, restriction_key)}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       </div>
     );
   }
@@ -402,6 +415,52 @@ export default function RestrictionsPage() {
             </Button>
           </div>
         </div>
+
+        {!enforcementEnabled && (
+          <Alert className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+            <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <AlertTitle className="text-amber-800 dark:text-amber-300">Restrictions are currently INACTIVE</AlertTitle>
+            <AlertDescription className="text-amber-700 dark:text-amber-400">
+              The system is currently using hardcoded default limits (e.g., 3 messages/day, 1 image/week).
+              Changes made on this page will <strong>not</strong> take effect until you activate enforcement.
+              <Button
+                variant="link"
+                className="p-0 h-auto ml-2 font-bold text-amber-800 dark:text-amber-300 underline"
+                onClick={() => setShowModal(true)}
+              >
+                Learn more & activate
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <Card className="bg-zinc-50 dark:bg-zinc-900/40 border-none shadow-none">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold">Global Enforcement Toggle</h3>
+                <p className="text-sm text-muted-foreground">
+                  When enabled, the database restrictions below will override system defaults.
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${enforcementEnabled ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
+                  {enforcementEnabled ? 'Active' : 'Deactivated'}
+                </div>
+                <Switch 
+                  checked={enforcementEnabled} 
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setShowModal(true)
+                    } else {
+                      setEnforcementEnabled(false)
+                    }
+                  }} 
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Tabs defaultValue="free" className="space-y-4">
           <TabsList className="grid w-full max-w-md grid-cols-2">
@@ -530,8 +589,54 @@ export default function RestrictionsPage() {
                 </div>
               </Card>
             </TabsContent>
-          </Tabs>
-        </div>
-      </AdminOnlyPage>
-    )
+        </Tabs>
+      </div>
+
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-primary" />
+              Activate System Restrictions
+            </DialogTitle>
+            <DialogDescription className="pt-4 space-y-4">
+              <p>
+                By activating this feature, you are switching the entire platform from
+                <strong> coded defaults </strong> to <strong> custom database-driven limits</strong>.
+              </p>
+              <div className="p-4 rounded-lg bg-muted text-xs space-y-2">
+                <p className="font-bold flex items-center gap-2">
+                  <Zap className="h-3 w-3" /> WHAT THIS CONTROLS:
+                </p>
+                <ul className="list-disc pl-4 space-y-1">
+                  <li>Daily message limits for free users</li>
+                  <li>Image generation quotas (Weekly/Daily)</li>
+                  <li>NSFW content permissions</li>
+                  <li>Model access (Flux, Seedream, etc.)</li>
+                  <li>Maximum active companions per user</li>
+                  <li>Token costs for advanced features</li>
+                </ul>
+              </div>
+              <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                Tip: Ensure you have reviewed all the values in the "Free" and "Premium" tabs before saving.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="ghost" onClick={() => setShowModal(false)}>Cancel</Button>
+            <Button onClick={() => {
+              setEnforcementEnabled(true);
+              setShowModal(false);
+              toast({
+                title: "Enforcement Staged",
+                description: "Click 'Save Changes' at the top to finalize and go live.",
+              });
+            }}>
+              Activate Enforcement
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </AdminOnlyPage>
+  )
 }

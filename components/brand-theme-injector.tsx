@@ -1,8 +1,10 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo } from "react"
+import { useTheme } from "next-themes"
+import { usePathname } from "next/navigation"
 import { useSite } from "@/components/site-context"
-import type { HSLColor, BrandColors } from "@/components/site-context"
+import type { HSLColor } from "@/components/site-context"
 
 function hsl(c: HSLColor) {
   return `${c.h} ${c.s}% ${c.l}%`
@@ -29,52 +31,125 @@ function rgb(c: HSLColor) {
   return `${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}`
 }
 
+// CSS variable names that control background/foreground colors.
+// These are cleared in light mode so the :root CSS variables (globals.css) take over.
+const THEME_SENSITIVE_VARS = [
+  "--background",
+  "--foreground",
+  "--card",
+  "--card-foreground",
+  "--popover",
+  "--popover-foreground",
+  "--muted",
+  "--muted-foreground",
+  "--accent",
+  "--accent-foreground",
+  "--border",
+  "--input",
+  "--sidebar-background",
+  "--sidebar-foreground",
+  "--sidebar-accent",
+  "--sidebar-accent-foreground",
+  "--sidebar-border",
+]
+
 export function BrandThemeInjector() {
   const { settings } = useSite()
   const brand = settings.brandConfig
+  const { resolvedTheme } = useTheme()
+  const pathname = usePathname()
+
+  const isAdmin = useMemo(() => pathname?.startsWith("/admin"), [pathname])
 
   useEffect(() => {
     if (!brand) return
     const root = document.documentElement
     const c = brand.colors
+    const isDark = resolvedTheme === "dark"
 
-    const vars: [string, string][] = [
-      ["--primary",              hsl(c.primary)],
-      ["--primary-foreground",   hsl(c.primaryForeground)],
-      ["--secondary",            hsl(c.secondary)],
-      ["--secondary-foreground", hsl(c.secondaryForeground)],
-      ["--background",           hsl(c.background)],
-      ["--foreground",           hsl(c.foreground)],
-      ["--card",                 hsl(c.card)],
-      ["--card-foreground",      hsl(c.cardForeground)],
-      ["--muted",                hsl(c.muted)],
-      ["--muted-foreground",     hsl(c.mutedForeground)],
-      ["--accent",               hsl(c.accent)],
-      ["--accent-foreground",    hsl(c.accentForeground)],
-      ["--border",               hsl(c.border)],
-      ["--input",                hsl(c.border)],
-      ["--ring",                 hsl(c.ring)],
-      ["--radius",               `${brand.borderRadius}rem`],
-      ["--primary-rgb",          rgb(c.primary)],
-      ["--secondary-rgb",        rgb(c.secondary)],
-      // sidebar mirrors
-      ["--sidebar-primary",      hsl(c.primary)],
-      ["--sidebar-primary-foreground", hsl(c.primaryForeground)],
-      ["--sidebar-background",   hsl({ h: c.card.h, s: c.card.s, l: Math.min(c.card.l + 4, 100) })],
-      ["--sidebar-foreground",   hsl(c.foreground)],
-      ["--sidebar-accent",       hsl(c.muted)],
-      ["--sidebar-accent-foreground", hsl(c.foreground)],
-      ["--sidebar-border",       hsl(c.border)],
-    ]
+    // Admin panel should use standard clean colors, not brand background overrides
+    if (isAdmin) {
+      // Clear all brand-specific overrides in Admin to ensure readability
+      THEME_SENSITIVE_VARS.forEach(key => root.style.removeProperty(key))
 
-    vars.forEach(([key, val]) => root.style.setProperty(key, val))
+      // Still apply primary/secondary/radius for branding consistency
+      const adminBrandVars: [string, string][] = [
+        ["--primary", hsl(c.primary)],
+        ["--primary-foreground", hsl(c.primaryForeground)],
+        ["--secondary", hsl(c.secondary)],
+        ["--secondary-foreground", hsl(c.secondaryForeground)],
+        ["--ring", hsl(c.ring)],
+        ["--radius", `${brand.borderRadius}rem`],
+        ["--primary-rgb", rgb(c.primary)],
+        ["--secondary-rgb", rgb(c.secondary)],
+        ["--sidebar-primary", hsl(c.primary)],
+        ["--sidebar-primary-foreground", hsl(c.primaryForeground)],
+        // Ensure sidebar has a clean default in admin
+        ["--sidebar-background", isDark ? "240 5.9% 10%" : "0 0% 98%"],
+        ["--sidebar-foreground", isDark ? "240 4.8% 95.9%" : "240 5.3% 26.1%"],
+      ]
+      adminBrandVars.forEach(([key, val]) => root.style.setProperty(key, val))
+      return
+    }
 
-    // Font family
+    if (isDark) {
+      // In dark mode: apply all brand color overrides as inline styles
+      const vars: [string, string][] = [
+        ["--primary", hsl(c.primary)],
+        ["--primary-foreground", hsl(c.primaryForeground)],
+        ["--secondary", hsl(c.secondary)],
+        ["--secondary-foreground", hsl(c.secondaryForeground)],
+        ["--background", hsl(c.background)],
+        ["--foreground", hsl(c.foreground)],
+        ["--card", hsl(c.card)],
+        ["--card-foreground", hsl(c.cardForeground)],
+        ["--muted", hsl(c.muted)],
+        ["--muted-foreground", hsl(c.mutedForeground)],
+        ["--accent", hsl(c.accent)],
+        ["--accent-foreground", hsl(c.accentForeground)],
+        ["--border", hsl(c.border)],
+        ["--input", hsl(c.border)],
+        ["--ring", hsl(c.ring)],
+        ["--radius", `${brand.borderRadius}rem`],
+        ["--primary-rgb", rgb(c.primary)],
+        ["--secondary-rgb", rgb(c.secondary)],
+        // sidebar mirrors
+        ["--sidebar-primary", hsl(c.primary)],
+        ["--sidebar-primary-foreground", hsl(c.primaryForeground)],
+        ["--sidebar-background", hsl({ h: c.card.h, s: c.card.s, l: Math.min(c.card.l + 4, 100) })],
+        ["--sidebar-foreground", hsl(c.foreground)],
+        ["--sidebar-accent", hsl(c.muted)],
+        ["--sidebar-accent-foreground", hsl(c.foreground)],
+        ["--sidebar-border", hsl(c.border)],
+      ]
+      vars.forEach(([key, val]) => root.style.setProperty(key, val))
+    } else {
+      // In light mode: clear theme-sensitive inline overrides so globals.css :root takes over.
+      // Only keep theme-neutral brand vars (primary, secondary, radius, font).
+      THEME_SENSITIVE_VARS.forEach(key => root.style.removeProperty(key))
+
+      // Still apply brand primary/secondary/ring/radius so the brand accent colours carry through
+      const neutralVars: [string, string][] = [
+        ["--primary", hsl(c.primary)],
+        ["--primary-foreground", hsl(c.primaryForeground)],
+        ["--secondary", hsl(c.secondary)],
+        ["--secondary-foreground", hsl(c.secondaryForeground)],
+        ["--ring", hsl(c.ring)],
+        ["--radius", `${brand.borderRadius}rem`],
+        ["--primary-rgb", rgb(c.primary)],
+        ["--secondary-rgb", rgb(c.secondary)],
+        ["--sidebar-primary", hsl(c.primary)],
+        ["--sidebar-primary-foreground", hsl(c.primaryForeground)],
+      ]
+      neutralVars.forEach(([key, val]) => root.style.setProperty(key, val))
+    }
+
+    // Font family applies in both modes
     if (brand.fontFamily) {
       root.style.setProperty("--font-sans", brand.fontFamily)
       document.body.style.fontFamily = brand.fontFamily
     }
-  }, [brand])
+  }, [brand, resolvedTheme])
 
   return null
 }

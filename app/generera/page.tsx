@@ -168,7 +168,7 @@ function GenerateContent() {
 
   // Check if free user can generate images
   const [canGenerateFree, setCanGenerateFree] = useState(true)
-  
+
   // Fetch free usage count and check limit
   useEffect(() => {
     async function checkUsage() {
@@ -179,7 +179,7 @@ function GenerateContent() {
         setCanGenerateFree(true)
         return
       }
-      
+
       setIsCheckingUsage(true)
       try {
         const response = await fetch('/api/check-image-limit')
@@ -187,7 +187,7 @@ function GenerateContent() {
         if (data.success) {
           setFreeGenerationsCount(data.currentUsage || 0)
           setCanGenerateFree(data.allowed)
-          
+
           // If not allowed, show premium modal immediately
           if (!data.allowed) {
             setShowPremiumModal(true)
@@ -679,9 +679,35 @@ function GenerateContent() {
     }
   }
 
-  const handleShare = (imageUrl: string) => {
-    navigator.clipboard.writeText(imageUrl)
-    toast({ title: t("generate.imageUrlCopied") })
+  const handleShare = async (imageUrl: string) => {
+    // Try to use native sharing if available (mobile/modern browsers)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: t("generate.title"),
+          text: t("generate.shareDescription") || "Check out this AI generated image!",
+          url: imageUrl,
+        });
+        return;
+      } catch (err) {
+        console.error("Error sharing:", err);
+        // If user cancelled, don't fallback to clipboard
+        if (err instanceof Error && err.name === "AbortError") return;
+      }
+    }
+
+    // Fallback to clipboard
+    try {
+      await navigator.clipboard.writeText(imageUrl);
+      toast({ title: t("generate.imageUrlCopied") });
+    } catch (err) {
+      console.error("Clipboard copy failed:", err);
+      toast({
+        title: t("general.error"),
+        description: t("generate.copyFailed") || "Failed to copy URL",
+        variant: "destructive",
+      });
+    }
   }
 
   const handleDownloadAll = async () => {
@@ -1087,11 +1113,7 @@ function GenerateContent() {
                   </Button>
                 </div>
               )}
-              {selectedCount !== "1" && (
-                <div className={`${isMobile ? 'mt-1 text-xs' : 'mt-2 text-sm'} text-muted-foreground`}>
-                  {t("generate.tokensPerImage")}
-                </div>
-              )}
+              {/* Removed "5 token per bild" as requested */}
             </div>
 
             {/* Error Message */}
@@ -1282,7 +1304,9 @@ function GenerateContent() {
                             </Button>
                           </>
                         ) : (
-                          <Button
+                          null
+                          /* Create Character button commented out as requested */
+                          /* <Button
                             size="icon"
                             className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white h-10 w-10 rounded-full shadow-lg"
                             onClick={(e) => {
@@ -1292,7 +1316,7 @@ function GenerateContent() {
                             title="Skapa karaktär"
                           >
                             <User className="h-5 w-5" />
-                          </Button>
+                          </Button> */
                         )}
                       </div>
                       <div className={`absolute bottom-2 right-2 bg-background/80 text-foreground ${isMobile ? 'text-xs px-1 py-0.5' : 'text-xs px-2 py-1'} rounded font-bold`}>
@@ -1326,7 +1350,8 @@ function GenerateContent() {
               if (characterId) {
                 router.push(`/chat/${characterId}?imageUrl=${encodeURIComponent(imageUrl)}`)
               } else {
-                router.push(`/create-character?imageUrl=${encodeURIComponent(imageUrl)}&gender=lady`)
+                // Commented out as requested
+                // router.push(`/create-character?imageUrl=${encodeURIComponent(imageUrl)}&gender=lady`)
               }
             }}
           />

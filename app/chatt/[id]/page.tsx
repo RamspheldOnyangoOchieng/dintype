@@ -423,49 +423,26 @@ function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   const galleryImages = useMemo(() => {
     if (!character) return []
 
-    // If we have specifically selected carousel images, USE THEM EXCLUSIVELY
+    // 1. PRIORITY: If admin has specifically selected carousel images, USE THEM EXCLUSIVELY
+    // This gives the admin full control over which images appear in the display and random welcome message
     if (carouselItems && carouselItems.length > 0) {
       return carouselItems.map(item => item.image_url)
     }
 
-    // FALLBACK: Original logic if no specifically selected carousel images exist
-    // Start with the main image (always unlocked)
-    let imgs = [character.image || "/placeholder.svg"]
+    // 2. FALLBACK: If no specifically selected carousel images exist, use only the main profile image
+    // This prevents random "un-curated" photos from appearing in the welcome message by default
+    // The admin must explicitly add photos to the carousel to enable random variety
+    let imgs = [character.image || character.image_url || "/placeholder.svg"]
 
-    // While gallery is loading, only show the main image to avoid showing locked ones temporarily
-    if (isGalleryLoading && galleryItems.length === 0) {
-      return imgs
-    }
-
-    // Add additional images from the character.images array (legacy/fallback)
-    // Only if they aren't explicitly locked in the gallery
-    if (character.images && Array.isArray(character.images) && character.images.length > 0) {
-      const additional = character.images.filter((img: string) => {
-        if (!img || img === character.image) return false
-
-        // Check if this image is in the gallery
-        const galleryMatch = galleryItems.find(g =>
-          g.imageUrl === img ||
-          g.thumbnailUrl === img ||
-          (img.includes('cloudinary.com') && g.imageUrl?.includes(img.split('/').pop()?.split('.')[0] || '___'))
-        )
-
-        // If it's in the gallery and locked, HIDE it
-        if (galleryMatch && galleryMatch.isLocked) return false
-
-        // If it's NOT in the gallery, we'll keep it for now as it might be a public preview image
-        // added manually to the character record but not meant to be part of the locked gallery.
-        return true
-      })
-      imgs = [...imgs, ...additional]
-    }
-
-    // Add explicitly unlocked images from the gallery that might not be in the character.images array
+    // Only include unlocked gallery items if specifically requested or to provide minimal variety
+    // but the original character.images fallback is removed to honor the "admin privilege" request
     const unlockedFromGallery = galleryItems
-      .filter(img => !img.isLocked && img.imageUrl)
+      .filter(img => !img.isLocked && img.imageUrl && img.isPrimary) // Only show primary if not in carousel mode
       .map(img => img.imageUrl)
 
-    imgs = [...imgs, ...unlockedFromGallery]
+    if (unlockedFromGallery.length > 0) {
+      imgs = [...new Set([...imgs, ...unlockedFromGallery])]
+    }
 
     // Ensure uniqueness and valid URLs
     return Array.from(new Set(imgs.filter(img => !!img)))
@@ -2037,884 +2014,884 @@ function ChatPage({ params }: { params: Promise<{ id: string }> }) {
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault()
-    handleSendMessage()
-  } else if (e.key === "Escape") {
-    setReplyingTo(null)
-    setReactingToMessageId(null)
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      handleSendMessage()
+    } else if (e.key === "Escape") {
+      setReplyingTo(null)
+      setReactingToMessageId(null)
+    }
   }
-}
 
 
-// Show loading while checking authentication
-if (isLoading) {
-  return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="text-muted-foreground">Loading...</div>
-    </div>
-  );
-}
-
-// Show login modal if not authenticated
-if (!user) {
-  // The useEffect will trigger the login modal
-  return (
-    <div className="flex items-center justify-center h-screen">
-      <div className="text-muted-foreground">Please log in to continue...</div>
-    </div>
-  );
-}
-
-// Show loading while unwrapping params or loading characters
-const isActuallyMounted = isMounted && characterId !== null;
-
-// We are loading if:
-// 1. Not mounted yet
-// 2. Context is loading
-// 3. Character is not set AND lookup is NOT complete
-if (!isActuallyMounted || charactersLoading || (!character && !isLookupComplete)) {
-  return (
-    <div className="flex items-center justify-center h-screen bg-background" key="loading-screen">
-      <div className="flex flex-col items-center gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <div className="text-muted-foreground">{t("general.loading")}</div>
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-muted-foreground">Loading...</div>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
-// Show "not found" ONLY if lookup is complete and no character exists
-if (!character && isLookupComplete) {
-  return (
-    <div className="flex flex-col items-center justify-center h-screen bg-background p-4 text-center">
-      <div className="bg-card p-8 rounded-2xl shadow-xl max-w-md w-full border border-border">
-        <div className="p-3 bg-destructive/10 rounded-full w-fit mx-auto mb-6">
-          <X className="h-10 w-10 text-destructive" />
-        </div>
-        <h1 className="text-2xl font-bold mb-2">{t("chat.profileNotFound")}</h1>
-        <p className="text-muted-foreground mb-8">Character ID: {characterId}</p>
-        <div className="flex flex-col gap-3">
-          <Button onClick={() => router.push('/chatt')} className="w-full">
-            {t("chat.backToConversations")}
-          </Button>
-          <Button variant="outline" onClick={() => router.push('/')} className="w-full">
-            {t("general.home")}
-          </Button>
+  // Show login modal if not authenticated
+  if (!user) {
+    // The useEffect will trigger the login modal
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-muted-foreground">Please log in to continue...</div>
+      </div>
+    );
+  }
+
+  // Show loading while unwrapping params or loading characters
+  const isActuallyMounted = isMounted && characterId !== null;
+
+  // We are loading if:
+  // 1. Not mounted yet
+  // 2. Context is loading
+  // 3. Character is not set AND lookup is NOT complete
+  if (!isActuallyMounted || charactersLoading || (!character && !isLookupComplete)) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background" key="loading-screen">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="text-muted-foreground">{t("general.loading")}</div>
         </div>
       </div>
-    </div>
-  )
-}
+    );
+  }
 
-return (
-  <TooltipProvider delayDuration={0}>
-    <div
-      key="chat-page-root"
-      className="flex flex-col md:flex-row bg-background w-full overflow-hidden h-[100svh] md:h-[100dvh]"
-      style={{ 
-        paddingTop: 'env(safe-area-inset-top)',
-        paddingBottom: 'env(safe-area-inset-bottom)'
-      }}
-      suppressHydrationWarning
-    >
-      {/* Left Sidebar - Chat List - Independent Scroll */}
-      <div className={cn(
-        "hidden md:flex border-b md:border-b-0 md:border-r border-border flex-col rounded-tr-2xl rounded-br-2xl h-full overflow-hidden flex-shrink-0 transition-all duration-300 ease-in-out",
-        isChatListOpen ? "md:w-72" : "md:w-0 md:border-r-0"
-      )}>
-        <div className="p-4 border-b border-border flex items-center justify-between">
-          <div className="flex items-center">
-            <Button variant="ghost" size="icon" className="mr-2 md:hidden" onClick={toggle}>
-              <Menu className="h-5 w-5" />
+  // Show "not found" ONLY if lookup is complete and no character exists
+  if (!character && isLookupComplete) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-background p-4 text-center">
+        <div className="bg-card p-8 rounded-2xl shadow-xl max-w-md w-full border border-border">
+          <div className="p-3 bg-destructive/10 rounded-full w-fit mx-auto mb-6">
+            <X className="h-10 w-10 text-destructive" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2">{t("chat.profileNotFound")}</h1>
+          <p className="text-muted-foreground mb-8">Character ID: {characterId}</p>
+          <div className="flex flex-col gap-3">
+            <Button onClick={() => router.push('/chatt')} className="w-full">
+              {t("chat.backToConversations")}
             </Button>
-            <h1 className="text-xl font-bold">{t("general.chat")}</h1>
-          </div>
-        </div>
-        <div className="p-4 border-b border-border">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder={t("chat.searchForProfile")} className="pl-9 bg-card border-none" />
-          </div>
-        </div>
-        <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800" style={{ overscrollBehavior: 'contain' }}>
-          <div className="p-2 space-y-2">
-            {/* Chat List Items - Only show characters with chat history */}
-            {chatsWithHistory
-              .map((id) => {
-                const char = characters.find((c) => c.id === id);
-                if (!char) return null;
-                return (
-                  <Link href={`/chat/${char.id}`} key={char.id} className="block">
-                    <div
-                      className={`flex items-center p-3 rounded-xl cursor-pointer ${characterId === char.id ? "bg-[#252525] text-white" : "hover:bg-[#252525] hover:text-white"
-                        }`}
-                    >
-                      <div className="relative w-12 h-12 mr-3">
-                        {/* Use regular img tag for Cloudinary images */}
-                        <img
-                          src={
-                            imageErrors[char.id]
-                              ? "/placeholder.svg?height=48&width=48"
-                              : (char.image || char.image_url || "/placeholder.svg?height=48&width=48")
-                          }
-                          alt={char.name}
-                          className="w-full h-full rounded-full object-cover"
-                          onError={() => handleImageError(char.id)}
-                          loading="lazy"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start">
-                          <h4 className="font-medium text-foreground truncate">{char.name}</h4>
-                          <span className="text-xs text-muted-foreground">
-                            {lastMessages[char.id]?.timestamp ?? t("chat.noMessagesYet")}
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {lastMessages[char.id]?.content ?? t("chat.noMessagesYet")}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            {chatsWithHistory.length === 0 && (
-              <div className="text-center text-muted-foreground py-4">{t("chat.noConversationsYet")}</div>
-            )}
+            <Button variant="outline" onClick={() => router.push('/')} className="w-full">
+              {t("general.home")}
+            </Button>
           </div>
         </div>
       </div>
+    )
+  }
 
-      {/* Middle - Chat Area - Independent Scroll with Fixed Header */}
-      <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden relative">
-        {/* Header & Story Progress - Fixed on Mobile to prevent keyboard hiding it */}
-        <div className="fixed md:relative top-0 left-0 right-0 md:top-auto md:left-auto md:right-auto flex-shrink-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
-          {storyProgress && currentChapter && (
-            <div className="px-4 py-3 border-b border-border/50 bg-amber-500/5">
-              <div className="flex justify-between items-center mb-2 text-[10px] md:text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded flex items-center gap-1">
-                    <Sparkles className="h-2.5 w-2.5" />
-                    {storyProgress.is_completed ? t("chat.storyComplete") : t("chat.chapterLabel", { current: storyProgress.current_chapter_number.toString(), total: totalChapters.toString() })}
-                  </span>
-                  {!storyProgress.is_completed && (
-                    <span className="text-foreground/70 font-medium truncate max-w-[120px] md:max-w-[150px]">{currentChapter.title}</span>
-                  )}
-                </div>
-                {!storyProgress.is_completed && (
-                  <span className="text-muted-foreground font-mono">
-                    {chapterSubProgress}/6 {t("chat.teasingImages", { count: "" }).trim()}
-                  </span>
-                )}
-              </div>
-
-              {!storyProgress.is_completed && (
-                <div className="space-y-1.5 mt-1">
-                  {/* Overall Story Progress */}
-                  <div className="flex gap-1 h-1">
-                    {Array.from({ length: totalChapters || 1 }).map((_, i) => (
-                      <div
-                        key={i}
-                        className={`flex-1 rounded-full transition-all duration-500 ${i < (storyProgress?.current_chapter_number || 0) ? 'bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]' : 'bg-secondary'}`}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Current Chapter Sub-Progress (Teasing) */}
-                  <div className="flex gap-0.5 h-0.5 opacity-60">
-                    {Array.from({ length: 6 }).map((_, i) => (
-                      <div
-                        key={i}
-                        className={`flex-1 rounded-full transition-all duration-500 ${i < chapterSubProgress ? 'bg-amber-400' : 'bg-white/10'}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Main Chat Header */}
-          <div className="flex items-center px-3 md:px-4 py-3 md:py-4 justify-between">
-            <div className="flex items-center min-w-0 flex-1">
-              {/* Main Sidebar Toggle (Mobile) */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden mr-2 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation"
-                onClick={() => toggle()}
-              >
+  return (
+    <TooltipProvider delayDuration={0}>
+      <div
+        key="chat-page-root"
+        className="flex flex-col md:flex-row bg-background w-full overflow-hidden h-[100svh] md:h-[100dvh]"
+        style={{
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingBottom: 'env(safe-area-inset-bottom)'
+        }}
+        suppressHydrationWarning
+      >
+        {/* Left Sidebar - Chat List - Independent Scroll */}
+        <div className={cn(
+          "hidden md:flex border-b md:border-b-0 md:border-r border-border flex-col rounded-tr-2xl rounded-br-2xl h-full overflow-hidden flex-shrink-0 transition-all duration-300 ease-in-out",
+          isChatListOpen ? "md:w-72" : "md:w-0 md:border-r-0"
+        )}>
+          <div className="p-4 border-b border-border flex items-center justify-between">
+            <div className="flex items-center">
+              <Button variant="ghost" size="icon" className="mr-2 md:hidden" onClick={toggle}>
                 <Menu className="h-5 w-5" />
               </Button>
-
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="mr-2 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation"
-                    onClick={() => router.push('/chatt')}
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  {t("general.back")}
-                </TooltipContent>
-              </Tooltip>
-              {/* Clickable Profile Photo - Opens profile on tap */}
-              <button
-                onClick={() => {
-                  if (window.innerWidth < 1024) {
-                    setIsMobileProfileOpen(true)
-                  } else {
-                    setIsProfileOpen(!isProfileOpen)
-                  }
-                }}
-                className="relative w-10 h-10 mr-3 flex-shrink-0 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-primary/50 transition-all active:scale-95 touch-manipulation"
-              >
-                {/* Use regular img tag for Cloudinary images */}
-                <img
-                  src={
-                    imageErrors[character?.id || '']
-                      ? "/placeholder.svg?height=40&width=40"
-                      : (character?.image || character?.image_url || "/placeholder.svg?height=40&width=40")
-                  }
-                  alt={character?.name || "Character"}
-                  className="w-full h-full rounded-full object-cover"
-                  onError={() => character?.id && handleImageError(character.id)}
-                  loading="lazy"
-                />
-              </button>
-              <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
-                <h4 className="font-bold truncate text-foreground leading-tight">
-                  {character?.name || t("general.loading")}
-                </h4>
-                <span className="text-[10px] md:text-xs text-muted-foreground truncate">
-                  {isSendingMessage ? (
-                    <span className="text-primary animate-pulse font-medium">{t("chat.typing")}</span>
-                  ) : isGeneratingImage ? (
-                    <span className="text-primary animate-pulse font-medium">{character?.name || (language === 'sv' ? 'Designar' : 'Designing')} {t("chat.sendingPhoto")}</span>
-                  ) : (
-                    messages.length > 0 ? messages[messages.length - 1].timestamp : t("chat.noMessagesYet")
-                  )}
-                </span>
-
-              </div>
+              <h1 className="text-xl font-bold">{t("general.chat")}</h1>
             </div>
-            <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-2">
-              {/* Desktop Actions */}
-              <div className="hidden sm:flex items-center gap-1 md:gap-2">
-                <ClearChatDialog onConfirm={handleClearChat} isClearing={isClearingChat} />
-                {FEATURES.ENABLE_TELEGRAM && user?.id && character?.id && (
-                  <TelegramConnectButton
-                    userId={user.id}
-                    characterId={character.id}
-                    characterName={character.name || 'Companion'}
-                    isStoryMode={!!currentChapter}
-                    chapter={currentChapter?.chapter_number}
-                  />
-                )}
-              </div>
-
-              {/* Responsive More Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation">
-                    <MoreVertical className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-[#1A1A1A] border-[#252525] text-white min-w-[200px] z-50">
-                  <DropdownMenuLabel className="text-xs text-white/40 uppercase tracking-widest font-black py-3 px-4">{t("chat.chatOptions")}</DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-[#252525]" />
-
-                  {/* Mobile-only Items */}
-                  <div className="sm:hidden">
-                    {FEATURES.ENABLE_TELEGRAM && (
-                      <DropdownMenuItem
-                        onSelect={() => setIsTelegramModalOpen(true)}
-                        className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer"
+          </div>
+          <div className="p-4 border-b border-border">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder={t("chat.searchForProfile")} className="pl-9 bg-card border-none" />
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800" style={{ overscrollBehavior: 'contain' }}>
+            <div className="p-2 space-y-2">
+              {/* Chat List Items - Only show characters with chat history */}
+              {chatsWithHistory
+                .map((id) => {
+                  const char = characters.find((c) => c.id === id);
+                  if (!char) return null;
+                  return (
+                    <Link href={`/chat/${char.id}`} key={char.id} className="block">
+                      <div
+                        className={`flex items-center p-3 rounded-xl cursor-pointer ${characterId === char.id ? "bg-[#252525] text-white" : "hover:bg-[#252525] hover:text-white"
+                          }`}
                       >
-                        <Send className="h-4 w-4 text-primary" />
-                        <span>{t("chat.connectTelegram")}</span>
-                      </DropdownMenuItem>
-                    )}
-
-                    <DropdownMenuItem
-                      onSelect={() => setIsClearDialogOpen(true)}
-                      className="flex items-center gap-3 py-3 px-4 text-red-400 focus:text-red-300 focus:bg-red-400/10 cursor-pointer"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span>{t("chat.clearChatHistory")}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator className="bg-[#252525]" />
-                  </div>
-
-                  {/* Profile Toggle for tablets/smaller desktops */}
-                  <DropdownMenuItem
-                    onSelect={() => setIsProfileOpen(!isProfileOpen)}
-                    className="lg:hidden flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer"
-                  >
-                    <UserCircle className="h-4 w-4" />
-                    <span>{isProfileOpen ? t("chat.hideProfileDetails") : t("chat.showProfileDetails")}</span>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem asChild>
-                    <Link href={`/characters/${character?.id}`} className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer w-full">
-                      <Info className="h-4 w-4" />
-                      <span>{t("chat.characterSettings")}</span>
+                        <div className="relative w-12 h-12 mr-3">
+                          {/* Use regular img tag for Cloudinary images */}
+                          <img
+                            src={
+                              imageErrors[char.id]
+                                ? "/placeholder.svg?height=48&width=48"
+                                : (char.image || char.image_url || "/placeholder.svg?height=48&width=48")
+                            }
+                            alt={char.name}
+                            className="w-full h-full rounded-full object-cover"
+                            onError={() => handleImageError(char.id)}
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start">
+                            <h4 className="font-medium text-foreground truncate">{char.name}</h4>
+                            <span className="text-xs text-muted-foreground">
+                              {lastMessages[char.id]?.timestamp ?? t("chat.noMessagesYet")}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {lastMessages[char.id]?.content ?? t("chat.noMessagesYet")}
+                          </p>
+                        </div>
+                      </div>
                     </Link>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer">
-                    <Share2 className="h-4 w-4" />
-                    <span>{t("chat.shareCharacter")}</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* Hidden Dialogs that are triggered by the menu */}
-              <div className="hidden">
-                <ClearChatDialog
-                  onConfirm={handleClearChat}
-                  isClearing={isClearingChat}
-                  open={isClearDialogOpen}
-                  onOpenChange={setIsClearDialogOpen}
-                  showTrigger={false}
-                />
-                {FEATURES.ENABLE_TELEGRAM && user?.id && character?.id && (
-                  <TelegramConnectButton
-                    userId={user.id}
-                    characterId={character.id}
-                    characterName={character.name || 'Companion'}
-                    isStoryMode={!!currentChapter}
-                    chapter={currentChapter?.chapter_number}
-                    open={isTelegramModalOpen}
-                    onOpenChange={setIsTelegramModalOpen}
-                    showTrigger={false}
-                  />
-                )}
-              </div>
+                  );
+                })}
+              {chatsWithHistory.length === 0 && (
+                <div className="text-center text-muted-foreground py-4">{t("chat.noConversationsYet")}</div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Chat Messages - Scrollable Area with Lazy Loading */}
-        {/* Added pt-[120px] md:pt-0 to account for fixed header on mobile */}
-        <div
-          ref={chatContainerRef}
-          onScroll={handleChatScroll}
-          className="flex-1 overflow-y-auto p-3 md:p-4 pt-[140px] md:pt-4 space-y-3 md:space-y-4 min-h-0 chat-background"
-          style={{ overscrollBehavior: 'contain' }}
-          data-messages-container
-        >
-          {/* Load More Indicator at Top */}
-          {hasMoreMessages && (
-            <div className="flex justify-center py-3">
-              {isLoadingOlder ? (
-                <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>{t("chat.loadingHistory")}</span>
-                </div>
-              ) : (
-                <button
-                  onClick={loadOlderMessages}
-                  className="text-primary text-sm hover:underline flex items-center gap-1"
-                >
-                  <ChevronDown className="h-4 w-4 rotate-180" />
-                  {t("chat.loadEarlier")}
-                </button>
-              )}
-            </div>
-          )}
-
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex w-full mb-2 ${message.role === "user" ? "justify-end" : "justify-start"} relative group`}
-              onTouchStart={(e) => handleTouchStart(e, message)}
-              onTouchMove={(e) => handleTouchMove(e, message)}
-              onTouchEnd={(e) => handleTouchEnd(e, message)}
-            >
-              {/* Swipe Reply Indicator */}
-              {swipeData?.id === message.id && swipeData.offset > 0 && (
-                <div
-                  className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-center transition-all duration-100 ease-out z-0"
-                  style={{
-                    opacity: Math.min(swipeData.offset / 50, 1),
-                    transform: `translateX(${swipeData.offset - 50}px) scale(${Math.min(0.5 + swipeData.offset / 100, 1.2)}) rotate(${Math.min(swipeData.offset, 20)}deg)`
-                  }}
-                >
-                  <div className={cn(
-                    "p-2 rounded-full transition-all duration-200",
-                    swipeData.offset >= 60 ? "bg-primary text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.5)] scale-110" : "bg-primary/20 text-primary"
-                  )}>
-                    <Reply className="h-4 w-4" />
-                  </div>
-                </div>
-              )}
-
-              <div
-                className={cn(
-                  "max-w-[90%] sm:max-w-[85%] md:max-w-[480px] lg:max-w-[520px] rounded-2xl transition-all duration-300 relative z-10 group/msg shadow-xl",
-                  message.role === "user"
-                    ? "bg-primary/95 text-primary-foreground rounded-tr-none ml-auto border border-primary/20"
-                    : "bg-[#222222] text-white rounded-tl-none border border-white/5",
-                  // Apply padding if it has text content (including welcome messages)
-                  ((message.content && !message.isWelcome) || message.isWelcome) ? "p-3.5 md:p-5" : "p-0 overflow-hidden"
-                )}
-                style={{
-                  transform: swipeData?.id === message.id ? `translateX(${swipeData.offset}px)` : 'none',
-                  userSelect: 'none',
-                  touchAction: 'pan-y',
-                  willChange: 'transform'
-                }}
-                onMouseDown={() => handleLongPressStart(message.id)}
-                onMouseUp={handleLongPressEnd}
-                onMouseLeave={handleLongPressEnd}
-                onTouchStart={(e) => { handleTouchStart(e, message); handleLongPressStart(message.id); }}
-                onTouchEnd={(e) => { handleTouchEnd(e, message); handleLongPressEnd(); }}
-              >
-                {/* Replied To Info */}
-                {message.replyToId && (
-                  <div className="mb-2 p-2 bg-white/5 border-l-2 border-primary rounded text-xs opacity-80 cursor-pointer hover:bg-white/10 transition-colors flex justify-between gap-2"
-                    onClick={() => {
-                      const el = document.getElementById(`msg-${message.replyToId}`);
-                      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }}>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-primary mb-1 text-[10px] uppercase tracking-wider">{t("chat.replyingToMsg", { target: "" }).replace(":", "")}</p>
-                      <div className="flex items-center gap-1.5 overflow-hidden">
-                        {message.replyToImage && (
-                          <div className="flex items-center gap-1 text-[10px] opacity-70 flex-shrink-0">
-                            <FilePlus className="h-3 w-3" />
-                            <span>Photo</span>
-                          </div>
-                        )}
-                        <p className="truncate italic">
-                          {message.replyToContent ? `"${message.replyToContent}"` : (message.replyToImage ? "" : "...")}
-                        </p>
-                      </div>
-                    </div>
-                    {message.replyToImage && (
-                      <div className="h-8 w-8 rounded bg-black/40 flex-shrink-0 overflow-hidden self-center">
-                        <img
-                          src={Array.isArray(message.replyToImage) ? message.replyToImage[0] : message.replyToImage}
-                          alt="Quoted thumb"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
+        {/* Middle - Chat Area - Independent Scroll with Fixed Header */}
+        <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden relative">
+          {/* Header & Story Progress - Fixed on Mobile to prevent keyboard hiding it */}
+          <div className="fixed md:relative top-0 left-0 right-0 md:top-auto md:left-auto md:right-auto flex-shrink-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
+            {storyProgress && currentChapter && (
+              <div className="px-4 py-3 border-b border-border/50 bg-amber-500/5">
+                <div className="flex justify-between items-center mb-2 text-[10px] md:text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded flex items-center gap-1">
+                      <Sparkles className="h-2.5 w-2.5" />
+                      {storyProgress.is_completed ? t("chat.storyComplete") : t("chat.chapterLabel", { current: storyProgress.current_chapter_number.toString(), total: totalChapters.toString() })}
+                    </span>
+                    {!storyProgress.is_completed && (
+                      <span className="text-foreground/70 font-medium truncate max-w-[120px] md:max-w-[150px]">{currentChapter.title}</span>
                     )}
                   </div>
+                  {!storyProgress.is_completed && (
+                    <span className="text-muted-foreground font-mono">
+                      {chapterSubProgress}/6 {t("chat.teasingImages", { count: "" }).trim()}
+                    </span>
+                  )}
+                </div>
+
+                {!storyProgress.is_completed && (
+                  <div className="space-y-1.5 mt-1">
+                    {/* Overall Story Progress */}
+                    <div className="flex gap-1 h-1">
+                      {Array.from({ length: totalChapters || 1 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className={`flex-1 rounded-full transition-all duration-500 ${i < (storyProgress?.current_chapter_number || 0) ? 'bg-primary shadow-[0_0_8px_rgba(var(--primary),0.5)]' : 'bg-secondary'}`}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Current Chapter Sub-Progress (Teasing) */}
+                    <div className="flex gap-0.5 h-0.5 opacity-60">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className={`flex-1 rounded-full transition-all duration-500 ${i < chapterSubProgress ? 'bg-amber-400' : 'bg-white/10'}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Main Chat Header */}
+            <div className="flex items-center px-3 md:px-4 py-3 md:py-4 justify-between">
+              <div className="flex items-center min-w-0 flex-1">
+                {/* Main Sidebar Toggle (Mobile) */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden mr-2 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation"
+                  onClick={() => toggle()}
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="mr-2 text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation"
+                      onClick={() => router.push('/chatt')}
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    {t("general.back")}
+                  </TooltipContent>
+                </Tooltip>
+                {/* Clickable Profile Photo - Opens profile on tap */}
+                <button
+                  onClick={() => {
+                    if (window.innerWidth < 1024) {
+                      setIsMobileProfileOpen(true)
+                    } else {
+                      setIsProfileOpen(!isProfileOpen)
+                    }
+                  }}
+                  className="relative w-10 h-10 mr-3 flex-shrink-0 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-primary/50 transition-all active:scale-95 touch-manipulation"
+                >
+                  {/* Use regular img tag for Cloudinary images */}
+                  <img
+                    src={
+                      imageErrors[character?.id || '']
+                        ? "/placeholder.svg?height=40&width=40"
+                        : (character?.image || character?.image_url || "/placeholder.svg?height=40&width=40")
+                    }
+                    alt={character?.name || "Character"}
+                    className="w-full h-full rounded-full object-cover"
+                    onError={() => character?.id && handleImageError(character.id)}
+                    loading="lazy"
+                  />
+                </button>
+                <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
+                  <h4 className="font-bold truncate text-foreground leading-tight">
+                    {character?.name || t("general.loading")}
+                  </h4>
+                  <span className="text-[10px] md:text-xs text-muted-foreground truncate">
+                    {isSendingMessage ? (
+                      <span className="text-primary animate-pulse font-medium">{t("chat.typing")}</span>
+                    ) : isGeneratingImage ? (
+                      <span className="text-primary animate-pulse font-medium">{character?.name || (language === 'sv' ? 'Designar' : 'Designing')} {t("chat.sendingPhoto")}</span>
+                    ) : (
+                      messages.length > 0 ? messages[messages.length - 1].timestamp : t("chat.noMessagesYet")
+                    )}
+                  </span>
+
+                </div>
+              </div>
+              <div className="flex items-center gap-1 md:gap-2 flex-shrink-0 ml-2">
+                {/* Desktop Actions */}
+                <div className="hidden sm:flex items-center gap-1 md:gap-2">
+                  <ClearChatDialog onConfirm={handleClearChat} isClearing={isClearingChat} />
+                  {FEATURES.ENABLE_TELEGRAM && user?.id && character?.id && (
+                    <TelegramConnectButton
+                      userId={user.id}
+                      characterId={character.id}
+                      characterName={character.name || 'Companion'}
+                      isStoryMode={!!currentChapter}
+                      chapter={currentChapter?.chapter_number}
+                    />
+                  )}
+                </div>
+
+                {/* Responsive More Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] touch-manipulation">
+                      <MoreVertical className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="bg-[#1A1A1A] border-[#252525] text-white min-w-[200px] z-50">
+                    <DropdownMenuLabel className="text-xs text-white/40 uppercase tracking-widest font-black py-3 px-4">{t("chat.chatOptions")}</DropdownMenuLabel>
+                    <DropdownMenuSeparator className="bg-[#252525]" />
+
+                    {/* Mobile-only Items */}
+                    <div className="sm:hidden">
+                      {FEATURES.ENABLE_TELEGRAM && (
+                        <DropdownMenuItem
+                          onSelect={() => setIsTelegramModalOpen(true)}
+                          className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer"
+                        >
+                          <Send className="h-4 w-4 text-primary" />
+                          <span>{t("chat.connectTelegram")}</span>
+                        </DropdownMenuItem>
+                      )}
+
+                      <DropdownMenuItem
+                        onSelect={() => setIsClearDialogOpen(true)}
+                        className="flex items-center gap-3 py-3 px-4 text-red-400 focus:text-red-300 focus:bg-red-400/10 cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span>{t("chat.clearChatHistory")}</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="bg-[#252525]" />
+                    </div>
+
+                    {/* Profile Toggle for tablets/smaller desktops */}
+                    <DropdownMenuItem
+                      onSelect={() => setIsProfileOpen(!isProfileOpen)}
+                      className="lg:hidden flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer"
+                    >
+                      <UserCircle className="h-4 w-4" />
+                      <span>{isProfileOpen ? t("chat.hideProfileDetails") : t("chat.showProfileDetails")}</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
+                      <Link href={`/characters/${character?.id}`} className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer w-full">
+                        <Info className="h-4 w-4" />
+                        <span>{t("chat.characterSettings")}</span>
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem className="flex items-center gap-3 py-3 px-4 focus:bg-white/5 cursor-pointer">
+                      <Share2 className="h-4 w-4" />
+                      <span>{t("chat.shareCharacter")}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {/* Hidden Dialogs that are triggered by the menu */}
+                <div className="hidden">
+                  <ClearChatDialog
+                    onConfirm={handleClearChat}
+                    isClearing={isClearingChat}
+                    open={isClearDialogOpen}
+                    onOpenChange={setIsClearDialogOpen}
+                    showTrigger={false}
+                  />
+                  {FEATURES.ENABLE_TELEGRAM && user?.id && character?.id && (
+                    <TelegramConnectButton
+                      userId={user.id}
+                      characterId={character.id}
+                      characterName={character.name || 'Companion'}
+                      isStoryMode={!!currentChapter}
+                      chapter={currentChapter?.chapter_number}
+                      open={isTelegramModalOpen}
+                      onOpenChange={setIsTelegramModalOpen}
+                      showTrigger={false}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Chat Messages - Scrollable Area with Lazy Loading */}
+          {/* Added pt-[120px] md:pt-0 to account for fixed header on mobile */}
+          <div
+            ref={chatContainerRef}
+            onScroll={handleChatScroll}
+            className="flex-1 overflow-y-auto p-3 md:p-4 pt-[140px] md:pt-4 space-y-3 md:space-y-4 min-h-0 chat-background"
+            style={{ overscrollBehavior: 'contain' }}
+            data-messages-container
+          >
+            {/* Load More Indicator at Top */}
+            {hasMoreMessages && (
+              <div className="flex justify-center py-3">
+                {isLoadingOlder ? (
+                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>{t("chat.loadingHistory")}</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={loadOlderMessages}
+                    className="text-primary text-sm hover:underline flex items-center gap-1"
+                  >
+                    <ChevronDown className="h-4 w-4 rotate-180" />
+                    {t("chat.loadEarlier")}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex w-full mb-2 ${message.role === "user" ? "justify-end" : "justify-start"} relative group`}
+                onTouchStart={(e) => handleTouchStart(e, message)}
+                onTouchMove={(e) => handleTouchMove(e, message)}
+                onTouchEnd={(e) => handleTouchEnd(e, message)}
+              >
+                {/* Swipe Reply Indicator */}
+                {swipeData?.id === message.id && swipeData.offset > 0 && (
+                  <div
+                    className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center justify-center transition-all duration-100 ease-out z-0"
+                    style={{
+                      opacity: Math.min(swipeData.offset / 50, 1),
+                      transform: `translateX(${swipeData.offset - 50}px) scale(${Math.min(0.5 + swipeData.offset / 100, 1.2)}) rotate(${Math.min(swipeData.offset, 20)}deg)`
+                    }}
+                  >
+                    <div className={cn(
+                      "p-2 rounded-full transition-all duration-200",
+                      swipeData.offset >= 60 ? "bg-primary text-primary-foreground shadow-[0_0_15px_rgba(var(--primary),0.5)] scale-110" : "bg-primary/20 text-primary"
+                    )}>
+                      <Reply className="h-4 w-4" />
+                    </div>
+                  </div>
                 )}
 
-                <div className="flex justify-between items-start relative" id={`msg-${message.id}`}>
-                  {/* WhatsApp style Dropdown Trigger */}
-                  {!message.isWelcome && (
-                    <div className="absolute -right-1 -top-1 md:-right-2 md:-top-1 opacity-0 group-hover/msg:opacity-100 transition-opacity z-20">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-[#1A1A1A]/80 backdrop-blur-sm shadow-xl border border-white/10 text-white/70 hover:text-white hover:bg-[#252525]">
-                            <ChevronDown className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-[#2A2A2A] border-[#3A3A3A] text-white min-w-[180px] rounded-xl shadow-2xl p-1">
-                          <DropdownMenuItem onClick={() => setReplyingTo(message)} className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg">
-                            <Reply className="h-4 w-4 opacity-70" />
-                            <span>Reply</span>
-                          </DropdownMenuItem>
-
-                          <DropdownMenuItem onClick={() => handleCopyMessage(message.content)} className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg">
-                            <Copy className="h-4 w-4 opacity-70" />
-                            <span>Copy</span>
-                          </DropdownMenuItem>
-
-                          <DropdownMenuItem onClick={() => setReactingToMessageId(message.id)} className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg">
-                            <Smile className="h-4 w-4 opacity-70" />
-                            <span>React</span>
-                          </DropdownMenuItem>
-
-                          <DropdownMenuItem className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg opacity-50">
-                            <Forward className="h-4 w-4 opacity-70" />
-                            <span>Forward</span>
-                          </DropdownMenuItem>
-
-                          <DropdownMenuItem className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg opacity-50">
-                            <Pin className="h-4 w-4 opacity-70" />
-                            <span>Pin</span>
-                          </DropdownMenuItem>
-
-                          <DropdownMenuItem className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg opacity-50">
-                            <Star className="h-4 w-4 opacity-70" />
-                            <span>Star</span>
-                          </DropdownMenuItem>
-
-                          <DropdownMenuItem className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg opacity-50">
-                            <FilePlus className="h-4 w-4 opacity-70" />
-                            <span>Add text to note</span>
-                          </DropdownMenuItem>
-
-                          <DropdownMenuSeparator className="bg-white/10 my-1" />
-
-                          <DropdownMenuItem className="flex items-center gap-3 py-2 px-3 focus:bg-red-500/10 text-red-400 cursor-pointer rounded-lg opacity-50">
-                            <Flag className="h-4 w-4" />
-                            <span>Report</span>
-                          </DropdownMenuItem>
-
-                          <DropdownMenuItem onClick={() => handleDeleteMessage(message.id)} className="flex items-center gap-3 py-2 px-3 focus:bg-red-500/10 text-red-400 cursor-pointer rounded-lg">
-                            <Trash2 className="h-4 w-4" />
-                            <span>Delete</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                <div
+                  className={cn(
+                    "max-w-[90%] sm:max-w-[85%] md:max-w-[480px] lg:max-w-[520px] rounded-2xl transition-all duration-300 relative z-10 group/msg shadow-xl",
+                    message.role === "user"
+                      ? "bg-primary/95 text-primary-foreground rounded-tr-none ml-auto border border-primary/20"
+                      : "bg-[#222222] text-white rounded-tl-none border border-white/5",
+                    // Apply padding if it has text content (including welcome messages)
+                    ((message.content && !message.isWelcome) || message.isWelcome) ? "p-3.5 md:p-5" : "p-0 overflow-hidden"
                   )}
-
-                  {message.isWelcome && character ? (
-                    <WelcomeMessage
-                      characterName={character.name}
-                      characterId={character.id}
-                      galleryImages={galleryImages}
-                      onStartChat={() => {
-                        const input = document.querySelector('input[type="text"]') as HTMLInputElement;
-                        if (input) input.focus();
-                      }}
-                    />
-                  ) : (
-                    <div className={cn("relative", message.content ? "pr-5 md:pr-6" : "")}>
-                      {message.content && (
-                        <p className="text-current leading-relaxed break-words whitespace-pre-wrap text-sm md:text-base">
-                          {message.content.replace(/\[TELEGRAM_LINK\]/g, '')}
-                        </p>
-                      )}
-                      {FEATURES.ENABLE_TELEGRAM && message.content.includes('[TELEGRAM_LINK]') && character && (
-                        <div className="mt-3">
-                          <MeetOnTelegramButton
-                            characterId={character.id}
-                            characterName={character.name}
-                            isStoryMode={!!currentChapter}
-                            chapter={currentChapter?.chapter_number}
-                            variant="secondary"
-                            className="w-full bg-blue-500/20 text-blue-200 hover:bg-blue-500/30 border-blue-500/20"
+                  style={{
+                    transform: swipeData?.id === message.id ? `translateX(${swipeData.offset}px)` : 'none',
+                    userSelect: 'none',
+                    touchAction: 'pan-y',
+                    willChange: 'transform'
+                  }}
+                  onMouseDown={() => handleLongPressStart(message.id)}
+                  onMouseUp={handleLongPressEnd}
+                  onMouseLeave={handleLongPressEnd}
+                  onTouchStart={(e) => { handleTouchStart(e, message); handleLongPressStart(message.id); }}
+                  onTouchEnd={(e) => { handleTouchEnd(e, message); handleLongPressEnd(); }}
+                >
+                  {/* Replied To Info */}
+                  {message.replyToId && (
+                    <div className="mb-2 p-2 bg-white/5 border-l-2 border-primary rounded text-xs opacity-80 cursor-pointer hover:bg-white/10 transition-colors flex justify-between gap-2"
+                      onClick={() => {
+                        const el = document.getElementById(`msg-${message.replyToId}`);
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }}>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-primary mb-1 text-[10px] uppercase tracking-wider">{t("chat.replyingToMsg", { target: "" }).replace(":", "")}</p>
+                        <div className="flex items-center gap-1.5 overflow-hidden">
+                          {message.replyToImage && (
+                            <div className="flex items-center gap-1 text-[10px] opacity-70 flex-shrink-0">
+                              <FilePlus className="h-3 w-3" />
+                              <span>Photo</span>
+                            </div>
+                          )}
+                          <p className="truncate italic">
+                            {message.replyToContent ? `"${message.replyToContent}"` : (message.replyToImage ? "" : "...")}
+                          </p>
+                        </div>
+                      </div>
+                      {message.replyToImage && (
+                        <div className="h-8 w-8 rounded bg-black/40 flex-shrink-0 overflow-hidden self-center">
+                          <img
+                            src={Array.isArray(message.replyToImage) ? message.replyToImage[0] : message.replyToImage}
+                            alt="Quoted thumb"
+                            className="w-full h-full object-cover"
                           />
                         </div>
                       )}
                     </div>
                   )}
-                </div>
-                {message.isImage && message.imageUrl && (
-                  <div className={cn(
-                    "relative group/img cursor-pointer transition-all",
-                    (message.content && !message.isWelcome) ? "mt-3.5 -mx-3.5 -mb-3.5 md:mt-5 md:-mx-5 md:-mb-5 border-t border-white/5" : "w-full h-full"
-                  )}>
-                    <div
-                      className="relative w-full overflow-hidden"
-                      onClick={() => {
-                        if (message.imageUrl) {
-                          const urls = Array.isArray(message.imageUrl) ? message.imageUrl : [message.imageUrl]
-                          setSelectedImage(urls)
-                          setSelectedImagePrompt(message.imagePrompt || "")
-                          setIsModalOpen(true)
-                        }
-                      }}
-                    >
-                      <img
-                        src={imageErrors[message.id] ? "/placeholder.svg" : (Array.isArray(message.imageUrl) ? message.imageUrl[0] : message.imageUrl)}
-                        alt="Generated image"
-                        className="w-full h-auto object-cover block min-h-[200px]"
-                        style={{ maxHeight: '65vh' }}
-                        onError={() => handleImageError(message.id)}
-                        onLoad={() => {
-                          if (!isLoadingHistory) scrollToBottom("auto");
-                        }}
-                        loading="eager"
-                      />
-                      {/* Subtle Gradient for Timestamp Overlay */}
-                      <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
 
-                      {/* Timestamp Overlay for Images */}
-                      <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/40 backdrop-blur-md border border-white/10">
-                        <span className="text-[10px] text-white/90 font-medium">{message.timestamp}</span>
+                  <div className="flex justify-between items-start relative" id={`msg-${message.id}`}>
+                    {/* WhatsApp style Dropdown Trigger */}
+                    {!message.isWelcome && (
+                      <div className="absolute -right-1 -top-1 md:-right-2 md:-top-1 opacity-0 group-hover/msg:opacity-100 transition-opacity z-20">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-[#1A1A1A]/80 backdrop-blur-sm shadow-xl border border-white/10 text-white/70 hover:text-white hover:bg-[#252525]">
+                              <ChevronDown className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-[#2A2A2A] border-[#3A3A3A] text-white min-w-[180px] rounded-xl shadow-2xl p-1">
+                            <DropdownMenuItem onClick={() => setReplyingTo(message)} className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg">
+                              <Reply className="h-4 w-4 opacity-70" />
+                              <span>Reply</span>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem onClick={() => handleCopyMessage(message.content)} className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg">
+                              <Copy className="h-4 w-4 opacity-70" />
+                              <span>Copy</span>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem onClick={() => setReactingToMessageId(message.id)} className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg">
+                              <Smile className="h-4 w-4 opacity-70" />
+                              <span>React</span>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg opacity-50">
+                              <Forward className="h-4 w-4 opacity-70" />
+                              <span>Forward</span>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg opacity-50">
+                              <Pin className="h-4 w-4 opacity-70" />
+                              <span>Pin</span>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg opacity-50">
+                              <Star className="h-4 w-4 opacity-70" />
+                              <span>Star</span>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem className="flex items-center gap-3 py-2 px-3 focus:bg-white/10 cursor-pointer rounded-lg opacity-50">
+                              <FilePlus className="h-4 w-4 opacity-70" />
+                              <span>Add text to note</span>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuSeparator className="bg-white/10 my-1" />
+
+                            <DropdownMenuItem className="flex items-center gap-3 py-2 px-3 focus:bg-red-500/10 text-red-400 cursor-pointer rounded-lg opacity-50">
+                              <Flag className="h-4 w-4" />
+                              <span>Report</span>
+                            </DropdownMenuItem>
+
+                            <DropdownMenuItem onClick={() => handleDeleteMessage(message.id)} className="flex items-center gap-3 py-2 px-3 focus:bg-red-500/10 text-red-400 cursor-pointer rounded-lg">
+                              <Trash2 className="h-4 w-4" />
+                              <span>Delete</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    )}
+
+                    {message.isWelcome && character ? (
+                      <WelcomeMessage
+                        characterName={character.name}
+                        characterId={character.id}
+                        galleryImages={galleryImages}
+                        onStartChat={() => {
+                          const input = document.querySelector('input[type="text"]') as HTMLInputElement;
+                          if (input) input.focus();
+                        }}
+                      />
+                    ) : (
+                      <div className={cn("relative", message.content ? "pr-5 md:pr-6" : "")}>
+                        {message.content && (
+                          <p className="text-current leading-relaxed break-words whitespace-pre-wrap text-sm md:text-base">
+                            {message.content.replace(/\[TELEGRAM_LINK\]/g, '')}
+                          </p>
+                        )}
+                        {FEATURES.ENABLE_TELEGRAM && message.content.includes('[TELEGRAM_LINK]') && character && (
+                          <div className="mt-3">
+                            <MeetOnTelegramButton
+                              characterId={character.id}
+                              characterName={character.name}
+                              isStoryMode={!!currentChapter}
+                              chapter={currentChapter?.chapter_number}
+                              variant="secondary"
+                              className="w-full bg-blue-500/20 text-blue-200 hover:bg-blue-500/30 border-blue-500/20"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {message.isImage && message.imageUrl && (
+                    <div className={cn(
+                      "relative group/img cursor-pointer transition-all",
+                      (message.content && !message.isWelcome) ? "mt-3.5 -mx-3.5 -mb-3.5 md:mt-5 md:-mx-5 md:-mb-5 border-t border-white/5" : "w-full h-full"
+                    )}>
+                      <div
+                        className="relative w-full overflow-hidden"
+                        onClick={() => {
+                          if (message.imageUrl) {
+                            const urls = Array.isArray(message.imageUrl) ? message.imageUrl : [message.imageUrl]
+                            setSelectedImage(urls)
+                            setSelectedImagePrompt(message.imagePrompt || "")
+                            setIsModalOpen(true)
+                          }
+                        }}
+                      >
+                        <img
+                          src={imageErrors[message.id] ? "/placeholder.svg" : (Array.isArray(message.imageUrl) ? message.imageUrl[0] : message.imageUrl)}
+                          alt="Generated image"
+                          className="w-full h-auto object-cover block min-h-[200px]"
+                          style={{ maxHeight: '65vh' }}
+                          onError={() => handleImageError(message.id)}
+                          onLoad={() => {
+                            if (!isLoadingHistory) scrollToBottom("auto");
+                          }}
+                          loading="eager"
+                        />
+                        {/* Subtle Gradient for Timestamp Overlay */}
+                        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+
+                        {/* Timestamp Overlay for Images */}
+                        <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/40 backdrop-blur-md border border-white/10">
+                          <span className="text-[10px] text-white/90 font-medium">{message.timestamp}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {!message.isImage && !message.isWelcome && (
-                  <span className="text-[10px] text-white/40 mt-1 block text-right">{message.timestamp}</span>
-                )}
+                  {!message.isImage && !message.isWelcome && (
+                    <span className="text-[10px] text-white/40 mt-1 block text-right">{message.timestamp}</span>
+                  )}
 
-                {/* Reactions Display */}
-                {message.reactions && Object.keys(message.reactions).map((emoji) => (
-                  <button
-                    key={emoji}
-                    onClick={() => handleAddReaction(message.id, emoji)}
-                    className={cn(
-                      "mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs transition-colors",
-                      message.reactions?.[emoji]?.includes(user?.id || 'anonymous')
-                        ? "bg-primary/20 text-primary border border-primary/20 shadow-[0_0_10px_rgba(var(--primary),0.3)]"
-                        : "bg-white/5 text-white/60 hover:bg-white/10"
-                    )}
-                  >
-                    <span>{emoji}</span>
-                    {message.reactions![emoji].length > 1 && (
-                      <span className="font-medium">{message.reactions![emoji].length}</span>
-                    )}
-                  </button>
-                ))}
+                  {/* Reactions Display */}
+                  {message.reactions && Object.keys(message.reactions).map((emoji) => (
+                    <button
+                      key={emoji}
+                      onClick={() => handleAddReaction(message.id, emoji)}
+                      className={cn(
+                        "mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs transition-colors",
+                        message.reactions?.[emoji]?.includes(user?.id || 'anonymous')
+                          ? "bg-primary/20 text-primary border border-primary/20 shadow-[0_0_10px_rgba(var(--primary),0.3)]"
+                          : "bg-white/5 text-white/60 hover:bg-white/10"
+                      )}
+                    >
+                      <span>{emoji}</span>
+                      {message.reactions![emoji].length > 1 && (
+                        <span className="font-medium">{message.reactions![emoji].length}</span>
+                      )}
+                    </button>
+                  ))}
 
-                {/* Reaction Picker Popover */}
-                {reactingToMessageId === message.id && (
-                  <div className="absolute -top-12 left-0 z-[100] bg-[#1A1A1A] border border-white/10 shadow-2xl rounded-full p-1.5 flex gap-1 animate-in fade-in zoom-in duration-200">
-                    {["❤️", "🔥", "😂", "😍", "😲", "😢"].map((emoji) => (
-                      <button
-                        key={emoji}
-                        onClick={(e) => { e.stopPropagation(); handleAddReaction(message.id, emoji); }}
-                        className="p-1.5 hover:bg-white/10 rounded-full transition-transform hover:scale-125 touch-manipulation"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-          {isSendingMessage && (
-            <div className="flex justify-start mb-4" key="ai-typing-indicator">
-              <div className="bg-[#252525] text-white rounded-2xl p-3 border border-white/5 rounded-tl-none">
-                <div className="flex space-x-1.5 items-center px-1">
-                  <div
-                    className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce"
-                    style={{ animationDelay: "0ms", animationDuration: "0.8s" }}
-                  ></div>
-                  <div
-                    className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce"
-                    style={{ animationDelay: "200ms", animationDuration: "0.8s" }}
-                  ></div>
-                  <div
-                    className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce"
-                    style={{ animationDelay: "400ms", animationDuration: "0.8s" }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-          )}
-          {isGeneratingImage && <ImageGenerationLoading characterName={character?.name} />}
-          <div ref={messagesEndRef} />
-        </div>
-
-
-        {apiKeyError && (
-          <div className="mx-4 p-3 bg-destructive/20 border border-destructive text-destructive-foreground rounded-lg text-sm">
-            <p className="font-medium">API Key Error</p>
-            <p>{apiKeyError}</p>
-            <p className="mt-1">Admin users can set the API key in the Admin Dashboard → API Keys section.</p>
-          </div>
-        )}
-
-        {/* Chat Input */}
-        <div className="p-3 md:p-4 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-          {/* Reply To Preview */}
-          {replyingTo && (
-            <div className="mb-3 p-3 bg-primary/10 border-l-4 border-primary rounded-lg flex justify-between items-center animate-in slide-in-from-bottom-2 duration-200 gap-3">
-              <div className="min-w-0 flex-1">
-                <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-1">Replying to {replyingTo.role === 'user' ? 'yourself' : character?.name}</p>
-                <div className="flex items-center gap-2">
-                  {replyingTo.isImage && (
-                    <div className="flex items-center gap-1.5 text-xs text-foreground/60">
-                      <FilePlus className="h-3 w-3" />
-                      <span>Photo</span>
+                  {/* Reaction Picker Popover */}
+                  {reactingToMessageId === message.id && (
+                    <div className="absolute -top-12 left-0 z-[100] bg-[#1A1A1A] border border-white/10 shadow-2xl rounded-full p-1.5 flex gap-1 animate-in fade-in zoom-in duration-200">
+                      {["❤️", "🔥", "😂", "😍", "😲", "😢"].map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={(e) => { e.stopPropagation(); handleAddReaction(message.id, emoji); }}
+                          className="p-1.5 hover:bg-white/10 rounded-full transition-transform hover:scale-125 touch-manipulation"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
                     </div>
                   )}
-                  <p className="text-sm text-foreground/80 truncate italic">
-                    {replyingTo.content ? `"${replyingTo.content}"` : (replyingTo.isImage ? "" : t("chat.noContent"))}
-                  </p>
                 </div>
               </div>
-
-              {replyingTo.isImage && replyingTo.imageUrl && (
-                <div className="h-10 w-10 rounded-md overflow-hidden bg-black/20 flex-shrink-0">
-                  <img
-                    src={Array.isArray(replyingTo.imageUrl) ? replyingTo.imageUrl[0] : replyingTo.imageUrl}
-                    alt="Quoted"
-                    className="w-full h-full object-cover"
-                  />
+            ))}
+            {isSendingMessage && (
+              <div className="flex justify-start mb-4" key="ai-typing-indicator">
+                <div className="bg-[#252525] text-white rounded-2xl p-3 border border-white/5 rounded-tl-none">
+                  <div className="flex space-x-1.5 items-center px-1">
+                    <div
+                      className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce"
+                      style={{ animationDelay: "0ms", animationDuration: "0.8s" }}
+                    ></div>
+                    <div
+                      className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce"
+                      style={{ animationDelay: "200ms", animationDuration: "0.8s" }}
+                    ></div>
+                    <div
+                      className="w-1.5 h-1.5 rounded-full bg-white/60 animate-bounce"
+                      style={{ animationDelay: "400ms", animationDuration: "0.8s" }}
+                    ></div>
+                  </div>
                 </div>
-              )}
+              </div>
+            )}
+            {isGeneratingImage && <ImageGenerationLoading characterName={character?.name} />}
+            <div ref={messagesEndRef} />
+          </div>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-foreground flex-shrink-0"
-                onClick={() => setReplyingTo(null)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+
+          {apiKeyError && (
+            <div className="mx-4 p-3 bg-destructive/20 border border-destructive text-destructive-foreground rounded-lg text-sm">
+              <p className="font-medium">API Key Error</p>
+              <p>{apiKeyError}</p>
+              <p className="mt-1">Admin users can set the API key in the Admin Dashboard → API Keys section.</p>
             </div>
           )}
-          <div className="flex items-end gap-2">
-            <Input
-              ref={inputRef}
-              placeholder={t("chat.inputPlaceholder")}
-              className="flex-1 bg-card border-border min-h-[44px] text-base md:text-sm resize-none"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyPress}
-              disabled={isSendingMessage || isGeneratingImage}
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="sentences"
-              spellCheck="true"
-            />
-            <Button
-              size="icon"
-              className="bg-primary hover:bg-primary/90 text-primary-foreground min-h-[44px] min-w-[44px] touch-manipulation"
-              onClick={handleSendMessage}
-              disabled={isSendingMessage || isGeneratingImage || !inputValue.trim() || !character}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
 
-      {/* Right Sidebar - Profile - Independent Scroll */}
-      <div className={cn(
-        "hidden border-l border-border transition-all duration-300 ease-in-out bg-background/50 backdrop-blur-sm h-full",
-        isProfileOpen ? "lg:flex lg:flex-col lg:w-80" : "lg:hidden w-0 overflow-hidden"
-      )}>
-        <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800" style={{ overscrollBehavior: 'contain' }}>
-          {/* Profile Images Carousel */}
-          <div className="relative w-full aspect-[3/4] max-h-[400px]">
-            {showVideo ? (
-              <div className="w-full h-full">
-                {character?.videoUrl ? (
-                  <>
-                    <video
-                      key={character.videoUrl}
-                      src={character.videoUrl}
-                      className="w-full h-full object-cover"
-                      controls
-                      autoPlay
-                      onError={(e) => {
-                        console.error("Video error:", e)
-                        toast.error(t("chat.videoLoadingError"))
-                      }}
-                    />
-                    <div className="absolute top-0 left-0 w-full bg-black/50 p-2 text-white text-xs">
-                      {character.videoUrl}
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex items-center justify-center h-full bg-black/20">
-                    <p className="text-white bg-black/50 p-2 rounded">{t("chat.noVideoAvailable")}</p>
+          {/* Chat Input */}
+          <div className="p-3 md:p-4 border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+            {/* Reply To Preview */}
+            {replyingTo && (
+              <div className="mb-3 p-3 bg-primary/10 border-l-4 border-primary rounded-lg flex justify-between items-center animate-in slide-in-from-bottom-2 duration-200 gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-1">Replying to {replyingTo.role === 'user' ? 'yourself' : character?.name}</p>
+                  <div className="flex items-center gap-2">
+                    {replyingTo.isImage && (
+                      <div className="flex items-center gap-1.5 text-xs text-foreground/60">
+                        <FilePlus className="h-3 w-3" />
+                        <span>Photo</span>
+                      </div>
+                    )}
+                    <p className="text-sm text-foreground/80 truncate italic">
+                      {replyingTo.content ? `"${replyingTo.content}"` : (replyingTo.isImage ? "" : t("chat.noContent"))}
+                    </p>
                   </div>
-                )}
-                <button
-                  className="absolute top-2 right-2 bg-background/50 p-1 rounded-full z-10"
-                  onClick={() => {
-                    console.log("Closing video")
-                    setShowVideo(false)
-                  }}
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
-              </div>
-            ) : (
-              <>
-                {/* Carousel Image */}
-                <img
-                  src={
-                    (galleryImages.length > 0
-                      ? galleryImages[currentImageIndex]
-                      : (character?.image || "/placeholder.svg"))
-                  }
-                  alt={character?.name || "Character"}
-                  className="w-full h-full object-contain bg-background transition-opacity duration-300"
-                  onError={() => handleImageError("profile")}
-                  loading="lazy"
-                />
-
-                {/* Navigation Arrows */}
-                <button
-                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-1.5 rounded-full transition-colors text-white backdrop-blur-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handlePrevImage();
-                  }}
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
-                <button
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-1.5 rounded-full transition-colors text-white backdrop-blur-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleNextImage();
-                  }}
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </button>
-
-                {/* Ultra-tiny Dots Indicator */}
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 z-10 pointer-events-auto">
-                  {galleryImages.map((_, idx) => (
-                    <span
-                      key={idx}
-                      className="cursor-pointer transition-all duration-300"
-                      style={{
-                        display: 'block',
-                        width: '2.5px',
-                        height: '2.5px',
-                        borderRadius: '50%',
-                        padding: '0',
-                        margin: '0',
-                        backgroundColor: idx === currentImageIndex ? '#ffffff' : 'rgba(255,255,255,0.3)',
-                        opacity: idx === currentImageIndex ? '1' : '0.6',
-                        border: 'none'
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setCurrentImageIndex(idx);
-                      }}
-                    />
-                  ))}
                 </div>
 
-                {/* Floating "Watch Video" button if video exists */}
-                {character?.videoUrl && (
-                  <button
-                    className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors backdrop-blur-sm z-10 font-medium"
-                    onClick={() => setShowVideo(true)}
-                  >
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                    Video
-                  </button>
+                {replyingTo.isImage && replyingTo.imageUrl && (
+                  <div className="h-10 w-10 rounded-md overflow-hidden bg-black/20 flex-shrink-0">
+                    <img
+                      src={Array.isArray(replyingTo.imageUrl) ? replyingTo.imageUrl[0] : replyingTo.imageUrl}
+                      alt="Quoted"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 )}
-              </>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground flex-shrink-0"
+                  onClick={() => setReplyingTo(null)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
             )}
+            <div className="flex items-end gap-2">
+              <Input
+                ref={inputRef}
+                placeholder={t("chat.inputPlaceholder")}
+                className="flex-1 bg-card border-border min-h-[44px] text-base md:text-sm resize-none"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyPress}
+                disabled={isSendingMessage || isGeneratingImage}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="sentences"
+                spellCheck="true"
+              />
+              <Button
+                size="icon"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground min-h-[44px] min-w-[44px] touch-manipulation"
+                onClick={handleSendMessage}
+                disabled={isSendingMessage || isGeneratingImage || !inputValue.trim() || !character}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
+        </div>
 
-          {/* Profile Info */}
-          <div className="p-4 flex flex-col gap-3">
-            <h4 className="text-xl font-bold">{character?.name}</h4>
-            <p className="text-muted-foreground text-sm leading-relaxed">{character?.description}</p>
+        {/* Right Sidebar - Profile - Independent Scroll */}
+        <div className={cn(
+          "hidden border-l border-border transition-all duration-300 ease-in-out bg-background/50 backdrop-blur-sm h-full",
+          isProfileOpen ? "lg:flex lg:flex-col lg:w-80" : "lg:hidden w-0 overflow-hidden"
+        )}>
+          <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800" style={{ overscrollBehavior: 'contain' }}>
+            {/* Profile Images Carousel */}
+            <div className="relative w-full aspect-[3/4] max-h-[400px]">
+              {showVideo ? (
+                <div className="w-full h-full">
+                  {character?.videoUrl ? (
+                    <>
+                      <video
+                        key={character.videoUrl}
+                        src={character.videoUrl}
+                        className="w-full h-full object-cover"
+                        controls
+                        autoPlay
+                        onError={(e) => {
+                          console.error("Video error:", e)
+                          toast.error(t("chat.videoLoadingError"))
+                        }}
+                      />
+                      <div className="absolute top-0 left-0 w-full bg-black/50 p-2 text-white text-xs">
+                        {character.videoUrl}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-center h-full bg-black/20">
+                      <p className="text-white bg-black/50 p-2 rounded">{t("chat.noVideoAvailable")}</p>
+                    </div>
+                  )}
+                  <button
+                    className="absolute top-2 right-2 bg-background/50 p-1 rounded-full z-10"
+                    onClick={() => {
+                      console.log("Closing video")
+                      setShowVideo(false)
+                    }}
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {/* Carousel Image */}
+                  <img
+                    src={
+                      (galleryImages.length > 0
+                        ? galleryImages[currentImageIndex]
+                        : (character?.image || "/placeholder.svg"))
+                    }
+                    alt={character?.name || "Character"}
+                    className="w-full h-full object-contain bg-background transition-opacity duration-300"
+                    onError={() => handleImageError("profile")}
+                    loading="lazy"
+                  />
 
-            {/* Character Info Details */}
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {displaySettings.show_age && character?.age && <ProfileDetail icon="🎂" label={t("db.age")} value={character.age.toString()} />}
-              {displaySettings.show_relationship && character?.relationship && <ProfileDetail icon="❤️" label={t("db.relationship")} value={t_db(character.relationship)} />}
-              {displaySettings.show_body && character?.body && <ProfileDetail icon="💃" label={t("db.bodytype")} value={t_db(character.body)} />}
-              {displaySettings.show_ethnicity && character?.ethnicity && <ProfileDetail icon="🌍" label={t("db.ethnicity")} value={t_db(character.ethnicity)} />}
-              {displaySettings.show_occupation && character?.occupation && <ProfileDetail icon="💼" label={t("db.occupation")} value={t_db(character.occupation)} />}
-              {displaySettings.show_language && character?.language && <ProfileDetail icon="🗣️" label={t("db.language")} value={t_db(character.language)} />}
-              {displaySettings.show_personality && character?.personality && <ProfileDetail icon="🧠" label={t("db.personality")} value={t_db(character.personality)} />}
-              {displaySettings.show_hobbies && character?.hobbies && <ProfileDetail icon="🎨" label={t("db.hobbies")} value={t_db(character.hobbies)} />}
+                  {/* Navigation Arrows */}
+                  <button
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-1.5 rounded-full transition-colors text-white backdrop-blur-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePrevImage();
+                    }}
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </button>
+                  <button
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-1.5 rounded-full transition-colors text-white backdrop-blur-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNextImage();
+                    }}
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </button>
+
+                  {/* Ultra-tiny Dots Indicator */}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 z-10 pointer-events-auto">
+                    {galleryImages.map((_, idx) => (
+                      <span
+                        key={idx}
+                        className="cursor-pointer transition-all duration-300"
+                        style={{
+                          display: 'block',
+                          width: '2.5px',
+                          height: '2.5px',
+                          borderRadius: '50%',
+                          padding: '0',
+                          margin: '0',
+                          backgroundColor: idx === currentImageIndex ? '#ffffff' : 'rgba(255,255,255,0.3)',
+                          opacity: idx === currentImageIndex ? '1' : '0.6',
+                          border: 'none'
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setCurrentImageIndex(idx);
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Floating "Watch Video" button if video exists */}
+                  {character?.videoUrl && (
+                    <button
+                      className="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors backdrop-blur-sm z-10 font-medium"
+                      onClick={() => setShowVideo(true)}
+                    >
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                      Video
+                    </button>
+                  )}
+                </>
+              )}
             </div>
 
-            {/* Character Gallery */}
-            {/* {characterId && (
+            {/* Profile Info */}
+            <div className="p-4 flex flex-col gap-3">
+              <h4 className="text-xl font-bold">{character?.name}</h4>
+              <p className="text-muted-foreground text-sm leading-relaxed">{character?.description}</p>
+
+              {/* Character Info Details */}
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {displaySettings.show_age && character?.age && <ProfileDetail icon="🎂" label={t("db.age")} value={character.age.toString()} />}
+                {displaySettings.show_relationship && character?.relationship && <ProfileDetail icon="❤️" label={t("db.relationship")} value={t_db(character.relationship)} />}
+                {displaySettings.show_body && character?.body && <ProfileDetail icon="💃" label={t("db.bodytype")} value={t_db(character.body)} />}
+                {displaySettings.show_ethnicity && character?.ethnicity && <ProfileDetail icon="🌍" label={t("db.ethnicity")} value={t_db(character.ethnicity)} />}
+                {displaySettings.show_occupation && character?.occupation && <ProfileDetail icon="💼" label={t("db.occupation")} value={t_db(character.occupation)} />}
+                {displaySettings.show_language && character?.language && <ProfileDetail icon="🗣️" label={t("db.language")} value={t_db(character.language)} />}
+                {displaySettings.show_personality && character?.personality && <ProfileDetail icon="🧠" label={t("db.personality")} value={t_db(character.personality)} />}
+                {displaySettings.show_hobbies && character?.hobbies && <ProfileDetail icon="🎨" label={t("db.hobbies")} value={t_db(character.hobbies)} />}
+              </div>
+
+              {/* Character Gallery */}
+              {/* {characterId && (
               <CharacterGallery
                 characterId={characterId}
                 onImageClick={(url) => {
@@ -2927,8 +2904,8 @@ return (
               />
             )} */}
 
-            {/* Generate Image Button - Locked during story mode */}
-            {/* {(() => {
+              {/* Generate Image Button - Locked during story mode */}
+              {/* {(() => {
               const isLocked = !!(storyProgress && !storyProgress.is_completed);
               return (
                 <>
@@ -2957,123 +2934,131 @@ return (
                 </>
               );
             })()} */}
+            </div>
           </div>
         </div>
-      </div>
 
-      <Sheet open={isMobileProfileOpen} onOpenChange={setIsMobileProfileOpen}>
-        <SheetContent side="right" className="p-0 w-full sm:w-[400px] border-l-border bg-background z-[100]">
-          <SheetHeader className="absolute top-2 right-2 z-50">
-            <SheetTitle className="sr-only">Profile Details</SheetTitle>
-          </SheetHeader>
-          <div className="h-full w-full flex flex-col">
-            <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800" style={{ overscrollBehavior: 'contain' }}>
-              {/* Profile Images Carousel */}
-              <div className="relative w-full aspect-[3/4] max-h-[450px]">
-                {showVideo ? (
-                  <div className="w-full h-full">
-                    {character?.videoUrl ? (
-                      <>
-                        <video
-                          key={character.videoUrl}
-                          src={character.videoUrl}
-                          className="w-full h-full object-cover"
-                          controls
-                          autoPlay
-                          onError={(e) => {
-                            console.error("Video error:", e)
-                            toast.error(t("chat.videoLoadingError"))
-                          }}
-                        />
-                        <div className="absolute top-0 left-0 w-full bg-black/50 p-2 text-white text-xs">
-                          {character.videoUrl}
+        <Sheet open={isMobileProfileOpen} onOpenChange={setIsMobileProfileOpen}>
+          <SheetContent side="right" className="p-0 w-full sm:w-[400px] border-l-border bg-background z-[100]">
+            <Button
+              variant="ghost"
+              className="absolute top-4 left-4 z-50 bg-black/50 hover:bg-black/70 text-white rounded-full px-4 h-10 backdrop-blur-md border border-white/20 transition-all flex items-center gap-2 group shadow-xl"
+              onClick={() => setIsMobileProfileOpen(false)}
+            >
+              <ChevronLeft className="h-5 w-5 transition-transform group-active:-translate-x-1" />
+              <span className="text-sm font-bold tracking-tight">Chatt</span>
+            </Button>
+            <SheetHeader className="absolute top-2 right-2 z-50">
+              <SheetTitle className="sr-only">Profile Details</SheetTitle>
+            </SheetHeader>
+            <div className="h-full w-full flex flex-col">
+              <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-gray-800" style={{ overscrollBehavior: 'contain' }}>
+                {/* Profile Images Carousel */}
+                <div className="relative w-full aspect-[3/4] max-h-[450px]">
+                  {showVideo ? (
+                    <div className="w-full h-full">
+                      {character?.videoUrl ? (
+                        <>
+                          <video
+                            key={character.videoUrl}
+                            src={character.videoUrl}
+                            className="w-full h-full object-cover"
+                            controls
+                            autoPlay
+                            onError={(e) => {
+                              console.error("Video error:", e)
+                              toast.error(t("chat.videoLoadingError"))
+                            }}
+                          />
+                          <div className="absolute top-0 left-0 w-full bg-black/50 p-2 text-white text-xs">
+                            {character.videoUrl}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex items-center justify-center h-full bg-black/20">
+                          <p className="text-white bg-black/50 p-2 rounded">{t("chat.noVideoAvailable")}</p>
                         </div>
-                      </>
-                    ) : (
-                      <div className="flex items-center justify-center h-full bg-black/20">
-                        <p className="text-white bg-black/50 p-2 rounded">{t("chat.noVideoAvailable")}</p>
-                      </div>
-                    )}
-                    <button
-                      className="absolute top-2 right-2 bg-background/50 p-1 rounded-full z-10"
-                      onClick={() => {
-                        console.log("Closing video")
-                        setShowVideo(false)
-                      }}
-                    >
-                      <ChevronLeft className="h-6 w-6" />
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    {/* Carousel Image */}
-                    <img
-                      src={
-                        (galleryImages.length > 0
-                          ? galleryImages[currentImageIndex]
-                          : (character?.image || "/placeholder.svg"))
-                      }
-                      alt={character?.name || "Character"}
-                      className="w-full h-full object-contain bg-background transition-opacity duration-300"
-                      onError={() => handleImageError("profile")}
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-90" />
-
-                    {/* Navigation Arrows */}
-                    <button
-                      className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-1.5 rounded-full transition-colors text-white backdrop-blur-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePrevImage();
-                      }}
-                    >
-                      <ChevronLeft className="h-6 w-6" />
-                    </button>
-                    <button
-                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-1.5 rounded-full transition-colors text-white backdrop-blur-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleNextImage();
-                      }}
-                    >
-                      <ChevronRight className="h-6 w-6" />
-                    </button>
-
-                    {/* Floating "Watch Video" button if video exists */}
-                    {character?.videoUrl && (
+                      )}
                       <button
-                        className="absolute top-4 right-12 bg-black/60 hover:bg-black/80 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors backdrop-blur-sm z-10 font-medium"
-                        onClick={() => setShowVideo(true)}
+                        className="absolute top-2 right-2 bg-background/50 p-1 rounded-full z-10"
+                        onClick={() => {
+                          console.log("Closing video")
+                          setShowVideo(false)
+                        }}
                       >
-                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                        Video
+                        <ChevronLeft className="h-6 w-6" />
                       </button>
-                    )}
-                  </>
-                )}
-              </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Carousel Image */}
+                      <img
+                        src={
+                          (galleryImages.length > 0
+                            ? galleryImages[currentImageIndex]
+                            : (character?.image || "/placeholder.svg"))
+                        }
+                        alt={character?.name || "Character"}
+                        className="w-full h-full object-contain bg-background transition-opacity duration-300"
+                        onError={() => handleImageError("profile")}
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-90" />
 
-              {/* Profile Info - Overlaying the image slightly */}
-              <div className="px-5 -mt-20 relative z-10">
-                <h4 className="text-3xl font-black text-white mb-2 drop-shadow-md">{character?.name}</h4>
-                <div className="w-full h-px bg-white/20 mb-4" />
-                <p className="text-gray-200 text-sm leading-relaxed mb-4 drop-shadow-sm font-medium">{character?.description}</p>
+                      {/* Navigation Arrows */}
+                      <button
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-1.5 rounded-full transition-colors text-white backdrop-blur-sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePrevImage();
+                        }}
+                      >
+                        <ChevronLeft className="h-6 w-6" />
+                      </button>
+                      <button
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-1.5 rounded-full transition-colors text-white backdrop-blur-sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleNextImage();
+                        }}
+                      >
+                        <ChevronRight className="h-6 w-6" />
+                      </button>
 
-                {/* Mobile Details */}
-                <div className="grid grid-cols-2 gap-2 mb-6">
-                  {displaySettings.show_age && character?.age && <ProfileDetail icon="🎂" label={t("db.age")} value={character.age.toString()} />}
-                  {displaySettings.show_relationship && character?.relationship && <ProfileDetail icon="❤️" label={t("db.relationship")} value={t_db(character.relationship)} />}
-                  {displaySettings.show_body && character?.body && <ProfileDetail icon="💃" label={t("db.bodytype")} value={t_db(character.body)} />}
-                  {displaySettings.show_ethnicity && character?.ethnicity && <ProfileDetail icon="🌍" label={t("db.ethnicity")} value={t_db(character.ethnicity)} />}
-                  {displaySettings.show_occupation && character?.occupation && <ProfileDetail icon="💼" label={t("db.occupation")} value={t_db(character.occupation)} />}
-                  {displaySettings.show_language && character?.language && <ProfileDetail icon="🗣️" label={t("db.language")} value={t_db(character.language)} />}
-                  {displaySettings.show_personality && character?.personality && <ProfileDetail icon="🧠" label={t("db.personality")} value={t_db(character.personality)} />}
-                  {displaySettings.show_hobbies && character?.hobbies && <ProfileDetail icon="🎨" label={t("db.hobbies")} value={t_db(character.hobbies)} />}
+                      {/* Floating "Watch Video" button if video exists */}
+                      {character?.videoUrl && (
+                        <button
+                          className="absolute top-4 right-12 bg-black/60 hover:bg-black/80 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 transition-colors backdrop-blur-sm z-10 font-medium"
+                          onClick={() => setShowVideo(true)}
+                        >
+                          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                          Video
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
 
-                {/* Character Gallery */}
-                {/* {characterId && (
+                {/* Profile Info - Overlaying the image slightly */}
+                <div className="px-5 -mt-20 relative z-10">
+                  <h4 className="text-3xl font-black text-white mb-2 drop-shadow-md">{character?.name}</h4>
+                  <div className="w-full h-px bg-white/20 mb-4" />
+                  <p className="text-gray-200 text-sm leading-relaxed mb-4 drop-shadow-sm font-medium">{character?.description}</p>
+
+                  {/* Mobile Details */}
+                  <div className="grid grid-cols-2 gap-2 mb-6">
+                    {displaySettings.show_age && character?.age && <ProfileDetail icon="🎂" label={t("db.age")} value={character.age.toString()} />}
+                    {displaySettings.show_relationship && character?.relationship && <ProfileDetail icon="❤️" label={t("db.relationship")} value={t_db(character.relationship)} />}
+                    {displaySettings.show_body && character?.body && <ProfileDetail icon="💃" label={t("db.bodytype")} value={t_db(character.body)} />}
+                    {displaySettings.show_ethnicity && character?.ethnicity && <ProfileDetail icon="🌍" label={t("db.ethnicity")} value={t_db(character.ethnicity)} />}
+                    {displaySettings.show_occupation && character?.occupation && <ProfileDetail icon="💼" label={t("db.occupation")} value={t_db(character.occupation)} />}
+                    {displaySettings.show_language && character?.language && <ProfileDetail icon="🗣️" label={t("db.language")} value={t_db(character.language)} />}
+                    {displaySettings.show_personality && character?.personality && <ProfileDetail icon="🧠" label={t("db.personality")} value={t_db(character.personality)} />}
+                    {displaySettings.show_hobbies && character?.hobbies && <ProfileDetail icon="🎨" label={t("db.hobbies")} value={t_db(character.hobbies)} />}
+                  </div>
+
+                  {/* Character Gallery */}
+                  {/* {characterId && (
                   <div className="bg-background/80 backdrop-blur-xl rounded-2xl p-4 border border-white/5 mb-6">
                     <h5 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">{t("chat.gallery")}</h5>
                     <CharacterGallery
@@ -3089,8 +3074,8 @@ return (
                   </div>
                 )} */}
 
-                {/* Mobile Generate Button */}
-                {/* {(() => {
+                  {/* Mobile Generate Button */}
+                  {/* {(() => {
                   const isLocked = !!(storyProgress && !storyProgress.is_completed);
                   return (
                     <div className="mb-8 mt-4">
@@ -3119,80 +3104,80 @@ return (
                     </div>
                   );
                 })()} */}
+                </div>
               </div>
             </div>
-          </div>
-        </SheetContent>
-      </Sheet>
+          </SheetContent>
+        </Sheet>
 
-      {/* Debug Panel */}
-      <DebugPanel
-        characterId={characterId}
-        chatId={characterId}
-        handleClearChat={handleClearChat}
-        handleResetCharacter={() => { }}
-        isOpen={false}
-      />
-      <SupabaseDebug />
-      <PremiumUpgradeModal
-        isOpen={isPremiumModalOpen}
-        onClose={() => setIsPremiumModalOpen(false)}
-        mode={premiumModalMode}
-        feature={premiumModalFeature}
-        description={premiumModalDescription}
-        imageSrc={character?.image || "https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963040/premium-modals/premium_upgrade.jpg"}
-      />
+        {/* Debug Panel */}
+        <DebugPanel
+          characterId={characterId}
+          chatId={characterId}
+          handleClearChat={handleClearChat}
+          handleResetCharacter={() => { }}
+          isOpen={false}
+        />
+        <SupabaseDebug />
+        <PremiumUpgradeModal
+          isOpen={isPremiumModalOpen}
+          onClose={() => setIsPremiumModalOpen(false)}
+          mode={premiumModalMode}
+          feature={premiumModalFeature}
+          description={premiumModalDescription}
+          imageSrc={character?.image || "https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963040/premium-modals/premium_upgrade.jpg"}
+        />
 
-      <PremiumUpgradeModal
-        isOpen={showTokensDepletedModal}
-        onClose={() => setShowTokensDepletedModal(false)}
-        mode="tokens-depleted"
-        feature={t("chat.tokensSlut")}
-        description={t("chat.noTokensLeft")}
-        imageSrc="https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963046/premium-modals/tokens_depleted.jpg"
-      />
+        <PremiumUpgradeModal
+          isOpen={showTokensDepletedModal}
+          onClose={() => setShowTokensDepletedModal(false)}
+          mode="tokens-depleted"
+          feature={t("chat.tokensSlut")}
+          description={t("chat.noTokensLeft")}
+          imageSrc="https://res.cloudinary.com/ddg02aqiw/image/upload/v1766963046/premium-modals/tokens_depleted.jpg"
+        />
 
-      <PremiumUpgradeModal
-        isOpen={showExpiredModal}
-        onClose={() => setShowExpiredModal(false)}
-        mode="expired"
-        feature={t("chat.premiumExpired")}
-        description={t("chat.premiumExpiredDesc")}
-      />
+        <PremiumUpgradeModal
+          isOpen={showExpiredModal}
+          onClose={() => setShowExpiredModal(false)}
+          mode="expired"
+          feature={t("chat.premiumExpired")}
+          description={t("chat.premiumExpiredDesc")}
+        />
 
-      {
-        selectedImage && (
-          <ImageModal
-            open={!!selectedImage}
-            onOpenChange={(open) => {
-              if (!open) {
-                setSelectedImage(null)
-                setSelectedImagePrompt("")
-              }
-            }}
-            images={selectedImage}
-            initialIndex={0}
-            onDownload={(url, index) => {
-              const a = document.createElement('a')
-              a.href = url
-              a.download = `generated-${index}.jpg`
-              a.click()
-            }}
-            onShare={(url) => {
-              navigator.clipboard.writeText(url)
-              toast.success(t("status.copied"))
-            }}
-            onSave={(index) => handleSaveImage(selectedImage[index], selectedImagePrompt)}
-            savingIndex={isSaving ? 0 : null} // Simple visual feedback
-          />
-        )
-      }
+        {
+          selectedImage && (
+            <ImageModal
+              open={!!selectedImage}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setSelectedImage(null)
+                  setSelectedImagePrompt("")
+                }
+              }}
+              images={selectedImage}
+              initialIndex={0}
+              onDownload={(url, index) => {
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `generated-${index}.jpg`
+                a.click()
+              }}
+              onShare={(url) => {
+                navigator.clipboard.writeText(url)
+                toast.success(t("status.copied"))
+              }}
+              onSave={(index) => handleSaveImage(selectedImage[index], selectedImagePrompt)}
+              savingIndex={isSaving ? 0 : null} // Simple visual feedback
+            />
+          )
+        }
 
-      {/* Welcome Marketing Modal */}
-      <WelcomeModal pageType="chat" />
-    </div>
-  </TooltipProvider>
-)
+        {/* Welcome Marketing Modal */}
+        <WelcomeModal pageType="chat" />
+      </div>
+    </TooltipProvider>
+  )
 }
 
 function ProfileDetail({ icon, label, value }: { icon: string; label: string; value: string }) {

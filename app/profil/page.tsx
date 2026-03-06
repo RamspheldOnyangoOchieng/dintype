@@ -378,12 +378,12 @@ export default function ProfilePage() {
               <div className="lg:col-span-2 space-y-6">
                 <Card className="border-border/40 bg-card/30 backdrop-blur-sm overflow-hidden shadow-xl">
                   <CardHeader className="border-b border-border/40 bg-muted/20">
-                    <CardTitle className="flex items-center gap-2 font-bold text-zinc-800 dark:text-white">
+                    <CardTitle className="flex items-center gap-2 font-bold text-foreground">
                       <Settings className="w-5 h-5 text-primary" /> {t("profile.accountInfo")}
                     </CardTitle>
                     <CardDescription>{t("profile.accountInfoDesc")}</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-6 pt-6 text-zinc-800 dark:text-zinc-200">
+                  <CardContent className="space-y-6 pt-6 text-foreground">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
                         <Label htmlFor="username" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("profile.username")}</Label>
@@ -402,7 +402,7 @@ export default function ProfilePage() {
                         <div className="relative">
                           <select
                             id="gender"
-                            className="w-full pl-3 pr-10 h-11 bg-background/50 border border-border/40 rounded-md flex items-center appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                            className="w-full pl-3 pr-10 h-11 bg-background/50 border border-border/40 rounded-md flex items-center appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm text-foreground"
                             value={profileData.gender}
                             onChange={(e) => setProfileData({ ...profileData, gender: e.target.value })}
                           >
@@ -557,7 +557,7 @@ export default function ProfilePage() {
 
                 <Card className="border-border/40 bg-card/30 backdrop-blur-sm shadow-md">
                   <CardHeader>
-                    <CardTitle className="text-sm font-bold uppercase tracking-wider text-zinc-800 dark:text-white">{t("profile.statsOverview")}</CardTitle>
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider text-foreground">{t("profile.statsOverview")}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-1.5">
@@ -591,7 +591,7 @@ export default function ProfilePage() {
           <TabsContent value="security" className="space-y-6">
             <Card className="border-border/40 bg-card/30 backdrop-blur-sm shadow-md">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 font-bold text-zinc-800 dark:text-white">
+                <CardTitle className="flex items-center gap-2 font-bold text-foreground">
                   <Lock className="w-5 h-5 text-primary" /> {t("profile.passwordManagement")}
                 </CardTitle>
                 <CardDescription>{t("profile.passwordSecurityDesc")}</CardDescription>
@@ -689,7 +689,7 @@ export default function ProfilePage() {
             <div className="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mb-4">
               <CheckCircle2 className="w-10 h-10" />
             </div>
-            <DialogTitle className="text-2xl font-black text-center text-zinc-800 dark:text-white">{t("profile.saved")}</DialogTitle>
+            <DialogTitle className="text-2xl font-black text-center text-foreground">{t("profile.saved")}</DialogTitle>
             <DialogDescription className="text-center text-muted-foreground mt-2">
               {t("profile.savedDesc")}
             </DialogDescription>
@@ -709,7 +709,7 @@ export default function ProfilePage() {
             <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-4">
               <XCircle className="w-10 h-10" />
             </div>
-            <DialogTitle className="text-2xl font-black text-center text-zinc-800 dark:text-white">{t("profile.errorTitle")}</DialogTitle>
+            <DialogTitle className="text-2xl font-black text-center text-foreground">{t("profile.errorTitle")}</DialogTitle>
             <DialogDescription className="text-center text-muted-foreground mt-2">
               {errorMessage}
             </DialogDescription>

@@ -48,8 +48,10 @@ export function MobileNav() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [lastScrollY])
 
-  // Don't show the mobile nav on chat pages or admin pages
-  if (pathname?.startsWith("/chatt") || pathname?.startsWith("/admin")) {
+  // Don't show the mobile nav inside an active chat session (/chatt/[id]) or admin pages.
+  // We check for optional locale prefixes like /sv/ or /en/
+  const isActiveChatSession = pathname ? /^(\/(sv|en))?\/chatt\/.+/.test(pathname) : false
+  if (isActiveChatSession || pathname?.startsWith("/admin") || pathname?.includes("/admin/")) {
     return null
   }
 
@@ -105,9 +107,8 @@ export function MobileNav() {
   return (
     <>
       <div
-        className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ease-in-out ${
-          isVisible ? "translate-y-0" : "translate-y-full"
-        }`}
+        className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-300 ease-in-out ${isVisible ? "translate-y-0" : "translate-y-full"
+          }`}
       >
         <div className="bg-card/95 backdrop-blur-sm border-t border-border shadow-[0_-5px_10px_rgba(0,0,0,0.1)] pb-safe-area-bottom">
           <div className="flex overflow-x-auto no-scrollbar py-2 px-1 gap-1">

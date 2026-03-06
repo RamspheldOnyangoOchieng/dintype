@@ -9,6 +9,7 @@ export interface UserPlanInfo {
   status: string;
   currentPeriodEnd?: string;
   restrictions: Record<string, any>;
+  enforcementEnabled: boolean;
 }
 
 export interface UsageCheck {
@@ -66,6 +67,15 @@ export async function getUserPlanInfo(userId: string): Promise<UserPlanInfo> {
     }
   }
 
+  // Check if plan restrictions enforcement is globally enabled
+  const { data: envSetting } = await supabase
+    .from('settings')
+    .select('value')
+    .eq('key', 'plan_restrictions_enabled')
+    .maybeSingle();
+
+  const enforcementEnabled = envSetting?.value === true || envSetting?.value === 'true';
+
   // Get all restrictions for this plan
   const { data: restrictions } = await supabase
     .from('plan_restrictions')
@@ -81,7 +91,8 @@ export async function getUserPlanInfo(userId: string): Promise<UserPlanInfo> {
     planType: planType as 'free' | 'premium',
     status: subscription?.status || 'active',
     currentPeriodEnd: subscription?.current_period_end,
-    restrictions: restrictionsMap
+    restrictions: restrictionsMap,
+    enforcementEnabled
   };
 }
 
@@ -96,6 +107,11 @@ export async function checkModelAccess(userId: string, model: string): Promise<{
 
     const planInfo = await getUserPlanInfo(userId);
     const restrictions = planInfo.restrictions;
+
+    // IF ENFORCEMENT IS DISABLED: Use coded defaults (allow mostly everything)
+    if (!planInfo.enforcementEnabled) {
+      return { allowed: true };
+    }
 
     // Normalize model name
     const modelLower = model.toLowerCase();
@@ -150,9 +166,15 @@ export async function checkNsfwAccess(userId: string): Promise<{ allowed: boolea
     }
 
     const planInfo = await getUserPlanInfo(userId);
+    
+    // IF ENFORCEMENT IS DISABLED: Default to ALLOWED (or whatever the coded logic was)
+    if (!planInfo.enforcementEnabled) {
+       return { allowed: true };
+    }
+
     const canGenerateNsfw = planInfo.restrictions.can_generate_nsfw;
 
-    if (canGenerateNsfw === 'false') {
+    if (canGenerateNsfw === 'false' || canGenerateNsfw === false) {
       return {
         allowed: false,
         message: `NSFW content generation is not available on the ${planInfo.planType} plan. Upgrade to Premium to unlock this feature.`
@@ -186,9 +208,13 @@ export async function checkMessageLimit(userId: string): Promise<UsageCheck> {
       return { allowed: true, currentUsage: 0, limit: null };
     }
 
-    let limit = planInfo?.restrictions?.daily_free_messages || planInfo?.restrictions?.daily_message_limit;
+    let limit = null;
+    
+    if (planInfo.enforcementEnabled) {
+      limit = planInfo?.restrictions?.daily_free_messages || planInfo?.restrictions?.daily_message_limit;
+    }
 
-    // Default to 3 messages for free plan if not set
+    // Default to 3 messages for free plan if not set in DB or enforcement is disabled
     if ((!limit || limit === 'null' || limit === undefined) && planInfo.planType === 'free') {
       limit = 3;
     }
@@ -200,6 +226,7 @@ export async function checkMessageLimit(userId: string): Promise<UsageCheck> {
     if ((isNaN(limitNum) || limitNum <= 0) && planInfo.planType === 'free') {
       limitNum = 3;
     } else if (!limit || limit === null || limit === 'null' || limit === undefined || (limitNum <= 0 && planInfo.planType !== 'free')) {
+      // If enforcement is disabled and it's not a free user, or limit is invalid, allow
       return { allowed: true, currentUsage: 0, limit: null };
     }
 
@@ -230,7 +257,7 @@ export async function checkMessageLimit(userId: string): Promise<UsageCheck> {
 
 export async function incrementMessageUsage(userId: string): Promise<void> {
   console.log('📝 Incrementing message usage for user:', userId);
-  
+
   const supabase = await createAdminClient();
   if (!supabase) {
     console.error('❌ Failed to create admin client for incrementMessageUsage');
@@ -244,7 +271,7 @@ export async function incrementMessageUsage(userId: string): Promise<void> {
 
   if (error) {
     console.log('⚠️ RPC increment_message_usage_simple not available, using fallback upsert:', error.message);
-    
+
     // Fallback if RPC doesn't exist
     const { data: existing } = await supabase
       .from('message_usage_tracking')
@@ -262,7 +289,7 @@ export async function incrementMessageUsage(userId: string): Promise<void> {
         })
         .eq('user_id', userId)
         .eq('date', today);
-      
+
       if (updateError) {
         console.error('❌ Error updating message_usage_tracking:', updateError);
       } else {
@@ -278,7 +305,7 @@ export async function incrementMessageUsage(userId: string): Promise<void> {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         });
-      
+
       if (insertError) {
         console.error('❌ Error inserting message_usage_tracking:', insertError);
       } else {
@@ -313,7 +340,9 @@ export async function checkImageGenerationLimit(userId: string): Promise<UsageCh
       .maybeSingle();
 
     const balance = tokenBalance?.balance || 0;
-    const tokensPerImage = parseInt(planInfo.restrictions.tokens_per_image || 5);
+    const tokensPerImage = planInfo.enforcementEnabled 
+      ? parseInt(planInfo.restrictions.tokens_per_image || 5)
+      : 5; // Default coded cost
 
     return {
       allowed: balance >= tokensPerImage,
@@ -323,20 +352,26 @@ export async function checkImageGenerationLimit(userId: string): Promise<UsageCh
     };
   }
 
-  // Free users check weekly limit - default to 1 free image per week
-  const weeklyLimit = parseInt(planInfo.restrictions.weekly_image_generation || '1');
+  // Free users check weekly limit
+  // If enforcement is disabled, default to 1 free image per week
+  let weeklyLimit = 1;
+  
+  if (planInfo.enforcementEnabled) {
+     weeklyLimit = parseInt(planInfo.restrictions.weekly_image_generation || '1');
+  }
 
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
 
-  const { count } = await supabase
+  const { data: usage } = await supabase
     .from('user_usage_tracking')
-    .select('usage_count', { count: 'exact' })
+    .select('usage_count')
     .eq('user_id', userId)
     .eq('usage_type', 'images')
-    .gte('created_at', weekAgo.toISOString());
+    .gte('created_at', weekAgo.toISOString())
+    .maybeSingle();
 
-  const currentUsage = count || 0;
+  const currentUsage = usage?.usage_count || 0;
   const allowed = currentUsage < weeklyLimit;
 
   return {
@@ -394,6 +429,28 @@ export async function incrementImageUsage(userId: string): Promise<void> {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       });
+  }
+}
+
+export async function decrementImageUsage(userId: string): Promise<void> {
+  const supabase = await createAdminClient();
+  if (!supabase) return;
+
+  const { data: existing } = await supabase
+    .from('user_usage_tracking')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('usage_type', 'images')
+    .maybeSingle();
+
+  if (existing && existing.usage_count > 0) {
+    await supabase
+      .from('user_usage_tracking')
+      .update({
+        usage_count: existing.usage_count - 1,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', existing.id);
   }
 }
 
@@ -458,7 +515,11 @@ export async function checkActiveGirlfriendsLimit(userId: string): Promise<Usage
   if (!supabase) return { allowed: true, currentUsage: 0, limit: null };
 
   const planInfo = await getUserPlanInfo(userId);
-  const limit = parseInt(planInfo.restrictions.active_girlfriends_limit || planInfo.restrictions.active_girlfriends || '1');
+  let limit = 1;
+  
+  if (planInfo.enforcementEnabled) {
+    limit = parseInt(planInfo.restrictions.active_girlfriends_limit || planInfo.restrictions.active_girlfriends || '1');
+  }
 
   const { count } = await supabase
     .from('characters')

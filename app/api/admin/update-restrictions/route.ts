@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase-admin"
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { free, premium } = body
+    const { free, premium, enforcementEnabled } = body
 
     if (!free || !premium) {
       return NextResponse.json({
@@ -14,6 +14,17 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createAdminClient()
+
+    // Update enforcement status if provided
+    if (typeof enforcementEnabled === 'boolean') {
+      await supabase
+        .from('settings')
+        .upsert({
+          key: 'plan_restrictions_enabled',
+          value: enforcementEnabled,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'key' })
+    }
 
     // Update all restrictions
     const allRestrictions = [...free, ...premium]

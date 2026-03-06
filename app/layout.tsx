@@ -24,11 +24,11 @@ export async function generateMetadata(): Promise<Metadata> {
     icons: {
       icon: [
         {
-          url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230ea5e9'/%3E%3Ctext x='50' y='55' fontFamily='Arial,sans-serif' fontSize='14' fontWeight='bold' textAnchor='middle' fill='white'%3EDINTYPE%3C/text%3E%3C/svg%3E",
-          type: "image/svg+xml",
+          url: "/favicon.png",
+          type: "image/png",
         },
         {
-          url: "/favicon.ico",
+          url: "/favicon-32x32.png",
           sizes: "32x32",
         },
       ],
@@ -50,14 +50,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="sv" suppressHydrationWarning>
       <head>
-        <link rel="icon" type="image/svg+xml" href="/favicon.png" />
+        <link rel="icon" type="image/png" href="/favicon.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
       </head>
       <body className={cn("font-sans antialiased overflow-x-hidden", poppins.variable)} style={{ margin: 0, padding: 0, position: 'relative', top: 0, background: 'transparent', backgroundColor: 'transparent' }}>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <AuthProvider>
             <AuthModalProvider>
               <ClientRootLayout>

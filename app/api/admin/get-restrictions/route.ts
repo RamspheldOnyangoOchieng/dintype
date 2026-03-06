@@ -24,11 +24,19 @@ export async function GET(request: NextRequest) {
     const free = restrictions?.filter(r => r.plan_type === 'free') || []
     const premium = restrictions?.filter(r => r.plan_type === 'premium') || []
 
+    // Get enforcement status
+    const { data: envSetting } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'plan_restrictions_enabled')
+      .maybeSingle();
+
     return NextResponse.json({
       success: true,
       free,
       premium,
-      total: restrictions?.length || 0
+      total: restrictions?.length || 0,
+      enforcementEnabled: envSetting?.value === true || envSetting?.value === 'true'
     })
 
   } catch (error) {

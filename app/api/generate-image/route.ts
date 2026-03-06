@@ -262,6 +262,12 @@ export async function POST(req: NextRequest) {
           upgradeUrl: "/premium"
         }, { status: 403 });
       }
+
+      // 4. Increment usage EARLY to prevent double-click bypass/exploits
+      const { incrementImageUsage } = await import("@/lib/subscription-limits")
+      await incrementImageUsage(userId as string).catch(err =>
+        console.error('⚠️ Failed to pre-increment image usage:', err)
+      )
     }
 
     // --- STORYLINE RESTRICTION ---
@@ -687,13 +693,21 @@ export async function POST(req: NextRequest) {
 
     if (taskIds.length === 0) {
       // Refund if ALL failed
-      if (tokenCost > 0 && !isAdmin) {
-        await refundTokens(userId, tokenCost, `Refund for failed generation: ${generationErrorMessage}`);
+      if (!isAdmin) {
+        if (tokenCost > 0) {
+          await refundTokens(userId, tokenCost, `Refund for failed generation: ${generationErrorMessage}`);
+        } else if (!isPremium) {
+          // Refund free image slot
+          const { decrementImageUsage } = await import("@/lib/subscription-limits")
+          await decrementImageUsage(userId as string).catch(err =>
+            console.error('⚠️ Failed to refund/decrement image usage:', err)
+          )
+        }
       }
       return NextResponse.json({
         error: "Generation failed",
         details: generationErrorMessage || "The AI model failed to produce images. Please try a different prompt or settings.",
-        refunded: tokenCost > 0 && !isAdmin
+        refunded: !isAdmin
       }, { status: 500 });
     }
 
@@ -748,13 +762,7 @@ export async function POST(req: NextRequest) {
       console.error('Failed to log API cost:', err)
     )
 
-    // Increment image usage for free users
-    if (!isAdmin && !isPremium) {
-      const { incrementImageUsage } = await import("@/lib/subscription-limits")
-      await incrementImageUsage(userId as string).catch(err =>
-        console.error('Failed to increment image usage:', err)
-      )
-    }
+    // Increment image usage for free users - MOVED TO START TO PREVENT EXPLOITS
 
     // --- PERSISTENT SAVING (Auto-save) ---
     if (autoSave && userId && supabaseAdminForTask && normalizedSeedreamUrls.length > 0) {

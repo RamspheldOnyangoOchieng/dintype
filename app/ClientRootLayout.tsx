@@ -53,13 +53,16 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
     )
   }
 
+  // Normalize path for consistent checks (strip locale)
+  const normalizedPath = pathname?.replace(/^(\/(sv|en))?(\/|$)/, "/") || "/"
+
   const noHeaderPaths = ["/chatt", "/generera", "/premium", "/partner", "/admin"]
   const noFooterPaths = ["/chatt", "/admin"]
-  const showHeader = !noHeaderPaths.some((path) => pathname.startsWith(path))
-  const showFooter = !noFooterPaths.some((path) => pathname.startsWith(path))
+  const showHeader = !noHeaderPaths.some((path) => normalizedPath.startsWith(path))
+  const showFooter = !noFooterPaths.some((path) => normalizedPath.startsWith(path))
 
-  const isAdminPage = pathname?.startsWith("/admin")
-  const isChatPage = pathname?.startsWith("/chatt")
+  const isAdminPage = normalizedPath.startsWith("/admin")
+  const isChatPage = normalizedPath.startsWith("/chatt")
 
   // Chat pages need special handling - they manage their own scroll
   if (isChatPage) {
@@ -73,6 +76,7 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
         <div className={`flex-1 h-full overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "md:ml-64" : "md:ml-20"}`}>
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
+        <MobileNav />
         <AuthModals />
         <Toaster />
         <SonnerToaster />

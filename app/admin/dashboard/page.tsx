@@ -542,7 +542,7 @@ export default function AdminDashboardPage() {
           {/* Recent Activity */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2 text-zinc-800 dark:text-white">
+              <CardTitle className="flex items-center space-x-2 text-foreground">
                 <Activity className="h-5 w-5 text-primary" />
                 <span>{t("admin.dashboard.recentActivity")}</span>
               </CardTitle>
@@ -680,7 +680,7 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <Label className="font-bold text-zinc-800 dark:text-zinc-200">Symbol Positioning</Label>
+                  <Label className="font-bold text-foreground">Symbol Positioning</Label>
                   <RadioGroup
                     value={currencyPosition}
                     onValueChange={(value) => setCurrencyPosition(value as "left" | "right")}

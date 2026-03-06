@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "@/components/ui/use-toast"
+import { useAuth } from "@/components/auth-context"
 import type { CharacterProfile } from "@/lib/storage-service"
 
 interface CharacterFormProps {
@@ -21,7 +22,9 @@ interface CharacterFormProps {
 
 export function CharacterForm({ character, isEditing = false }: CharacterFormProps) {
   const router = useRouter()
+  const { user } = useAuth()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const isAdmin = user?.isAdmin || false
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -114,25 +117,29 @@ export function CharacterForm({ character, isEditing = false }: CharacterFormPro
           </div>
 
           <div className="pt-4 border-t border-white/10">
-            <h3 className="text-lg font-medium text-white mb-4">Advanced Generation References</h3>
+            {isAdmin && (
+              <>
+                <h3 className="text-lg font-medium text-white mb-4">Advanced Generation References</h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="faceReference">Face Reference Photo</Label>
-                <Input id="faceReference" name="faceReference" type="file" accept="image/*" />
-                {character?.face_reference_url && (
-                  <p className="text-xs text-muted-foreground mt-1">Current: <a href={character.face_reference_url} target="_blank" className="text-primary hover:underline">View Image</a></p>
-                )}
-              </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="faceReference">Face Reference Photo</Label>
+                    <Input id="faceReference" name="faceReference" type="file" accept="image/*" />
+                    {character?.face_reference_url && (
+                      <p className="text-xs text-muted-foreground mt-1">Current: <a href={character.face_reference_url} target="_blank" className="text-primary hover:underline">View Image</a></p>
+                    )}
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="anatomyReference">Anatomy/Genital Reference</Label>
-                <Input id="anatomyReference" name="anatomyReference" type="file" accept="image/*" />
-                {character?.anatomy_reference_url && (
-                  <p className="text-xs text-muted-foreground mt-1">Current: <a href={character.anatomy_reference_url} target="_blank" className="text-primary hover:underline">View Image</a></p>
-                )}
-              </div>
-            </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="anatomyReference">Anatomy/Genital Reference</Label>
+                    <Input id="anatomyReference" name="anatomyReference" type="file" accept="image/*" />
+                    {character?.anatomy_reference_url && (
+                      <p className="text-xs text-muted-foreground mt-1">Current: <a href={character.anatomy_reference_url} target="_blank" className="text-primary hover:underline">View Image</a></p>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
 
             <div className="space-y-2 mt-4">
               <Label htmlFor="preferredPoses">Common Personality Poses</Label>

@@ -55,7 +55,7 @@ export default async function ChatPage() {
   })
 
   return (
-    <div className="flex-1 w-full flex flex-col min-h-0 overflow-hidden bg-[#0A0A0A]">
+    <div className="flex-1 w-full flex flex-col min-h-0 overflow-hidden bg-background">
       {/* Cinematic Header Background (Ambient Glow) */}
       <div className="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-primary/10 via-transparent to-transparent pointer-events-none" />
 

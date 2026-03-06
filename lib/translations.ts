@@ -806,6 +806,8 @@ export type TranslationKey =
   | "generate.imageLiked"
   | "generate.addedToFavorites"
   | "generate.promptCleared"
+  | "generate.shareDescription"
+  | "generate.copyFailed"
   | "generate.freeOnly1Image"
   | "premium.dintypePremium"
   | "premium.upgradeExperience"
@@ -2626,6 +2628,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "generate.copiedToClipboard": "Copied to clipboard",
     "generate.pastedFromClipboard": "Pasted from clipboard",
     "generate.imageUrlCopied": "Image URL copied to clipboard",
+    "generate.shareDescription": "Check out this AI generated image!",
+    "generate.copyFailed": "Failed to copy URL",
     "generate.noSuggestionCategories": "No suggestion categories available.",
     "chat.chats": "Chats",
     "chat.viewConversationHistory": "View your conversation history with characters.",
@@ -4396,6 +4400,8 @@ export const translations: Record<"en" | "sv", Translations> = {
     "generate.copiedToClipboard": "Kopierat till urklipp",
     "generate.pastedFromClipboard": "Klistrat in från urklipp",
     "generate.imageUrlCopied": "Bild-URL kopierad till urklipp",
+    "generate.shareDescription": "Kolla in den här AI-genererade bilden!",
+    "generate.copyFailed": "Misslyckades med att kopiera URL",
     "generate.noSuggestionCategories": "Inga förslagskategorier tillgängliga.",
     "chat.chats": "Chattar",
     "chat.viewConversationHistory": "Visa din konversationshistorik med karaktärer.",
