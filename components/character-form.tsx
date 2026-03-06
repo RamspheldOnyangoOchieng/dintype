@@ -117,29 +117,7 @@ export function CharacterForm({ character, isEditing = false }: CharacterFormPro
           </div>
 
           <div className="pt-4 border-t border-white/10">
-            {isAdmin && (
-              <>
-                <h3 className="text-lg font-medium text-white mb-4">Advanced Generation References</h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="faceReference">Face Reference Photo</Label>
-                    <Input id="faceReference" name="faceReference" type="file" accept="image/*" />
-                    {character?.face_reference_url && (
-                      <p className="text-xs text-muted-foreground mt-1">Current: <a href={character.face_reference_url} target="_blank" className="text-primary hover:underline">View Image</a></p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="anatomyReference">Anatomy/Genital Reference</Label>
-                    <Input id="anatomyReference" name="anatomyReference" type="file" accept="image/*" />
-                    {character?.anatomy_reference_url && (
-                      <p className="text-xs text-muted-foreground mt-1">Current: <a href={character.anatomy_reference_url} target="_blank" className="text-primary hover:underline">View Image</a></p>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
+            {/* Advanced Generation References (Removed from site side - accessible via Admin Panel only) */}
 
             <div className="space-y-2 mt-4">
               <Label htmlFor="preferredPoses">Common Personality Poses</Label>

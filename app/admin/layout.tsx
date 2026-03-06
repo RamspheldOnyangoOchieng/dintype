@@ -7,6 +7,8 @@ import { AdminHeader } from "@/components/admin-header"
 import { AdminGuard } from "@/components/admin-guard"
 import { cn } from "@/lib/utils"
 
+import { ThemeProvider } from "@/components/theme-provider"
+
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname()
   const [isCollapsed, setIsCollapsed] = React.useState(false)
@@ -28,32 +30,33 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const isPublicAdminRoute = pathname === '/admin/login' || pathname === '/admin/signup'
 
   if (isPublicAdminRoute) {
-    return <main className="min-h-screen bg-background">{children}</main>
+    return <main className="min-h-screen bg-white text-slate-900">{children}</main>
   }
 
-  if (!isMounted) return <div className="min-h-screen bg-background" />
+  if (!isMounted) return <div className="min-h-screen bg-white" />
 
   return (
     <AdminGuard>
-      <div
-        className={cn(
-          "grid h-screen w-full overflow-hidden transition-all duration-300 ease-in-out light bg-white text-slate-900",
-          isCollapsed ? "lg:grid-cols-[80px_1fr]" : "lg:grid-cols-[280px_1fr]"
-        )}
-        style={{ colorScheme: 'light' }}
-      >
-        <div className="hidden border-r bg-card text-card-foreground lg:block overflow-hidden h-screen">
-          <AdminSidebar isCollapsed={isCollapsed} onToggle={toggleSidebar} />
+      <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false}>
+        <div
+          className={cn(
+            "grid h-screen w-full overflow-hidden transition-all duration-300 ease-in-out bg-white text-slate-900",
+            isCollapsed ? "lg:grid-cols-[80px_1fr]" : "lg:grid-cols-[280px_1fr]"
+          )}
+        >
+          <div className="hidden border-r bg-slate-50 text-slate-900 lg:block overflow-hidden h-screen">
+            <AdminSidebar isCollapsed={isCollapsed} onToggle={toggleSidebar} />
+          </div>
+          <div className="flex flex-col min-w-0 h-screen overflow-hidden">
+            <AdminHeader onToggleSidebar={toggleSidebar} />
+            <main className="flex-1 overflow-y-auto overflow-x-hidden relative bg-slate-50/50" key={pathname}>
+              <div className="min-w-0 w-full max-w-full overflow-x-hidden p-4 md:p-8">
+                {children}
+              </div>
+            </main>
+          </div>
         </div>
-        <div className="flex flex-col min-w-0 h-screen overflow-hidden">
-          <AdminHeader onToggleSidebar={toggleSidebar} />
-          <main className="flex-1 overflow-y-auto overflow-x-hidden relative bg-background" key={pathname}>
-            <div className="min-w-0 w-full max-w-full overflow-x-hidden">
-              {children}
-            </div>
-          </main>
-        </div>
-      </div>
+      </ThemeProvider>
     </AdminGuard>
   )
 }
